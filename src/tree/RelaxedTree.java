@@ -1,0 +1,359 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package tree;
+
+import etc.Infos;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import javax.swing.tree.TreeModel;
+
+/**
+ * builds a tree from a PhyloTree with added fake nodes
+ * @author ben
+ */
+public class RelaxedTree extends PhyloTree {
+    
+    private static final long serialVersionUID = 2100L;
+    
+    //operational variables
+    public static final int BRANCHING_ON_NODE=1;
+    public static final int BRANCHING_ON_BRANCH=2;
+    public static final int BL_FROM_SUBTREE_MINMAX=100; //deprecated
+    public static final int BL_FROM_SUBTREE_MEAN=101;
+    
+    //default values
+    public static final double DEFAULT_BRANCHBREAK_LENGTH=0.01;
+    public static final int DEFAULT_N=1;
+    private int branchingMode=BRANCHING_ON_NODE;
+    private int newBranchLengthMode=BL_FROM_SUBTREE_MEAN;
+    private double branchbreakThreshold=DEFAULT_BRANCHBREAK_LENGTH;
+    private int N=DEFAULT_N;
+    
+    //variables used only in the search of longest/shortest branch
+    int level=0;
+    double l_DFS_cumul=0.0;
+    double longest=0.0;
+    double shortest=1e308; //init it to the highest possible double
+    int sum_B_leaves=0;
+    double l_sum_B_subtree=0.0;
+    
+    //list of new terminal nodes (will be used to add gap-only fake sequences
+    //to the alignment
+    int lastOriginalId=-1;
+    private int fakeNodeCounter=0;
+    ArrayList<PhyloNode> newLeaves=null;
+    
+    
+    /**
+     * Build a relaxed tree with new N nodes on branches (BRANCHING_ON_BRANCH mode)
+     * or one new node on nodes (not root)
+     * @param tree
+     * @param branchingMode one of BRANCHING_ON_NODE, BRANCHING_ON_BRANCH
+     */
+    public RelaxedTree(PhyloTree tree, int branchingMode ) {
+        super(tree.getModel());
+        this.branchingMode=branchingMode;
+        initRelaxedTree(tree, DEFAULT_BRANCHBREAK_LENGTH,DEFAULT_N);
+    }
+
+    /**
+     * Build a relaxed tree with N new nodes on branches (BRANCHING_ON_BRANCH mode)
+     * @param tree
+     * @param branchbreackThreshold branch length below which no nodes are added on the branch
+     * @param N number of fake nodes to add
+     */
+    public RelaxedTree(PhyloTree tree,double branchbreackThreshold,int N) {
+        super(tree.getModel());
+        this.branchingMode=BRANCHING_ON_BRANCH;
+        this.N=N;
+        initRelaxedTree(tree, branchbreackThreshold,N);
+    }
+    
+    /**
+     * return all the leaves that were created in this relaxed tree.
+     * @return 
+     */
+    public ArrayList<PhyloNode> getListOfNewFakeLeaves() {
+        return this.newLeaves;
+    }
+    
+    /**
+     * init the relaxed tree, used in constructors
+     * @param tree
+     * @param branchbreakThreshold 
+     * @param 
+     */
+    private void initRelaxedTree(PhyloTree tree,double branchbreakThreshold,int N) {
+        this.fakeNodeCounter=tree.getNodeCount();
+        this.lastOriginalId=fakeNodeCounter;
+        this.branchbreakThreshold=branchbreakThreshold;
+        this.newLeaves=new ArrayList<>();
+        Infos.println("# nodes in tree before extension: "+fakeNodeCounter);
+        switch (branchingMode) {
+            case BRANCHING_ON_NODE:
+                populateWithFakeBranchToNodes_DFS((PhyloNode)tree.getModel().getRoot());
+                break;
+            case BRANCHING_ON_BRANCH:
+                populateWithFakeBranchToEdges_DFS((PhyloNode)tree.getModel().getRoot());
+                break;
+            default:
+                Infos.println("Cannot instanciate relaxed tree: unknown mode.");
+                break;
+        }
+    }
+
+    /**
+     * add a node X and its 2 sons FakeX1 and FakeX2 to each internal node 
+     * of the original tree
+     * (to the exception of the root)
+     */
+    private void populateWithFakeBranchToNodes_DFS(PhyloNode node) {
+        // "<lastOriginalId" verify that node is nt one of the new fake nodes
+        if (!node.isLeaf() && node.getId()<lastOriginalId) {
+            fakeNodeCounter+=3;
+            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0);
+            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01);
+            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01);
+            //add the 2 fakes to X
+            X0.add(fakeX1);
+            X0.add(fakeX2);
+            newLeaves.add(fakeX1);
+            newLeaves.add(fakeX2);
+           
+            double lengthNew=0.0;
+            if (newBranchLengthMode==BL_FROM_SUBTREE_MINMAX) {
+                //calculate the shortest/longest branch length of X children subtrees
+                //first init the shortest/longest with branch length of X to children
+                l_DFS_cumul=0.0;
+                longest=0.0;
+                shortest=1e308;
+                getBLFromMinMax_DFS(node,0);
+                //System.out.println("    shortest after DFS search: "+shortest);
+                //System.out.println("    longest after DFS search: "+longest);
+                lengthNew=(longest-shortest)/2;
+            } else if (newBranchLengthMode==BL_FROM_SUBTREE_MEAN){
+                //mean build from cumulated path length divided by number
+                //of encountered leaves
+                l_DFS_cumul=0.0;
+                l_sum_B_subtree=0;
+                sum_B_leaves=0;
+                //System.out.println("### LAUNCH FROM "+node);
+                getBLFromMean_DFS(node,0);
+                lengthNew=(l_sum_B_subtree)/sum_B_leaves;
+                //System.out.println("    --> lengthNew="+lengthNew);
+
+            }
+            X0.setBranchLengthToAncestor(lengthNew);
+            
+            //finally, add X to current node
+            if (!node.isRoot())
+                node.add(X0);
+        }
+        
+        //go down recursively
+        for (int i=0;i<node.getChildCount();i++) {
+            PhyloNode child=(PhyloNode) node.getChildAt(i);
+            if (!child.getLabel().contains("FAKE"))         //TO DO, change this to a node attribute
+                populateWithFakeBranchToNodes_DFS(child);
+        }
+        
+    }
+        
+
+    /**
+     * add N nodes XN1 and their respective children XN2, FakeXN1 and FakeXN2
+     * to each internal branch of the original tree
+     * (to the exception of the root)
+     */
+    private void populateWithFakeBranchToEdges_DFS(PhyloNode node) {
+        
+//        System.out.println("### LAUNCH FROM "+node);
+//        System.out.println(lastOriginalId);
+//        System.out.println(node.getId()<lastOriginalId);
+//        System.out.println(!(node.getBranchLengthToAncestor()<=branchbreakThreshold));
+        
+
+        //memorize current parent and children
+        PhyloNode A=(PhyloNode)node.getParent();
+        PhyloNode B=node;
+//            System.out.println("   A:"+A);
+//            System.out.println("   B:"+B);
+
+        //go down recursively, after memorizing which were the inital children
+        Enumeration enumChildren = B.children();
+        ArrayList<PhyloNode> initialChildren=new ArrayList<>();
+        while (enumChildren.hasMoreElements()) {
+            PhyloNode Bi= (PhyloNode) enumChildren.nextElement();
+            initialChildren.add(Bi);  
+        }
+//        System.out.println("### LIST of B children: "+initialChildren);
+        for (int i = 0; i < initialChildren.size(); i++) {
+            PhyloNode Bi = initialChildren.get(i);
+//            System.out.println("### DFS LAUNCHED on "+Bi);
+            populateWithFakeBranchToEdges_DFS(Bi);
+//            System.out.println("### DFS RETURNS from "+Bi);  
+        }
+
+
+
+        if ((!node.isRoot()) && (((PhyloNode)node.getParent()).getId()<lastOriginalId) && (node.getId()<lastOriginalId) && (!(node.getBranchLengthToAncestor()<=branchbreakThreshold)) ) {
+
+            //define l_init and l_b for the current edge
+            double l_init=node.getBranchLengthToAncestor();
+            double l_b=(0.0+l_init)/(N+1);
+//                System.out.println("  l_init:"+l_init+" l_b:"+l_b);
+
+            //cut parent from children
+            A.remove(B);
+
+
+            //build and attach N fake nodes to parent and subsequent Xi
+            PhyloNode currentParent=A;
+            for (int j = 0; j < N; j++) {
+
+                //built subtree of the jth X0
+                fakeNodeCounter+=4;
+                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_FakeX0", 0.01);
+                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX1", 0.01);
+                PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX2", 0.01);
+                PhyloNode fakeX3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_FakeX3", 0.01);
+                X1.add(fakeX2);
+                X1.add(fakeX3);
+                X0.add(X1);
+                newLeaves.add(fakeX2);
+                newLeaves.add(fakeX3);
+
+                //define length left from this X0 to B
+                double l_XO_B=l_init-l_b*(j+1);
+                //define X0-X1 branch length
+                double l_new=0.0;
+                if (newBranchLengthMode==BL_FROM_SUBTREE_MINMAX) {
+                    //calculate the shortest/longest branch length of X children subtrees
+                    //first init the shortest/longest with branch length of X to children
+                    l_DFS_cumul=0.0;
+                    longest=0.0;
+                    shortest=1e308;
+                    getBLFromMinMax_DFS(B,0);
+                    l_new=((longest+N*l_b)-(shortest+N*l_b))/2;
+                } else if (newBranchLengthMode==BL_FROM_SUBTREE_MEAN){
+                    //mean build from cumulated path length divided by number
+                    //of encountered leaves
+                    l_DFS_cumul=0.0;
+                    l_sum_B_subtree=0;
+                    sum_B_leaves=0;
+                    //if this branch is from internal node to leaf
+                    //we will not define the XO-X1 length as the mean brnach
+                    //length of the subtree, but as l_b.
+                    if (!B.isLeaf()) {
+                        getBLFromMean_DFS(B,0);
+//                            System.out.println("     sum_B_leaves: "+sum_B_leaves);
+//                            System.out.println("     l_sum_B_subtree: "+l_sum_B_subtree);
+//                            System.out.println("     subtree_mean: "+((l_sum_B_subtree+0.0)/(sum_B_leaves+0.0)));
+                        l_new=(sum_B_leaves*l_XO_B+l_sum_B_subtree)/sum_B_leaves;
+                    } else {
+                        sum_B_leaves=1;
+                        l_new=l_b;
+                    }
+
+                }
+                //set branch lengths
+//                    System.out.println("     l_new (X0-X1): "+l_new);
+//                    System.out.println("     l parent-X0: "+l_b);
+//                    System.out.println("     l X0-B: "+l_XO_B);
+                X1.setBranchLengthToAncestor(l_new);
+                X0.setBranchLengthToAncestor(l_b);
+                //attach X0 to parent and move
+                currentParent.add(X0);
+                currentParent=X0;
+            }
+
+            //when all X0 are added, the last X0 to B
+            currentParent.add(B);
+            B.setBranchLengthToAncestor(l_init-l_b*N);  
+
+        }
+
+        //System.out.println("### AFTER NEW BRANCHING "+node);
+
+    }
+
+    
+    /**
+     * calculate a mean branch length from the subtree of a given node
+     * @param node 
+     */
+    private void getBLFromMean_DFS(PhyloNode node, int level) {
+        if(node.isLeaf()) {
+            //System.out.println("          LEAF:"+node);
+            l_sum_B_subtree+=l_DFS_cumul+node.getBranchLengthToAncestor();
+            sum_B_leaves+=1;
+            //System.out.println("          meanSum: "+meanSum);
+            //System.out.println("          meanLeaves: "+meanLeaves);
+        } else {
+            if (level>0) {
+                l_DFS_cumul+=node.getBranchLengthToAncestor();
+                //System.out.println("       cumul+:"+cumul);
+            } else {
+                l_DFS_cumul=0;
+                l_sum_B_subtree=0;
+                //System.out.println("       cumul to 0");
+            }
+            //go down recursively
+            for (int i=0;i<node.getChildCount();i++) {
+                PhyloNode child=(PhyloNode) node.getChildAt(i);
+                getBLFromMean_DFS(child,(level+1));
+            }
+            if (level>0) {
+                l_DFS_cumul-=node.getBranchLengthToAncestor();
+                //System.out.println("       cumul-:"+cumul);
+            }
+        }
+    }
+    
+    
+    
+    
+    /**
+     * retrieve longest and shortest path to leaves from a given node
+     * @param node
+     * @param level 
+     */
+    @Deprecated
+    private void getBLFromMinMax_DFS(PhyloNode node, int level) {
+        //System.out.println("       DFS_shortlong: "+node);
+        if(node.isLeaf()) {
+            //System.out.println("          LEAF:"+node);
+            double pathLength=l_DFS_cumul+node.getBranchLengthToAncestor();
+            //System.out.println("          pathLength: "+pathLength);
+            if ( pathLength > longest ) {
+                longest=pathLength;
+                //System.out.println("          UPDATE longest:"+pathLength);
+            }
+            if (pathLength < shortest ) {
+                shortest=pathLength;
+                //System.out.println("          UPDATE shortest:"+pathLength);
+            }
+        } else {
+            if (level>0) {
+                l_DFS_cumul+=node.getBranchLengthToAncestor();
+                //System.out.println("       cumul+:"+cumul);
+            }
+            //go down recursively
+            for (int i=0;i<node.getChildCount();i++) {
+                PhyloNode child=(PhyloNode) node.getChildAt(i);
+                getBLFromMinMax_DFS(child,(level+1));
+            }
+            if (level>0) {
+                l_DFS_cumul-=node.getBranchLengthToAncestor();
+                //System.out.println("       cumul-:"+cumul);
+            }
+        }
+    }
+        
+    
+    
+}

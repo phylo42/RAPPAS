@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment/>
+<entry key="org.netbeans.modules.profiler.v2.features.ObjectsFeature_SETTINGS_FLAG">true</entry>
+<entry key="org.netbeans.modules.profiler.v2.features.ObjectsFeature_SelectedClassesMode_ALLOCATIONS_FLAG">false</entry>
+<entry key="org.netbeans.modules.profiler.v2.features.ObjectsFeature_SelectedClassesMode_LIFECYCLE_FLAG">false</entry>
+<entry key="ACTIVATED_FEATURES">#org.netbeans.modules.profiler.v2.features.MonitorFeature@</entry>
+<entry key="org.netbeans.modules.profiler.v2.features.ObjectsFeature_SelectedClassesMode_LIMIT_ALLOCATIONS_FLAG">10</entry>
+<entry key="org.netbeans.modules.profiler.v2.features.ObjectsFeature_MODE_FLAG">AllClassesMode</entry>
+<entry key="org.netbeans.modules.profiler.v2.features.ObjectsFeature_SelectedClassesMode_SELECTION_FLAG">core.algos.WordGenerator,*, core.EstimatedWord,*, tree.PhyloTree,*, core.AbstractWord,*, core.QueryWord,*, core.algos.ProbaGenerator,*, tree.PhyloNode,*, tree.PhyloTreeModel,*, core.SimpleWord,*, core.Colmer,*, core.WordComparator,*, core.ColmerSet,*, </entry>
+</properties>

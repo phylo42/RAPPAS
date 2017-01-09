@@ -34,10 +34,11 @@ public class PhyloTree extends JTree implements Serializable {
     protected HashMap<Integer,PhyloNode> indexById=null;
     
     
-    //for DFS searches
+    //filled by DFS searches
     protected ArrayList<Integer> orderedLeavesIds=null;
     protected ArrayList<Integer> orderedNodesIds=null;
     protected ArrayList<Integer> orderedInternalNodesIds=null;
+    protected ArrayList<String> orderedNodesLabels=null;
 
     public PhyloTree() {
     }
@@ -53,6 +54,22 @@ public class PhyloTree extends JTree implements Serializable {
     public PhyloNode getById(int id) {
         return indexById.get(id);
     }
+    
+    /**
+     * Carefull! don't forget to relaunch initIndexes() after making several 
+     * ids updates
+     * @param oldId
+     * @param newId 
+     */
+    public void updateId(int oldId, int newId) {
+        if (!indexById.containsKey(oldId)) {
+            Infos.println("Id don't exists and cannot be updated.");
+            return;
+        }
+        PhyloNode n=getById(oldId);
+        
+    }
+    
     
     /**
      * count including internal nodes and leaves
@@ -127,19 +144,29 @@ public class PhyloTree extends JTree implements Serializable {
      * @param node
      * @return 
      */
-    public ArrayList<Integer> getNodesByDFS() {
+    public ArrayList<Integer> getNodeIdsByDFS() {
         return orderedNodesIds;
+    }
+    
+    /**
+     * all nodes, ordered through depth-first search from the root
+     * @param node
+     * @return 
+     */
+    public ArrayList<String> getLabelsByDFS() {
+        return orderedNodesLabels;
     }
     
     /**
      * init the indexes (node by name, id...)
      */
-    protected void initIndexes() {
+    public void initIndexes() {
         Infos.println("Building tree indexation");
         this.indexByName=new HashMap<>();
         this.indexById=new HashMap<>();
         this.orderedLeavesIds = new ArrayList<>();
         this.orderedNodesIds = new ArrayList<>();
+        this.orderedNodesLabels = new ArrayList<>();
         this.orderedInternalNodesIds = new ArrayList<>();
         this.nodeCount=0;
         this.leavesCount=0;
@@ -162,6 +189,7 @@ public class PhyloTree extends JTree implements Serializable {
             orderedInternalNodesIds.add(node.getId());
         }
         orderedNodesIds.add(node.getId());
+        orderedNodesLabels.add(node.getLabel());
         //go down recursively
         for (int i=0;i<node.getChildCount();i++) {
             PhyloNode child=(PhyloNode) node.getChildAt(i);

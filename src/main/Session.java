@@ -86,7 +86,7 @@ public class Session {
         Infos.println("wordLength: " + k);
         this.cs=new ColmerSet(align, tree, states,k,minK,samplingMode);
         Infos.println("Tree structure:");
-        ArrayList<Integer> orderedNodes = tree.getNodesByDFS();
+        ArrayList<Integer> orderedNodes = tree.getNodeIdsByDFS();
         for (int i = 0; i < orderedNodes.size(); i++) {
             Integer get = orderedNodes.get(i);
             PhyloNode n=tree.getById(get);
@@ -142,7 +142,7 @@ public class Session {
         Infos.println("wordLength: " + k);
         this.cs=new ColmerSet(align, tree, states,k,minK,samplingMode);
         Infos.println("Tree structure:");
-        ArrayList<Integer> orderedNodes = tree.getNodesByDFS();
+        ArrayList<Integer> orderedNodes = tree.getNodeIdsByDFS();
         for (int i = 0; i < orderedNodes.size(); i++) {
             Integer get = orderedNodes.get(i);
             PhyloNode n=tree.getById(get);

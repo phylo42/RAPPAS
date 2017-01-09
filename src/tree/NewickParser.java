@@ -34,7 +34,7 @@ import javax.swing.tree.DefaultTreeModel;
  */
 public class NewickParser {
     
-    private int currentElementIndex=1;
+    private int currentNodeIndex=0;
     //get root info name:length;
     private Pattern rootPattern= Pattern.compile("\\)([^\\)]*);$"); //*? to make it non greedy    
     //internal nodes infos are on the right of a subtree (subtree)name:length
@@ -50,7 +50,7 @@ public class NewickParser {
      * @return 
      */
     public PhyloTree parseNewickTree (String newickTree) {
-        currentElementIndex=1;
+        currentNodeIndex=0;
         level=0;
 //        long startTime = System.currentTimeMillis();
         //we will initialize the root immediately during the newick parsing
@@ -71,16 +71,16 @@ public class NewickParser {
 
         //the last element, with ';' is the root infos (label, branch length)
         if (name.equals("") && len.equals("")) {
-            root=new PhyloNode(1, "root",0.0);
+            root=new PhyloNode(0, "root",0.0);
             rootStringLen=1; //only ;
         } else if (len.equals("")) {
-            root=new PhyloNode(1, name,0.0);
+            root=new PhyloNode(0, name,0.0);
             rootStringLen=name.length()+1; //name;
         } else if (name.equals("")) {
-            root=new PhyloNode(1, "root", Double.parseDouble(len));
+            root=new PhyloNode(0, "root", Double.parseDouble(len));
             rootStringLen=1+len.length()+1; //:len;
         } else {
-            root=new PhyloNode(1, "root", 0.0);
+            root=new PhyloNode(0, "root", 0.0);
             rootStringLen=name.length()+1+len.length()+1; //name:len;
         }
         
@@ -127,7 +127,7 @@ public class NewickParser {
      * @throws java.io.IOException 
      */
     public void writeNewickTree(PhyloTree tree, File fileName,boolean withBranchLength, boolean writeInternalNodeNames) throws IOException {
-        currentElementIndex=1;
+        currentNodeIndex=0;
         level=0;
         Infos.println("Writing newick tree...");
         try (FileWriter fw = new FileWriter(fileName)) {
@@ -255,9 +255,9 @@ public class NewickParser {
                     }
                     PhyloNode internalNode=null;
                     if (!len.equals("")) {
-                        internalNode=new PhyloNode(++currentElementIndex,name,Double.parseDouble(len));
+                        internalNode=new PhyloNode(++currentNodeIndex,name,Double.parseDouble(len));
                     } else {
-                        internalNode=new PhyloNode(++currentElementIndex,name,0.1);
+                        internalNode=new PhyloNode(++currentNodeIndex,name,0.1);
                     }
                     parent.add(internalNode);
                     //remove the node info, just send the subtree to next recursive call
@@ -293,9 +293,9 @@ public class NewickParser {
                     }
                     PhyloNode leaf=null;
                     if (!len.equals("")) {
-                        leaf=new PhyloNode(++currentElementIndex,name,Double.parseDouble(len));
+                        leaf=new PhyloNode(++currentNodeIndex,name,Double.parseDouble(len));
                     } else {
-                        leaf=new PhyloNode(++currentElementIndex,name,0.1);
+                        leaf=new PhyloNode(++currentNodeIndex,name,0.1);
                     }
                     //System.out.println("   LEAFnodeInfo: name='"+name+"':len='"+len+"'");
                     parent.add(leaf);

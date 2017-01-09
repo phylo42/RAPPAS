@@ -48,7 +48,7 @@ public class QueryWord extends AbstractWord implements Word, Serializable {
 
     @Override
     public String toString() {
-        return Arrays.toString(word)+":"+originalPosition;
+        return Arrays.toString(word)+";originalPosition="+originalPosition;
     }
     
    

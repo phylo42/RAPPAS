@@ -20,7 +20,9 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     private static final long serialVersionUID = 2010L;
 
     //node  metadata
-    private int id=-1;
+    private int id=-1; //nodeId internal to the program
+    private int externalId=-1;//to memorize the id that the node had eventually
+    //in the external program used to build the posterior probabilites.
     private String label=null;
     private double branchLengthToAncestor=0.0;    
     
@@ -52,9 +54,13 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     public int getId() {
         return id;
     }
-
-    public void setId(int id) {
-        this.id = id;
+    
+    public void setExternalId(int externalId) {
+        this.externalId=externalId;
+    }
+    
+    public int getExternalId() {
+        return this.externalId;
     }
     
     public String getLabel() {
@@ -88,7 +94,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         NumberFormat nf=NumberFormat.getNumberInstance();
         nf.setMaximumFractionDigits(6);
         //return this.hashCode()+" id:"+id+" label:"+label+" bl:"+nf.format(branchLengthToAncestor);
-        return "id:"+id+" label:"+label+" bl:"+nf.format(branchLengthToAncestor)+" isLeaf:"+isLeaf();
+        return "id:"+id+" extId:"+externalId+" label:"+label+" bl:"+nf.format(branchLengthToAncestor);
     }
 
     

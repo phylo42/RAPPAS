@@ -184,7 +184,7 @@ public class Main_pplacer_demoset {
                     int nodeStep=3;
                     byte[] word = qw.getWord();
                     PProbas P=S.parsedProbas;
-                    ArrayList<Integer> nodesByDFS = S.tree.getNodesByDFS();
+                    ArrayList<Integer> nodesByDFS = S.tree.getNodeIdsByDFS();
                     //ArrayBlockingQueue<Double> queue =new ArrayBlockingQueue(k, false);
                     
                     HashMap<Integer,ArrayList<Double>> sums=new HashMap<>(S.parsedProbas.getNodeCount());

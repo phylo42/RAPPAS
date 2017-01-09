@@ -9,6 +9,7 @@ import core.DNAStates;
 import core.QueryWord;
 import core.States;
 import core.Word;
+import etc.Infos;
 import inputs.Fasta;
 import java.util.Arrays;
 import java.util.List;
@@ -23,14 +24,21 @@ import java.util.Random;
  */
 public class ReadKnife {
     
-    
-    //done through the shuffling of the table merOrder
+    /**
+     * done through the shuffling of the table merOrder
+     */
     final public static int SAMPLING_STOCHASTIC=1; 
-    //ie, [0,k],[1,k+1],[2,k+2], ... [n,k+n]
+    /**
+     * ie, [0,k],[1,k+1],[2,k+2], ... [n,k+n]
+     */
     final public static int SAMPLING_LINEAR=2;
-    //ie, [0,k],[k,2k],[2k,3k], ... ,[1,k+1],[k+1,2K+1], ... ,[2,k+2],[k+2,2k+2]
+    /**
+     * ie, [0,k],[k,2k],[2k,3k], ... ,[1,k+1],[k+1,2K+1], ... ,[2,k+2],[k+2,2k+2]
+     */
     final public static int SAMPLING_SEQUENTIAL=3;
-    //ie, [0,k],[k+1,2k],[k+3,3k]
+    /**
+     * ie, [0,k],[k+1,2k],[2k+1,3k],...
+     */
     final public static int SAMPLING_NON_OVERLAPPING=4;
     
     private Long seed=null;
@@ -109,29 +117,33 @@ public class ReadKnife {
         for (int i = 0; i < seq.length(); i++) {
             sequence[i]=s.stateToByte(seq.charAt(i));
         }
+        //Infos.println("Binary seq: "+Arrays.toString(sequence));
         Arrays.fill(merOrder, 0);
         switch (samplingMode) {
             case SAMPLING_LINEAR:
+                merOrder=new int[seq.length()];
                 for (int i = 0; i < merOrder.length; i++) {
                     merOrder[i]=i;
                 }
                 break;
             case SAMPLING_NON_OVERLAPPING:
-                merOrder=new int[seq.length()/k];
+                merOrder=new int[(seq.length()/k)+1];
                 for (int i = 0; i < seq.length(); i++) {
                     if (i%k==0) {
-                        //TO DO: change table size
                         merOrder[i/k]=i;
                     }
                 }
                 break;
             case SAMPLING_STOCHASTIC:
+                merOrder=new int[seq.length()];
                 shuffledMerOrder();
                 break;
             case SAMPLING_SEQUENTIAL:
+                merOrder=new int[seq.length()];
                 sequencialMerOrder();
                 break;
             default:
+                Infos.println("Sampling mode not_recognized !");
                 break;
         }
     }
@@ -151,12 +163,11 @@ public class ReadKnife {
      * @return the next mer as a @Word, null is no more mers to return
      */
     public QueryWord getNextWord() {
-        
         if (iterator>merOrder.length-1) {
             return null;
         }
         int currentPosition=merOrder[iterator];
-        int charactersLeft=merOrder.length-currentPosition;
+        int charactersLeft=sequence.length-currentPosition;
         if (charactersLeft>=minK) {
             byte[] word=null;
             if (charactersLeft<k) {
@@ -165,15 +176,15 @@ public class ReadKnife {
                 word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+k);
             }
             iterator++;
-            return new QueryWord(word, iterator-1);
+            return new QueryWord(word, currentPosition);
             
         } else {
-            //this allow to skipped words that are too short but in the middle
-            //of the mer ordering, we just skip them and go to the next one.
+            //Infos.println("Skip word on position "+currentPosition+": length < minK !");
+            //this allow to skip words that are too short but in the middle
+            //of the shuffled mer order, we just skip them and go to the next one.
             iterator++;
-            getNextWord();
+            return getNextWord();
         }
-        return null;
     }
     
     /**

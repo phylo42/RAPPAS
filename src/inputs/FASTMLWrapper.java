@@ -16,7 +16,7 @@ import java.io.InputStreamReader;
 import tree.PhyloTree;
 
 /**
- *
+ * 
  * @author ben
  */
 public class FASTMLWrapper implements DataWrapper {

@@ -16,7 +16,8 @@ public class PProbas implements Serializable {
     
     private static final long serialVersionUID = 3000L;
     
-    double[][][] pp=null; //[nodeid][site][state]
+    double[][][] pp=null; //[nodeIndex][site][state]
+    //note that the index of a node is defined through its DFS pre_order
 
     public PProbas(int nodeCount, int siteCount, int stateCount) {
         pp=new double[nodeCount][siteCount][stateCount];
@@ -47,13 +48,5 @@ public class PProbas implements Serializable {
         return pp[0].length;
     }
     
-    
-    /**
-     * flatten the probas by applying a rounding to 1e-(rank)
-     * @param rank 
-     */
-    public void simplifyByRounding (int rank) {
-        
-    }
     
 }

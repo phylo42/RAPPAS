@@ -125,11 +125,7 @@ public class Alignment implements Serializable {
     }
     
     public int getLength() {
-        if (charMatrix.length>0) {
-            return charMatrix[0].length;
-        } else {
-            return 0;
-        }
+        return charMatrix[0].length;
     }
     
 
@@ -174,10 +170,10 @@ public class Alignment implements Serializable {
     
     public String describeAlignment(boolean extended) {
         StringBuilder sb=new StringBuilder();
-        sb.append("Dimension: "+charMatrix[0].length+"x"+charMatrix.length+" (colxline)\n");
-        if (partitions!=null) {
-            sb.append("Partitions: "+partitions.size()+"\n");
-            if (extended) {
+        sb.append("Dimension: "+charMatrix[0].length+"x"+charMatrix.length+" (colxline)");
+        if (extended) {
+            if (partitions!=null) {
+                sb.append("\nPartitions: "+partitions.size()+"\n");
                 for (int i = 0; i < partitions.size(); i++) {
                     sb.append("P"+i+" :"+partitions.get(i)+"\n");
                 }
@@ -186,12 +182,11 @@ public class Alignment implements Serializable {
                     sb.append("YES\n");
                 } else {
                     sb.append("NO\n");
-                }
+                } 
+            }else {
+                sb.append(" Partitions: none");
             }
-        } else {
-            sb.append("Partitions: none\n");
-        }
-        
+        } 
         return sb.toString();
     }
     

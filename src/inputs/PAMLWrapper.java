@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import tree.NewickParser;
+import tree.NewickReader;
 import tree.PhyloTree;
 
 /**
@@ -87,22 +87,22 @@ public class PAMLWrapper implements DataWrapper {
             }        
         }
         br.close();
-        System.out.println(originalTreeString);
-        System.out.println(thirdTreeString);
+        //System.out.println(originalTreeString);
+        //System.out.println(thirdTreeString);
         
         //the tree parsing will be done in 2 phases, the 1st tree in the rst file
         //(has branch length), then the 3rd tree in the rst file (has node ids
         //from PAML, necessary to associate posterior probas).
         
         //the 1st tree is the original input tree, with branch length
-        NewickParser np=new NewickParser();
+        NewickReader np=new NewickReader();
         if (originalTreeString!=null) {
             this.tree=np.parseNewickTree(originalTreeString);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //now we parse the second tree
         PhyloTree thirdTree=null;
-        np=new NewickParser();
+        np=new NewickReader();
         if (originalTreeString!=null) {
             thirdTree=np.parseNewickTree(thirdTreeString);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
@@ -130,8 +130,8 @@ public class PAMLWrapper implements DataWrapper {
         return this.tree;
     }
     
-@Override
-    public PProbas parseProbas(InputStream input) throws IOException {
+    @Override
+    public PProbas parseProbas(InputStream input, double sitePPThreshold) throws IOException {
         
         PProbas matrix=new PProbas(tree.getNodeCount(), align.getLength(), states.getStateCount());
         
@@ -173,6 +173,8 @@ public class PAMLWrapper implements DataWrapper {
                         //substring(2,length-1) to remove A( and last )
                         double val=Double.parseDouble(infos[i].substring(2, infos[i].length()-1)); //substring(2,length-1) to remove last )
                         //System.out.println("Infos parsed: "+nodeId+","+site+","+stateIndex+","+val);
+                        if (val<sitePPThreshold)
+                            val=sitePPThreshold;
                         matrix.setState(nodeId, site, stateIndex, val);
                     }
                 } catch (java.lang.NumberFormatException ex) {

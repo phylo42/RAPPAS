@@ -22,7 +22,7 @@ import java.util.Random;
  * of matches and mismatches.
  * @author ben
  */
-public class ReadKnife {
+public class QueryKnife {
     
     /**
      * done through the shuffling of the table merOrder
@@ -58,7 +58,7 @@ public class ReadKnife {
      * @param minK
      * @param s 
      */
-    public ReadKnife(Fasta f, int k, int minK, States s) {
+    public QueryKnife(Fasta f, int k, int minK, States s) {
         this.k=k;
         this.minK=minK;
         this.s=s;
@@ -73,7 +73,7 @@ public class ReadKnife {
      * @param minK
      * @param s 
      */
-    public ReadKnife(String seq, int k, int minK, States s) {
+    public QueryKnife(String seq, int k, int minK, States s) {
         this.k=k;
         this.minK=minK;
         this.s=s;
@@ -88,7 +88,7 @@ public class ReadKnife {
      * @param s
      * @param samplingMode 
      */
-    public ReadKnife(String seq, int k, int minK, States s, int samplingMode) {
+    public QueryKnife(String seq, int k, int minK, States s, int samplingMode) {
         this.k=k;
         this.minK=minK;
         this.s=s;
@@ -103,7 +103,7 @@ public class ReadKnife {
      * @param s
      * @param samplingMode 
      */
-    public ReadKnife(Fasta f, int k, int minK, States s, int samplingMode) {
+    public QueryKnife(Fasta f, int k, int minK, States s, int samplingMode) {
         this.k=k;
         this.minK=minK;
         this.s=s;
@@ -234,12 +234,12 @@ public class ReadKnife {
     
     
     public static void main(String[] args) {
-        ReadKnife knife=new ReadKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), ReadKnife.SAMPLING_SEQUENTIAL);
+        QueryKnife knife=new QueryKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), QueryKnife.SAMPLING_SEQUENTIAL);
         System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new ReadKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), ReadKnife.SAMPLING_STOCHASTIC);
+        knife=new QueryKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), QueryKnife.SAMPLING_STOCHASTIC);
         knife.forceSeed(12345);
         System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new ReadKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), ReadKnife.SAMPLING_LINEAR);
+        knife=new QueryKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), QueryKnife.SAMPLING_LINEAR);
         System.out.println(Arrays.toString(knife.getMerOrder()));
         
         QueryWord w=null;

@@ -17,7 +17,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import tree.NewickParser;
+import tree.NewickReader;
 import tree.PhyloTree;
 
 /**
@@ -115,7 +115,7 @@ public class InputManager {
             Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
             //probas
             startTime = System.currentTimeMillis();
-            this.probas = pw.parseProbas(new FileInputStream(probasFile));
+            this.probas = pw.parseProbas(new FileInputStream(probasFile),1e-6);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of probas used " + (endTime - startTime) + " ms");
         } else if (this.currentActiveSource==SOURCE_FASTML) {
@@ -132,14 +132,14 @@ public class InputManager {
             Infos.println("Loading of alignment used " + (endTime - startTime) + " ms");
             //tree
             startTime = System.currentTimeMillis();
-            NewickParser np=new NewickParser();
+            NewickReader np=new NewickReader();
             this.tree = np.parseNewickTree(treeFile);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
             //probas
             startTime = System.currentTimeMillis();
             FASTMLWrapper fw=new FASTMLWrapper(align, tree, s);
-            this.probas = fw.parseProbas(new FileInputStream(probasFile));
+            this.probas = fw.parseProbas(new FileInputStream(probasFile),1e-6);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of probas used " + (endTime - startTime) + " ms");
         } 

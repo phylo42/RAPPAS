@@ -13,7 +13,7 @@ import core.EstimatedWord;
 import core.PProbas;
 import core.States;
 import core.Word;
-import core.algos.ReadKnife;
+import core.algos.QueryKnife;
 import core.algos.WordGenerator;
 import etc.Environement;
 import etc.Infos;
@@ -217,7 +217,7 @@ public class Session {
             if (readCounter>limit) {break;}
             
             System.out.println("Read: "+fasta.getHeader()+"\n"+fasta.getSequence());
-            ReadKnife knife=new ReadKnife(fasta.getSequence(),k , minK, new DNAStates(), ReadKnife.SAMPLING_LINEAR);
+            QueryKnife knife=new QueryKnife(fasta.getSequence(),k , minK, new DNAStates(), QueryKnife.SAMPLING_LINEAR);
             System.out.println("Mer order"+Arrays.toString(knife.getMerOrder()));
             Word w=null;
             while (( w=knife.getNextWord())!=null) {

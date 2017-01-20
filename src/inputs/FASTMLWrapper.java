@@ -39,7 +39,7 @@ public class FASTMLWrapper implements DataWrapper {
     }
     
     
-    public PProbas parseProbas(InputStream input) throws IOException {
+    public PProbas parseProbas(InputStream input, double sitePPThreshold) throws IOException {
         
         PProbas matrix=new PProbas(tree.getNodeCount(), align.getLength(), states);
         
@@ -70,7 +70,10 @@ public class FASTMLWrapper implements DataWrapper {
                 try {
                     for (int i=2;i<infos.length;i++) {
                         //thestate order from DNStates is the same as in the FastMl output, no need to change it
-                        matrix.setState(nodeId, site, i-2, Double.parseDouble(infos[i]));
+                        double d=Double.parseDouble(infos[i]);
+                        if (d<sitePPThreshold)
+                            d=sitePPThreshold;
+                        matrix.setState(nodeId, site, i-2, d);
                     }
                 } catch (java.lang.NumberFormatException ex) {
                     Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states));

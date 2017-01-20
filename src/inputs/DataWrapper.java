@@ -25,5 +25,5 @@ public interface DataWrapper {
      * @throws FileNotFoundException
      * @throws IOException 
      */    
-    public PProbas parseProbas(InputStream input) throws IOException;
+    public PProbas parseProbas(InputStream input, double sitePPThreshold) throws IOException;
 }

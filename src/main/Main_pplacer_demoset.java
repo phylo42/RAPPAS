@@ -11,7 +11,7 @@ import core.DNAStates;
 import core.PProbas;
 import core.QueryWord;
 import core.States;
-import core.algos.ReadKnife;
+import core.algos.QueryKnife;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
@@ -51,9 +51,9 @@ public class Main_pplacer_demoset {
         
         ////////////////////////
         //TEST BASIC PPLACER DEMO
-        File alignmentFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s/bv_refs_aln.fasta");
-        File treeFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s/rst");
-        File probaFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s/rst");
+        File alignmentFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/bv_refs_aln.fasta");
+        File treeFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/rst");
+        File probaFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/rst");
         File readsFile=new File("/media/ben/STOCK/SOFTWARE/pplacer-Linux-v1.1.alpha18-2-gcb55169/fhcrc-microbiome-demo-730d268/src/p4z1r36.fasta");
         //File merDBFile=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s/pplacer_demoset_params_"+k+"_"+k+"_1e-6_1e-6");
         System.out.println("###################################################");
@@ -163,7 +163,7 @@ public class Main_pplacer_demoset {
                 //generate SAMPLING_NON_OVERLAPPING mers from ReadKnife
                 System.out.println("################################################");
                 System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
-                ReadKnife knife=new ReadKnife(fasta, k, S.minK, S.states,ReadKnife.SAMPLING_NON_OVERLAPPING);
+                QueryKnife knife=new QueryKnife(fasta, k, S.minK, S.states,QueryKnife.SAMPLING_NON_OVERLAPPING);
                 System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
 
                 System.exit(1);

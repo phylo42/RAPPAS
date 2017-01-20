@@ -32,7 +32,7 @@ import javax.swing.tree.DefaultTreeModel;
  * 
  * @author ben
  */
-public class NewickParser {
+public class NewickReader {
     
     private int currentNodeIndex=0;
     //get root info name:length;
@@ -119,78 +119,7 @@ public class NewickParser {
         return tree;
     }
     
-    /**
-     * write a phylotree as a newick tree
-     * @param tree
-     * @param fileName 
-     * @param withBranchLength 
-     * @throws java.io.IOException 
-     */
-    public void writeNewickTree(PhyloTree tree, File fileName,boolean withBranchLength, boolean writeInternalNodeNames) throws IOException {
-        currentNodeIndex=0;
-        level=0;
-        Infos.println("Writing newick tree...");
-        try (FileWriter fw = new FileWriter(fileName)) {
-            PhyloNode root=(PhyloNode)tree.getModel().getRoot();
-            StringBuilder sb = new StringBuilder();
-            sb = writerDFS(root,sb,withBranchLength,writeInternalNodeNames);
-            fw.append(sb);
-        }
-        Infos.println("Tree saved: "+fileName.getAbsolutePath());
-        
-    }
-    
-    /**
-     * depth first search used by the newick writer
-     * @param node 
-     * @param sb
-     * @param withBranchLength
-     */
-    private StringBuilder writerDFS(PhyloNode node, StringBuilder sb, boolean withBranchLength, boolean writeInternalNodeNames) {
-        
-        //start this level
-        sb.append("(");
-        int childrenLeft=node.getChildCount();
-        //System.out.println("   current node: "+node);
-        for (Enumeration e=node.children();e.hasMoreElements();) {
-            //System.out.println("   childrenLeft"+childrenLeft);
-            childrenLeft-=1; 
-            PhyloNode currentNode=(PhyloNode)e.nextElement();
-            if (currentNode.isLeaf()) {
-                sb.append(currentNode.getLabel());
-                if(withBranchLength) {
-                    sb.append(":");
-                    sb.append(currentNode.getBranchLengthToAncestor());
-                }
-            } else {
-                //System.out.println("LEVEL "+level+" TO "+(++level));
-                writerDFS(currentNode,sb,withBranchLength,writeInternalNodeNames);
-                //System.out.println("RETURN TO "+(--level) +"  (node:"+node+")");
-            }
-            //return from recusion or simple leaf,
-            //add ',' if more children
-            //close level with current node info if no children left
-            if (childrenLeft>0) {
-                sb.append(",");
-            } else {
-                sb.append(")");
-                if(writeInternalNodeNames) {
-                    sb.append(node.getLabel());
-                }
-                if (withBranchLength) {
-                    sb.append(":");
-                    sb.append(node.getBranchLengthToAncestor());
-                }
-            }
-        }
-        //close the string with a ';' after all root children were passed
-        if (node.isRoot() && childrenLeft<1) {
-            sb.append(";"); 
-        }
-        
-        //System.out.println(sb+"\n");
-        return sb;
-    }
+   
     
     
     
@@ -339,20 +268,9 @@ public class NewickParser {
         
         //test parsing
         long startTime = System.currentTimeMillis();
-        PhyloTree t=new NewickParser().parseNewickTree(treeFASTML);
+        PhyloTree t=new NewickReader().parseNewickTree(treeFASTML);
         long endTime = System.currentTimeMillis();
         System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
-
-        //test writing
-        startTime = System.currentTimeMillis();
-        try {
-            new NewickParser().writeNewickTree(t, new File("test_fake.tree"),true,true);
-        } catch (IOException ex) {
-            Logger.getLogger(NewickParser.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        endTime = System.currentTimeMillis();
-        System.out.println("Writing took " + (endTime - startTime) + " milliseconds");
-        
         
         
         JFrame f=new JFrame();

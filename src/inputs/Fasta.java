@@ -5,6 +5,10 @@
  */
 package inputs;
 
+import core.Word;
+import core.algos.JenkinsHash;
+import java.util.Arrays;
+
 /**
  * Fasta representation, not that the '' is not in the header
  * @author ben
@@ -38,7 +42,30 @@ public class Fasta {
     public String getFormatedFasta() {
         return ">"+header+"\n"+sequence;
     }
-    
-    
+
+    /**
+     * Note overriding hascode() obliges to override equals()\n
+     * If note, many functions of the JDK will behave inconsistently
+     * @param obj
+     * @return 
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (obj == this) return true;
+        if (!(obj instanceof Fasta))return false;
+        Fasta otherObj = (Fasta)obj;
+        return this.sequence.equals(otherObj.getSequence());
+    }
+
+    /**
+     * Note overriding hascode() obliges to override equals()\n
+     * If note, many functions of the JDK will behave inconsistently
+     * @return 
+     */
+    @Override
+    public int hashCode() {
+        return JenkinsHash.hash32(this.sequence.getBytes(), 1);
+    }
     
 }

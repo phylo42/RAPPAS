@@ -15,7 +15,7 @@ import core.Locality;
 import core.Locality.Tuple;
 import core.QueryWord;
 import core.States;
-import core.algos.ReadKnife;
+import core.algos.QueryKnife;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
@@ -215,7 +215,7 @@ public class Main_fakebranch_tests {
 
             System.out.println("################################################");
             System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
-            ReadKnife knife=new ReadKnife(fasta, session.k, session.minK, session.states,ReadKnife.SAMPLING_LINEAR);
+            QueryKnife knife=new QueryKnife(fasta, session.k, session.minK, session.states,QueryKnife.SAMPLING_LINEAR);
             //System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
             long startTime=System.currentTimeMillis();
             //init the Z axis (PP*) to very small values for all possible (X,Y)

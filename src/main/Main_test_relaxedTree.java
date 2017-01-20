@@ -14,7 +14,7 @@ import core.DNAStates;
 import core.Locality;
 import core.QueryWord;
 import core.States;
-import core.algos.ReadKnife;
+import core.algos.QueryKnife;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
@@ -40,7 +40,8 @@ import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RefineryUtilities;
-import tree.NewickParser;
+import tree.NewickReader;
+import tree.NewickWriter;
 import tree.PhyloNode;
 import tree.PhyloTree;
 import tree.RelaxedTree;
@@ -89,7 +90,7 @@ public class Main_test_relaxedTree {
             Alignment align=new Alignment(fastas);
             
             //parse tree
-            NewickParser np=new NewickParser();
+            NewickReader np=new NewickReader();
             PhyloTree tree = np.parseNewickTree(t_used);
             System.out.println(tree.getNodeCount());            
             
@@ -299,7 +300,7 @@ public class Main_test_relaxedTree {
 
             System.out.println("################################################");
             System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
-            ReadKnife knife=new ReadKnife(fasta, session.k, session.minK, session.states,ReadKnife.SAMPLING_LINEAR);
+            QueryKnife knife=new QueryKnife(fasta, session.k, session.minK, session.states,QueryKnife.SAMPLING_LINEAR);
             //System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
             long startTime=System.currentTimeMillis();
             //init the Z axis (PP*) to very small values for all possible (X,Y)
@@ -556,8 +557,8 @@ public class Main_test_relaxedTree {
 
         session.tree.displayTree();
         
-        NewickParser np2=new NewickParser();
-        np2.writeNewickTree(session.tree, new File("phylotree.tree"), true, true);
+        NewickWriter np2=new NewickWriter(new File("phylotree.tree"));
+        np2.writeNewickTree(session.tree, true, true, false);
         np2=null;
         
         

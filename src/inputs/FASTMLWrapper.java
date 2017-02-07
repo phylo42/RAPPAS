@@ -39,7 +39,7 @@ public class FASTMLWrapper implements DataWrapper {
     }
     
     
-    public PProbas parseProbas(InputStream input, double sitePPThreshold) throws IOException {
+    public PProbas parseProbas(InputStream input, float sitePPThreshold, boolean asLog10) throws IOException {
         
         PProbas matrix=new PProbas(tree.getNodeCount(), align.getLength(), states);
         
@@ -70,16 +70,22 @@ public class FASTMLWrapper implements DataWrapper {
                 try {
                     for (int i=2;i<infos.length;i++) {
                         //thestate order from DNStates is the same as in the FastMl output, no need to change it
-                        double d=Double.parseDouble(infos[i]);
+                        float d=Float.parseFloat(infos[i]);
                         if (d<sitePPThreshold)
                             d=sitePPThreshold;
-                        matrix.setState(nodeId, site, i-2, d);
+                        if (asLog10)
+                            matrix.setState(nodeId, site, i-2, (float)Math.log10(d));
+                        else
+                            matrix.setState(nodeId, site, i-2, d);
                     }
                 } catch (java.lang.NumberFormatException ex) {
                     Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states));
                     //for now, simple hack, set probabilities to 1/states (DNA)
                     for (int i=0;i<states;i++) {
-                        matrix.setState(nodeId, site, i, (1.0/states));
+                        if (asLog10)
+                            matrix.setState(nodeId, site, i, (float)Math.log10(1.0f/states) );
+                        else
+                            matrix.setState(nodeId, site, i, (1.0f/states));
                     }
                     //ex.printStackTrace();
                     //br.close();

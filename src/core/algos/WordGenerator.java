@@ -7,14 +7,11 @@ package core.algos;
 
 import core.Colmer;
 import core.ColmerSet;
-import core.EstimatedWord;
+import core.ProbabilisticWord;
 import core.SimpleWord;
 import etc.Environement;
-import etc.Infos;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Vector;
 import tree.PhyloNode;
 
 /**
@@ -23,8 +20,8 @@ import tree.PhyloNode;
  */
 public class WordGenerator {
     
-    double[] wordProbas=null;
-    ArrayList<Double> wordProbas2=null;
+    float[] wordProbas=null;
+    ArrayList<Float> wordProbas2=null;
 
     public WordGenerator() {
         
@@ -55,11 +52,11 @@ public class WordGenerator {
         
     }
     @Deprecated
-    public double[] getAssociatedProbas() {
+    public float[] getAssociatedProbas() {
         return wordProbas;
     }
     @Deprecated
-    public ArrayList<Double> getAssociatedProbas2() {
+    public ArrayList<Float> getAssociatedProbas2() {
         return wordProbas2;
     }
     
@@ -113,7 +110,7 @@ public class WordGenerator {
      * @return the list of generated words, which survived the tresholds
      */
     @Deprecated
-    public byte[][] generateProbableWords(double[][] ppSet, double stateTreshold, boolean generateProbas, double wordTreshold) {
+    public byte[][] generateProbableWords(float[][] ppSet, double stateTreshold, boolean generateProbas, double wordTreshold) {
 
         int wordsCounter=0;
         
@@ -147,7 +144,7 @@ public class WordGenerator {
         //set the array to the number of words that will be tested
         byte[][] words=new byte[testedWordCount][alphabet.length];
         if (generateProbas) {
-            wordProbas=new double[words.length];
+            wordProbas=new float[words.length];
         }
         
         //launch algo
@@ -160,7 +157,7 @@ public class WordGenerator {
         //int loop=0;
         while(true) {
             byte[] word=new byte[wordLength];
-            double proba=1.0;
+            float proba=1.0f;
             //build the word and its prob product from the current index
             for (int i = 0; i<wordLength; ++i) { 
                 word[i] = alphabet[index[i]];
@@ -208,7 +205,7 @@ public class WordGenerator {
      * @return the list of generated words, which survived the tresholds
      */
     @Deprecated
-    public ArrayList<byte[]> generateProbableWords2(double[][] ppSet, double stateTreshold, boolean generateProbas, double wordTreshold) {
+    public ArrayList<byte[]> generateProbableWords2(float[][] ppSet, double stateTreshold, boolean generateProbas, double wordTreshold) {
         
         //set alphabet directly from ppSet, for dna = {1,2,3,4}
         byte[] alphabet=new byte[ppSet[0].length];
@@ -272,7 +269,7 @@ public class WordGenerator {
             
             
             byte[] word=new byte[wordLength];
-            double proba=1.0;
+            float proba=1.0f;
             //build the word and its prob product from the current index
             for (int i = 0; i<wordLength; ++i) { 
                 word[i] = alphabet[index[i]];
@@ -344,9 +341,9 @@ public class WordGenerator {
      * @param ppSet table of posterior probabilities  ppSet[nodeId][stateProba], ex: ppSet[23][3], pp of state c for node with id 23
      * @param stateProbaTreshold minimum pp value for a state being considered
      * @param wordProbaTreshold minimum pp* for returning a word.
-     * @return the list of generated words, which survived the tresholds
+     * @return the list of generated words, which survived the thresholds
      */
-    public ArrayList<EstimatedWord> generateProbableWords3(double[][] ppSet, double stateProbaTreshold, double wordProbaTreshold) {
+    public ArrayList<ProbabilisticWord> generateProbableWords3(int refPosition, float[][] ppSet, double stateProbaTreshold, double wordProbaTreshold) {
         
         //set alphabet directly from ppSet, for dna = {1,2,3,4}
         byte[] alphabet=new byte[ppSet[0].length];
@@ -382,7 +379,7 @@ public class WordGenerator {
         //I was initally using testedWordCount as the maximum size, but this is
         //a memory killer for nothing...
         int initalCapacity=10000;
-        ArrayList<EstimatedWord> words=new ArrayList(initalCapacity);
+        ArrayList<ProbabilisticWord> words=new ArrayList(initalCapacity);
 
         //launch algo
         // note that we generat the words from right to left,
@@ -393,15 +390,17 @@ public class WordGenerator {
         
         while(true) {
             byte[] word=new byte[wordLength];
-            double proba=1.0;
+            float proba=1.0f;
             //build the word and its prob product from the current index
             for (int i = 0; i<wordLength; ++i) { 
                 word[i] = alphabet[index[i]];
                 proba=proba*ppSet[i][index[i]];
+                if (proba<wordProbaTreshold) 
+                    break;
             }
             //register the word and associated proba if > to wordTreshold
             if (proba>=wordProbaTreshold) {
-                words.add(new EstimatedWord(word, proba));
+                words.add(new ProbabilisticWord(word, proba,refPosition));
             }
             for (int pos = wordLength-1; ; --pos) { 
                 //we have process all sites from to to first, so we return the list of words
@@ -445,7 +444,7 @@ public class WordGenerator {
      * @param wordProbaTreshold minimum pp* for returning a word.
      * @return the list of generated words, which survived the tresholds
      */
-    public int generateProbableWords4(ColmerSet cs, Colmer c, PhyloNode n, double[][] ppSet, double stateProbaTreshold, double wordProbaTreshold) {
+    public int generateProbableWords4(ColmerSet cs, Colmer c, PhyloNode n, float[][] ppSet, double stateProbaTreshold, double wordProbaTreshold) {
         
         boolean test=false;
 //        if ( (n.getId()==23 || n.getId()==36) && (c.getStartSite()>1947) && (c.getStartSite()<1950)  ) {
@@ -545,4 +544,7 @@ public class WordGenerator {
         }
     }
 
+   
+    
+    
 }

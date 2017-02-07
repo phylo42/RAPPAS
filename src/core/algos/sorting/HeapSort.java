@@ -5,7 +5,7 @@
  */
 package core.algos.sorting;
 
-import core.EstimatedWord;
+import core.ProbabilisticWord;
 import java.util.List;
 
 /**
@@ -126,7 +126,7 @@ public class HeapSort {
     
     //------------------------------------------------------------
     
-    public static void heapSort(List<EstimatedWord> a){
+    public static void heapSort(List<ProbabilisticWord> a){
 	int count = a.size();
  
 	//first place a in max-heap order
@@ -136,7 +136,7 @@ public class HeapSort {
 	while(end > 0){
 		//swap the root(maximum value) of the heap with the
 		//last element of the heap
-		EstimatedWord tmp = a.get(end);
+		ProbabilisticWord tmp = a.get(end);
 		a.set(end,a.get(0));
 		a.set(0, tmp);
 		//put the heap back in max-heap order
@@ -147,7 +147,7 @@ public class HeapSort {
 	}
     }
 
-    private static void heapify(List<EstimatedWord> a, int count){
+    private static void heapify(List<ProbabilisticWord> a, int count){
             //start is assigned the index in a of the last parent node
             int start = (count - 2) / 2; //binary heap
 
@@ -161,17 +161,17 @@ public class HeapSort {
             //after sifting down the root all nodes/elements are in heap order
     }
 
-    private static void siftDown(List<EstimatedWord> a, int start, int end){
+    private static void siftDown(List<ProbabilisticWord> a, int start, int end){
             //end represents the limit of how far down the heap to sift
             int root = start;
 
             while((root * 2 + 1) <= end){      //While the root has at least one child
                     int child = root * 2 + 1;           //root*2+1 points to the left child
                     //if the child has a sibling and the child's value is less than its sibling's...
-                    if(child + 1 <= end && a.get(child).getPpValue() > a.get(child+1).getPpValue())
+                    if(child + 1 <= end && a.get(child).getPpStarValue() > a.get(child+1).getPpStarValue())
                             child = child + 1;           //... then point to the right child instead
-                    if(a.get(root).getPpValue() > a.get(child).getPpValue()){     //out of max-heap order
-                            EstimatedWord tmp = a.get(root);
+                    if(a.get(root).getPpStarValue() > a.get(child).getPpStarValue()){     //out of max-heap order
+                            ProbabilisticWord tmp = a.get(root);
                             a.set(root, a.get(child));
                             a.set(child,tmp);
                             root = child;                //repeat to continue sifting down the child now

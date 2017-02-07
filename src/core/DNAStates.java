@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 public class DNAStates extends AbstractStates implements States,Serializable {
     
     private static final long serialVersionUID = 6001L;
+    private int ambigousStates=2;
 
     public DNAStates() {
         
@@ -23,15 +24,19 @@ public class DNAStates extends AbstractStates implements States,Serializable {
         bytes =new LinkedHashMap<>();
     
         states.put((byte)0, 'A');
-        states.put((byte)1, 'C');
-        states.put((byte)2, 'G');
-        states.put((byte)3, 'T');
+        states.put((byte)1, 'T');
+        states.put((byte)2, 'C');
+        states.put((byte)3, 'G');
         states.put((byte)4, 'N');
+        states.put((byte)5, '-');
         bytes.put('A',(byte)0);
-        bytes.put('C',(byte)1);
-        bytes.put('G',(byte)2);
-        bytes.put('T',(byte)3);
+        bytes.put('T',(byte)1);
+        bytes.put('C',(byte)2);
+        bytes.put('G',(byte)3);
+        //ambigous states which are allowed
+        ambigousStates=2;
         bytes.put('N',(byte)4);
+        bytes.put('-',(byte)5);
     }
     
     @Override
@@ -68,7 +73,7 @@ public class DNAStates extends AbstractStates implements States,Serializable {
     
     @Override
     public int getNonAmbiguousStatesCount() {
-        return states.size()-1;
+        return states.size()-ambigousStates;
     }
 
     

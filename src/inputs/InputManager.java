@@ -115,7 +115,7 @@ public class InputManager {
             Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
             //probas
             startTime = System.currentTimeMillis();
-            this.probas = pw.parseProbas(new FileInputStream(probasFile),1e-6);
+            this.probas = pw.parseProbas(new FileInputStream(probasFile),1e-6f,false);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of probas used " + (endTime - startTime) + " ms");
         } else if (this.currentActiveSource==SOURCE_FASTML) {
@@ -139,7 +139,7 @@ public class InputManager {
             //probas
             startTime = System.currentTimeMillis();
             FASTMLWrapper fw=new FASTMLWrapper(align, tree, s);
-            this.probas = fw.parseProbas(new FileInputStream(probasFile),1e-6);
+            this.probas = fw.parseProbas(new FileInputStream(probasFile),1e-6f,false);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of probas used " + (endTime - startTime) + " ms");
         } 

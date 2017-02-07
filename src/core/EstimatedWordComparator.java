@@ -11,12 +11,12 @@ import java.util.Comparator;
  *
  * @author ben
  */
-public class EstimatedWordComparator implements Comparator<EstimatedWord> {
+public class EstimatedWordComparator implements Comparator<ProbabilisticWord> {
     @Override
-    public int compare(EstimatedWord o1, EstimatedWord o2) {
-        if ((o1.getPpValue()-o2.getPpValue())>0.0) {
+    public int compare(ProbabilisticWord o1, ProbabilisticWord o2) {
+        if ((o1.getPpStarValue()-o2.getPpStarValue())>0.0) {
             return 1;
-        } else if ((o1.getPpValue()-o2.getPpValue())<0.0){
+        } else if ((o1.getPpStarValue()-o2.getPpStarValue())<0.0){
             return -1;
         } else {
             return 0;

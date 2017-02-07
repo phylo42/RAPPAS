@@ -9,7 +9,7 @@ import alignement.Alignment;
 import core.Colmer;
 import core.ColmerSet;
 import core.DNAStates;
-import core.EstimatedWord;
+import core.ProbabilisticWord;
 import core.PProbas;
 import core.States;
 import core.Word;
@@ -323,7 +323,7 @@ public class Session {
     
     
     @Deprecated
-    private List<EstimatedWord> generateWords2(PhyloNode n,PProbas stats,int siteStart, int siteEnd) {
+    private List<ProbabilisticWord> generateWords2(PhyloNode n,PProbas stats,int siteStart, int siteEnd) {
 
             //long startTime = System.currentTimeMillis();
             //Infos.println("Word generation for node: "+n.getLabel()+" ("+n.getId()+")");
@@ -334,12 +334,12 @@ public class Session {
             
             final ArrayList<byte[]> probableWords2 = wg.generateProbableWords2(stats.getPPSet(n.getId(), siteStart, siteStart+wordLength-1),1e-6,true,1e-6);
             //System.out.println("Length probableWords2: "+probableWords2.size());
-            final ArrayList<Double> generatedProbas = wg.getAssociatedProbas2();
+            final ArrayList<Float> generatedProbas = wg.getAssociatedProbas2();
             
-            final ArrayList<EstimatedWord> wordSet=new ArrayList<>(generatedProbas.size());
+            final ArrayList<ProbabilisticWord> wordSet=new ArrayList<>(generatedProbas.size());
             AtomicInteger ii=new AtomicInteger();
             generatedProbas.stream().forEachOrdered((d) ->  {
-                                                            wordSet.add(new EstimatedWord(probableWords2.get(ii.get()), d));
+                                                            wordSet.add(new ProbabilisticWord(probableWords2.get(ii.get()), d));
                                                             ii.incrementAndGet();
                                                             }
                                                         );
@@ -347,7 +347,7 @@ public class Session {
             
             wg=null;
             
-            return wordSet.stream().filter((w) -> w.getPpValue()> 1e-6 ).collect(Collectors.toCollection(ArrayList::new));
+            return wordSet.stream().filter((w) -> w.getPpStarValue()> 1e-6 ).collect(Collectors.toCollection(ArrayList::new));
             //long endTime = System.currentTimeMillis();
             //Infos.println("Generation took: " + (endTime - startTime) + " ms ("+selectedWords.size()+" words)");  
                         
@@ -356,7 +356,7 @@ public class Session {
 
     
     
-    private void printFirst(List<EstimatedWord> l,int n) {
+    private void printFirst(List<ProbabilisticWord> l,int n) {
         if (n>l.size()){n=l.size();}
         for (int i = 0; i < n; i++) {
             System.out.println(l.get(i).toStringNice(states));
@@ -365,7 +365,7 @@ public class Session {
  
     
     @Deprecated
-    private List<EstimatedWord> generateWords(PhyloNode n,PProbas stats,int siteStart, int siteEnd) {
+    private List<ProbabilisticWord> generateWords(PhyloNode n,PProbas stats,int siteStart, int siteEnd) {
 
             //long startTime = System.currentTimeMillis();
             //Infos.println("Word generation for node: "+n.getLabel()+" ("+n.getId()+")");
@@ -377,20 +377,20 @@ public class Session {
             
             final byte[][] probableWords2 = wg.generateProbableWords(stats.getPPSet(n.getId(), siteStart, siteStart+wordLength-1),1e-250,true,1e-250);
             System.out.println("Length probableWords2: "+probableWords2.length);
-            final double[] generatedProbas = wg.getAssociatedProbas();
+            final float[] generatedProbas = wg.getAssociatedProbas();
             
-            final ArrayList<EstimatedWord> wordSet=new ArrayList<>(generatedProbas.length);
+            final ArrayList<ProbabilisticWord> wordSet=new ArrayList<>(generatedProbas.length);
             AtomicInteger ii=new AtomicInteger();
             
             
-            Arrays.stream(generatedProbas).forEachOrdered((d) ->  {
-                                                                    wordSet.add(new EstimatedWord(probableWords2[ii.get()], d));
-                                                                    ii.incrementAndGet();
-                                                                    }
-                                                        );
+//            Arrays.stream(generatedProbas).forEachOrdered((d) ->  {
+//                                                                    wordSet.add(new ProbabilisticWord(probableWords2[ii.get()], d));
+//                                                                    ii.incrementAndGet();
+//                                                                    }
+//                                                        );
             Collections.sort(wordSet);
             
-            return wordSet.stream().filter((w) -> w.getPpValue()> 1e-6 ).collect(Collectors.toCollection(ArrayList::new));
+            return wordSet.stream().filter((w) -> w.getPpStarValue()> 1e-6 ).collect(Collectors.toCollection(ArrayList::new));
             //long endTime = System.currentTimeMillis();
             //Infos.println("Generation took: " + (endTime - startTime) + " ms ("+selectedWords.size()+" words)");  
                         

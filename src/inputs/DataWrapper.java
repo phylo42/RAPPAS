@@ -21,9 +21,10 @@ public interface DataWrapper {
     /**
      * a wrapper load the posterior probas from the output of any ancestral state reconstruction software
      * @param input
+     * @param sitePPThreshold
      * @return a matrix @PPStats of posterior probas associated to nodes and sites
      * @throws FileNotFoundException
      * @throws IOException 
      */    
-    public PProbas parseProbas(InputStream input, double sitePPThreshold) throws IOException;
+    public PProbas parseProbas(InputStream input, float sitePPThreshold, boolean asLog10) throws IOException;
 }

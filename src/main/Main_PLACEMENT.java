@@ -16,21 +16,27 @@ import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.PAMLWrapper;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.PriorityQueue;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import prog.ProgRunner;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
@@ -43,6 +49,13 @@ import tree.RelaxedTree;
  */
 public class Main_PLACEMENT {
     
+    //sequence type
+    public static int TYPE_DNA=1;
+    public static int TYPE_PROTEIN=2;
+    //memory mode
+    public static int MEMORY_LOW=1;
+    public static int MEMORY_LARGE=2;
+    
     public static void main(String[] args) {
 
         try {
@@ -51,12 +64,13 @@ public class Main_PLACEMENT {
             
             // INPUT FILES//////////////////////////////////////////////////////
             
-            String wd="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
+            //pplacer benchmark, stat not based on relaxed tree
+            String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
 //            String a=wd+"bv_refs_aln.fasta";
-            String a=wd+"bv_refs_aln_stripped_99.5.fasta";
-            String t=wd+"RAxML_result.bv_refs_aln";
-            String q=wd+"mod_p4z1r36_query_only2.fasta";
-            String pp=wd+"rst";
+            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
+            String t=inputsPath+"RAxML_result.bv_refs_aln";
+            String q=inputsPath+"mod_p4z1r36_query_only2.fasta";
+            String pp=inputsPath+"rst";
             
 //            String wd="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
 //            String a=wd+"mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
@@ -72,18 +86,32 @@ public class Main_PLACEMENT {
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             
+            //type of Analysis//////////////////////////////////////////////////
+            int analysisType=TYPE_DNA;
+            int memory_mode=MEMORY_LARGE;
+            //base path for outputs
+            String path="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/";
+            //logs
+            String logPath=path+"logs/";
+            //trees
+            String relaxedTreePath=path+"relaxed_trees/";
+            //ancestral reconstruciton
+            String ARPath=path+"AR/";
+            
             //build of relaxed tree/////////////////////////////////////////////
             double minBranchLength=0.001;
             int numberOfFakeBranchesPerEdge=1;
-            
+            String baseMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml";
+            String codeMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/codeml";
             //posterior probas analysis/////////////////////////////////////////
             //mers size
             int k=8;
             int min_k=8;
             Infos.println("k="+k);
             //site and word posterior probas thresholds
-            double sitePPThreshold=1e-3;
-            double wordPPThreshold=1e-8;
+            float sitePPThreshold=1e-45f;
+            double wordPPThreshold=1e-6;
+            double wordAbsent=Math.pow(1/4,k); // pour stocker ou non dans hash
             //minimum read/ref overlap,in bp. When not respected, read not reported
             int minOverlap=100;
             
@@ -117,9 +145,7 @@ public class Main_PLACEMENT {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=10;
-            //path where to write all logs
-            String logPath="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/logs/";
+            int queryLimit=1;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDetailedDiagsums=false;
@@ -127,13 +153,32 @@ public class Main_PLACEMENT {
             boolean logPeekRatios=true;
             boolean logPreplacementDiagsums=true;
             boolean logPreplacementDetailedDiagsums=false;
+            //skip relaxed tree reconstruction
+            boolean buildRelaxedTree=true;
+            //skip paml marginal ancestral reconstruction (made on relaxed tree)
+            boolean launchAR=false;
             
             
             
+            
+            
+            
+            
+            
+            
+            
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
+            
+            //////////////////////
+            //PREPARE DIRECTORIES
+            if (!new File(path).exists()) {new File(path).mkdir();}
+            if (!new File(logPath).exists()) {new File(logPath).mkdir();}
+            if (!new File(relaxedTreePath).exists()) {new File(relaxedTreePath).mkdir();}
+            if (!new File(ARPath).exists()) {new File(ARPath).mkdir();}
+            
             
             
             //////////////////////
@@ -155,46 +200,167 @@ public class Main_PLACEMENT {
             
             /////////////////////
             //BUILD RELAXED TREE
-            RelaxedTree relaxedTreeOnBranches=new RelaxedTree(tree,minBranchLength,numberOfFakeBranchesPerEdge);
-            ArrayList<PhyloNode> listOfNewFakeLeaves = relaxedTreeOnBranches.getListOfNewFakeLeaves();
-            //add new leaves to alignment
-            for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
-                PhyloNode node = listOfNewFakeLeaves.get(i);
-                char[] gapSeq=new char[align.getLength()];
-                Arrays.fill(gapSeq, '-');
-                align.addSequence(node.getLabel(), gapSeq);
+            File fileRelaxedAlignmentFasta=null;
+            File fileRelaxedAlignmentPhylip=null;
+            File fileRelaxedTreewithBL=null;
+            File fileRelaxedTreewithBLNoInternalNodeLabels=null;
+            String relaxedTreeForJplace=null;
+            if (buildRelaxedTree) {
+                try {
+                    RelaxedTree relaxedTreeOnBranches=new RelaxedTree(tree,minBranchLength,numberOfFakeBranchesPerEdge);
+                    ArrayList<PhyloNode> listOfNewFakeLeaves = relaxedTreeOnBranches.getListOfNewFakeLeaves();
+                    //add new leaves to alignment
+                    for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
+                        PhyloNode node = listOfNewFakeLeaves.get(i);
+                        char[] gapSeq=new char[align.getLength()];
+                        Arrays.fill(gapSeq, '-');
+                        align.addSequence(node.getLabel(), gapSeq);
+                    }
+                    //write alignment and tree for BrB
+                    fileRelaxedAlignmentFasta=new File(relaxedTreePath+"relaxed_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.fasta");
+                    fileRelaxedAlignmentPhylip=new File(relaxedTreePath+"relaxed_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.phylip");
+                    align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
+                    align.writeAlignmentAsPhylip(fileRelaxedAlignmentPhylip);
+                    //write relaxed trees
+                    fileRelaxedTreewithBL=new File(relaxedTreePath+"relaxed_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL.tree");
+                    NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
+                    nw.writeNewickTree(relaxedTreeOnBranches, true, true, false);
+                    nw.close();
+                    //write version without internal nodes labels
+                    fileRelaxedTreewithBLNoInternalNodeLabels=new File(relaxedTreePath+"relaxed_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL_withoutInternalLabels.tree");
+                    nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
+                    nw.writeNewickTree(relaxedTreeOnBranches, true, false, false);
+                    relaxedTreeForJplace=nw.getNewickTree(relaxedTreeOnBranches, true, true, true);
+                    nw.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    System.out.println("Error raised from relaxed tree reconstruciton!");
+                }
             }
-            //write alignment and tree for BrB
-            align.writeAlignmentAsFasta(new File(wd+"relaxed_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.fasta"));
-            align.writeAlignmentAsPhylip(new File(wd+"relaxed_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.phylip"));
-            //write relaxed trees
-            NewickWriter nw=new NewickWriter(new File(wd+"relaxed_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL.tree"));
-            nw.writeNewickTree(relaxedTreeOnBranches, true, true, false);
-            String relaxedTreeForJplace=nw.getNewickTree(relaxedTreeOnBranches, true, true, true);
-            nw.close();
             
             //////////////////////////////////////
             // HERE LAUNCH BASEML ON RELAXED TREE
             //todo
             //launch paml from java, can it be done whithout modifying
             //the ctl file but through ocmmand parameters ?
+            if (launchAR) {
+            
+                StringBuilder sb=new StringBuilder();
+                
+                if (buildRelaxedTree) {
+                    sb.append("seqfile = "+fileRelaxedAlignmentPhylip.getAbsolutePath()+"\n");
+                    sb.append("treefile = "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath()+"\n");
+                    
+                } else {
+                    sb.append("seqfile = "+a+"\n");
+                    sb.append("treefile = "+t+"\n");
+                }
+                sb.append("outfile = "+ARPath+"paml_output"+"\n");
+                sb.append("noisy = 2   * 0,1,2,3: how much rubbish on the screen\n");
+                sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
+                sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
+                sb.append("model = 7   * 0:JC69, 1:K80, 2:F81, 3:F84, 4:HKY85 5:T92, 6:TN93, 7:REV, 8:UNREST, 9:REVu; 10:UNRESTu\n");
+                sb.append("Mgene = 0   * 0:rates, 1:separate; 2:diff pi, 3:diff kapa, 4:all diff\n");
+                sb.append("* ndata = 100\n");
+                sb.append("clock = 0   * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
+                sb.append("fix_kappa = 0   * 0: estimate kappa; 1: fix kappa at value below\n");
+                sb.append("kappa = 5  * initial or fixed kappa\n");
+                sb.append("fix_alpha = 1   * 0: estimate alpha; 1: fix alpha at value below\n");
+                sb.append("alpha = 0.433838   * initial or fixed alpha, 0:infinity (constant rate)\n");
+                sb.append("Malpha = 0   * 1: different alpha's for genes, 0: one alpha\n");
+                sb.append("ncatG = 25   * # of categories in the dG, AdG, or nparK models of rates\n");
+                sb.append("nparK = 0   * rate-class models. 1:rK, 2:rK&fK, 3:rK&MK(1/K), 4:rK&MK\n");
+                sb.append("nhomo = 0   * 0 & 1: homogeneous, 2: kappa for branches, 3: N1, 4: N2\n");
+                sb.append("getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
+                sb.append("RateAncestor = 1   * (0,1,2): rates (alpha>0) or ancestral states\n");
+                sb.append("Small_Diff = 7e-6\n");
+                sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
+                sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
+                sb.append("fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
+                sb.append("method = 1  * Optimization method 0: simultaneous; 1: one branch a time\n");
+                       
+                FileWriter fw=new FileWriter(new File(ARPath+"baseml.ctl"));
+                Infos.println("Ancestral reconstruciton parameters written in: "+ARPath+"baseml.ctl");
+                fw.append(sb);
+                fw.close();
+                
+                //launch paml externally to build the posterior probas on the relaxed tree
+                List<String> com=new ArrayList<>();
+                com.add(baseMLBinaries);
+                com.add(ARPath+"baseml.ctl");
+                Infos.println("Ancestral reconstruct command: "+com);
+
+//                Process exec = Runtime.getRuntime().exec(command);
+//                inputStreamToOutputStream(new BufferedInputStream(exec.getInputStream()), System.out);
+//                inputStreamToOutputStream(new BufferedInputStream(exec.getErrorStream()), System.err);
+//                try {
+//                    exec.waitFor();
+//                } catch (InterruptedException ex) {
+//                    Logger.getLogger(Main_PLACEMENT.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//                
+//                System.exit(1);
+                
+                ProcessBuilder pb = new ProcessBuilder(com);
+                //pb.environment().entrySet().stream().forEach((e) ->{ System.out.println(e.getKey()+"="+e.getValue()); });
+                //env.put("VAR1", "myValue"); env.remove("OTHERVAR");
+                pb.directory(new File(ARPath));                
+                pb.redirectErrorStream(false);
+                pb.redirectOutput(Redirect.PIPE);
+                pb.redirectInput(Redirect.PIPE);
+                Process p = pb.start();
+                assert pb.redirectInput() == Redirect.PIPE;
+                assert p.getInputStream().read() == -1; 
+                //redirect sdtout/stdin to files
+                FileOutputStream STDOUTOutputStream=new FileOutputStream(new File(ARPath+"AR_sdtout.txt"));
+                FileOutputStream STDERROutputStream=new FileOutputStream(new File(ARPath+"AR_sdterr.txt"));
+                inputStreamToOutputStream(new BufferedInputStream(p.getInputStream()), STDOUTOutputStream);
+                inputStreamToOutputStream(new BufferedInputStream(p.getErrorStream()), STDERROutputStream);
+                Infos.println("External process operating reconstruction is logged in: "+new File(ARPath+"AR_sdtout.txt").getAbsolutePath());
+                Infos.println("Launching reconstruction (go and take a coffee!) ...");
+                try {
+                    p.waitFor();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Main_PLACEMENT.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                STDOUTOutputStream.close();
+                STDERROutputStream.close();
+                
+                Infos.println("Ancestral reconstruction done.");
+                
+            }
+
+            
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            
             
             
             
             //////////////////////////////////////////////
             //LOAD THE POSTERIOR PROBAS AND PAML TREE IDS
-            Infos.println("Loading PAML tree ids and POsterior Probas...");
-            PAMLWrapper pw=new PAMLWrapper(align, s);
-            FileInputStream input = new FileInputStream(new File(pp));
-            tree= pw.parseTree(input);
-            input.close();
-            //write a copy to verify is parsing was fine
-            nw=new NewickWriter(new File(wd+"loaded_tree.tree"));
+            Infos.println("Loading PAML tree ids and Posterior Probas...");
+            PAMLWrapper pw=new PAMLWrapper(align, s); //align extended or not by the relaxed bloc
+            
+            //write some tree copies to verify if the parsing was fine
+            NewickWriter nw=new NewickWriter(new File(relaxedTreePath+"loaded_tree.tree"));
+            nw.writeNewickTree(tree, true, true, false);
+            nw.close();
+            //write some tree copies to verify if the parsing was fine
+            nw=new NewickWriter(new File(relaxedTreePath+"loaded_tree_with_jplace_branch_ids.tree"));
             nw.writeNewickTree(tree, true, true, true);
             nw.close();
             
-            input = new FileInputStream(new File(pp));
-            PProbas pprobas = pw.parseProbas(input,sitePPThreshold);
+            FileInputStream input = null;
+            //input = new FileInputStream(new File(pp));
+            input = new FileInputStream(new File(ARPath+"/finished/rst"));
+            //input = new FileInputStream(new File(ARPath+"rst"));
+            tree= pw.parseTree(input);
+            Infos.println("Parsing posterior probas..");
+            input = new FileInputStream(new File(ARPath+"/finished/rst"));
+            PProbas pprobas = pw.parseProbas(input,sitePPThreshold,false);
             input.close();
 
             ////////////////////////////////////////////////////////////////////
@@ -275,122 +441,150 @@ public class Main_PLACEMENT {
                 /////////////////
                 
                 
-                ////////////////////////////////////////
-                //PRE-PLACEMENT ON LIMITED NODE NUMBER
-                ArrayList<Integer> preplacementNodeIds=new ArrayList<>();
-                for (int i=0;i<tree.getInternalNodesByDFS().size();i++) {
-                    if (i%nodeShift!=0) {continue;}
-                    if (scannedNodesCounter>scannedNodes-1) {break;} //all nodes done
+                ////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////
+                //LOW_MEMORY PRE-PLACEMENT, ON LIMITED NODE NUMBER
+                // --> WORD SCANNED OVER THE REFERENCE
+                ////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////
+                if (memory_mode==MEMORY_LOW) {
+                    ArrayList<Integer> preplacementNodeIds=new ArrayList<>();
+                    for (int i=0;i<tree.getInternalNodesByDFS().size();i++) {
+                        if (i%nodeShift!=0) {continue;}
+                        if (scannedNodesCounter>scannedNodes-1) {break;} //all nodes done
 
-                    int nodeId=tree.getInternalNodesByDFS().get(i);
-                    preplacementNodeIds.add(nodeId);
-                    //Infos.println("Building diagSum vector #"+scannedNodesCounter+" for node: "+nodeId);
-                    preplacementDiagsumIndex[scannedNodesCounter]=nodeId; //nodes ids are from 0 to N
-                    
-                    ///////////////////////////////////
-                    // LOOP ON QUERY WORDS
-                    QueryWord qw=null;
-                    QueryKnife rk=new QueryKnife(fasta, k, min_k, s, preplacementWordSampling);
-                    //Infos.println("Mer order: "+Arrays.toString(rk.getMerOrder()));
-                    int queryWordCounter=0;
-                    while ((qw=rk.getNextWord())!=null) {
-                        //Infos.println("Query mer: "+qw.toString());
-                        
-                        /////////////////
-                        // LOG OUTPUT 1
-                        String[] data=null;
-                        if (logPreplacementDetailedDiagsums) {
-                            data=new String[2+align.getLength()];
-                            data[0]=String.valueOf(nodeId);
-                            data[1]=String.valueOf(qw.getOriginalPosition());
-                        }
-                        /////////////////
-                        
-                        
-                        //////////////////////////////////////
-                        //BUILD DIAGSUMS, ONE PER NODE
-                        for (int refPos=0;refPos<align.getLength()-k;refPos++) {  
-                            double PPStar=1.0;
-                            for (int queryPos=0;queryPos<qw.getWord().length;queryPos++) {
-                                PPStar*=pprobas.getPP(nodeId, refPos+queryPos, qw.getWord()[queryPos]);
-//                                //DEBUG WITH GLKT0ZE01C2HN1
-//                                if ( (refPos>(622+scannedMersCounter*k)) && (refPos<(626+scannedMersCounter*k)) ) {
-//                                    System.out.println("Proba at "+(refPos+queryPos)+" : "+pprobas.getPP(nodeId, refPos+queryPos, qw.getWord()[queryPos]));
-//                                    System.out.println("Current Product: PP* = "+PPStar);
-//                                }
-                            }
-                            //normalization to PPStar
-                            if (PPStar<wordPPThreshold)
-                                PPStar=wordPPThreshold;
-                            
-                            //Infos.println("refPos: "+refPos+"  PP* ="+PPStar);
-                            //the conditions below are to avoid the last mers of 
-                            //the query which would contradict the minOverlap condition:
-                            //in the first bases of the alignment (pos<readlength)
-                            //do not scan this word if it would represent an overlap 
-                            //with the ref align < minOverlap
-                            //this could be optimized to avoid some iterations ???
-                            int currentDiagSumPos=diagsumShift+refPos-qw.getOriginalPosition();
-                            if (currentDiagSumPos>-1 && currentDiagSumPos<preplacementAllDiagsums[0].length) {
-                                preplacementAllDiagsums[scannedNodesCounter][currentDiagSumPos]+=Math.log10(PPStar);
-//                                //DEBUG WITH GLKT0ZE01C2HN1
-//                                if ( (refPos>(622+scannedMersCounter*k)) && (refPos<(626+scannedMersCounter*k)) ) {
-//                                    System.out.println("X= "+(diagsumShift+(refPos-qw.getOriginalPosition())));
-//                                    System.out.println("preplacementAllDiagsums[scannedNodesCounter][X]+="+Math.log10(PPStar));
-//                                    System.out.println("preplacementAllDiagsums[scannedNodesCounter][X]="+preplacementAllDiagsums[scannedNodesCounter][diagsumShift+(refPos-qw.getOriginalPosition())]);
-//                                }
+                        int nodeId=tree.getInternalNodesByDFS().get(i);
+                        preplacementNodeIds.add(nodeId);
+                        //Infos.println("Building diagSum vector #"+scannedNodesCounter+" for node: "+nodeId);
+                        preplacementDiagsumIndex[scannedNodesCounter]=nodeId; //nodes ids are from 0 to N
 
-                            }
-                            
-                            
+                        ///////////////////////////////////
+                        // LOOP ON QUERY WORDS
+                        QueryWord qw=null;
+                        QueryKnife rk=new QueryKnife(fasta, k, min_k, s, preplacementWordSampling);
+                        //Infos.println("Mer order: "+Arrays.toString(rk.getMerOrder()));
+                        int queryWordCounter=0;
+                        while ((qw=rk.getNextWord())!=null) {
+                            //Infos.println("Query mer: "+qw.toString());
+
+                            /////////////////
+                            // LOG OUTPUT 1
+                            String[] data=null;
                             if (logPreplacementDetailedDiagsums) {
-                                data[2+refPos]=String.valueOf(Math.log10(PPStar)); 
+                                data=new String[2+align.getLength()];
+                                data[0]=String.valueOf(nodeId);
+                                data[1]=String.valueOf(qw.getOriginalPosition());
                             }
+                            /////////////////
+
+
+                            //////////////////////////////////////
+                            //BUILD DIAGSUMS, ONE PER NODE
+                            for (int refPos=0;refPos<align.getLength()-k;refPos++) {  
+                                double PPStar=1.0;
+                                for (int queryPos=0;queryPos<qw.getWord().length;queryPos++) {
+                                    PPStar*=pprobas.getPP(nodeId, refPos+queryPos, qw.getWord()[queryPos]);
+    //                                //DEBUG WITH GLKT0ZE01C2HN1
+    //                                if ( (refPos>(622+scannedMersCounter*k)) && (refPos<(626+scannedMersCounter*k)) ) {
+    //                                    System.out.println("Proba at "+(refPos+queryPos)+" : "+pprobas.getPP(nodeId, refPos+queryPos, qw.getWord()[queryPos]));
+    //                                    System.out.println("Current Product: PP* = "+PPStar);
+    //                                }
+                                }
+                                //normalization to PPStar
+                                if (PPStar<wordPPThreshold)
+                                    PPStar=wordPPThreshold;
+
+                                //Infos.println("refPos: "+refPos+"  PP* ="+PPStar);
+                                //the conditions below are to avoid the last mers of 
+                                //the query which would contradict the minOverlap condition:
+                                //in the first bases of the alignment (pos<readlength)
+                                //do not scan this word if it would represent an overlap 
+                                //with the ref align < minOverlap
+                                //this could be optimized to avoid some iterations ???
+                                int currentDiagSumPos=diagsumShift+refPos-qw.getOriginalPosition();
+                                if (currentDiagSumPos>-1 && currentDiagSumPos<preplacementAllDiagsums[0].length) {
+                                    preplacementAllDiagsums[scannedNodesCounter][currentDiagSumPos]+=Math.log10(PPStar);
+    //                                //DEBUG WITH GLKT0ZE01C2HN1
+    //                                if ( (refPos>(622+scannedMersCounter*k)) && (refPos<(626+scannedMersCounter*k)) ) {
+    //                                    System.out.println("X= "+(diagsumShift+(refPos-qw.getOriginalPosition())));
+    //                                    System.out.println("preplacementAllDiagsums[scannedNodesCounter][X]+="+Math.log10(PPStar));
+    //                                    System.out.println("preplacementAllDiagsums[scannedNodesCounter][X]="+preplacementAllDiagsums[scannedNodesCounter][diagsumShift+(refPos-qw.getOriginalPosition())]);
+    //                                }
+
+                                }
+
+
+                                if (logPreplacementDetailedDiagsums) {
+                                    data[2+refPos]=String.valueOf(Math.log10(PPStar)); 
+                                }
+                            }
+                            if(logPreplacementDetailedDiagsums)
+                                writerDetails.writeNext(data);
+
+
+                            queryWordCounter++;
+
                         }
-                        if(logPreplacementDetailedDiagsums)
-                            writerDetails.writeNext(data);
-                        
-                        
-                        queryWordCounter++;
 
-                    }
-                    
-                    //Normalize the first and last positions of the diagsums.
-                    //indeed, in the "duagSumShift" first positions
-                    //and in the "minoverlap" last positions, not all the words
-                    //of the query were summed, (minoverlap condition).
-                    //we compensate here by calculating the mean word score in the
-                    //overlap and use this mean for all wordw which don't overlap...
-                    //the value itself is increased by (wordsInOverlap/totalWordsInTheQuery)
-                    //System.out.println(queryWordCounter);
-                    for (int diagSumPos=0;diagSumPos<diagsumShift;diagSumPos++) {
-                        int wordsInQueryRefOverlap=(minOverlap+diagSumPos-(queryLength%k))/k;
-                        //System.out.println("wordsCountInMinOverlap:"+wordsInQueryRefOverlap);
-                        preplacementAllDiagsums[scannedNodesCounter][diagSumPos]*=(0.0+queryWordCounter)/wordsInQueryRefOverlap;
+                        //Normalize the first and last positions of the diagsums.
+                        //indeed, in the "duagSumShift" first positions
+                        //and in the "minoverlap" last positions, not all the words
+                        //of the query were summed, (minoverlap condition).
+                        //we compensate here by calculating the mean word score in the
+                        //overlap and use this mean for all wordw which don't overlap...
+                        //the value itself is increased by (wordsInOverlap/totalWordsInTheQuery)
+                        //System.out.println(queryWordCounter);
+                        for (int diagSumPos=0;diagSumPos<diagsumShift;diagSumPos++) {
+                            int wordsInQueryRefOverlap=(minOverlap+diagSumPos-(queryLength%k))/k;
+                            //System.out.println("wordsCountInMinOverlap:"+wordsInQueryRefOverlap);
+                            preplacementAllDiagsums[scannedNodesCounter][diagSumPos]*=(0.0+queryWordCounter)/wordsInQueryRefOverlap;
 
+                        }
+                        for (int diagSumPos=preplacementAllDiagsums[0].length-diagsumShift;diagSumPos<preplacementAllDiagsums[0].length;diagSumPos++) {
+                            int wordsInQueryRefOverlap=(preplacementAllDiagsums[0].length-diagSumPos+minOverlap)/k;
+                            //System.out.println("diagsumPos:"+diagSumPos+" wordsCountInMinOverlap:"+wordsInQueryRefOverlap);
+                            preplacementAllDiagsums[scannedNodesCounter][diagSumPos]*=(0.0+queryWordCounter)/wordsInQueryRefOverlap;
+                        }
+
+                        //Infos.println("# Mer scanned: "+scannedMersCounter);
+
+                        scannedNodesCounter++;
                     }
-                    for (int diagSumPos=preplacementAllDiagsums[0].length-diagsumShift;diagSumPos<preplacementAllDiagsums[0].length;diagSumPos++) {
-                        int wordsInQueryRefOverlap=(preplacementAllDiagsums[0].length-diagSumPos+minOverlap)/k;
-                        //System.out.println("diagsumPos:"+diagSumPos+" wordsCountInMinOverlap:"+wordsInQueryRefOverlap);
-                        preplacementAllDiagsums[scannedNodesCounter][diagSumPos]*=(0.0+queryWordCounter)/wordsInQueryRefOverlap;
+
+
+                    if(logPreplacementDetailedDiagsums) {
+                        writerDetails.flush();
+                        writerDetails.close();
                     }
+
+
+                ////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////
+                //LARGE_MEMORY PRE-PLACEMENT, HASH-BASED
+                // --> HIGHEST SCORING NODES PER WORD ARE PICKED-UP
+                ////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////
+                } else if (memory_mode==MEMORY_LARGE) {
                     
-                    //Infos.println("# Mer scanned: "+scannedMersCounter);
                     
-                    scannedNodesCounter++;
+                    
+                    
+                    
+                    
                 }
                 
                 
-                if(logPreplacementDetailedDiagsums) {
-                    writerDetails.flush();
-                    writerDetails.close();
-                }
+                
+                
+                
+                
+                
+                
+                
                 
                 
                 long endScanTime=System.currentTimeMillis();
                 Infos.println("Scan on "+(scannedNodesCounter)+" nodes took "+(endScanTime-startScanTime)+" ms");
-                
-                
                 
                 /////////////////
                 // LOG OUTPUT 2
@@ -419,6 +613,7 @@ public class Main_PLACEMENT {
                     writerDiagsum.close();
                 }
                 /////////////////
+                
                 
                 
                 
@@ -957,7 +1152,24 @@ public class Main_PLACEMENT {
 
     
     
-    
+    public static void inputStreamToOutputStream(final InputStream inputStream, final OutputStream out) {
+        Thread t = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    int d;
+                    while ((d = inputStream.read()) != -1) {
+                        out.write(d);
+                    }
+                } catch (IOException ex) {
+                    Infos.println(ex.getCause());
+                }
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
     
     
     

@@ -6,9 +6,9 @@
 package core;
 
 import alignement.Alignment;
-import static core.algos.QueryKnife.SAMPLING_LINEAR;
-import static core.algos.QueryKnife.SAMPLING_SEQUENTIAL;
-import static core.algos.QueryKnife.SAMPLING_STOCHASTIC;
+import static core.algos.SequenceKnife.SAMPLING_LINEAR;
+import static core.algos.SequenceKnife.SAMPLING_SEQUENTIAL;
+import static core.algos.SequenceKnife.SAMPLING_STOCHASTIC;
 import etc.Infos;
 import java.io.Serializable;
 import java.util.ArrayList;

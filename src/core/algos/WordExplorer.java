@@ -10,7 +10,7 @@ import core.DNAStates;
 import core.PProbas;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
-import core.SimplifiedHash;
+import core.SimpleHash;
 import core.States;
 import etc.Environement;
 import etc.Infos;
@@ -79,14 +79,16 @@ public class WordExplorer {
         this.ppSet=ppSet;
     }
     
+    public ArrayList<ProbabilisticWord> getRetainedWords() {
+        return words;
+    }
+    
     /**
      * 
      * @param i
      * @param j
-     * @param parent_i
-     * @param parent_j 
      */
-    private void exploreWords(int i, int j) {
+    public void exploreWords(int i, int j) {
         //for the algorithm below, consider ppSet as a (i,j) matrix
         //- with i the position on the ref alignment, refPosition being the i=0
         //  and refPosition+k being the maximumi, with i=k-1.
@@ -141,7 +143,7 @@ public class WordExplorer {
             
             
             int k=8;
-            float sitePPThreshold=1e-45f;
+            float sitePPThreshold=Float.MIN_VALUE;
             int thresholdFactor=10;
             
             Infos.println("k="+k);
@@ -162,7 +164,7 @@ public class WordExplorer {
             ArrayList<Fasta> fastas=new ArrayList<>();
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                 fastas.add(fasta);
-            }
+    }
             Alignment align=new Alignment(fastas);
             Infos.println(align.describeAlignment(false));
             fp.closePointer();
@@ -182,10 +184,10 @@ public class WordExplorer {
             input.close();
             double endParsingTime=System.currentTimeMillis();
             Infos.println("Word search took "+(endParsingTime-startParsingTime)+" ms");
-            
-            
+    
+    
             //positions for which word are checked
-            QueryKnife knife=new QueryKnife(new String(align.getCharMatrix()[0]), k, k, s, QueryKnife.SAMPLING_LINEAR);
+            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, SequenceKnife.SAMPLING_LINEAR);
             int[] refPositions=knife.getMerOrder();     
             
             
@@ -195,7 +197,7 @@ public class WordExplorer {
            
             
             //prepare simplified hash
-            SimplifiedHash hash=new SimplifiedHash();
+            SimpleHash hash=new SimpleHash();
 
             Infos.println("Word generator threshold will be:"+thresholdAsLog);
             //Word Explorer
@@ -228,7 +230,7 @@ public class WordExplorer {
                     
                     for (int j = 0; j < pprobas.getStateCount(); j++) {
                         wd.exploreWords(pos, j);
-                    }
+}
                     
                     //register the words in the hash
                     wd.words.stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});

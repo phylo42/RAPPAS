@@ -71,16 +71,16 @@ public class NewickReader {
 
         //the last element, with ';' is the root infos (label, branch length)
         if (name.equals("") && len.equals("")) {
-            root=new PhyloNode(0, "root",0.0);
+            root=new PhyloNode(0, "root",0.0f);
             rootStringLen=1; //only ;
         } else if (len.equals("")) {
-            root=new PhyloNode(0, name,0.0);
+            root=new PhyloNode(0, name,0.0f);
             rootStringLen=name.length()+1; //name;
         } else if (name.equals("")) {
-            root=new PhyloNode(0, "root", Double.parseDouble(len));
+            root=new PhyloNode(0, "root", Float.parseFloat(len));
             rootStringLen=1+len.length()+1; //:len;
         } else {
-            root=new PhyloNode(0, "root", 0.0);
+            root=new PhyloNode(0, "root", 0.0f);
             rootStringLen=name.length()+1+len.length()+1; //name:len;
         }
         
@@ -184,9 +184,10 @@ public class NewickReader {
                     }
                     PhyloNode internalNode=null;
                     if (!len.equals("")) {
-                        internalNode=new PhyloNode(++currentNodeIndex,name,Double.parseDouble(len));
+                        //System.out.println(Float.parseFloat(len));
+                        internalNode=new PhyloNode(++currentNodeIndex,name,Float.parseFloat(len));
                     } else {
-                        internalNode=new PhyloNode(++currentNodeIndex,name,0.1);
+                        internalNode=new PhyloNode(++currentNodeIndex,name,0.1f);
                     }
                     parent.add(internalNode);
                     //remove the node info, just send the subtree to next recursive call
@@ -222,14 +223,15 @@ public class NewickReader {
                     }
                     PhyloNode leaf=null;
                     if (!len.equals("")) {
-                        leaf=new PhyloNode(++currentNodeIndex,name,Double.parseDouble(len));
+                        //System.out.println(Float.parseFloat(len));
+                        leaf=new PhyloNode(++currentNodeIndex,name,Float.parseFloat(len));
                     } else {
-                        leaf=new PhyloNode(++currentNodeIndex,name,0.1);
+                        leaf=new PhyloNode(++currentNodeIndex,name,0.1f);
                     }
                     //System.out.println("   LEAFnodeInfo: name='"+name+"':len='"+len+"'");
                     parent.add(leaf);
                 } else {
-                    //System.out.println("This leaf seems incorrect:\n"+subTree);
+                    System.out.println("This leaf seems incorrect:\n"+subTree);
                 }
             }
             

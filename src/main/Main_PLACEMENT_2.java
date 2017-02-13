@@ -47,7 +47,7 @@ import tree.RelaxedTree;
  *
  * @author ben
  */
-public class Main_PLACEMENT {
+public class Main_PLACEMENT_2 {
     
     //sequence type
     public static int TYPE_DNA=1;
@@ -321,7 +321,7 @@ public class Main_PLACEMENT {
                 try {
                     p.waitFor();
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(Main_PLACEMENT.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(Main_PLACEMENT_2.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
                 STDOUTOutputStream.close();
@@ -1139,7 +1139,7 @@ public class Main_PLACEMENT {
             
             
         } catch (IOException ex) {
-            Logger.getLogger(Main_PLACEMENT.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main_PLACEMENT_2.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         

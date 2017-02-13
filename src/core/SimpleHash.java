@@ -6,7 +6,7 @@
 package core;
 
 import alignement.Alignment;
-import core.algos.QueryKnife;
+import core.algos.SequenceKnife;
 import core.algos.WordGenerator;
 import etc.Environement;
 import etc.Infos;
@@ -36,13 +36,14 @@ import tree.PhyloTree;
  *
  * @author ben
  */
-public class SimplifiedHash {
+public class SimpleHash {
     
+    private static final long serialVersionUID = 7000L;
     
     HashMap<Word,LinkedList<Tuple>> hash=null;
 
     
-    public SimplifiedHash() {
+    public SimpleHash() {
         hash=new HashMap<>();
     }
     
@@ -126,7 +127,7 @@ public class SimplifiedHash {
             
             
             //positions for which word are checked
-            QueryKnife knife=new QueryKnife(new String(align.getCharMatrix()[0]), k, k, s, QueryKnife.SAMPLING_LINEAR);
+            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, SequenceKnife.SAMPLING_LINEAR);
             int[] refPositions=knife.getMerOrder();            
             //Word generator
             WordGenerator wg=new WordGenerator();
@@ -142,7 +143,7 @@ public class SimplifiedHash {
             fw.append("\n");
             
             //HASH
-            SimplifiedHash sh=new SimplifiedHash();
+            SimpleHash sh=new SimpleHash();
             
             for (int nodeId=0;nodeId<pprobas.pp.length;nodeId++) {
                 Infos.println("##### NodeId="+nodeId);
@@ -195,9 +196,9 @@ public class SimplifiedHash {
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimplifiedHash.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SimpleHash.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(SimplifiedHash.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SimpleHash.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         
@@ -222,6 +223,9 @@ public class SimplifiedHash {
      * simple object defining the caracteristics of particular word
      */
     private class Tuple implements Comparable<Tuple> {
+        
+        private static final long serialVersionUID = 7010L;
+
         
         protected double PPStar=-1.0;
         protected int nodeId=-1;

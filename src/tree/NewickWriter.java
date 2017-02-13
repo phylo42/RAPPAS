@@ -72,7 +72,6 @@ public class NewickWriter {
         if (treeCount>0) {w.append('\n');}
         currentNodeIndex=0;
         level=0;
-        Infos.println("Writing newick tree...");
         PhyloNode root=(PhyloNode)tree.getModel().getRoot();
         StringBuilder sb = new StringBuilder();
         sb = writerDFS(root,sb);

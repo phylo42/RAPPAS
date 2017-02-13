@@ -14,7 +14,7 @@ import core.DNAStates;
 import core.Locality;
 import core.QueryWord;
 import core.States;
-import core.algos.QueryKnife;
+import core.algos.SequenceKnife;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
@@ -300,7 +300,7 @@ public class Main_test_relaxedTree {
 
             System.out.println("################################################");
             System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
-            QueryKnife knife=new QueryKnife(fasta, session.k, session.minK, session.states,QueryKnife.SAMPLING_LINEAR);
+            SequenceKnife knife=new SequenceKnife(fasta, session.k, session.minK, session.states,SequenceKnife.SAMPLING_LINEAR);
             //System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
             long startTime=System.currentTimeMillis();
             //init the Z axis (PP*) to very small values for all possible (X,Y)

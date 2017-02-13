@@ -11,7 +11,7 @@ import core.DNAStates;
 import core.PProbas;
 import core.QueryWord;
 import core.States;
-import core.algos.QueryKnife;
+import core.algos.SequenceKnife;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
@@ -163,7 +163,7 @@ public class Main_pplacer_demoset {
                 //generate SAMPLING_NON_OVERLAPPING mers from ReadKnife
                 System.out.println("################################################");
                 System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
-                QueryKnife knife=new QueryKnife(fasta, k, S.minK, S.states,QueryKnife.SAMPLING_NON_OVERLAPPING);
+                SequenceKnife knife=new SequenceKnife(fasta, k, S.minK, S.states,SequenceKnife.SAMPLING_NON_OVERLAPPING);
                 System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
 
                 System.exit(1);

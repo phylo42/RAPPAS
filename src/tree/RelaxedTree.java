@@ -26,20 +26,20 @@ public class RelaxedTree extends PhyloTree {
     public static final int BL_FROM_SUBTREE_MEAN=101;
     
     //default values
-    public static final double DEFAULT_BRANCHBREAK_LENGTH=0.01;
+    public static final float DEFAULT_BRANCHBREAK_LENGTH=0.01f;
     public static final int DEFAULT_N=1;
     private int branchingMode=BRANCHING_ON_NODE;
     private int newBranchLengthMode=BL_FROM_SUBTREE_MEAN;
-    private double branchbreakThreshold=DEFAULT_BRANCHBREAK_LENGTH;
+    private float branchbreakThreshold=DEFAULT_BRANCHBREAK_LENGTH;
     private int N=DEFAULT_N;
     
     //variables used only in the search of longest/shortest branch
     int level=0;
-    double l_DFS_cumul=0.0;
-    double longest=0.0;
-    double shortest=1e308; //init it to the highest possible double
+    float l_DFS_cumul=0.0f;
+    float longest=0.0f;
+    float shortest=Float.MAX_VALUE; //init it to the highest possible float
     int sum_B_leaves=0;
-    double l_sum_B_subtree=0.0;
+    float l_sum_B_subtree=0.0f;
     
     //list of new terminal nodes (will be used to add gap-only fake sequences
     //to the alignment
@@ -66,7 +66,7 @@ public class RelaxedTree extends PhyloTree {
      * @param branchbreackThreshold branch length below which no nodes are added on the branch
      * @param N number of fake nodes to add
      */
-    public RelaxedTree(PhyloTree tree,double branchbreackThreshold,int N) {
+    public RelaxedTree(PhyloTree tree,float branchbreackThreshold,int N) {
         super(tree.getModel());
         this.branchingMode=BRANCHING_ON_BRANCH;
         this.N=N;
@@ -87,7 +87,7 @@ public class RelaxedTree extends PhyloTree {
      * @param branchbreakThreshold 
      * @param 
      */
-    private void initRelaxedTree(PhyloTree tree,double branchbreakThreshold,int N) {
+    private void initRelaxedTree(PhyloTree tree,float branchbreakThreshold,int N) {
         this.fakeNodeCounter=tree.getNodeCount();
         this.lastOriginalId=fakeNodeCounter;
         this.branchbreakThreshold=branchbreakThreshold;
@@ -115,22 +115,22 @@ public class RelaxedTree extends PhyloTree {
         // "<lastOriginalId" verify that node is nt one of the new fake nodes
         if (!node.isLeaf() && node.getId()<lastOriginalId) {
             fakeNodeCounter+=3;
-            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0);
-            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01);
-            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01);
+            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0f);
+            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01f);
+            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01f);
             //add the 2 fakes to X
             X0.add(fakeX1);
             X0.add(fakeX2);
             newLeaves.add(fakeX1);
             newLeaves.add(fakeX2);
            
-            double lengthNew=0.0;
+            float lengthNew=0.0f;
             if (newBranchLengthMode==BL_FROM_SUBTREE_MINMAX) {
                 //calculate the shortest/longest branch length of X children subtrees
                 //first init the shortest/longest with branch length of X to children
-                l_DFS_cumul=0.0;
-                longest=0.0;
-                shortest=1e308;
+                l_DFS_cumul=0.0f;
+                longest=0.0f;
+                shortest=Float.MIN_VALUE;
                 getBLFromMinMax_DFS(node,0);
                 //System.out.println("    shortest after DFS search: "+shortest);
                 //System.out.println("    longest after DFS search: "+longest);
@@ -138,7 +138,7 @@ public class RelaxedTree extends PhyloTree {
             } else if (newBranchLengthMode==BL_FROM_SUBTREE_MEAN){
                 //mean build from cumulated path length divided by number
                 //of encountered leaves
-                l_DFS_cumul=0.0;
+                l_DFS_cumul=0.0f;
                 l_sum_B_subtree=0;
                 sum_B_leaves=0;
                 //System.out.println("### LAUNCH FROM "+node);
@@ -203,8 +203,8 @@ public class RelaxedTree extends PhyloTree {
         if ((!node.isRoot()) && (((PhyloNode)node.getParent()).getId()<lastOriginalId) && (node.getId()<lastOriginalId) && (!(node.getBranchLengthToAncestor()<=branchbreakThreshold)) ) {
 
             //define l_init and l_b for the current edge
-            double l_init=node.getBranchLengthToAncestor();
-            double l_b=(0.0+l_init)/(N+1);
+            float l_init=node.getBranchLengthToAncestor();
+            float l_b=(0.0f+l_init)/(N+1);
 //                System.out.println("  l_init:"+l_init+" l_b:"+l_b);
 
             //cut parent from children
@@ -217,10 +217,10 @@ public class RelaxedTree extends PhyloTree {
 
                 //built subtree of the jth X0
                 fakeNodeCounter+=4;
-                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_FakeX0", 0.01);
-                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX1", 0.01);
-                PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX2", 0.01);
-                PhyloNode fakeX3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_FakeX3", 0.01);
+                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_FakeX0", 0.01f);
+                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX1", 0.01f);
+                PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX2", 0.01f);
+                PhyloNode fakeX3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_FakeX3", 0.01f);
                 X1.add(fakeX2);
                 X1.add(fakeX3);
                 X0.add(X1);
@@ -228,21 +228,21 @@ public class RelaxedTree extends PhyloTree {
                 newLeaves.add(fakeX3);
 
                 //define length left from this X0 to B
-                double l_XO_B=l_init-l_b*(j+1);
+                float l_XO_B=l_init-l_b*(j+1);
                 //define X0-X1 branch length
-                double l_new=0.0;
+                float l_new=0.0f;
                 if (newBranchLengthMode==BL_FROM_SUBTREE_MINMAX) {
                     //calculate the shortest/longest branch length of X children subtrees
                     //first init the shortest/longest with branch length of X to children
-                    l_DFS_cumul=0.0;
-                    longest=0.0;
-                    shortest=1e308;
+                    l_DFS_cumul=0.0f;
+                    longest=0.0f;
+                    shortest=Float.MIN_VALUE;
                     getBLFromMinMax_DFS(B,0);
                     l_new=((longest+N*l_b)-(shortest+N*l_b))/2;
                 } else if (newBranchLengthMode==BL_FROM_SUBTREE_MEAN){
                     //mean build from cumulated path length divided by number
                     //of encountered leaves
-                    l_DFS_cumul=0.0;
+                    l_DFS_cumul=0.0f;
                     l_sum_B_subtree=0;
                     sum_B_leaves=0;
                     //if this branch is from internal node to leaf
@@ -327,7 +327,7 @@ public class RelaxedTree extends PhyloTree {
         //System.out.println("       DFS_shortlong: "+node);
         if(node.isLeaf()) {
             //System.out.println("          LEAF:"+node);
-            double pathLength=l_DFS_cumul+node.getBranchLengthToAncestor();
+            float pathLength=l_DFS_cumul+node.getBranchLengthToAncestor();
             //System.out.println("          pathLength: "+pathLength);
             if ( pathLength > longest ) {
                 longest=pathLength;

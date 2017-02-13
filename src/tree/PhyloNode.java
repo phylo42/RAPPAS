@@ -24,7 +24,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     private int externalId=-1;//to memorize the id that the node had eventually
     //in the external program used to build the posterior probabilites.
     private String label=null;
-    private double branchLengthToAncestor=0.0;    
+    private float branchLengthToAncestor=0.0f;    
     
     /** The number of leaves under this internal node (or 1 for leaves). */
     public int numberLeaves;
@@ -37,15 +37,22 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     /** The next postorder node. */
     public PhyloNode posorderNext = null;
 
+    NumberFormat nf=NumberFormat.getNumberInstance();
 
+    
+    
     /**
      * empty constructor for situation where node can be filled with metadata only later
      */
     public PhyloNode() {
+        nf.setMinimumFractionDigits(3);
+        nf.setMaximumFractionDigits(12);
     }
     
     
-    public PhyloNode(int id, String label, double branchLengthToAncestor) {
+    public PhyloNode(int id, String label, float branchLengthToAncestor) {
+        nf.setMinimumFractionDigits(3);
+        nf.setMaximumFractionDigits(12);
         this.branchLengthToAncestor=branchLengthToAncestor;
         this.id=id;
         this.label=label;
@@ -71,11 +78,11 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         this.label = label;
     }
 
-    public double getBranchLengthToAncestor() {
+    public float getBranchLengthToAncestor() {
         return branchLengthToAncestor;
     }
 
-    public void setBranchLengthToAncestor(double branchLengthToAncestor) {
+    public void setBranchLengthToAncestor(float branchLengthToAncestor) {
         this.branchLengthToAncestor = branchLengthToAncestor;
     }
 
@@ -91,9 +98,8 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
 
     @Override
     public String toString() {
-        NumberFormat nf=NumberFormat.getNumberInstance();
-        nf.setMaximumFractionDigits(6);
         //return this.hashCode()+" id:"+id+" label:"+label+" bl:"+nf.format(branchLengthToAncestor);
+        //System.out.println("id:"+id+" extId:"+externalId+" label:"+label+" bl:"+nf.format(branchLengthToAncestor));
         return "id:"+id+" extId:"+externalId+" label:"+label+" bl:"+nf.format(branchLengthToAncestor);
     }
 

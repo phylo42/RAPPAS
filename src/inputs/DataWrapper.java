@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import tree.PhyloNode;
+import tree.Tree;
 
 /**
  *
@@ -27,4 +28,7 @@ public interface DataWrapper {
      * @throws IOException 
      */    
     public PProbas parseProbas(InputStream input, float sitePPThreshold, boolean asLog10) throws IOException;
+
+    
+    
 }

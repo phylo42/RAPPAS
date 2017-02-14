@@ -36,7 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import tree.PhyloNode;
 import tree.PhyloTree;
-import tree.RelaxedTree;
+import tree.ExtendedTree;
+import tree.Tree;
 
 /**
  *
@@ -53,9 +54,9 @@ public class Session {
     
     States states=null;
     Alignment align=null;
-    PhyloTree tree=null;
+    Tree tree=null;
     PProbas parsedProbas=null;
-    RelaxedTree relaxedTree=null; //optinnal, checked through a boolean flag
+    ExtendedTree relaxedTree=null; //optinnal, checked through a boolean flag
     
     ColmerSet cs=null;
     
@@ -73,8 +74,8 @@ public class Session {
     
     public void associateInputs(InputManager im) {
         this.tree=im.getTree();
-        if (im.getTree() instanceof RelaxedTree)
-            this.relaxedTree=(RelaxedTree)im.getTree();
+        if (im.getTree() instanceof ExtendedTree)
+            this.relaxedTree=(ExtendedTree)im.getTree();
         else
             this.relaxedTree=null;
         this.align=im.getAlignment();
@@ -302,7 +303,7 @@ public class Session {
             s.tree = (PhyloTree)ois.readObject();
             Infos.println("Loading RelaxedTree");
             if (relaxedTree)
-                s.tree = (RelaxedTree)ois.readObject();
+                s.tree = (ExtendedTree)ois.readObject();
             Infos.println("Loading of PPStats");
             s.parsedProbas = (PProbas)ois.readObject();
             Infos.println("Loading of ColmerSet");

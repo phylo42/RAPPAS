@@ -24,7 +24,7 @@ import javax.swing.tree.TreePath;
  * A tree of PhyloNodes, based on the original java structure.
  * @author ben
  */
-public class PhyloTree extends JTree implements Serializable {
+public class PhyloTree extends JTree implements Tree,Serializable {
     
     private static final long serialVersionUID = 2000L;
     

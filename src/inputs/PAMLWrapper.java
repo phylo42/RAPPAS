@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import tree.NewickReader;
 import tree.PhyloTree;
+import tree.Tree;
 
 /**
  * PAML has a strange way to give number to the leaves and internal nodes.
@@ -66,7 +67,7 @@ public class PAMLWrapper implements DataWrapper {
      * @return
      * @throws IOException 
      */
-    public PhyloTree parseTree(InputStream input) throws IOException {
+    public Tree parseTree(InputStream input) throws IOException {
      
         BufferedReader br=new BufferedReader(new InputStreamReader(input,"UTF-8"));
         String line=null;
@@ -234,7 +235,7 @@ public class PAMLWrapper implements DataWrapper {
             probasPerSite.add(new SiteProba());
         }
 
-        
+        Infos.println("Starting to parse PAML posterior probas...");
         while ((line=br.readLine())!=null) {
             lineNumber++;
             if (lineNumber%500000==0) {

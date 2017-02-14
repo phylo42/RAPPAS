@@ -44,7 +44,7 @@ import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
 import tree.PhyloTree;
-import tree.RelaxedTree;
+import tree.ExtendedTree;
 
 /**
  *

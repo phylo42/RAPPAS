@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import tree.PhyloTree;
+import tree.Tree;
 
 /**
  * 
@@ -22,7 +23,7 @@ import tree.PhyloTree;
 public class FASTMLWrapper implements DataWrapper {
 
     Alignment align=null;
-    PhyloTree tree=null;
+    Tree tree=null;
     int states=4;
     
     /**
@@ -32,7 +33,7 @@ public class FASTMLWrapper implements DataWrapper {
      * @param treeAncestor tree.ancestor.txt output from FASTML
      * @param probaMarginal prob.marginal.txt from FASTML
      */
-    public FASTMLWrapper(Alignment inputAlign,PhyloTree inputTree,States states) {
+    public FASTMLWrapper(Alignment inputAlign,Tree inputTree,States states) {
         this.align=inputAlign;
         this.tree=inputTree;
         this.states=states.getStateCount();

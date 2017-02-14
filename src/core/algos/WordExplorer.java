@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.PhyloTree;
+import tree.Tree;
 
 /**
  *
@@ -107,7 +108,7 @@ public class WordExplorer {
         if (i==(refPosition+k-1)) {
             //register word
             if (!boundReached) {
-                words.add(new ProbabilisticWord(word, currentLogSum, refPosition ));
+                words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
                 //System.out.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
             }
             //decrease before return
@@ -177,7 +178,7 @@ public class WordExplorer {
             //input = new FileInputStream(new File(pp));
             input = new FileInputStream(new File(rst));
             //input = new FileInputStream(new File(ARPath+"rst"));
-            PhyloTree tree= pw.parseTree(input);
+            Tree tree= pw.parseTree(input);
             Infos.println("Parsing posterior probas..");
             input = new FileInputStream(new File(rst));
             PProbasSorted pprobas = pw.parseSortedProbas(input,sitePPThreshold,true,Integer.MAX_VALUE); //parse less nodes for debug

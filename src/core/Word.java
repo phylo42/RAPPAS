@@ -10,7 +10,7 @@ package core;
  * @author ben
  */
 public interface Word {
-
+    
     public byte[] getWord();
     
     /**

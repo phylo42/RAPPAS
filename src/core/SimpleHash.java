@@ -26,17 +26,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import tree.NewickWriter;
 import tree.PhyloTree;
+import tree.Tree;
 
 /**
  *
  * @author ben
  */
-public class SimpleHash {
+public class SimpleHash implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
@@ -48,7 +50,7 @@ public class SimpleHash {
     }
     
     
-    public void addTuple(Word w, double PPStar,int nodeId,int refPos) {
+    public void addTuple(Word w, float PPStar,int nodeId,int refPos) {
         if (!hash.containsKey(w)) {
             hash.put(w, new LinkedList<>());
         }
@@ -59,15 +61,24 @@ public class SimpleHash {
         return hash.get(w);
     }
     
-    public List<Tuple> getTopTuples(Word w,double PPStarTreshold) {
+    public List<Tuple> getTopTuples(Word w,float PPStarTreshold) {
         return hash.get(w).stream().filter(t -> t.PPStar>=PPStarTreshold).collect(Collectors.toList());
     }
+    
+    public Tuple getTopTuple(Word w) {
+        LinkedList<Tuple> l;
+        return (l=hash.get(w))==null ? null : l.getFirst();
+    }    
     
     public void sortTuples() {
         double startTime=System.currentTimeMillis();
         hash.values().stream().forEach( l -> {Collections.sort(l);} );
         double endTime=System.currentTimeMillis();
         Infos.println("Tuples sorting took "+(endTime-startTime)+" ms");
+    }
+    
+    public Set<Word> getRegisteredWords() {
+        return hash.keySet();
     }
           
     
@@ -119,7 +130,7 @@ public class SimpleHash {
             //input = new FileInputStream(new File(pp));
             input = new FileInputStream(new File(rst));
             //input = new FileInputStream(new File(ARPath+"rst"));
-            PhyloTree tree= pw.parseTree(input);
+            Tree tree= pw.parseTree(input);
             Infos.println("Parsing posterior probas..");
             input = new FileInputStream(new File(rst));
             PProbas pprobas = pw.parseProbas(input,sitePPThreshold,false);
@@ -222,17 +233,17 @@ public class SimpleHash {
     /**
      * simple object defining the caracteristics of particular word
      */
-    private class Tuple implements Comparable<Tuple> {
+    public class Tuple implements Comparable<Tuple>,Serializable {
         
         private static final long serialVersionUID = 7010L;
 
         
-        protected double PPStar=-1.0;
+        protected float PPStar=-1.0f;
         protected int nodeId=-1;
         protected int refPos=-1; 
         
-        public Tuple(double PPSTar,int nodeId, int refPos) {
-            this.PPStar=PPSTar;
+        public Tuple(float PPStar,int nodeId, int refPos) {
+            this.PPStar=PPStar;
             this.nodeId=nodeId;
             this.refPos=refPos;
         }
@@ -241,7 +252,7 @@ public class SimpleHash {
             return nodeId;
         }
 
-        public double getPPStar() {
+        public float getPPStar() {
             return PPStar;
         }
 
@@ -264,6 +275,13 @@ public class SimpleHash {
                return 0;
            }
        }
+
+        @Override
+        public String toString() {
+            return "Tuple: nodeId="+nodeId+" refPos="+refPos+" PPStar="+PPStar;
+        }
+       
+       
     }
     
     

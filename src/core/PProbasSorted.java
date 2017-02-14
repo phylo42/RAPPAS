@@ -16,23 +16,30 @@ import java.util.Arrays;
 public class PProbasSorted implements Serializable {
     
     
-    float[][][] pp=null; //[nodeIndex][site][state]
-    byte[][][] states=null;
+    float[][][] pp=null; //[nodeIndex][site][index]=PPStar
+    byte[][][] states=null;//[nodeIndex][site][index]= State associated to PPStar
+    byte[][][] statesIndex=null;//[nodeIndex][site][index] =link from State value tp states table index
+    //example on pplacer benchmark:
+    //pp[O][0]=[-0.51749474, -0.5934179, -0.64727, -0.665648]
+    //states[0[0]=[3, 0, 2, 1]
+    //statesIndex[0][0]=[1, 3, 2, 0]
     //note that the index of a node is defined through its DFS pre_order
 
     public PProbasSorted(int nodeCount, int siteCount, int stateCount) {
         pp=new float[nodeCount][siteCount][stateCount];
         states=new byte[nodeCount][siteCount][stateCount];
+        statesIndex=new byte[nodeCount][siteCount][stateCount];
     }
     
     public void setStates(int nodeId, int site, ArrayList<SiteProba> probas) {
 
         assert probas.size()==pp[0][0].length;
         
-        int i=0;
+        byte i=0;
         for (SiteProba sp:probas) {
             pp[nodeId][site][i]=sp.proba;
             states[nodeId][site][i]=sp.state;
+            statesIndex[nodeId][site][sp.state]=i;
             i++;
         }
     }
@@ -44,6 +51,10 @@ public class PProbasSorted implements Serializable {
     
     public byte getState(int nodeId, int site, int index) {
         return states[nodeId][site][index];
+    }
+    
+    public byte getStateIndex(int nodeId, int site, byte state) {
+        return states[nodeId][site][state];
     }
     
 
@@ -60,6 +71,14 @@ public class PProbasSorted implements Serializable {
             throw new IndexOutOfBoundsException("siteEnd="+siteEnd+" > to last site position");
         } else {
             return Arrays.copyOfRange(states[nodeId], siteStart, siteEnd+1);
+        }
+    }
+    
+    public byte[][] getStateIndexSet(int nodeId, int siteStart, int siteEnd) {
+        if (siteEnd>=statesIndex[0].length) {
+            throw new IndexOutOfBoundsException("siteEnd="+siteEnd+" > to last site position");
+        } else {
+            return Arrays.copyOfRange(statesIndex[nodeId], siteStart, siteEnd+1);
         }
     }
     

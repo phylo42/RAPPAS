@@ -6,22 +6,10 @@
 package main;
 
 import alignement.Alignment;
-import core.Colmer;
-import core.ColmerSet;
-import core.DNAStates;
-import core.ProbabilisticWord;
-import core.PProbas;
 import core.PProbasSorted;
 import core.SimpleHash;
 import core.States;
-import core.Word;
-import core.algos.SequenceKnife;
-import core.algos.WordGenerator;
-import etc.Environement;
 import etc.Infos;
-import inputs.Fasta;
-import inputs.FASTAPointer;
-import inputs.InputManager;
 import inputs.InputManagerNext;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -31,15 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import tree.PhyloNode;
-import tree.PhyloTree;
-import tree.RelaxedTree;
+import tree.Tree;
 
 /**
  *
@@ -56,10 +36,8 @@ public class SessionNext {
     
     States states=null;
     Alignment align=null;
-    PhyloTree tree=null;
-    PProbasSorted parsedProbas=null;
-    RelaxedTree relaxedTree=null; //optinnal, checked through a boolean flag
-    
+    Tree tree=null;
+    PProbasSorted parsedProbas=null;    
     SimpleHash hash=null;
     
     
@@ -77,12 +55,12 @@ public class SessionNext {
     
     public void associateInputs(InputManagerNext im) {
         this.tree=im.getTree();
-        if (im.getTree() instanceof RelaxedTree)
-            this.relaxedTree=(RelaxedTree)im.getTree();
-        else
-            this.relaxedTree=null;
         this.align=im.getAlignment();
         this.parsedProbas=im.getPProbas();
+    }
+    
+    public void associateHash(SimpleHash hash) {
+        this.hash=hash;
     }
     
     
@@ -93,23 +71,15 @@ public class SessionNext {
             ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
             oos.writeInt(k);
             oos.writeInt(minK);
-            oos.writeDouble(factor);
-            oos.writeDouble(stateThreshold);
-            oos.writeDouble(wordThreshold);
-            //flag for relaxedTree
-            if (this.relaxedTree!=null)
-                oos.writeBoolean(true);
-            else
-                oos.writeBoolean(false);
+            oos.writeFloat(factor);
+            oos.writeFloat(stateThreshold);
+            oos.writeFloat(wordThreshold);
             Infos.println("Storing of States");
             oos.writeObject(states);
             Infos.println("Storing of Alignment");
             oos.writeObject(align);
-            Infos.println("Storing of PhyloTree");
+            Infos.println("Storing of Tree");
             oos.writeObject(tree);
-            Infos.println("Storing of RelaxedTree");
-            if (this.relaxedTree!=null)
-                oos.writeObject(relaxedTree);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
             Infos.println("Storing of Hash");
@@ -126,7 +96,7 @@ public class SessionNext {
         return true;
     }
     
-    public static SessionNext load(File f) {
+    public static SessionNext load(File f,boolean loadHash) {
         try {
             long startTime = System.currentTimeMillis();
             FileInputStream fis = new FileInputStream(f);
@@ -136,21 +106,19 @@ public class SessionNext {
             float factor=ois.readFloat();
             float stateThreshold=ois.readFloat();
             float wordThreshold=ois.readFloat();
-            boolean relaxedTree=ois.readBoolean();
             SessionNext s=new SessionNext(k, minK, factor, stateThreshold, wordThreshold);
             Infos.println("Loading States");
             s.states = (States)ois.readObject();
             Infos.println("Loading Alignment");
             s.align = (Alignment)ois.readObject();
-            Infos.println("Loading PhyloTree");
-            s.tree = (PhyloTree)ois.readObject();
-            Infos.println("Loading RelaxedTree");
-            if (relaxedTree)
-                s.tree = (RelaxedTree)ois.readObject();
-            Infos.println("Loading of PPStats");
+            Infos.println("Loading Tree");
+            s.tree = (Tree)ois.readObject();
+            Infos.println("Loading PPStats");
             s.parsedProbas = (PProbasSorted)ois.readObject();
-            Infos.println("Loading of Hash");
-            s.hash = (SimpleHash)ois.readObject();
+            if (loadHash) {
+                Infos.println("Loading Hash");
+                s.hash = (SimpleHash)ois.readObject();
+            }
             ois.close();
             fis.close();
             long endTime = System.currentTimeMillis();

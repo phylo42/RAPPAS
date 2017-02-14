@@ -38,7 +38,7 @@ import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
 import tree.PhyloTree;
-import tree.RelaxedTree;
+import tree.ExtendedTree;
 
 /**
  *
@@ -88,12 +88,12 @@ public class Main_DBBUILD {
             //logs
             String logPath=path+"logs/";
             //trees
-            String relaxedTreePath=path+"relaxed_trees/";
+            String extendedTreePath=path+"extended_trees/";
             //ancestral reconstruciton
             String ARPath=path+"AR/";
             
             
-            //build of relaxed tree/////////////////////////////////////////////
+            //build of extended tree/////////////////////////////////////////////
             float minBranchLength=0.001f;
             int numberOfFakeBranchesPerEdge=1;
             String baseMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml";
@@ -107,13 +107,13 @@ public class Main_DBBUILD {
             //build of Hash/////////////////////////////////////////////////////
             int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             //mers size and word proba thresholds
-            int k=8;
-            int min_k=8;
+            int k=5;
+            int min_k=5;
             float thresholdFactor=10.0f;
             float sitePPThreshold=Float.MIN_VALUE;
             float wordPPStarThreshold=(float)(thresholdFactor*Math.pow(0.25,k));
             float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
-            float wordAbsent=(float)Math.pow(1/4,k); // not used in hash, but for scoring queries
+            float wordAbsent=(float)Math.pow(0.25,k); // not used in hash, but for scoring queries
             Infos.println("k="+k);
             Infos.println("factor="+thresholdFactor);
             Infos.println("wordPPStarThreshold="+wordPPStarThreshold);
@@ -123,10 +123,10 @@ public class Main_DBBUILD {
 
             
             //debug/////////////////////////////////////////////////////////////
-            //skip relaxed tree reconstruction
+            //skip extended tree reconstruction
             boolean buildRelaxedTree=true;
-            //skip paml marginal ancestral reconstruction (made on relaxed tree)
-            boolean launchAR=true;
+            //skip paml marginal ancestral reconstruction (made on extended tree)
+            boolean launchAR=false;
             
             
             
@@ -145,7 +145,7 @@ public class Main_DBBUILD {
             //PREPARE DIRECTORIES
             if (!new File(path).exists()) {new File(path).mkdir();}
             if (!new File(logPath).exists()) {new File(logPath).mkdir();}
-            if (!new File(relaxedTreePath).exists()) {new File(relaxedTreePath).mkdir();}
+            if (!new File(extendedTreePath).exists()) {new File(extendedTreePath).mkdir();}
             if (!new File(ARPath).exists()) {new File(ARPath).mkdir();}
             
             //////////////////////
@@ -167,20 +167,20 @@ public class Main_DBBUILD {
             
             /////////////////////
             //BUILD RELAXED TREE
-            File fileRelaxedAlignmentFasta=new File(relaxedTreePath+"relaxed_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.fasta");
-            File fileRelaxedAlignmentPhylip=new File(relaxedTreePath+"relaxed_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.phylip");
-            File fileRelaxedTreewithBL=new File(relaxedTreePath+"relaxed_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL.tree");
-            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(relaxedTreePath+"relaxed_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL_withoutInternalLabels.tree");;
-            //String relaxedTreeForJplace=null;
-            RelaxedTree relaxedTreeOnBranches=null;
+            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.fasta");
+            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.phylip");
+            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL.tree");
+            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL_withoutInternalLabels.tree");;
+            //String extendedTreeForJplace=null;
+            ExtendedTree extendedTreeOnBranches=null;
             if (buildRelaxedTree) {
                 try {
-                    relaxedTreeOnBranches=new RelaxedTree(tree,minBranchLength,numberOfFakeBranchesPerEdge);                    
-                    relaxedTreeOnBranches.initIndexes(); // don't forget to reinit indexes !!!
-                    ArrayList<PhyloNode> listOfNewFakeLeaves = relaxedTreeOnBranches.getListOfNewFakeLeaves();
-                    Infos.println("RelaxedTree contains "+relaxedTreeOnBranches.getNodeCount()+ " nodes");
-                    Infos.println("RelaxedTree contains "+relaxedTreeOnBranches.getLeavesCount()+ " leaves");
-                    Infos.println("RelaxedTree contains "+relaxedTreeOnBranches.getListOfNewFakeLeaves().size()+ " FAKEX new leaves");
+                    extendedTreeOnBranches=new ExtendedTree(tree,minBranchLength,numberOfFakeBranchesPerEdge);                    
+                    extendedTreeOnBranches.initIndexes(); // don't forget to reinit indexes !!!
+                    ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTreeOnBranches.getListOfNewFakeLeaves();
+                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getNodeCount()+ " nodes");
+                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getLeavesCount()+ " leaves");
+                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getListOfNewFakeLeaves().size()+ " FAKE_X new leaves");
                     //add new leaves to alignment
                     for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
                         PhyloNode node = listOfNewFakeLeaves.get(i);
@@ -189,24 +189,24 @@ public class Main_DBBUILD {
                         align.addSequence(node.getLabel(), gapSeq);
                     }
                     //write alignment and tree for BrB
-                    Infos.println("Write relaxed alignment: "+fileRelaxedAlignmentFasta.getAbsolutePath());
+                    Infos.println("Write extended alignment: "+fileRelaxedAlignmentFasta.getAbsolutePath());
                     align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
-                    Infos.println("Write relaxed alignment: "+fileRelaxedAlignmentPhylip.getAbsolutePath());
+                    Infos.println("Write extended alignment: "+fileRelaxedAlignmentPhylip.getAbsolutePath());
                     align.writeAlignmentAsPhylip(fileRelaxedAlignmentPhylip);
-                    //write relaxed trees
-                    Infos.println("Write relaxed newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
+                    //write extended trees
+                    Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
                     NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
-                    nw.writeNewickTree(relaxedTreeOnBranches, true, true, false);
+                    nw.writeNewickTree(extendedTreeOnBranches, true, true, false);
                     nw.close();
                     //write version without internal nodes labels
-                    Infos.println("Write relaxed newick tree: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
+                    Infos.println("Write extended newick tree: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
                     nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
-                    nw.writeNewickTree(relaxedTreeOnBranches, true, false, false);
-                    //relaxedTreeForJplace=nw.getNewickTree(relaxedTreeOnBranches, true, true, true);
+                    nw.writeNewickTree(extendedTreeOnBranches, true, false, false);
+                    //extendedTreeForJplace=nw.getNewickTree(extendedTreeOnBranches, true, true, true);
                     nw.close();
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    System.out.println("Error raised from relaxed tree reconstruciton!");
+                    System.out.println("Error raised from extended tree reconstruciton!");
                 }
             }
             
@@ -256,7 +256,7 @@ public class Main_DBBUILD {
                 fw.append(sb);
                 fw.close();
                 
-                //launch paml externally to build the posterior probas on the relaxed tree
+                //launch paml externally to build the posterior probas on the extended tree
                 List<String> com=new ArrayList<>();
                 com.add(baseMLBinaries);
                 com.add(ARPath+"baseml.ctl");
@@ -304,7 +304,7 @@ public class Main_DBBUILD {
             ////////////////////////////////////////////////////////////////////
             //LOAD THE NEW POSTERIOR PROBAS AND PAML TREE MADE FROM THE AR
 
-            SessionNext session=new SessionNext(k, min_k, thresholdFactor, sitePPThreshold, wordPPStarThreshold);
+            SessionNext session=new SessionNext(k, min_k, thresholdFactor, sitePPThreshold, wordPPStarThreshold/thresholdFactor);
             
             Infos.println("Loading final dataset (PAML tree and Posterior Probas ; alignment)...");
             InputManagerNext im=new InputManagerNext(InputManagerNext.SOURCE_PAML, fileRelaxedAlignmentFasta, null, statsFromRelaxedTree, s);
@@ -319,7 +319,7 @@ public class Main_DBBUILD {
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 5 first PP:"+Arrays.deepToString(im.getPProbas().getPPSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(im.getPProbas().getStateSet(0, 0, 5)));
-           
+            Infos.println("NodeId=0, 5 first statesIndexes:"+ Arrays.deepToString(im.getPProbas().getStateIndexSet(0, 0, 5)));
             
             //prepare simplified hash
             SimpleHash hash=new SimpleHash();
@@ -329,8 +329,11 @@ public class Main_DBBUILD {
             int totalWordsInHash=0;
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.tree.getInternalNodesByDFS()) {
-                Infos.println("NodeId: "+nodeId+" "+session.tree.getById(nodeId).toString() );
-                
+                //Infos.println("NodeId: "+nodeId+" "+session.tree.getById(nodeId).toString() );
+                    //DEBUG
+//                    if(nodeId!=709)
+//                        continue;
+                    //DEBUG                
                 
                 double startMerScanTime=System.currentTimeMillis();
                 WordExplorer wd =null;
@@ -340,12 +343,12 @@ public class Main_DBBUILD {
                     if(pos+k-1>align.getLength()-1)
                         continue;
                     //DEBUG
-//                    if(pos<30 || pos>36)
+//                    if(pos<1198 || pos>1202)
 //                        continue;
                     //DEBUG
                     
                     //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
-                    //double startScanTime=System.currentTimeMillis();
+                    double startScanTime=System.currentTimeMillis();
                     wd =new WordExplorer(   k,
                                             pos,
                                             nodeId,
@@ -361,7 +364,7 @@ public class Main_DBBUILD {
                     wd.getRetainedWords().stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
                     totalWordsInNode+=wd.getRetainedWords().size();
                     
-                    //Infos.println("Words in this position:"+wd.words.size());
+                    //Infos.println("Words in this position:"+wd.getRetainedWords().size());
                     
                     //double endScanTime=System.currentTimeMillis();
                     //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
@@ -387,14 +390,16 @@ public class Main_DBBUILD {
             Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
             
             Infos.println("Words in the hash:"+totalWordsInHash);
-                
+            
+            session.associateHash(hash);
+            
             Infos.println("FINISHED.");
             
             
             ////////////////////////////////////////////////////////////////////
-            //SAVE THE HASH BY SERIALIZATION
+            //SAVE THE HASH BY JAVA SERIALIZATION
             
-            session.store(new File(path+"PAML_session_params_k"+k+"_mk"+min_k+"f"+thresholdFactor+"_t"+wordPPStarThreshold));
+            session.store(new File(path+"PAML_session_params_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold));
             im=null;
             session=null;  
 

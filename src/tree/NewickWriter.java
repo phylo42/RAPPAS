@@ -36,6 +36,10 @@ public class NewickWriter {
     
     private Writer w=null;
 
+    public NewickWriter() {
+        setupWriter(w);
+    }
+
     public NewickWriter(Writer w) {
         setupWriter(w);
     }
@@ -44,6 +48,10 @@ public class NewickWriter {
         setupWriter(new FileWriter(f));
     }
     
+    /**
+     * init basic stuff in the writer, such as number formats for branch length
+     * @param w 
+     */
     private void setupWriter(Writer w) {
         this.w=w;
         //makes all branch length as a decimal number, no scientific number
@@ -65,7 +73,7 @@ public class NewickWriter {
      * @param withBranchLength 
      * @throws java.io.IOException 
      */
-    public void writeNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
+    public void writeNewickTree(Tree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
@@ -90,7 +98,7 @@ public class NewickWriter {
      * @param withBranchLength 
      * @throws java.io.IOException 
      */
-    public String getNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
+    public String getNewickTree(Tree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
@@ -165,6 +173,10 @@ public class NewickWriter {
         return sb;
     }
     
+    /**
+     * close writer 
+     * @throws IOException 
+     */
     public void close() throws IOException {
         w.flush();
         w.close();

@@ -15,7 +15,7 @@ import javax.swing.tree.TreeModel;
  * builds a tree from a PhyloTree with added fake nodes
  * @author ben
  */
-public class RelaxedTree extends PhyloTree {
+public class ExtendedTree extends PhyloTree implements Tree {
     
     private static final long serialVersionUID = 2100L;
     
@@ -49,24 +49,24 @@ public class RelaxedTree extends PhyloTree {
     
     
     /**
-     * Build a relaxed tree with new N nodes on branches (BRANCHING_ON_BRANCH mode)
+     * Build a extended tree with new N nodes on branches (BRANCHING_ON_BRANCH mode)
      * or one new node on nodes (not root)
      * @param tree
      * @param branchingMode one of BRANCHING_ON_NODE, BRANCHING_ON_BRANCH
      */
-    public RelaxedTree(PhyloTree tree, int branchingMode ) {
+    public ExtendedTree(Tree tree, int branchingMode ) {
         super(tree.getModel());
         this.branchingMode=branchingMode;
         initRelaxedTree(tree, DEFAULT_BRANCHBREAK_LENGTH,DEFAULT_N);
     }
 
     /**
-     * Build a relaxed tree with N new nodes on branches (BRANCHING_ON_BRANCH mode)
+     * Build a extended tree with N new nodes on branches (BRANCHING_ON_BRANCH mode)
      * @param tree
      * @param branchbreackThreshold branch length below which no nodes are added on the branch
      * @param N number of fake nodes to add
      */
-    public RelaxedTree(PhyloTree tree,float branchbreackThreshold,int N) {
+    public ExtendedTree(Tree tree,float branchbreackThreshold,int N) {
         super(tree.getModel());
         this.branchingMode=BRANCHING_ON_BRANCH;
         this.N=N;
@@ -74,7 +74,7 @@ public class RelaxedTree extends PhyloTree {
     }
     
     /**
-     * return all the leaves that were created in this relaxed tree.
+     * return all the leaves that were created in this extended tree.
      * @return 
      */
     public ArrayList<PhyloNode> getListOfNewFakeLeaves() {
@@ -82,12 +82,12 @@ public class RelaxedTree extends PhyloTree {
     }
     
     /**
-     * init the relaxed tree, used in constructors
+     * init the extended tree, used in constructors
      * @param tree
      * @param branchbreakThreshold 
      * @param 
      */
-    private void initRelaxedTree(PhyloTree tree,float branchbreakThreshold,int N) {
+    private void initRelaxedTree(Tree tree,float branchbreakThreshold,int N) {
         this.fakeNodeCounter=tree.getNodeCount();
         this.lastOriginalId=fakeNodeCounter;
         this.branchbreakThreshold=branchbreakThreshold;
@@ -101,7 +101,7 @@ public class RelaxedTree extends PhyloTree {
                 populateWithFakeBranchToEdges_DFS((PhyloNode)tree.getModel().getRoot());
                 break;
             default:
-                Infos.println("Cannot instanciate relaxed tree: unknown mode.");
+                Infos.println("Cannot instanciate extended tree: unknown mode.");
                 break;
         }
     }

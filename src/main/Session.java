@@ -6,11 +6,11 @@
 package main;
 
 import alignement.Alignment;
-import core.Colmer;
-import core.ColmerSet;
+import core.older.Colmer;
+import core.older.ColmerSet;
 import core.DNAStates;
 import core.ProbabilisticWord;
-import core.PProbas;
+import core.older.PProbas;
 import core.States;
 import core.Word;
 import core.algos.SequenceKnife;
@@ -95,7 +95,7 @@ public class Session {
         }
         Infos.println("# nodes for which Words will be generated: " + orderedNodes.size());
         Infos.println("Colmers sampled as "+Arrays.toString(Arrays.copyOfRange(cs.getMerOrder(),0,15))+" ...");
-        Environement.printMemoryUsage();
+        Environement.printMemoryUsageDescription();
         Colmer c=null;
         long meanTime=0;
         while ((c=cs.getNextColmer())!=null) {
@@ -129,7 +129,7 @@ public class Session {
             meanTime+=time;
             Infos.println("final avg node size (words) " +(totalWords/tree.getNodeCount())+"  (max="+Double.valueOf(Math.pow(4, k)).intValue()+")");
             Infos.println("Colmer generation " + time + " ms");
-            Environement.printMemoryUsage();
+            Environement.printMemoryUsageDescription();
             
 //                if (c.getStartSite()>300) {
 //                    break;
@@ -151,7 +151,7 @@ public class Session {
         }
         Infos.println("# nodes for which Words will be generated: " + orderedNodes.size());
         Infos.println("Colmers sampled as "+Arrays.toString(Arrays.copyOfRange(cs.getMerOrder(),0,15))+" ...");
-        Environement.printMemoryUsage();
+        Environement.printMemoryUsageDescription();
         Colmer c=null;
         long meanTime=0;
         while ((c=cs.getNextColmer())!=null) {
@@ -193,7 +193,7 @@ public class Session {
             meanTime+=time;
             Infos.println("final avg node size (words) " +(totalWords/tree.getNodeCount())+"  (max="+Double.valueOf(Math.pow(4, k)).intValue()+")");
             Infos.println("Colmer generation " + time + " ms");
-            Environement.printMemoryUsage();
+            Environement.printMemoryUsageDescription();
             
 //                if (c.getStartSite()>300) {
 //                    break;

@@ -5,8 +5,8 @@
  */
 package core.algos;
 
-import core.Colmer;
-import core.ColmerSet;
+import core.older.Colmer;
+import core.older.ColmerSet;
 import core.ProbabilisticWord;
 import core.SimpleWord;
 import etc.Environement;
@@ -31,12 +31,12 @@ public class WordGenerator {
         
 
         byte[] alphabet= {1, 2, 3, 4};
-        Environement.printMemoryUsage();
+        Environement.printMemoryUsageDescription();
         long startTime = System.currentTimeMillis();
         byte[][] words=WordGenerator.getAllWords(3, 4);
         long endTime = System.currentTimeMillis();
         System.out.println("ALL word generation used " + (endTime - startTime) + " ms");
-        Environement.printMemoryUsage();
+        Environement.printMemoryUsageDescription();
         startTime = System.currentTimeMillis();
         
         //display words

@@ -8,7 +8,9 @@ package core;
 import core.older.PProbas;
 import alignement.Alignment;
 import core.algos.SequenceKnife;
+import core.algos.WordExplorer;
 import core.algos.WordGenerator;
+import core.hashmap.CustomHashMap;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -40,15 +42,19 @@ import tree.Tree;
  *
  * @author ben
  */
-public class SimpleHash implements Serializable{
+public class SimpleHash_v2 implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
-    HashMap<Word,LinkedList<Tuple>> hash=null;
+    CustomHashMap<Word,LinkedList<Tuple>> hash=null;
 
+    public SimpleHash_v2() {
+        hash=new CustomHashMap<>();
+    }
     
-    public SimpleHash() {
-        hash=new HashMap<>();
+    
+    public SimpleHash_v2(int k,States s) {
+        hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)*0.75).intValue());
     }
     
     
@@ -66,6 +72,12 @@ public class SimpleHash implements Serializable{
     public List<Tuple> getTopTuples(Word w,float PPStarTresholdAsLog10) {
         return hash.get(w).stream().filter(t -> t.PPStar>=PPStarTresholdAsLog10).collect(Collectors.toList());
     }
+
+    public CustomHashMap<Word, LinkedList<Tuple>> getHash() {
+        return hash;
+    }
+    
+    
     
     /**
      * 
@@ -110,18 +122,22 @@ public class SimpleHash implements Serializable{
         try {
             
             
-            String a="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/relaxed_trees/relaxed_align_BrB_minbl0.001_1peredge.fasta";
-            String rst="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/AR/finished/rst";
+
+            String a="/media/ben/STOCK/DATA/viromeplacer/WD/relaxed_trees/relaxed_align_BrB_minbl0.001_1peredge.fasta";
+            String t="/media/ben/STOCK/DATA/viromeplacer/WD/relaxed_trees/relaxed_tree_BrB_minbl0.001_1peredge_withBL_withoutInternalLabels.tree";
+            String rst="/media/ben/STOCK/DATA/viromeplacer/WD/AR/rst";
             
             
-            int k=7;
+            int k=12;
             float sitePPThreshold=1e-45f;
-            float wordPPStarThreshold=(float)Math.pow(0.25,k);
-            int thresholdFactor=10;
+            float thresholdFactor=2.0f;
+            float wordPPStarThreshold=(float)Math.pow(thresholdFactor*0.25,k);
+            float wordPPStarThresholdAsLog=(float)Math.log10(wordPPStarThreshold);
             
             Infos.println("k="+k);
             Infos.println("factor="+thresholdFactor);
             Infos.println("wordPPStatThreshold="+wordPPStarThreshold);
+            Infos.println("wordPPStatThresholdAsLog="+wordPPStarThresholdAsLog);
             
             
             //////////////////////
@@ -151,7 +167,7 @@ public class SimpleHash implements Serializable{
             Tree tree= pw.parseTree(input);
             Infos.println("Parsing posterior probas..");
             input = new FileInputStream(new File(rst));
-            PProbas pprobas = pw.parseProbas(input,sitePPThreshold,false);
+            PProbasSorted pprobas = pw.parseSortedProbas(input, sitePPThreshold, true,Integer.MAX_VALUE);  //DEBUG: LIMITED NODE NUMBER
             input.close();
             
             
@@ -171,52 +187,98 @@ public class SimpleHash implements Serializable{
             }
             fw.append("\n");
             
-            //HASH
-            SimpleHash sh=new SimpleHash();
-            
-            for (int nodeId=0;nodeId<pprobas.accessTable().length;nodeId++) {
-                Infos.println("##### NodeId="+nodeId);
+          //prepare simplified hash
+            SimpleHash_v2 hash=new SimpleHash_v2();
 
-                fw.append(String.valueOf(nodeId));
+            Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
+            Infos.println("Building all words probas...");
+            //Word Explorer
+            int totalTuplesInHash=0;
+            int nodeCounter=0;
+            double[] wordsPerNode=new double[tree.getInternalNodesByDFS().size()];
+            double startHashBuildTime=System.currentTimeMillis();
+            for (int nodeId:tree.getInternalNodesByDFS()) {
+                Infos.println("NodeId: "+nodeId+" "+tree.getById(nodeId).toString() );
+                    //DEBUG
+                    //if(nodeId!=709)
+                    //    continue;
+                    //DEBUG                
                 
-                for (int i=0;i<refPositions.length;i++) {
-                    int refPosition=refPositions[i];
+                double startMerScanTime=System.currentTimeMillis();
+                WordExplorer wd =null;
+                int totaTuplesInNode=0;
+                for (int pos:knife.getMerOrder()) {
+
+                    if(pos+k-1>align.getLength()-1)
+                        continue;
+                    //DEBUG
+                    //if(pos<1198 || pos>1202)
+                    //    continue;
+                    //DEBUG
                     
-                    if ((refPosition+k) > (align.getLength()-1))
-                        break;
+                    //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
+                    double startScanTime=System.currentTimeMillis();
+                    wd =new WordExplorer(   k,
+                                            pos,
+                                            nodeId,
+                                            pprobas,
+                                            wordPPStarThresholdAsLog
+                                        );
                     
-                    ArrayList<ProbabilisticWord> words = wg.generateProbableWords3(nodeId, pprobas.getPPSet(nodeId, refPosition, refPosition+k),1e-323,wordPPStarThreshold);
-                    
-//                    if (words.size()>5000) {
-//                        Infos.println("#words > treshold at "+i+": "+words.size());
-//                        words.stream().forEach(w->{System.out.println(Arrays.toString(w.word)+":"+w.getPpStarValue()+" ("+w.getOriginalPosition()+")");});
-//                        System.exit(1);
-//                    }
-                    //Infos.println("#words at "+i+": "+words.size());
-                    int wordPassingThreshold=0;
-                    for (Iterator<ProbabilisticWord> iterator = words.iterator(); iterator.hasNext();) {
-                        ProbabilisticWord w = iterator.next();
-                        if (w.getPpStarValue()>wordPPStarThreshold*thresholdFactor) {
-                            sh.addTuple(w, w.getPpStarValue(), nodeId, refPosition );
-                            wordPassingThreshold++;
-                        }
+                    for (int j = 0; j < pprobas.getStateCount(); j++) {
+                        wd.exploreWords(pos, j);
                     }
-                    fw.append("\t"+wordPassingThreshold);
-  
+                    
+                    //register the words in the hash
+                    wd.getRetainedWords().stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
+                    totaTuplesInNode+=wd.getRetainedWords().size();
+                    
+                    //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
+                    //Infos.println("Words in this position:"+wd.getRetainedWords().size());
+                    
+                    //double endScanTime=System.currentTimeMillis();
+                    //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
+                    
+                    wd=null;
                 }
+                wordsPerNode[nodeCounter]=totaTuplesInNode;
+                totalTuplesInHash+=totaTuplesInNode;
                 
-                Environement.printMemoryUsageDescription();
-                fw.append("\n");
+                
+                //register all words in the hash
+                //Infos.println("Tuples in this node:"+totaTuplesInNode);
+                double endMerScanTime=System.currentTimeMillis();
+                //Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
+                //Environement.printMemoryUsageDescription();
+                nodeCounter++;
+                
             }
-            //sorting all nodes
-            Infos.println("Sorting PP* per node...");
-            for (Iterator<LinkedList<Tuple>> it=sh.hash.values().iterator();it.hasNext();) {
-                LinkedList l=it.next();
-                Collections.sort(l);
+
+            
+            Infos.println("Resorting hash components...");
+            hash.sortTuples();
+            
+            double endHashBuildTime=System.currentTimeMillis();
+            Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
+            Infos.println("Words in the hash: "+hash.getKeys().size());
+            Infos.println("Tuples in the hash:"+totalTuplesInHash);
+
+            
+            //HERE Search how many Nodes per hash bucket.
+            CustomHashMap.Node<Word, LinkedList<Tuple>>[] accessToHash = hash.getHash().getAccessToHash();
+            for (int i = 0; i < accessToHash.length; i++) {
+                Object node = accessToHash[i];
+                if (node instanceof core.hashmap.CustomHashMap.TreeNode) {
+                    CustomHashMap.TreeNode n=(CustomHashMap.TreeNode)node;
+                    System.out.println("i"+i+"=tree: "+n.getValue()+" left:"+n.getLeft()+" right:"+n.getRight());
+                    System.out.println("Size:"+hash.bucketDFS(n));
+                } else {
+                    if (node!=null)
+                        System.out.println("i"+i+"=other: "+node.getClass().getName());
+                    else
+                        System.out.println(node);
+                }
             }
-            
-            
-            
 
             
             
@@ -225,9 +287,9 @@ public class SimpleHash implements Serializable{
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleHash.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SimpleHash_v2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(SimpleHash.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SimpleHash_v2.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         
@@ -240,6 +302,19 @@ public class SimpleHash implements Serializable{
     
     
     
+    /**
+     * Basic DFS to explore the RED/BLACK tree associated to buckets
+     * @param root 
+     */
+    int DFSCount=0;
+    private int bucketDFS(CustomHashMap.TreeNode root) {
+        if (root.getLeft()!=null)
+            bucketDFS(root.getLeft());
+        if (root.getRight()!=null)
+            bucketDFS(root.getRight());
+        return DFSCount++;
+    }
+    
     
     
     
@@ -247,6 +322,24 @@ public class SimpleHash implements Serializable{
     
     
     ////////////////////////////////////////////////////////////////////////////
+    
+    
+    public class Bucket implements Serializable {
+    
+        private static final long serialVersionUID = 7020L;
+    
+    
+    
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     /**
      * simple object defining the caracteristics of particular word

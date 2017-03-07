@@ -8,7 +8,7 @@ package main;
 import charts.ChartsForNodes;
 import charts.ChartsForReads;
 import core.DNAStates;
-import core.PProbas;
+import core.older.PProbas;
 import core.QueryWord;
 import core.States;
 import core.algos.SequenceKnife;

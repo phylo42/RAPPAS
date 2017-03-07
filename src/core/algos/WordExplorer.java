@@ -7,7 +7,7 @@ package core.algos;
 
 import alignement.Alignment;
 import core.DNAStates;
-import core.PProbas;
+import core.older.PProbas;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
 import core.SimpleHash;
@@ -251,7 +251,7 @@ public class WordExplorer {
                 Infos.println("Words in this node:"+totalWordsInNode);
                 double endMerScanTime=System.currentTimeMillis();
                 Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
-                Environement.printMemoryUsage();
+                Environement.printMemoryUsageDescription();
                 
             }
 

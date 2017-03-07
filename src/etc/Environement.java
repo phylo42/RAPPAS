@@ -83,11 +83,15 @@ public class Environement {
     /**
      * print memory usage in MB format( max memory, free memory and used memory)
      */
-    public static void printMemoryUsage() {
+    public static void printMemoryUsageDescription() {
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(2);
         df.setMinimumFractionDigits(2);
-        System.out.println("MEMORY: allocated: " + df.format(new Double(Runtime.getRuntime().totalMemory()/1048576)) + "MB of " + df.format(new Double(Runtime.getRuntime().maxMemory()/1048576))+ "MB (" + df.format(new Double(Runtime.getRuntime().freeMemory()/1048576)) +"MB free)");
+        double allocated=new Double(Runtime.getRuntime().totalMemory()/1048576);
+        double allowed=new Double(Runtime.getRuntime().maxMemory()/1048576);
+        double free=new Double(Runtime.getRuntime().freeMemory()/1048576);
+        double actuallyUsed=allocated-free;
+        System.out.println("MEMORY: allocated: " + df.format(allocated) + "MB of " + df.format(allowed)+ "MB (" + df.format(free) +"MB free) used:"+df.format(actuallyUsed)+" MB");
     }
 
     /**
@@ -97,7 +101,44 @@ public class Environement {
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(2);
         df.setMinimumFractionDigits(2);
-        return "MEMORY: allocated: " + df.format(new Double(Runtime.getRuntime().totalMemory()/1048576)) + "MB of " + df.format(new Double(Runtime.getRuntime().maxMemory()/1048576))+ "MB (" + df.format(new Double(Runtime.getRuntime().freeMemory()/1048576)) +"MB free)";
+        double allocated=new Double(Runtime.getRuntime().totalMemory()/1048576);
+        double allowed=new Double(Runtime.getRuntime().maxMemory()/1048576);
+        double free=new Double(Runtime.getRuntime().freeMemory()/1048576);
+        double actuallyUsed=allocated-free;
+        return "MEMORY: allocated: " + df.format(allocated) + "MB of " + df.format(allowed)+ "MB (" + df.format(free) +"MB free) used:"+df.format(actuallyUsed)+" MB";
+    }
+    
+    /**
+     * get actual memory usage, which corresponds to (memory_allocated-memory_free)
+     * @return 
+     */
+    public static Double getMemoryUsageAsMB() {
+        return new Double((Runtime.getRuntime().totalMemory()/1048576)-(Runtime.getRuntime().freeMemory()/1048576));
     }
 
+    /**
+     * return file size as MB, or null if file not exists
+     * @param f
+     * @return 
+     */
+    public static Double getFileSize(File f) {
+        if(f.exists()){
+
+            double bytes = f.length();
+            double kilobytes = (bytes / 1024);
+            double megabytes = (kilobytes / 1024);
+            return megabytes;
+//            double gigabytes = (megabytes / 1024);
+//            double terabytes = (gigabytes / 1024);
+//            double petabytes = (terabytes / 1024);
+//            double exabytes = (petabytes / 1024);
+//            double zettabytes = (exabytes / 1024);
+//            double yottabytes = (zettabytes / 1024);
+        }else{
+            Infos.println("File does not exists!");
+            return null;
+        }    
+    }
+    
+    
 }

@@ -34,6 +34,12 @@ import java.util.logging.Logger;
 import static main.Main_PLACEMENT.MEMORY_LARGE;
 import static main.Main_PLACEMENT.TYPE_DNA;
 import static main.Main_PLACEMENT.inputStreamToOutputStream;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.statistics.HistogramDataset;
+import org.jfree.data.statistics.HistogramType;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
@@ -52,8 +58,66 @@ public class Main_DBBUILD {
     
     public static void main(String[] args) {
         
-        System.setProperty("debug.verbose", "1");
+        FileWriter fw=null;
+        try {
+            System.setProperty("debug.verbose", "1");
+            File logProcess=new File("/media/ben/STOCK/DATA/viromeplacer/WD/log_process.csv");
+            fw = new FileWriter(logProcess);
+            fw.write("factor\tk\tmemory_gb\ttime_s\twords\ttuples_in_buckets\tDBsize_gb\n");
+            fw.flush();
+            
+            int k=10;
+            int maxK=10;
+            int kIncrement=1;
+            
+            double factor=2.0;
+            double maxFactor=2.0;
+            double factorIncrement=0.1;
+            
+            for (int i = k; i < maxK+kIncrement; i+=kIncrement) {
+                for (double j = factor; j < maxFactor+factorIncrement; j+=factorIncrement) {
+                    Infos.println("#############################################");
+                    Infos.println("#############################################");
+                    Infos.println("#############################################");
+                    Infos.println("#############################################");
+                    Infos.println("# NEW LAUNCH; Config: k="+i+" factor="+j);
+                    Infos.println("#############################################");
+                    Infos.println("#############################################");
+
+                    DBGeneration(fw,i,(float)j);
+                    fw.flush();
+                    System.gc();
+
+                }
+                
+            }
+            
+            
+            fw.flush();
+            
+            
+            fw.close();
+            
+            
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Main_DBBUILD.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Main_DBBUILD.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+                
         
+        
+        
+        
+    }
+    
+    
+    private static void DBGeneration(FileWriter processLog, int k, float thresholdFactor) {
         try {
             
             // INPUT FILES//////////////////////////////////////////////////////
@@ -84,7 +148,7 @@ public class Main_DBBUILD {
                 s=new AAStates();
             
             //base path for outputs/////////////////////////////////////////////
-            String path="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/";
+            String path="/media/ben/STOCK/DATA/viromeplacer/WD/";
             //logs
             String logPath=path+"logs/";
             //trees
@@ -107,11 +171,13 @@ public class Main_DBBUILD {
             //build of Hash/////////////////////////////////////////////////////
             int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             //mers size and word proba thresholds
-            int k=5;
-            int min_k=5;
-            float thresholdFactor=10.0f;
+            //int k=8;
+            int min_k=k;
+            //float thresholdFactor=10.0f;
+            
             float sitePPThreshold=Float.MIN_VALUE;
-            float wordPPStarThreshold=(float)(thresholdFactor*Math.pow(0.25,k));
+            //float wordPPStarThreshold=(float)(thresholdFactor*Math.pow(0.25,k));
+            float wordPPStarThreshold=(float)Math.pow((thresholdFactor*0.25),k);
             float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
             float wordAbsent=(float)Math.pow(0.25,k); // not used in hash, but for scoring queries
             Infos.println("k="+k);
@@ -325,26 +391,29 @@ public class Main_DBBUILD {
             SimpleHash hash=new SimpleHash();
 
             Infos.println("Word generator threshold will be:"+thresholdAsLog);
+            Infos.println("Building all words probas...");
             //Word Explorer
-            int totalWordsInHash=0;
+            int totalTuplesInHash=0;
+            int nodeCounter=0;
+            double[] wordsPerNode=new double[session.tree.getInternalNodesByDFS().size()];
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.tree.getInternalNodesByDFS()) {
                 //Infos.println("NodeId: "+nodeId+" "+session.tree.getById(nodeId).toString() );
                     //DEBUG
-//                    if(nodeId!=709)
-//                        continue;
+                    //if(nodeId!=709)
+                    //    continue;
                     //DEBUG                
                 
                 double startMerScanTime=System.currentTimeMillis();
                 WordExplorer wd =null;
-                int totalWordsInNode=0;
+                int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
 
                     if(pos+k-1>align.getLength()-1)
                         continue;
                     //DEBUG
-//                    if(pos<1198 || pos>1202)
-//                        continue;
+                    //if(pos<1198 || pos>1202)
+                    //    continue;
                     //DEBUG
                     
                     //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
@@ -362,8 +431,9 @@ public class Main_DBBUILD {
                     
                     //register the words in the hash
                     wd.getRetainedWords().stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
-                    totalWordsInNode+=wd.getRetainedWords().size();
+                    totaTuplesInNode+=wd.getRetainedWords().size();
                     
+                    //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
                     //Infos.println("Words in this position:"+wd.getRetainedWords().size());
                     
                     //double endScanTime=System.currentTimeMillis();
@@ -371,14 +441,16 @@ public class Main_DBBUILD {
                     
                     wd=null;
                 }
-                totalWordsInHash+=totalWordsInNode;
+                wordsPerNode[nodeCounter]=totaTuplesInNode;
+                totalTuplesInHash+=totaTuplesInNode;
                 
                 
                 //register all words in the hash
-                Infos.println("Words in this node:"+totalWordsInNode);
+                //Infos.println("Tuples in this node:"+totaTuplesInNode);
                 double endMerScanTime=System.currentTimeMillis();
-                Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
-                Environement.printMemoryUsage();
+                //Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
+                //Environement.printMemoryUsageDescription();
+                nodeCounter++;
                 
             }
 
@@ -388,23 +460,41 @@ public class Main_DBBUILD {
             
             double endHashBuildTime=System.currentTimeMillis();
             Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
+            Infos.println("Words in the hash: "+hash.getKeys().size());
+            Infos.println("Tuples in the hash:"+totalTuplesInHash);
+
             
-            Infos.println("Words in the hash:"+totalWordsInHash);
+
             
-            session.associateHash(hash);
+                       
+            ////////////////////////////////////////////////////////////////////
+            //OUTPUT SOME STATS IN THE log directory
             
-            Infos.println("FINISHED.");
+            double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getTuples(w).size()).toArray();
+            outputWordBucketSize(vals, 40, new File(path+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold+".png"),k,thresholdFactor);
+            outputWordPerNode(wordsPerNode, 40, new File(path+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold+".png"), k, thresholdFactor);
             
             
             ////////////////////////////////////////////////////////////////////
             //SAVE THE HASH BY JAVA SERIALIZATION
-            
-            session.store(new File(path+"PAML_session_params_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold));
+            Infos.println("Serialization of the database...");
+            session.associateHash(hash);
+            File db=new File(path+"PAML_session_params_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold);
+            session.store(db);
             im=null;
             session=null;  
 
             
+            System.gc();
+            double dbSize=Environement.getFileSize(db);
+            //double dbSize=0.0;
+            //output the generation stats
+            if (processLog!=null) {
+                processLog.write(thresholdFactor+"\t"+k+"\t"+(Environement.getMemoryUsageAsMB()/1024)+"\t"+((endHashBuildTime-startHashBuildTime)/1000)+"\t"+hash.getKeys().size()+"\t"+(totalTuplesInHash/1e6)+"\t"+(dbSize/1024)+"\n");
+            }
             
+            
+            Infos.println("FINISHED.");
             
             
             
@@ -417,7 +507,53 @@ public class Main_DBBUILD {
         }
         
         
-        
     }
+    
+    
+    
+    private static void outputWordBucketSize(double[]value,int binNumber,File outputFile, int k, float factor) {
+        HistogramDataset dataset = new HistogramDataset();
+        dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+        dataset.addSeries("Histogram",value,binNumber);
+        String plotTitle = "Word bucket sizes: k="+k+" fact="+factor; 
+        String xaxis = "bucket_size";
+        String yaxis = "proportion of words"; 
+        PlotOrientation orientation = PlotOrientation.VERTICAL; 
+        boolean show = false; 
+        boolean toolTips = false;
+        boolean urls = false; 
+        JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+                dataset, orientation, show, toolTips, urls);
+        int width = 750;
+        int height = 450; 
+        try {
+            ChartUtilities.saveChartAsPNG(outputFile, chart, width, height);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static void outputWordPerNode(double[]value,int binNumber,File outputFile, int k, float factor) {
+        HistogramDataset dataset = new HistogramDataset();
+        dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+        dataset.addSeries("Histogram",value,binNumber);
+        String plotTitle = "Words generated per node: k="+k+" fact="+factor; 
+        String xaxis = "# word";
+        String yaxis = "proportion of nodes"; 
+        PlotOrientation orientation = PlotOrientation.VERTICAL; 
+        boolean show = false; 
+        boolean toolTips = false;
+        boolean urls = false; 
+        JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+                dataset, orientation, show, toolTips, urls);
+        int width = 750;
+        int height = 450; 
+        try {
+            ChartUtilities.saveChartAsPNG(outputFile, chart, width, height);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
     
 }

@@ -49,7 +49,7 @@ public class SequenceKnife {
     private byte[] sequence=null; //the inital sequence itself
     private int[] merOrder=null; //to define the order in which the mer are returned
     private States s=null;
-    
+    private int step=-1;
     
     /**
      * Basic constructor, will return mers in linear order
@@ -125,6 +125,7 @@ public class SequenceKnife {
                 for (int i = 0; i < merOrder.length; i++) {
                     merOrder[i]=i;
                 }
+                this.step=1;
                 break;
             case SAMPLING_NON_OVERLAPPING:
                 merOrder=new int[(seq.length()/k)+1];
@@ -133,14 +134,17 @@ public class SequenceKnife {
                         merOrder[i/k]=i;
                     }
                 }
+                this.step=k;
                 break;
             case SAMPLING_STOCHASTIC:
                 merOrder=new int[seq.length()];
                 shuffledMerOrder();
+                this.step=1;
                 break;
             case SAMPLING_SEQUENTIAL:
                 merOrder=new int[seq.length()];
                 sequencialMerOrder();
+                this.step=1;
                 break;
             default:
                 Infos.println("Sampling mode not_recognized !");
@@ -232,6 +236,9 @@ public class SequenceKnife {
         }
     }
     
+    public int getStep() {
+        return this.step;
+    }
     
     public static void main(String[] args) {
         SequenceKnife knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), SequenceKnife.SAMPLING_SEQUENTIAL);

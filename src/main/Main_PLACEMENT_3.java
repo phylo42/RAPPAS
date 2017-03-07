@@ -9,7 +9,8 @@ import alignement.Alignment;
 import au.com.bytecode.opencsv.CSVWriter;
 import core.AAStates;
 import core.DNAStates;
-import core.PProbas;
+import core.DiagSum;
+import core.older.PProbas;
 import core.PProbasSorted;
 import core.QueryWord;
 import core.SimpleHash;
@@ -85,7 +86,7 @@ public class Main_PLACEMENT_3 {
             //preplacement parameters//////////////////////////////////////////
             //for a number of nodes =total_nodes/nodeShift , build diagsum vectors
             //think to keep sum of the diagsums to do mean at the end and highlight positions > to mean
-            int nodeShift=100;
+            int nodeShift=100; // carefull, brings an error when nodeShift<2
             // pour stocker ou non dans hash
             //minimum read/ref overlap,in bp. When not respected, read not reported
             int minOverlap=100;
@@ -110,16 +111,15 @@ public class Main_PLACEMENT_3 {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=5;
+            int queryLimit=1;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
-            boolean logDetailedDiagsums=true;
-            boolean logDiagsums=true;
-            boolean logPeekRatios=true;
+            boolean logDetailedDiagsums=false;
+            boolean logDiagsums=false;
+            boolean logPeekRatios=false;
             boolean logPreplacementDiagsums=true;
-            boolean logPreplacementDetailedDiagsums=true;
 
-;
+
             
 
             
@@ -133,7 +133,7 @@ public class Main_PLACEMENT_3 {
             
             //LOAD SESSION//////////////////////////////////////////////////////
             //base path for outputs
-            String path="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/";
+            String path="/media/ben/STOCK/DATA/viromeplacer/WD/";
             //logs
             String logPath=path+"logs/";
             //trees
@@ -142,7 +142,7 @@ public class Main_PLACEMENT_3 {
             String ARPath=path+"AR/";
             //session itself
             boolean loadHash=true;
-            SessionNext session= SessionNext.load(new File(path+"PAML_session_params_k8_mk8_f10.0_t1.5258789E-4"),loadHash);
+            SessionNext session= SessionNext.load(new File(path+"PAML_session_params_k10_mk10_f2.0_t9.765625E-4"),loadHash);
             
             //type of Analysis//////////////////////////////////////////////////
             States s=session.states; 
@@ -162,15 +162,13 @@ public class Main_PLACEMENT_3 {
             //site and word posterior probas thresholds
             float sitePPThreshold=session.stateThreshold;
             float wordPPStarThreshold=session.wordThreshold;
-            float thresholdFactor=session.factor;
-            double thresholdAsLog=Math.log10(wordPPStarThreshold);
-            double wordAbsent=Math.pow(0.25,k); // not used in hash, but for scoring queries
+            float factor=session.factor;
+            float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
 
-            Infos.println("factor="+thresholdFactor);
+            Infos.println("factor="+factor);
             Infos.println("sitePPThreshold="+sitePPThreshold+" (for info, unused)");
             Infos.println("wordPPStarThreshold="+wordPPStarThreshold);
             Infos.println("wordPPStarThreshold(log10)="+thresholdAsLog);
-            Infos.println("wordAbsent="+wordAbsent);
             
 
 
@@ -190,6 +188,9 @@ public class Main_PLACEMENT_3 {
             NewickReader np=new NewickReader();
             Tree tree = session.tree;
             NewickWriter nw=new NewickWriter(new File("null"));
+            Infos.println("# nodes in the tree: "+tree.getNodeCount());
+            Infos.println("# leaves in the tree: "+tree.getLeavesCount());
+            Infos.println("# internal nodes in the tree: "+tree.getInternalNodesByDFS().size());
             String relaxedTreeForJplace=nw.getNewickTree(tree, true, true, true);
             //Infos.println(relaxedTreeForJplace);
             nw.close();
@@ -236,6 +237,8 @@ public class Main_PLACEMENT_3 {
                 Infos.println("#######################################################################");
                 fw.append(fasta.getFormatedFasta()+"\n");
                 
+                long startScanTime=System.currentTimeMillis();
+
                 //check if another query didn't had exactly the same sequence
                 //fasta is a Comparable based on the sequence
                 if (identicalQueries.containsKey(fasta)) {
@@ -247,66 +250,22 @@ public class Main_PLACEMENT_3 {
                 identicalQueries.put(fasta, new ArrayList<>());
                 identicalQueries.get(fasta).add(fasta);
                 
-                
-                
-                
+                //register query in placement table
                 if (!placementsPerQuery.containsKey(fasta))
                     placementsPerQuery.put(fasta, new HashMap<>());
                 
-                long startScanTime=System.currentTimeMillis();
-                
-                int scannedNodesCounter=0;
-                Infos.println("Number of internal nodes: "+tree.getInternalNodesByDFS().size());
-                int scannedNodes= tree.getInternalNodesByDFS().size()/nodeShift ;
-                Infos.println("Number of internal nodes to scan: "+scannedNodes);
-                
-                //query length
+                //infos about nodes to scan
+                int internalNodesCount=tree.getInternalNodesByDFS().size();
+                int nodesToScan= internalNodesCount/nodeShift ;
+                Infos.println("Number of internal nodes to scan: "+nodesToScan);
                 int queryLength=fasta.getSequence().length();
                 Infos.println("Query length: "+queryLength);
-                //diagSums shift on the left
-                int diagsumShift=queryLength-minOverlap;
-                Infos.println("Diagsum shift: "+diagsumShift);
-                //diagSums table
-                int[] preplacementDiagsumIndex = new int[scannedNodes]; //f index[0] nodeId23 ; index[1]=nodeID112 ...
-                Arrays.fill(preplacementDiagsumIndex,-1);
-                //the diagSums vector has the length of the ref alignment for now
-                //this is FOR NOW taking into account partial overlaps on left and right
-                //but now when the read is a complementary sequence, these diagsums are ignored... for now.
-                float[][] preplacementAllDiagsums = new float[scannedNodes][align.getLength()+diagsumShift-minOverlap];
-                Infos.println("Diagsum vector size: "+(align.getLength()+diagsumShift-minOverlap));
+                //to register which node is assined to which line of preplacementAllDiagsum
+                int[] preplaceDiagIndex = new int[tree.getNodeCount()];  //index[nodeId]=preplacementDiagSumIndex
+                int[] preplaceDiagNodeIndex =new int[internalNodesCount];
+                Arrays.fill(preplaceDiagIndex,-1);
+                Arrays.fill(preplaceDiagNodeIndex,-1);
                 
-                
-                /////////////////////////////
-                // LOG OUTPUT 1:words detais
-                CSVWriter writerDetails=null;
-                if (logPreplacementDetailedDiagsums) {
-                    Infos.println("Write logs: preplacement_diagSums_details.tsv");
-                    writerDetails=new CSVWriter(new FileWriter(new File(logPath+fasta.getHeader()+"_preplacement_diagSums_details.tsv")), '\t');
-                    String[] headerData=new String[2+align.getLength()];
-                    headerData[0]="node";
-                    headerData[1]="mer";
-                    for (int i = 0; i < align.getLength(); i++) {
-                        headerData[i+2]="pos="+i;
-                    }
-                    writerDetails.writeNext(headerData);
-                }
-                /////////////////
-                
-                
-                ////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////
-                //LARGE_MEMORY PRE-PLACEMENT, HASH-BASED
-                // --> HIGHEST SCORING NODES PER WORD ARE PICKED-UP
-                // --> words absent from hash have proba: factor.(1/4^k)
-                ////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////
-                
-                    
-                HashMap<Integer,Integer> nodeVisited=new HashMap<>();
-                preplacementDiagsumIndex = new int[session.tree.getNodeCount()]; //f index[0] nodeId23 ; index[1]=nodeID112 ...
-                Arrays.fill(preplacementDiagsumIndex,-1);
-                preplacementAllDiagsums = new float[session.tree.getNodeCount()][align.getLength()+diagsumShift-minOverlap];
-                Infos.println("Diagsum vector size: "+(align.getLength()+diagsumShift-minOverlap));                    
                 ///////////////////////////////////
                 // LOOP ON QUERY WORDS
                 QueryWord qw=null;
@@ -314,88 +273,124 @@ public class Main_PLACEMENT_3 {
                 //Infos.println("Mer order: "+Arrays.toString(rk.getMerOrder()));
                 int queryWordCounter=0;
                 int queryWordFoundCounter=0;
-                int nodeVisitedCounter=0;
+                
+                
+                //the diagSums vector has the length of the ref alignment for now
+                //this is FOR NOW taking into account partial overlaps on left and right
+                //but now when the read is a complementary sequence, these diagsums are ignored... for now.
+                ArrayList<DiagSum> preplacementAllDiagsums = new ArrayList<>(nodesToScan);
+                boolean[] nodeScannedInPreplacement=new boolean[tree.getNodeCount()];
+                Arrays.fill(nodeScannedInPreplacement,false);
+                for (int i=0;i<nodesToScan;i++) {
+                    int nodeId=tree.getInternalNodesByDFS().get(i*nodeShift);
+                    preplacementAllDiagsums.add(new DiagSum(queryLength, align.getLength(), minOverlap, k, sk.getStep()));
+                    nodeScannedInPreplacement[nodeId]=true;
+                    System.out.println("i:"+nodeId);
+                    preplaceDiagNodeIndex[i]=nodeId;
+                    preplaceDiagIndex[nodeId]=i;
+                    preplacementAllDiagsums.get(i).init(thresholdAsLog); 
+                }
+                Infos.println("Diagsum vector size: "+preplacementAllDiagsums.get(0).getSize());
 
-                float bottomVal=(float)(sk.getMerOrder().length*Math.log10(wordAbsent));
-                System.out.println("bottomVal="+bottomVal);
+
+                
+                //DEBUG
+                boolean testWord=false;
+                FileWriter hashBucketLoadWriter=null;
+                if (testWord) {
+                    hashBucketLoadWriter=new FileWriter(new File(path+"hash_bucket_load_test_k"+k+"_f"+factor));
+                    hashBucketLoadWriter.write("word,nodeId,position,PPStar\n");
+                }
+                //DEBUG
+                
+                //best positon/node
+                int bestDiagsumPos=-1;
+                int bestNodeId=-1;
+                float bestScore=(float)(sk.getMerOrder().length*thresholdAsLog);
+                
+                
                 while ((qw=sk.getNextWord())!=null) {
-                    Infos.println("Query mer: "+qw.toString());
+                    //Infos.println("Query mer: "+qw.toString());
 
                     SimpleHash.Tuple topTuple = hash.getTopTuple(qw);
-
-                    
-                    
                     //if this word is not registered in the hash
                     if (topTuple==null) {
+                        queryWordCounter++;
                         continue;
                     }
+                    //word in the hash, we pull out tuples up to a certain threshold
                     queryWordFoundCounter++;
-
-                    
-                    
-                    System.out.println("Match top: "+topTuple);
-                    LinkedList<SimpleHash.Tuple> allTuples = hash.getAllTuples(qw);
+                    //System.out.println("limit: "+limit);
+                    List<SimpleHash.Tuple> allTuples = hash.getTopTuplesUnderNodeShift(qw, -1.0f, nodeScannedInPreplacement);
+                    System.out.println("Tuple size: "+allTuples.size());
                     for (int i = 0; i < allTuples.size(); i++) {
-                        SimpleHash.Tuple get = allTuples.get(i);
-                        System.out.println(get);
+                        SimpleHash.Tuple tuple = allTuples.get(i);
+                        if (testWord)
+                            hashBucketLoadWriter.write(queryWordCounter+","+tuple.toStringCSV()+"\n");
+                        
+                        System.out.println(tuple);
+
+                        int diagSumPos=tuple.getRefPos()-qw.getOriginalPosition()+(queryLength-minOverlap);
+                        //System.out.println("Match diagsumPos:"+diagSumPos);
+                        if (diagSumPos>-1 && diagSumPos<preplacementAllDiagsums.get(0).getSize()) {
+                            //System.out.println("Modified: "+(-thresholdAsLog+tuple.getPPStar()));
+                            preplacementAllDiagsums.get(preplaceDiagIndex[tuple.getNodeId()]).sum(diagSumPos, -thresholdAsLog+tuple.getPPStar());
+                            float val=preplacementAllDiagsums.get(preplaceDiagIndex[tuple.getNodeId()]).getSum(diagSumPos);
+                            if (bestScore<val) {
+                                bestScore=val;
+                                bestDiagsumPos=diagSumPos;
+                                bestNodeId=tuple.getNodeId();
+                            }
+                            //here keep track of the 10 best probas and their positions
+                            //assign preplacement directly to these baest cases                            
+                            
+                        }
                         
                     }
                     
-                    
-                    
-                    
-                    
-                    
-
-                    if (!nodeVisited.containsKey(k)) {
-                        System.out.println("NEW NODE:"+topTuple.getNodeId());
-                        nodeVisited.put(topTuple.getNodeId(), nodeVisitedCounter);
-
-                        preplacementDiagsumIndex[nodeVisitedCounter]=topTuple.getNodeId(); //nodes ids are from 0 to N
-                        Arrays.fill(preplacementAllDiagsums[nodeVisitedCounter],bottomVal);
-                        System.out.println("Set table:"+Arrays.toString(Arrays.copyOfRange(preplacementAllDiagsums[nodeVisitedCounter],0,5)));
-                        nodeVisitedCounter++;
-                    }
-                    int diagSumPos=topTuple.getRefPos()-qw.getOriginalPosition()+diagsumShift;
-                    System.out.println("Match diagsumPos:"+diagSumPos);
-                    if (diagSumPos>-1 && diagSumPos<preplacementAllDiagsums[0].length)
-                        preplacementAllDiagsums[nodeVisitedCounter][diagSumPos]+=(-wordAbsent+topTuple.getPPStar());
-
                     queryWordCounter++;
                     
-                    if (queryWordCounter>1)
-                            break;
+                    //DEBUG
+                    //if (queryWordCounter>1000)
+                    //        break;
+                    //DEBUG
 
                 }
-                System.out.println("proportion of words found: "+queryWordFoundCounter+"/"+queryWordCounter);
-                System.out.println("#nodes hit: "+nodeVisitedCounter);
-
-     
+                if (hashBucketLoadWriter!=null)
+                    hashBucketLoadWriter.close(); 
                 
-                
+                Infos.println("Proportion of query words found: "+queryWordFoundCounter+"/"+queryWordCounter);
+                Infos.println("Best diagsum pos currently in: "+bestDiagsumPos+" score="+bestScore+" in nodeId="+bestNodeId);
                 long endScanTime=System.currentTimeMillis();
-                Infos.println("Scan on "+(scannedNodesCounter)+" nodes took "+(endScanTime-startScanTime)+" ms");
+                Infos.println("Scan on "+nodesToScan+" nodes took "+(endScanTime-startScanTime)+" ms");
+                
+                //register good placement:
+            
+                if (!placementsPerQuery.get(fasta).containsKey(bestNodeId))
+                    placementsPerQuery.get(fasta).put(bestNodeId, new ArrayList<Integer>());
+                placementsPerQuery.get(fasta).get(bestNodeId).add(bestDiagsumPos);                
+                
                 
                 /////////////////
                 // LOG OUTPUT 2
-                Infos.println("Write logs: preplacement_diagSums.tsv");
                 CSVWriter writerDiagsum=null;
                 if (logPreplacementDiagsums) {
+                    Infos.println("Write logs: preplacement_diagSums.tsv");
                     writerDiagsum=new CSVWriter(new FileWriter(new File(logPath+fasta.getHeader()+"_preplacement_diagSums.tsv")), '\t');
-                    String[] headerData=new String[2+preplacementAllDiagsums.length];
+                    String[] headerData=new String[2+preplacementAllDiagsums.size()];
                     headerData[0]="diagsum_position";
                     headerData[1]="reference_align_site";
-                    for (int i = 0; i < preplacementAllDiagsums.length; i++) {
-                        headerData[i+2]="nodeid="+preplacementDiagsumIndex[i];
+                    for (int i = 0; i < preplacementAllDiagsums.size(); i++) {
+                        headerData[i+2]="nodeid="+preplaceDiagNodeIndex[i];
                     }
                     writerDiagsum.writeNext(headerData);
 
-                    for (int i = 0; i < preplacementAllDiagsums[0].length; i++) { //for each site
-                        String[] data=new String[2+scannedNodes];
+                    for (int i = 0; i < preplacementAllDiagsums.get(0).getSize(); i++) { //for each site
+                        String[] data=new String[2+preplacementAllDiagsums.get(0).getSize()];
                         data[0]=String.valueOf(i);
-                        data[1]=String.valueOf(i-diagsumShift);
-                        for (int j = 0; j < scannedNodes; j++) {
-                            data[j+2]=String.valueOf(preplacementAllDiagsums[j][i]);
+                        data[1]=String.valueOf(i-(queryLength-minOverlap));
+                        for (int j = 0; j < preplacementAllDiagsums.size(); j++) {
+                            data[j+2]=String.valueOf(preplacementAllDiagsums.get(j).getSum(i));
                         }
                         writerDiagsum.writeNext(data);
                     }
@@ -404,432 +399,8 @@ public class Main_PLACEMENT_3 {
                 }
                 /////////////////
                 
+                     
                 
-                System.exit(1);
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                ////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////
-                //DETECTION OF PEEKS VIA RATIOS
-                ////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////
-                
-                startScanTime=System.currentTimeMillis();
-                //the ratios table will be of length = preplacementDiagsum.length
-                //pour les w première/dernières positions, la moyenne est caculée
-                //sur un nombre de positions <w et égale à i+/-(w/2-1)
-                double[][] ratios=new double[preplacementAllDiagsums.length][preplacementAllDiagsums[0].length];
-                //list.get(allDiagsumsPosition)=list(nodeIds_that_validated_it)
-                ArrayList<ArrayList<Integer>> preplacementPeeks=new ArrayList<>(preplacementAllDiagsums[0].length); 
-                for (int i = 0; i < preplacementAllDiagsums[0].length; i++) {
-                    preplacementPeeks.add(i,new ArrayList<>());
-                }
-                
-                int peekCounter=0;
-                for (int node = 0; node < preplacementAllDiagsums.length; node++) {
-                    int nodeId=preplacementDiagsumIndex[node];
-                    //Infos.println("Peek detection in nodeid="+nodeId);
-                    
-                    //build the inital ratios for the w-1 first positions of diagsums
-                    //these are all w_min<windows and 1st windows of size w
-                    //in this case, w_min is taken into account because the full
-                    double ratio=-1.0;
-                    double PPStarSum=0.0;
-                    for (int diagsumPos = 0; diagsumPos < w; diagsumPos++) {
-                        PPStarSum+=preplacementAllDiagsums[node][diagsumPos];
-                        //System.out.print("diagsumPos="+diagsumPos);
-                        //we build ratios only for non pair windows
-                        if (diagsumPos%2==0) {
-                            if ((diagsumPos+1)>=w_min) {
-                                //System.out.print(" *PPStarSum="+PPStarSum+" ratio["+(diagsumPos)/2+"]="+preplacementAllDiagsums[node][diagsumPos/2]+"/("+PPStarSum+"/"+(diagsumPos+1)+")");
-                                ratio=preplacementAllDiagsums[node][diagsumPos/2]/(PPStarSum/(diagsumPos+1));
-                                ratios[node][diagsumPos/2]=ratio;
-                                //compare central value to the mean of the window
-                                //if superiior to set ratio, it's a hit
-                                if(ratio<=r_win) {
-                                    preplacementPeeks.get(diagsumPos/2).add(nodeId);
-                                    //System.out.println("  PEEK DETECTED AT "+(diagsumPos/2));
-                                }
-                            }
-                        }
-                        //System.out.println();
-                        if (diagsumPos<(w_min/2)) {
-                            //System.out.println(" *PPStarSum="+PPStarSum+" -->skip diagsumPos="+diagsumPos+" because of w_min. ");
-                            ratios[node][diagsumPos]=-1.0;
-                        }
-                    }                    
-                    //now shift to right, windows are all of size w
-                    //2nd to last windows of size w
-                    for (int diagsumPos=w;diagsumPos<preplacementAllDiagsums[0].length;diagsumPos++) {
-                        //System.out.print("diagsumPos="+diagsumPos+" ");
-                        //substract previous 1st position  
-                        PPStarSum-=preplacementAllDiagsums[node][diagsumPos-w];
-                        //and add next position
-                        PPStarSum+=preplacementAllDiagsums[node][diagsumPos];
-                        //System.out.print(" PPStarSum="+PPStarSum+" ratio["+(diagsumPos-w/2)+"]="+preplacementAllDiagsums[node][diagsumPos-w/2]+"/("+PPStarSum+"/"+w+")");
-                        ratio=preplacementAllDiagsums[node][diagsumPos-w/2]/(PPStarSum/w);
-                        ratios[node][diagsumPos-w/2]=ratio;
-                        if(ratio<=r_win) {
-                            preplacementPeeks.get(diagsumPos-w/2).add(nodeId);
-                            //System.out.println("  PEEK DETECTED AT "+(diagsumPos-w/2));
-                        }
-                        //System.out.println();
-                    }
-                    //build theratios ratios for the last w-1 positions
-                    for (int diagsumPos = preplacementAllDiagsums[0].length-(w-1); diagsumPos < preplacementAllDiagsums[0].length; diagsumPos++) {
-                        PPStarSum-=preplacementAllDiagsums[node][diagsumPos-1];
-                        //System.out.print("diagsumPos="+diagsumPos);
-                        int w_size=preplacementAllDiagsums[0].length-diagsumPos;
-                        //we build ratios only for non pair windows
-                        if (diagsumPos%2==0) {
-                            if (w_size>=w_min) {
-                                //System.out.print(" *PPStarSum="+PPStarSum+" ratio["+(diagsumPos+w_size/2)+"]="+preplacementAllDiagsums[node][diagsumPos+w_size/2]+"/("+PPStarSum+"/"+(w_size)+")");
-                                ratio=preplacementAllDiagsums[node][diagsumPos+w_size/2]/(PPStarSum/w_size);
-                                ratios[node][diagsumPos+w_size/2]=ratio;
-                                //compare central value to the mean of the window
-                                //if superiior to set ratio, it's a hit
-                                if(ratio<=r_win) {
-                                    preplacementPeeks.get(diagsumPos+w_size/2).add(nodeId);
-                                    //System.out.println("  PEEK DETECTED AT "+(diagsumPos+w_size/2));
-                                }
-                            } 
-                        }
-                        if ((diagsumPos+w_min/2)>preplacementAllDiagsums[0].length-1){
-                            //System.out.print(" *PPStarSum="+PPStarSum+" -->skip diagsumPos="+diagsumPos+" because of w_min. ");
-                            ratios[node][diagsumPos]=-1.0;
-                        }
-                        //System.out.println();
-                    } 
-                }
-                
-                //check r_nodes, the ratio of nodes that validated a position
-                double[] ratios2=new double[preplacementAllDiagsums[0].length];
-                ArrayList<Integer> diagsumPosToAnalyseFurther=new ArrayList<>();
-                int positionWithPeeks=0;
-                for (int diagsumPos = 0; diagsumPos < preplacementPeeks.size(); diagsumPos++) {
-                    //System.out.println(diagsumPos+" "+preplacementPeeks.get(diagsumPos));
-                    double ratio=(0.0+preplacementPeeks.get(diagsumPos).size())/preplacementAllDiagsums.length;
-                    ratios2[diagsumPos]=ratio;
-                    if (preplacementPeeks.get(diagsumPos).size()>0)
-                        positionWithPeeks++;
-                    if ( ratio >= r_nodes) {                            
-                        Infos.println("Position "+(diagsumPos-diagsumShift)+" (diagsum["+diagsumPos+"]) passes test r_nodes>="+ratio+" !");
-                        diagsumPosToAnalyseFurther.add(diagsumPos);
-                    }
-                }
-                Infos.println(diagsumPosToAnalyseFurther.size()+"/"+positionWithPeeks+" positions pass r_nodes test.");
-                endScanTime=System.currentTimeMillis();
-                Infos.println("Peek search took "+(endScanTime-startScanTime)+" ms");
-                                
-                
-                ///////////////////////////////////////////////////////////////////////////
-                // LOG RATIOS
-                if (logPeekRatios) {
-                    Infos.println("Write logs: ratio_node.tsv");
-                    CSVWriter writerRatios=new CSVWriter(new FileWriter(new File(logPath+fasta.getHeader()+"_ratio_window.tsv")), '\t');
-                    CSVWriter writerRatios2=new CSVWriter(new FileWriter(new File(logPath+fasta.getHeader()+"_ratio_node.tsv")), '\t');
-                    
-                    //ratios2[pos]=ratio;
-                    String[] data=new String[3];
-                    data[0]="diasum_pos";
-                    data[1]="reference_align_site";
-                    data[2]="ratio_node";
-                    writerRatios2.writeNext(data);
-                    for (int i = 0; i < ratios2.length; i++) {
-                        data=new String[3];
-                        data[0]=String.valueOf(i);
-                        data[1]=String.valueOf(i-diagsumShift);
-                        data[2]=String.valueOf(ratios2[i]);
-                        writerRatios2.writeNext(data);
-                    }
-                    writerRatios2.close();
-                    
-                    Infos.println("Write logs: ratio_windows.tsv");
-                    //double[][] ratios=new double[preTreatmentAllDiagsums.length][preTreatmentAllDiagsums[0].length];
-                    String[] headerData=new String[2+scannedNodes];
-                    headerData[0]="diagsum_position";
-                    headerData[1]="reference_align_site";
-                    for (int i = 0; i < preplacementAllDiagsums.length; i++) {
-                        headerData[i+2]="nodeid="+preplacementDiagsumIndex[i];
-                    }
-                    writerRatios.writeNext(headerData);
-                    for (int i = 0; i < ratios[0].length; i++) { //for each site
-                        data=new String[2+scannedNodes];
-                        data[0]=String.valueOf(i);
-                        data[1]=String.valueOf(i-diagsumShift);
-                        for (int j = 0; j < scannedNodes; j++) {
-                            data[j+2]=String.valueOf(ratios[j][i]);
-                        }
-                        writerRatios.writeNext(data);
-                    }
-                    writerRatios.close();
-                }
-                ///////////////////////////////////////////////////////////////////////////
-                
-                
-                ///////////////////////////////////////////////////////////////////////////
-                //DISCARD POTENTIAL REPEATS
-
-                //will not analyse this query further if it appears to be a repeat
-                if ( diagsumPosToAnalyseFurther.size()>maxAllowedPeeks) {
-                    Infos.println("This query is probably a repeat, more than "+maxAllowedPeeks+" possible localizations detected !" );
-                    Infos.println("QUERY DISCARDED FROM THE ANALYSIS.");
-                    queryCounter++;
-                    continue;
-                } else if (diagsumPosToAnalyseFurther.size()<1) {
-                    Infos.println("No peek detected from this query." );
-                    Infos.println("QUERY DISCARDED FROM THE ANALYSIS.");
-                    queryCounter++;
-                    continue;
-                }
-                Infos.println(diagsumPosToAnalyseFurther.size()+" localization(s) will undergo precise placement.");
-                queryMatchingRefCounter++;
-                
-                
-                
-                
-                ///////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////////////////////////////////////////////////
-                //REMAING NODES ANALYSIS, AROUND EACH SELECTED PEEK 
-                ///////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////////////////////////////////////////////////
-
-                ////////////////////////////////////////////////////////////////
-                //we can avoid the nodes for which diagSums where allReady built
-                //copy the corresponding regions of pretreatmentAllDiagsums
-                //
-                //IMPORTANT NOTE, HERE THE SELECTION OF NODES COULD BE DONE
-                //AROUND THE BEST NODES (best-scoring diagsums), 
-                ////////////////////////////////////////////////////////////////
-                //Infos.println(scannedNodesCounter+" nodes were analysed for the preplacement.");
-                int[] nodesToAnalyse=new int[tree.getInternalNodesByDFS().size()-scannedNodesCounter];
-                int counter=0;
-                for (int nodeId: tree.getInternalNodesByDFS()) {
-                    boolean alreadyDone=false;
-                    for (int i = 0; i < preplacementDiagsumIndex.length; i++) {
-                        if (preplacementDiagsumIndex[i]==nodeId)
-                            alreadyDone=true;
-                    }
-                    if (!alreadyDone) {
-                        nodesToAnalyse[counter]=nodeId;
-                        counter++;
-                    }
-                }
-                Infos.println("Remaining #nodes for localized analysis:"+nodesToAnalyse.length);
-                //copy preplacement diagsums to final diagsums
-                int[] diagsumIndex=new int[preplacementDiagsumIndex.length+nodesToAnalyse.length];
-                float[][] selectedDiagsums=new float[preplacementAllDiagsums.length+nodesToAnalyse.length][preplacementAllDiagsums[0].length];
-                for (int node = 0; node < preplacementDiagsumIndex.length; node++) {
-                    diagsumIndex[node]=preplacementDiagsumIndex[node];
-                    selectedDiagsums[node]=preplacementAllDiagsums[node];
-                }
-                for (int column = 0; column < nodesToAnalyse.length; column++) {
-                    diagsumIndex[preplacementDiagsumIndex.length+column]=nodesToAnalyse[column];
-                }
-                //System.out.println(Arrays.toString(diagsumIndex));
-                
-                ////////////////////////////
-                // LOG OUTPUT 1:words details
-                writerDetails=null;
-                
-                if (logDetailedDiagsums) {
-                    Infos.println("Write logs: diagSums_details.tsv");
-                    writerDetails=new CSVWriter(new FileWriter(new File(logPath+fasta.getHeader()+"_diagSums_details.tsv")), '\t');
-                    String[] headerData=new String[2+align.getLength()];
-                    headerData[0]="node";
-                    headerData[1]="mer";
-                    for (int i = 0; i < align.getLength(); i++) {
-                        headerData[i+2]="pos="+i;
-                    }
-                    writerDetails.writeNext(headerData);
-                }
-                /////////////////
-                
-                
-                /////////////////
-                // LOG OUTPUT 2: diagsums
-                writerDiagsum=null;
-                if (logDiagsums) {
-                    Infos.println("Write logs: diagSums.tsv");
-                    writerDiagsum=new CSVWriter(new FileWriter(new File(logPath+fasta.getHeader()+"_diagSums.tsv")), '\t');
-                    String[] headerData=new String[2+diagsumIndex.length];
-                    headerData[0]="diagsum_position";
-                    headerData[1]="reference_align_site";
-                    for (int i = 0; i < diagsumIndex.length; i++) {
-                        headerData[i+2]="nodeid="+diagsumIndex[i];
-                    }
-                    writerDiagsum.writeNext(headerData);
-                }
-                /////////////////
-
-
-                
-                ////////////////////////////////////////////////////////////////
-                // LOOP ON PEEKS, AND SELECT HIGHEST SCORE FOR EACH PEEK
-                for (int diagsumPosToAnalyse:diagsumPosToAnalyseFurther) {
-                    Infos.println("-->Analysing remaining nodes for peek="+(diagsumPosToAnalyse-diagsumShift)+" (diagsum["+diagsumPosToAnalyse+"])");
-                    
-
-
-                    startScanTime=System.currentTimeMillis();
-                    
-                    ///////////////////////////////////
-                    // LOOP ON REMAINING NODES
-                    int scannedNodesCounter2=preplacementAllDiagsums.length;
-                    for (int i = 0; i < nodesToAnalyse.length; i++) {
-                        int nodeId=nodesToAnalyse[i];
-                        diagsumIndex[scannedNodesCounter2]=nodeId;        
-                        //Infos.println(" NodeId="+nodeId+" ("+scannedNodesCounter2+")");
-                        
-                        ///////////////////////////////////
-                        // LOOP ON QUERY WORDS
-                        qw=null;
-                        SequenceKnife rk=new SequenceKnife(fasta, k, min_k, s, wordSampling);
-                        while ((qw=rk.getNextWord())!=null) {
-                            //Infos.println("Query mer: "+qw.toString());
-
-                            /////////////////
-                            // LOG OUTPUT 1
-                            String[] data= null;
-                            if (logDetailedDiagsums) {
-                                data=new String[2+selectedDiagsums[0].length];
-                                data[0]=String.valueOf(nodeId);
-                                data[1]=String.valueOf(qw.getOriginalPosition());
-                            }
-                            /////////////////
-
-                            if (deepSearch) {
-                                ///////////////////////////////////////////////////////////////
-                                //BUILD DIAGSUMS, ONE PER NODE, AROUND THE READ + PEEKBOUNDARY
-                                //NOTE: NECESSARY FOR READS WITH LOTS OF INDELS ? (RNAs ?)
-                                for (int diagsumPos=diagsumPosToAnalyse-peekBoundary;diagsumPos<diagsumPosToAnalyse+queryLength+peekBoundary+1;diagsumPos++) {  
-                                    //System.out.println("Pos: "+diagsumPos);
-                                    //to avoid boundary issues
-                                    if (diagsumPos<0 || diagsumPos>selectedDiagsums[0].length) {
-                                        //System.out.println("Avoid diagsum overflow (due to peekBoundary):"+diagsumPos);
-                                        continue;
-                                    }
-
-                                    double PPStar=0.0;
-                                    for (int queryPos=0;queryPos<qw.getWord().length;queryPos++) {
-                                        PPStar+=pprobas.getPP(nodeId, diagsumPos+queryPos-diagsumShift, pprobas.getStateIndex(nodeId, diagsumPos+queryPos-diagsumShift, qw.getWord()[queryPos]) );
-                                    }
-
-                                    //the condition below is to avoid the last mers of 
-                                    //the query which would contradict the minOverlap condition:
-                                    if (diagsumShift+(diagsumPos-qw.getOriginalPosition())>-1) 
-                                        selectedDiagsums[scannedNodesCounter2][diagsumPos-qw.getOriginalPosition()]+=PPStar; 
-                                    if (logDetailedDiagsums) {
-                                        data[2+diagsumPos]=String.valueOf(PPStar); 
-                                    }
-                                }
-                            } else {
-                                ///////////////////////////////////////////////////////////////
-                                //READS WITHOUT INDELS, SHOULD REQUIRE A  SINGLE
-                                //DIAGSUM POSITION CALCULATION
-                                                            
-                                double PPStar=0.0;
-                                for (int queryPos=0;queryPos<qw.getWord().length;queryPos++) {
-                                    try {
-                                        int alignPos=diagsumPosToAnalyse+qw.getOriginalPosition()+queryPos-diagsumShift;
-                                        if (alignPos<(selectedDiagsums[0].length-diagsumShift) && alignPos>-1) {
-                                            PPStar+=pprobas.getPP(nodeId,alignPos, pprobas.getStateIndex(nodeId, alignPos, qw.getWord()[queryPos]) );
-                                        }
-                                    } catch (Exception ex) {
-                                        System.out.println("nodeId="+nodeId+"   diagsumPosToAnalyse="+diagsumPosToAnalyse+"+qw.getOriginalPosition()="+qw.getOriginalPosition()+"+queryPos="+queryPos+"-diagSumShift="+diagsumShift+"  == "+(diagsumPosToAnalyse+qw.getOriginalPosition()+queryPos-diagsumShift));
-                                        ex.printStackTrace();
-                                        System.exit(1);
-                                    }
-                                }
-                                //if (diagsumShift+(diagsumPosToAnalyse-qw.getOriginalPosition())>-1) 
-                                    selectedDiagsums[scannedNodesCounter2][diagsumPosToAnalyse]+=PPStar;
-                                if (logDetailedDiagsums) {
-                                    data[2+diagsumPosToAnalyse]=String.valueOf(PPStar); 
-                                }
-                                
-                                
-                            }
-                            
-                            
-                            
-                            
-                            if(logDetailedDiagsums)
-                                writerDetails.writeNext(data);
-
-
-                        }
-                        //System.out.println("Final diagsum in ["+diagsumPosToAnalyse+"]="+selectedDiagsums[scannedNodesCounter][diagsumPosToAnalyse]);
-                        
-                        
-
-
-                        scannedNodesCounter2++;
-
-                    }
-                    
-                    if (logDetailedDiagsums)
-                        writerDetails.close();
-                    
-                    if (logDiagsums) {
-                        for (int i = 0; i < selectedDiagsums[0].length; i++) { //for each site
-                            String[] data=new String[2+scannedNodesCounter2];
-                            data[0]=String.valueOf(i);
-                            data[1]=String.valueOf(i-diagsumShift);
-                            for (int j = 0; j < scannedNodesCounter2; j++) {
-                                data[j+2]=String.valueOf(selectedDiagsums[j][i]);
-                            }
-                            writerDiagsum.writeNext(data);
-                        }
-                    }
- 
-                    
-                    ////////////////////////////////////////////////////////////////
-                    // REPORT BEST NODE PLACEMENT FOR CURRENT PEEK
-                    int bestNode=-1;
-                    double associatedPPStar=Double.NEGATIVE_INFINITY;
-                    for (int i = 0; i < selectedDiagsums.length; i++) {
-                        double PPStar=selectedDiagsums[i][diagsumPosToAnalyse];
-                        if (PPStar>associatedPPStar) {
-                            //System.out.println("PPStar>associatedPPStar:"+PPStar+">"+associatedPPStar+"    nodeOdAssociated="+diagsumIndex[i]);
-                            associatedPPStar=PPStar;
-                            bestNode=diagsumIndex[i];
-                        }
-                    }
-                    if (!placementsPerQuery.get(fasta).containsKey(bestNode))
-                        placementsPerQuery.get(fasta).put(bestNode, new ArrayList<Integer>());
-                    placementsPerQuery.get(fasta).get(bestNode).add(diagsumPosToAnalyse-diagsumShift);
-                    
-                    Infos.println("Best placement is: "+tree.getById(bestNode));
-
-                    
-                    endScanTime=System.currentTimeMillis();
-                    Infos.println("-->Localized analysis around peek="+diagsumPosToAnalyse+" took "+(endScanTime-startScanTime)+" ms");
-                    ////////////////////////////////////////////////////////////
-                }
-                
-
-                
-                if (logDiagsums) {
-                    writerDiagsum.flush();
-                    writerDiagsum.close();
-                }
                 
                 
                 
@@ -840,6 +411,11 @@ public class Main_PLACEMENT_3 {
             
             fw.close();
             fp.closePointer();
+            
+            
+
+            
+            
             
             
             

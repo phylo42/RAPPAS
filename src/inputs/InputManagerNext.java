@@ -6,7 +6,7 @@
 package inputs;
 
 import alignement.Alignment;
-import core.PProbas;
+import core.older.PProbas;
 import core.PProbasSorted;
 import core.States;
 import etc.Infos;

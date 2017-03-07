@@ -3,9 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package core.older;
 
+import core.older.Colmer;
 import alignement.Alignment;
+import core.Locality;
+import core.SimpleWord;
+import core.States;
+import core.Word;
 import static core.algos.SequenceKnife.SAMPLING_LINEAR;
 import static core.algos.SequenceKnife.SAMPLING_SEQUENTIAL;
 import static core.algos.SequenceKnife.SAMPLING_STOCHASTIC;

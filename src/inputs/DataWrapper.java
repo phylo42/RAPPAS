@@ -5,7 +5,7 @@
  */
 package inputs;
 
-import core.PProbas;
+import core.older.PProbas;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

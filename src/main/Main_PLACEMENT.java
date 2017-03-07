@@ -8,7 +8,7 @@ package main;
 import alignement.Alignment;
 import au.com.bytecode.opencsv.CSVWriter;
 import core.DNAStates;
-import core.PProbas;
+import core.older.PProbas;
 import core.QueryWord;
 import core.States;
 import core.algos.SequenceKnife;
@@ -91,7 +91,7 @@ public class Main_PLACEMENT {
             int analysisType=TYPE_DNA;
             int memory_mode=MEMORY_LARGE;
             //base path for outputs
-            String path="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/";
+            String path="/media/ben/STOCK/DATA/viromeplacer/WD/";
             //logs
             String logPath=path+"logs/";
             //trees
@@ -149,7 +149,7 @@ public class Main_PLACEMENT {
             int queryLimit=1;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
-            boolean logDetailedDiagsums=false;
+            boolean logDetailedDiagsums=true;
             boolean logDiagsums=true;
             boolean logPeekRatios=true;
             boolean logPreplacementDiagsums=true;
@@ -157,7 +157,7 @@ public class Main_PLACEMENT {
             //skip relaxed tree reconstruction
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on relaxed tree)
-            boolean launchAR=false;
+            boolean launchAR=true;
             
             
             

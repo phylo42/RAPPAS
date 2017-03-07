@@ -6,7 +6,7 @@
 package inputs;
 
 import alignement.Alignment;
-import core.PProbas;
+import core.older.PProbas;
 import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
@@ -216,7 +216,15 @@ public class PAMLWrapper implements DataWrapper {
     
     
     
-    
+    /**
+     * 
+     * @param input
+     * @param sitePPThreshold
+     * @param asLog10
+     * @param debugNodeLimit limit PP parsing to few nodes
+     * @return
+     * @throws IOException 
+     */
     public PProbasSorted parseSortedProbas(InputStream input, float sitePPThreshold, boolean asLog10, int debugNodeLimit) throws IOException {
         
         PProbasSorted matrix=new PProbasSorted(tree.getNodeCount(), align.getLength(), states.getNonAmbiguousStatesCount());

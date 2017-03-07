@@ -9,7 +9,7 @@ import alignement.Alignment;
 import au.com.bytecode.opencsv.CSVWriter;
 import core.AAStates;
 import core.DNAStates;
-import core.PProbas;
+import core.older.PProbas;
 import core.PProbasSorted;
 import core.QueryWord;
 import core.SimpleHash;
@@ -134,7 +134,7 @@ public class Main_PLACEMENT_2 {
             
             //LOAD SESSION//////////////////////////////////////////////////////
             //base path for outputs
-            String path="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/";
+            String path="/media/ben/STOCK/DATA/viromeplacer/WD/";
             //logs
             String logPath=path+"logs/";
             //trees
@@ -144,7 +144,7 @@ public class Main_PLACEMENT_2 {
             //session itself
             boolean loadHash=true;
             if (memory_mode==MEMORY_LOW) {loadHash=false;}
-            SessionNext session= SessionNext.load(new File(path+"PAML_session_params_k5_mk5_f1.0_t9.765625E-4"),loadHash);
+            SessionNext session= SessionNext.load(new File(path+"PAML_session_params_k10_mk10_f2.0_t9.765625E-4"),loadHash);
             
             //type of Analysis//////////////////////////////////////////////////
             States s=session.states; 
@@ -441,12 +441,12 @@ public class Main_PLACEMENT_2 {
                     int nodeVisitedCounter=0;
                     
                     float bottomVal=(float)(sk.getMerOrder().length*Math.log10(wordAbsent));
-                    System.out.println("bottomVal="+bottomVal);
+                    Infos.println("bottomVal="+bottomVal);
                     while ((qw=sk.getNextWord())!=null) {
-                        Infos.println("Query mer: "+qw.toString());
+                        //Infos.println("Query mer: "+qw.toString());
                         
                         SimpleHash.Tuple topTuple = hash.getTopTuple(qw);
-                        System.out.println("Match: "+topTuple);
+                        //System.out.println("Match: "+topTuple);
                         //if this word is not registered in the hash
                         if (topTuple==null) {
                             
@@ -458,16 +458,16 @@ public class Main_PLACEMENT_2 {
 
                         
                         if (!nodeVisited.containsKey(k)) {
-                            System.out.println("NEW NODE:"+topTuple.getNodeId());
+                            //System.out.println("NEW NODE:"+topTuple.getNodeId());
                             nodeVisited.put(topTuple.getNodeId(), nodeVisitedCounter);
                             
                             preplacementDiagsumIndex[nodeVisitedCounter]=topTuple.getNodeId(); //nodes ids are from 0 to N
                             Arrays.fill(preplacementAllDiagsums[nodeVisitedCounter],bottomVal);
-                            System.out.println("Set table:"+Arrays.toString(Arrays.copyOfRange(preplacementAllDiagsums[nodeVisitedCounter],0,5)));
+                            //System.out.println("Set table:"+Arrays.toString(Arrays.copyOfRange(preplacementAllDiagsums[nodeVisitedCounter],0,5)));
                             nodeVisitedCounter++;
                         }
                         int diagSumPos=topTuple.getRefPos()-qw.getOriginalPosition()+diagsumShift;
-                        System.out.println("Match diagsumPos:"+diagSumPos);
+                        //System.out.println("Match diagsumPos:"+diagSumPos);
                         if (diagSumPos>-1 && diagSumPos<preplacementAllDiagsums[0].length)
                             preplacementAllDiagsums[nodeVisitedCounter][diagSumPos]+=(-wordAbsent+topTuple.getPPStar());
                         
@@ -533,9 +533,7 @@ public class Main_PLACEMENT_2 {
                 }
                 /////////////////
                 
-                
-                System.exit(1);
-                
+                                
                 
                 
                 

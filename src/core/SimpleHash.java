@@ -63,12 +63,18 @@ public class SimpleHash implements Serializable{
         return hash.get(w);
     }
     
+    /**
+     * return the top tuples of PP*> given threshold
+     * @param w
+     * @param PPStarTresholdAsLog10
+     * @return 
+     */
     public List<Tuple> getTopTuples(Word w,float PPStarTresholdAsLog10) {
         return hash.get(w).stream().filter(t -> t.PPStar>=PPStarTresholdAsLog10).collect(Collectors.toList());
     }
     
     /**
-     * 
+     * return the top tuples of PP*> given threshold and for the given nodes
      * @param w
      * @param PPStarTresholdAsLog10
      * @param nodeIdsTested  a boolean table, with true in the positions corresponding to the nodeIds which are used for preplacement
@@ -76,11 +82,37 @@ public class SimpleHash implements Serializable{
      */
     public List<Tuple> getTopTuplesUnderNodeShift(Word w,float PPStarTresholdAsLog10, boolean[] nodeIdsTested) {
         return hash.get(w).stream().filter(t -> ( t.PPStar>=PPStarTresholdAsLog10 && nodeIdsTested[t.nodeId] )).collect(Collectors.toList());
-    }    
+    }
+    /**
+     * return the tuple of highest PP*, whatever the node and position
+     * @param w
+     * @return 
+     */    
     public Tuple getTopTuple(Word w) {
         LinkedList<Tuple> l;
         return (l=hash.get(w))==null ? null : l.getFirst();
     }    
+    
+    /**
+     * return a tuple selected by reference position and nodeId or null is not
+     * in hash
+     * @param w
+     * @param nodeId
+     * @param refPosition
+     * @return 
+     */
+    public Tuple getTuplePerNodeAndRefPosition(Word w,int nodeId, int refPosition) {
+        return hash.get(w).stream().filter(t -> ( t.refPos==refPosition && t.nodeId==nodeId )).findFirst().orElse(null);
+    }
+    
+    /**
+     * return a list of tuples selected by reference position
+     * @param refPosition
+     * @return 
+     */
+    public List<Tuple> getTuplePerRefPosition(Word w,int refPosition) {
+        return hash.get(w).stream().filter(t -> ( t.refPos==refPosition)).collect(Collectors.toList());
+    }
     
     public void sortTuples() {
         double startTime=System.currentTimeMillis();

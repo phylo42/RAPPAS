@@ -31,6 +31,7 @@ import java.io.InvalidObjectException;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -137,7 +138,8 @@ import java.util.function.Function;
  */
 public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     implements Map<K,V>, Cloneable, Serializable {
-
+    
+    
     private static final long serialVersionUID = 362498820763181265L;
 
     /*
@@ -491,7 +493,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     
-    public  CustomHashMap.Node<K,V>[] getAccessToHash() {
+    public  Node<K,V>[] getAccessToHash() {
         return table;
     }
     
@@ -576,7 +578,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @return the node, or null if none
      */
     final Node<K,V> getNode(int hash, Object key) {
-        Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+       Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
@@ -670,8 +672,12 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             }
         }
         ++modCount;
-        if (++size > threshold)
+        if (++size > threshold) {
+            System.out.println("RESIZE ! BEFORE size="+size+" threshold="+threshold+" table.length="+table.length);
             resize();
+            System.out.println("RESIZE ! AFTER size="+size+" threshold="+threshold+" table.length="+table.length);
+            
+        }
         afterNodeInsertion(evict);
         return null;
     }

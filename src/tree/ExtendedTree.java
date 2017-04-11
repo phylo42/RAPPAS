@@ -9,6 +9,7 @@ import etc.Infos;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import javax.swing.tree.TreeModel;
 
 /**
@@ -34,18 +35,32 @@ public class ExtendedTree extends PhyloTree implements Tree {
     private int N=DEFAULT_N;
     
     //variables used only in the search of longest/shortest branch
-    int level=0;
-    float l_DFS_cumul=0.0f;
-    float longest=0.0f;
-    float shortest=Float.MAX_VALUE; //init it to the highest possible float
-    int sum_B_leaves=0;
-    float l_sum_B_subtree=0.0f;
+    //or add new nodes
+    private int fakeNodeCounter=0;
+    private int level=0;
+    private float l_DFS_cumul=0.0f;
+    private float longest=0.0f;
+    private float shortest=Float.MAX_VALUE; //init it to the highest possible float
+    private int sum_B_leaves=0;
+    private float l_sum_B_subtree=0.0f;
     
     //list of new terminal nodes (will be used to add gap-only fake sequences
-    //to the alignment
-    int lastOriginalId=-1;
-    private int fakeNodeCounter=0;
-    ArrayList<PhyloNode> newLeaves=null;
+    //to the extended alignment)
+    private int lastOriginalId=-1;
+    private ArrayList<PhyloNode> newLeaves=null;
+    
+    //stats of the tree extension
+    /////////////////////////////////////////////////
+    //map linking the new fake nodes to the original branches they come from.
+    //for now, all fake nodes injected in a branch will be mapped to the 
+    //son node of the original branch
+    //note: in jplace output format, the integer used as branch ids (node{id})
+    //are the nodeId of the PhyloTree object.
+    //so here, we associated nodeId of (fake nodes injected in the branch)
+    //to nodeId of (son of the original branch before fake nodes injection)
+    private HashMap<Integer,Integer> fakeNodesToOriginalNodes=null;
+    
+    
     
     
     /**
@@ -57,7 +72,9 @@ public class ExtendedTree extends PhyloTree implements Tree {
     public ExtendedTree(Tree tree, int branchingMode ) {
         super(tree.getModel());
         this.branchingMode=branchingMode;
-        initRelaxedTree(tree, DEFAULT_BRANCHBREAK_LENGTH,DEFAULT_N);
+        
+        
+        initRelaxedTree(tree,DEFAULT_BRANCHBREAK_LENGTH,DEFAULT_N);
     }
 
     /**
@@ -67,19 +84,34 @@ public class ExtendedTree extends PhyloTree implements Tree {
      * @param N number of fake nodes to add
      */
     public ExtendedTree(Tree tree,float branchbreackThreshold,int N) {
-        super(tree.getModel());
+        setModel(tree.getModel());
         this.branchingMode=BRANCHING_ON_BRANCH;
         this.N=N;
+       
         initRelaxedTree(tree, branchbreackThreshold,N);
+        
     }
     
     /**
      * return all the leaves that were created in this extended tree.
      * @return 
      */
-    public ArrayList<PhyloNode> getListOfNewFakeLeaves() {
+    public ArrayList<PhyloNode> getFakeLeaves() {
         return this.newLeaves;
     }
+    
+    /**
+     * to the given nodeId (fake node), get the nodeId of the original node 
+     * (son of the branch to which was originally injected the fake node)
+     * which corresponds to the given nodeId (the fake nodes injected in the 
+     * @param nodeId
+     * @return null if the mapping doesn't exists (this is not the id of a fake node)
+     */
+    public Integer getFakeToOriginalId(int nodeId) {
+        return fakeNodesToOriginalNodes.get(nodeId);
+    }
+    
+    
     
     /**
      * init the extended tree, used in constructors
@@ -92,6 +124,7 @@ public class ExtendedTree extends PhyloTree implements Tree {
         this.lastOriginalId=fakeNodeCounter;
         this.branchbreakThreshold=branchbreakThreshold;
         this.newLeaves=new ArrayList<>();
+        this.fakeNodesToOriginalNodes=new HashMap<>();
         Infos.println("# nodes in tree before extension: "+fakeNodeCounter);
         switch (branchingMode) {
             case BRANCHING_ON_NODE:
@@ -104,6 +137,7 @@ public class ExtendedTree extends PhyloTree implements Tree {
                 Infos.println("Cannot instanciate extended tree: unknown mode.");
                 break;
         }
+        Infos.println("# nodes in tree after extension: "+fakeNodeCounter);
     }
 
     /**
@@ -111,6 +145,7 @@ public class ExtendedTree extends PhyloTree implements Tree {
      * of the original tree
      * (to the exception of the root)
      */
+    @Deprecated
     private void populateWithFakeBranchToNodes_DFS(PhyloNode node) {
         // "<lastOriginalId" verify that node is nt one of the new fake nodes
         if (!node.isLeaf() && node.getId()<lastOriginalId) {
@@ -226,6 +261,9 @@ public class ExtendedTree extends PhyloTree implements Tree {
                 X0.add(X1);
                 newLeaves.add(fakeX2);
                 newLeaves.add(fakeX3);
+                //register the internal nodes in the map
+                fakeNodesToOriginalNodes.put(X0.getId(), B.getId());
+                fakeNodesToOriginalNodes.put(X1.getId(), B.getId());
 
                 //define length left from this X0 to B
                 float l_XO_B=l_init-l_b*(j+1);

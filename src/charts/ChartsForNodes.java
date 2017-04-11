@@ -61,6 +61,120 @@ private static final int N = 1000;
     public ChartsForNodes() {
     }
 
+    public static JPanel buildReadMatchForANode4(String title, int xLength, int yLength, XYZDataset dataset,double scaleLowerBound, double scaleUpperBound) {
+        
+        NumberAxis xAxis = new NumberAxis("Diagsum vector");
+        xAxis.setUpperBound(xLength);
+        xAxis.setLowerBound(0);
+        NumberAxis yAxis = new NumberAxis("Read");
+        yAxis.setUpperBound(yLength);
+        yAxis.setLowerBound(0);
+        
+//        for (int i = 0; i < dataset.getItemCount(0); i++) {
+//            System.out.println(dataset.getX(0, i)+","+dataset.getY(0, i)+","+dataset.getZ(0, i));
+//        }
+        
+        
+        
+        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);
+        
+//        XYBlockRenderer r = new XYBlockRenderer();
+//        SpectrumPaintScale ps = new SpectrumPaintScale(0, 1);
+//        r.setPaintScale(ps);
+//        r.setBlockHeight(10.0f);
+//        r.setBlockWidth(10.0f);
+//        plot.setRenderer(r);
+        
+        //gray scale
+        // OR full color scale !
+        //PaintScale ps= new GrayPaintScale(scaleLowerBound, scaleUpperBound);
+        PaintScale ps= new SpectrumPaintScale(scaleLowerBound, scaleUpperBound);
+        //PaintScale ps= new MyPaintScale(scaleLowerBound, scaleUpperBound);
+        
+        
+        
+        XYBlockRenderer r = new XYBlockRenderer() {
+            
+            PaintScale paintScale= ps;
+            double xOffset;
+            double yOffset;
+            double blockWidth = 1.0;
+            double blockHeight = 1.0;
+            
+            @Override
+            public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
+                double x = dataset.getXValue(series, item);
+                double y = dataset.getYValue(series, item);
+                double z = 0.0;
+                if (dataset instanceof XYZDataset) {
+                    z = ((XYZDataset) dataset).getZValue(series, item);
+                }
+                Paint p = this.paintScale.getPaint(z);
+                double xx0 = domainAxis.valueToJava2D(x + this.xOffset, dataArea,
+                        plot.getDomainAxisEdge());
+                double yy0 = rangeAxis.valueToJava2D(y + this.yOffset, dataArea,
+                        plot.getRangeAxisEdge());
+                double xx1 = domainAxis.valueToJava2D(x + this.blockWidth
+                        + this.xOffset, dataArea, plot.getDomainAxisEdge());
+                double yy1 = rangeAxis.valueToJava2D(y + this.blockHeight
+                        + this.yOffset, dataArea, plot.getRangeAxisEdge());
+                Rectangle2D block;
+                PlotOrientation orientation = plot.getOrientation();
+                
+                if (orientation.equals(PlotOrientation.HORIZONTAL)) {
+                    block = new Rectangle2D.Double(Math.min(yy0, yy1),
+                            Math.min(xx0, xx1), Math.abs(yy1 - yy0),
+                            Math.abs(xx0 - xx1));
+                }
+                else {
+                    block = new Rectangle2D.Double(Math.min(xx0, xx1),
+                            Math.min(yy0, yy1), Math.abs(xx1 - xx0),
+                            Math.abs(yy1 - yy0));
+                }
+                
+                g2.setPaint(p);
+                
+                //g2.setStroke(new BasicStroke(5.0f));                    
+                
+                //if (dataset.getY(series, item).doubleValue() > 0) {
+                g2.fill(block);
+                //}
+
+                EntityCollection entities = state.getEntityCollection();
+                if (entities != null) {
+                    addEntity(entities, block, dataset, series, item, 0.0, 0.0);
+                }            
+            }
+            
+        };
+        
+        //r.setPaintScale(grayScale);   
+//        r.setBlockHeight(1);
+//        r.setBlockWidth(1);
+        plot.setRenderer(r);
+        
+        JFreeChart chart = new JFreeChart(title,JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+        NumberAxis scaleAxis = new NumberAxis("log10(PP*)");
+        scaleAxis.setAxisLinePaint(Color.white);
+        scaleAxis.setTickMarkPaint(Color.white);
+        
+        //PaintScaleLegend legend = new PaintScaleLegend(ps, scaleAxis);
+        PaintScaleLegend legend = new PaintScaleLegend(ps, scaleAxis);
+        
+        legend.setSubdivisionCount(128);
+        legend.setAxisLocation(AxisLocation.TOP_OR_RIGHT);
+        legend.setPadding(new RectangleInsets(10, 10, 10, 10));
+        legend.setStripWidth(20);
+        legend.setPosition(RectangleEdge.RIGHT);
+        legend.setBackgroundPaint(Color.WHITE);
+        chart.addSubtitle(legend);
+        chart.setBackgroundPaint(Color.white);
+        ChartPanel panel=new ChartPanel(chart);
+        panel.setSize(1024, 250);
+        panel.setPreferredSize(new Dimension(1024, 250));
+        return panel;
+        
+    }
     
     public static JPanel buildReadMatchForANode3(PhyloNode n, Alignment align, int readLength,XYZDataset dataset,double scaleLowerBound, double scaleUpperBound) {
         
@@ -432,16 +546,27 @@ private static final int N = 1000;
 
         @Override
         public Paint getPaint(double value) {
-            float scaledValue = (float) (value / (getUpperBound() - getLowerBound()));
-            float scaledH = H1 + scaledValue * (H2 - H1);
-            return Color.getHSBColor(scaledH, 1f, 0.9f);
+            
+//            float scaledValue = (float) (value / (getUpperBound() - getLowerBound()));
+//            float scaledH = H1 + scaledValue * (H2 - H1);
+//            return Color.getHSBColor(scaledH, 1f, 0.9f);
+            float scaledValue = (float) (Math.abs(value) / (getUpperBound() - getLowerBound()));
+            if (scaledValue>=1.0) {
+                return new Color(255, 255, 255, 0); //fully transparent, is PP* is its minimum value
+            } else {
+                float scaledH = H1 + scaledValue * (H2 - H1);
+                return Color.getHSBColor(scaledH, 1f, 0.9f);
+            }
         }
+        
     }
 
     private static class MyPaintScale implements PaintScale {
 
            private final double lowerBound;
            private final double upperBound;
+           
+           GradientSegment gs=new GradientSegment(new Color(200, 0, 0, 50), new Color(0, 0, 200, 50), 0.0,1.0,false);
 
            public MyPaintScale(double lowerBound, double upperBound) {
                this.lowerBound = lowerBound;
@@ -460,13 +585,15 @@ private static final int N = 1000;
 
            @Override
            public Paint getPaint(double value) {
-               GradientSegment gs=new GradientSegment(new Color(200, 0, 0, 50), new Color(0, 0, 200, 50), 0.0,1.0,false);
-               //scales on (-1;1)
-               float scaledValue = (float) (value / (getUpperBound() - getLowerBound())); 
-               if (scaledValue<=-1.0) {
-                   return new Color(255, 255, 255, 255); //fully transparent, so invisible
+               float scaledValue = (float) (Math.abs(value) / (upperBound - lowerBound)); 
+               if (scaledValue>=1.0) {
+                   return new Color(255, 255, 255, 0); //fully transparent, is PP* is its minimum value
                } else {
-                   return gs.getColor(Math.abs(scaledValue));
+                   System.out.println("Value: "+scaledValue);
+                   //range is on [0.0;1.0] for instance a PP* trehsold of [~0;-6] will go from red to blue
+                   System.out.println(gs.getColor(scaledValue).toString());
+                   return gs.getColor(scaledValue);
+                   
                }
            }
     }

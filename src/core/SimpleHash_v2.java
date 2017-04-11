@@ -26,11 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -54,7 +56,9 @@ public class SimpleHash_v2 implements Serializable{
     
     
     public SimpleHash_v2(int k,States s) {
-        hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)*0.75).intValue());
+        hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount()+1, k)).intValue(),1.0f);
+        System.out.println("INIT HASH("+(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue()+1)+",1.0)");
+        
     }
     
     
@@ -128,7 +132,7 @@ public class SimpleHash_v2 implements Serializable{
             String rst="/media/ben/STOCK/DATA/viromeplacer/WD/AR/rst";
             
             
-            int k=12;
+            int k=8;
             float sitePPThreshold=1e-45f;
             float thresholdFactor=2.0f;
             float wordPPStarThreshold=(float)Math.pow(thresholdFactor*0.25,k);
@@ -270,13 +274,15 @@ public class SimpleHash_v2 implements Serializable{
                 Object node = accessToHash[i];
                 if (node instanceof core.hashmap.CustomHashMap.TreeNode) {
                     CustomHashMap.TreeNode n=(CustomHashMap.TreeNode)node;
-                    System.out.println("i"+i+"=tree: "+n.getValue()+" left:"+n.getLeft()+" right:"+n.getRight());
+                    System.out.println("i"+i+"=TreeNode: "+n.getValue()+" left:"+n.getLeft()+" right:"+n.getRight());
                     System.out.println("Size:"+hash.bucketDFS(n));
-                } else {
+                } else if (node instanceof core.hashmap.CustomHashMap.Node) {
                     if (node!=null)
-                        System.out.println("i"+i+"=other: "+node.getClass().getName());
+                        System.out.println("i"+i+"=Node: "+node.getClass().getName());
                     else
                         System.out.println(node);
+                } else {
+                    System.out.println(node);
                 }
             }
 
@@ -315,30 +321,34 @@ public class SimpleHash_v2 implements Serializable{
         return DFSCount++;
     }
     
-    
-    
-    
-    
-    
-    
     ////////////////////////////////////////////////////////////////////////////
     
-    
-    public class Bucket implements Serializable {
+    /**
+     * Intermediate table in the 
+     */
+    public class PositionPointers implements Serializable {
     
         private static final long serialVersionUID = 7020L;
+        
+        Hashtable t=null;
     
-    
+        ArrayList<Integer> positions=null;
+        ArrayList<TreeMap<Float,Integer>> tupleList=null;
+
+        public PositionPointers() {}
+
+        public ArrayList<Integer> getPositions() {
+            return positions;
+        }
+        
+        public void addWord(ProbabilisticWord w) {
+            
+        }
+        
+        
+        
     
     }
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     /**

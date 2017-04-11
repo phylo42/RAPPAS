@@ -153,6 +153,16 @@ public class SequenceKnife {
     }
     
     /**
+     * get a word targeted through its 1st residue position
+     * @param queryPosition
+     * @return 
+     */
+    public QueryWord getWordAt(int queryPosition) {
+        assert queryPosition<(sequence.length-k+1);
+        return new QueryWord(Arrays.copyOfRange(sequence, queryPosition, queryPosition+k),queryPosition);
+    }
+    
+    /**
      * a table representing the order in which mers are returned \n
      * each value is the 1st position of the mer which will sample the \n
      * sequence from this position to position+k (excepted if < to the  min k)

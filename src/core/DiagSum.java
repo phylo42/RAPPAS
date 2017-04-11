@@ -13,13 +13,21 @@ import java.util.Arrays;
  */
 public class DiagSum {
     
+    //sum(PP*)
     private float[] diagsum=null;
+    //#words effectivily summed in this diagsum
+    private int[] effectiveWordCount=null;
+    //corresponding position in reference
+    private int[] referencePosition=null;
+
     
     private int queryLength=-1;
     private int referenceLength=-1;
     private int minOverlap=-1;
     private int k=-1;
     private int s=-1;
+    
+
     
     /**
      * 
@@ -36,19 +44,29 @@ public class DiagSum {
         this.k=k;
         this.s=s;
         this.diagsum=new float[queryLength-minOverlap+referenceLength-minOverlap];
+        this.effectiveWordCount=new int[queryLength-minOverlap+referenceLength-minOverlap];
+        this.referencePosition=new int[queryLength-minOverlap+referenceLength-minOverlap];
     }
 
-    public void sum(int position, float val) {
-        this.diagsum[position]+=val;
+    public void sum(int diagSumPosition, float val) {
+        this.diagsum[diagSumPosition]+=val;
+        this.effectiveWordCount[diagSumPosition]+=1;
+    }
+
+
+    public float getSum(int diagSumPosition) {
+        return this.diagsum[diagSumPosition];
+    }
+
+    public int getEffectiveWordCount(int diagSumPosition) {
+        return this.effectiveWordCount[diagSumPosition];
     }
     
-    public void setSum(int position,float val) {
-        this.diagsum[position]=val;
+    public int getPositionInReference(int diagSumPosition) {
+        return this.referencePosition[diagSumPosition];
     }
-
-    public float getSum(int position) {
-        return this.diagsum[position];
-    }
+    
+    
     
     /**
      * init all positions of the DiagSum, as the #words*PPStratThreshold
@@ -56,7 +74,8 @@ public class DiagSum {
      */
     public void init(float PPStarThreshold) {
         for (int i = 0; i < diagsum.length; i++) {
-            diagsum[i]=getWordCount(i)*PPStarThreshold;
+            diagsum[i]=getMaxWordCount(i)*PPStarThreshold;
+            referencePosition[i]=i-(queryLength-minOverlap);
         }
     }
     
@@ -68,7 +87,7 @@ public class DiagSum {
      * @param diagSumPosition
      * @return 
      */
-    public int getWordCount(int diagSumPosition) {
+    public int getMaxWordCount(int diagSumPosition) {
         if ( diagSumPosition<(queryLength-minOverlap) ) {
             return((queryLength-(queryLength-minOverlap)+diagSumPosition-k+1)/s);
         }
@@ -82,6 +101,15 @@ public class DiagSum {
     public int getSize() {
         return this.diagsum.length;
     }
+
+    @Override
+    public String toString() {
+        
+        return "PP*:"+Arrays.toString(diagsum)+"\n#Words:"+Arrays.toString(effectiveWordCount);
+        
+    }
+    
+    
     
     
 }

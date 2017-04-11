@@ -157,7 +157,7 @@ public class Main_PLACEMENT {
             //skip relaxed tree reconstruction
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on relaxed tree)
-            boolean launchAR=true;
+            boolean launchAR=false;
             
             
             
@@ -209,7 +209,7 @@ public class Main_PLACEMENT {
             if (buildRelaxedTree) {
                 try {
                     ExtendedTree relaxedTreeOnBranches=new ExtendedTree(tree,minBranchLength,numberOfFakeBranchesPerEdge);
-                    ArrayList<PhyloNode> listOfNewFakeLeaves = relaxedTreeOnBranches.getListOfNewFakeLeaves();
+                    ArrayList<PhyloNode> listOfNewFakeLeaves = relaxedTreeOnBranches.getFakeLeaves();
                     //add new leaves to alignment
                     for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
                         PhyloNode node = listOfNewFakeLeaves.get(i);

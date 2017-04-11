@@ -6,7 +6,10 @@
 package core;
 
 /**
- *
+ * object used by Wrappers, during parsing of the PP. Simply represent a site
+ * of the reference alignment and its associated PP, this can be considered 
+ * as the tuple (proba,site), it is comparable and is compared through the 'proba'
+ * elements of the tuple.
  * @author ben
  */
 public class SiteProba implements Comparable<SiteProba> {

@@ -66,12 +66,12 @@ public class Main_DBBUILD {
             fw.write("factor\tk\tmemory_gb\ttime_s\twords\ttuples_in_buckets\tDBsize_gb\n");
             fw.flush();
             
-            int k=10;
-            int maxK=10;
+            int k=7;
+            int maxK=7;
             int kIncrement=1;
             
-            double factor=2.0;
-            double maxFactor=2.0;
+            double factor=1.5;
+            double maxFactor=1.5;
             double factorIncrement=0.1;
             
             for (int i = k; i < maxK+kIncrement; i+=kIncrement) {
@@ -84,7 +84,7 @@ public class Main_DBBUILD {
                     Infos.println("#############################################");
                     Infos.println("#############################################");
 
-                    DBGeneration(fw,i,(float)j);
+                    //DBGeneration(fw,i,(float)j);
                     fw.flush();
                     System.gc();
 
@@ -117,18 +117,34 @@ public class Main_DBBUILD {
     }
     
     
-    private static void DBGeneration(FileWriter processLog, int k, float thresholdFactor) {
+    /**
+     * 
+     * @param processLog null if not used
+     * @param k
+     * @param alpha 
+     * @param s 
+     * @param alignmentFile 
+     * @param treeFile 
+     * @param workDir 
+     */
+    public static void DBGeneration(    FileWriter processLog, 
+                                        int k, 
+                                        float alpha, 
+                                        int branchPerLengthAmount, 
+                                        States s, 
+                                        File a, 
+                                        File t,
+                                        File workDir,
+                                        File pamlPath
+                                    ) {
+        
+        
+
+        
+        
         try {
             
-            // INPUT FILES//////////////////////////////////////////////////////
-            //here,pplacer benchmark
-            String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
-//            String a=wd+"bv_refs_aln.fasta";
-            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
-            String t=inputsPath+"RAxML_result.bv_refs_aln";
 
-//            a=inputsPath+"bv_refs_aln_stripped_99.5_SMALL_SUBSET.fasta";
-//            t=inputsPath+"RAxML_result.bv_refs_aln_SMALL_SUBSET.tree";
 
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -136,32 +152,19 @@ public class Main_DBBUILD {
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             
-            
-            //type of Analysis//////////////////////////////////////////////////
-            States s=null; 
-            int analysisType=TYPE_DNA;
-            
-            //States: DNA or AA
-            if (analysisType==TYPE_DNA)
-                s=new DNAStates();   
-            else if (analysisType==TYPE_DNA)
-                s=new AAStates();
-            
-            //base path for outputs/////////////////////////////////////////////
-            String path="/media/ben/STOCK/DATA/viromeplacer/WD/";
             //logs
-            String logPath=path+"logs/";
+            String logPath=workDir+File.separator+"logs"+File.separator;
             //trees
-            String extendedTreePath=path+"extended_trees/";
+            String extendedTreePath=workDir+File.separator+"extended_trees"+File.separator;
             //ancestral reconstruciton
-            String ARPath=path+"AR/";
+            String ARPath=workDir+File.separator+"AR"+File.separator;
             
             
             //build of extended tree/////////////////////////////////////////////
             float minBranchLength=0.001f;
-            int numberOfFakeBranchesPerEdge=1;
-            String baseMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml";
-            String codeMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/codeml";
+            String baseMLBinaries=pamlPath.getAbsolutePath();
+            //String baseMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml";
+            //String codeMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/codeml";
              
             
             //build of AR///////////////////////////////////////////////////////
@@ -170,18 +173,14 @@ public class Main_DBBUILD {
             
             //build of Hash/////////////////////////////////////////////////////
             int knifeMode=SequenceKnife.SAMPLING_LINEAR;
-            //mers size and word proba thresholds
-            //int k=8;
             int min_k=k;
-            //float thresholdFactor=10.0f;
             
             float sitePPThreshold=Float.MIN_VALUE;
-            //float wordPPStarThreshold=(float)(thresholdFactor*Math.pow(0.25,k));
-            float wordPPStarThreshold=(float)Math.pow((thresholdFactor*0.25),k);
+            //float wordPPStarThreshold=(float)(alpha*Math.pow(0.25,k));
+            float wordPPStarThreshold=(float)Math.pow((alpha*0.25),k);
             float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
-            float wordAbsent=(float)Math.pow(0.25,k); // not used in hash, but for scoring queries
             Infos.println("k="+k);
-            Infos.println("factor="+thresholdFactor);
+            Infos.println("factor="+alpha);
             Infos.println("wordPPStarThreshold="+wordPPStarThreshold);
             Infos.println("wordPPStarThreshold(log10)="+thresholdAsLog);
             //site and word posterior probas thresholds
@@ -192,7 +191,7 @@ public class Main_DBBUILD {
             //skip extended tree reconstruction
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on extended tree)
-            boolean launchAR=false;
+            boolean launchAR=true;
             
             
             
@@ -209,14 +208,14 @@ public class Main_DBBUILD {
             
             //////////////////////
             //PREPARE DIRECTORIES
-            if (!new File(path).exists()) {new File(path).mkdir();}
+            if (!workDir.exists()) {workDir.mkdir();}
             if (!new File(logPath).exists()) {new File(logPath).mkdir();}
             if (!new File(extendedTreePath).exists()) {new File(extendedTreePath).mkdir();}
             if (!new File(ARPath).exists()) {new File(ARPath).mkdir();}
             
             //////////////////////
             //LOAD ORIGINAL ALIGNMENT
-            FASTAPointer fp=new FASTAPointer(new File(a), false);
+            FASTAPointer fp=new FASTAPointer(a, false);
             Fasta fasta=null;
             ArrayList<Fasta> fastas=new ArrayList<>();
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
@@ -229,24 +228,25 @@ public class Main_DBBUILD {
             /////////////////////
             //PARSE ORIGINAL TREE
             NewickReader np=new NewickReader();
-            PhyloTree tree = np.parseNewickTree(new File(t));
+            PhyloTree tree = np.parseNewickTree(t);
             
             /////////////////////
             //BUILD RELAXED TREE
-            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.fasta");
-            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge.phylip");
-            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL.tree");
-            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+numberOfFakeBranchesPerEdge+"peredge_withBL_withoutInternalLabels.tree");;
+            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge.fasta");
+            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge.phylip");
+            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge_withBL.tree");
+            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge_withBL_withoutInternalLabels.tree");;
             //String extendedTreeForJplace=null;
             ExtendedTree extendedTreeOnBranches=null;
+            
             if (buildRelaxedTree) {
                 try {
-                    extendedTreeOnBranches=new ExtendedTree(tree,minBranchLength,numberOfFakeBranchesPerEdge);                    
+                    System.out.println("Injecting fake nodes...");
+                    extendedTreeOnBranches=new ExtendedTree(tree,minBranchLength,branchPerLengthAmount);                    
                     extendedTreeOnBranches.initIndexes(); // don't forget to reinit indexes !!!
-                    ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTreeOnBranches.getListOfNewFakeLeaves();
-                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getNodeCount()+ " nodes");
+                    ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTreeOnBranches.getFakeLeaves();
                     Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getLeavesCount()+ " leaves");
-                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getListOfNewFakeLeaves().size()+ " FAKE_X new leaves");
+                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getFakeLeaves().size()+ " FAKE_X new leaves");
                     //add new leaves to alignment
                     for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
                         PhyloNode node = listOfNewFakeLeaves.get(i);
@@ -255,9 +255,9 @@ public class Main_DBBUILD {
                         align.addSequence(node.getLabel(), gapSeq);
                     }
                     //write alignment and tree for BrB
-                    Infos.println("Write extended alignment: "+fileRelaxedAlignmentFasta.getAbsolutePath());
+                    Infos.println("Write extended alignment (fasta): "+fileRelaxedAlignmentFasta.getAbsolutePath());
                     align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
-                    Infos.println("Write extended alignment: "+fileRelaxedAlignmentPhylip.getAbsolutePath());
+                    Infos.println("Write extended alignment (phylip): "+fileRelaxedAlignmentPhylip.getAbsolutePath());
                     align.writeAlignmentAsPhylip(fileRelaxedAlignmentPhylip);
                     //write extended trees
                     Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
@@ -265,7 +265,7 @@ public class Main_DBBUILD {
                     nw.writeNewickTree(extendedTreeOnBranches, true, true, false);
                     nw.close();
                     //write version without internal nodes labels
-                    Infos.println("Write extended newick tree: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
+                    Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
                     nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
                     nw.writeNewickTree(extendedTreeOnBranches, true, false, false);
                     //extendedTreeForJplace=nw.getNewickTree(extendedTreeOnBranches, true, true, true);
@@ -276,13 +276,15 @@ public class Main_DBBUILD {
                 }
             }
             
+            
+            
             //////////////////////////////////////
             //HERE LAUNCH BASEML ON RELAXED TREE
             //todo
             //can it be done whithout modifying ctl file but through cpmmand parameters ?
             File statsFromRelaxedTree=new File(ARPath+"rst");;
             if (launchAR) {
-            
+                System.out.println("Launching PAML ancestral reconstruction...");
                 StringBuilder sb=new StringBuilder();
                 
                 if (buildRelaxedTree) {
@@ -346,7 +348,7 @@ public class Main_DBBUILD {
                 inputStreamToOutputStream(new BufferedInputStream(p.getInputStream()), STDOUTOutputStream);
                 inputStreamToOutputStream(new BufferedInputStream(p.getErrorStream()), STDERROutputStream);
                 Infos.println("External process operating reconstruction is logged in: "+new File(ARPath+"AR_sdtout.txt").getAbsolutePath());
-                Infos.println("Launching reconstruction (go and take a coffee!) ...");
+                Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
                 try {
                     p.waitFor();
                     Thread.sleep(1000);
@@ -370,7 +372,7 @@ public class Main_DBBUILD {
             ////////////////////////////////////////////////////////////////////
             //LOAD THE NEW POSTERIOR PROBAS AND PAML TREE MADE FROM THE AR
 
-            SessionNext session=new SessionNext(k, min_k, thresholdFactor, sitePPThreshold, wordPPStarThreshold/thresholdFactor);
+            SessionNext session=new SessionNext(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
             
             Infos.println("Loading final dataset (PAML tree and Posterior Probas ; alignment)...");
             InputManagerNext im=new InputManagerNext(InputManagerNext.SOURCE_PAML, fileRelaxedAlignmentFasta, null, statsFromRelaxedTree, s);
@@ -389,7 +391,8 @@ public class Main_DBBUILD {
             
             //prepare simplified hash
             SimpleHash hash=new SimpleHash();
-
+            
+            System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+thresholdAsLog);
             Infos.println("Building all words probas...");
             //Word Explorer
@@ -398,7 +401,7 @@ public class Main_DBBUILD {
             double[] wordsPerNode=new double[session.tree.getInternalNodesByDFS().size()];
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.tree.getInternalNodesByDFS()) {
-                //Infos.println("NodeId: "+nodeId+" "+session.tree.getById(nodeId).toString() );
+                Infos.println("Node: "+session.tree.getById(nodeId).toString() );
                     //DEBUG
                     //if(nodeId!=709)
                     //    continue;
@@ -446,22 +449,22 @@ public class Main_DBBUILD {
                 
                 
                 //register all words in the hash
-                //Infos.println("Tuples in this node:"+totaTuplesInNode);
+                Infos.println("Tuples in this node:"+totaTuplesInNode);
                 double endMerScanTime=System.currentTimeMillis();
-                //Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
+                Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 nodeCounter++;
                 
             }
 
             
-            Infos.println("Resorting hash components...");
+            Infos.println("Sorting hash components...");
             hash.sortTuples();
             
             double endHashBuildTime=System.currentTimeMillis();
-            Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            Infos.println("Words in the hash: "+hash.getKeys().size());
-            Infos.println("Tuples in the hash:"+totalTuplesInHash);
+            System.out.println("Hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
+            System.out.println("Words in the hash: "+hash.getKeys().size());
+            System.out.println("Tuples in the hash:"+totalTuplesInHash);
 
             
 
@@ -471,15 +474,15 @@ public class Main_DBBUILD {
             //OUTPUT SOME STATS IN THE log directory
             
             double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getTuples(w).size()).toArray();
-            outputWordBucketSize(vals, 40, new File(path+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold+".png"),k,thresholdFactor);
-            outputWordPerNode(wordsPerNode, 40, new File(path+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold+".png"), k, thresholdFactor);
+            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
+            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
             
             
             ////////////////////////////////////////////////////////////////////
             //SAVE THE HASH BY JAVA SERIALIZATION
-            Infos.println("Serialization of the database...");
+            System.out.println("Serialization of the database...");
             session.associateHash(hash);
-            File db=new File(path+"PAML_session_params_k"+k+"_mk"+min_k+"_f"+thresholdFactor+"_t"+wordPPStarThreshold);
+            File db=new File(workDir+File.separator+"PAML_session_params_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold);
             session.store(db);
             im=null;
             session=null;  
@@ -487,10 +490,12 @@ public class Main_DBBUILD {
             
             System.gc();
             double dbSize=Environement.getFileSize(db);
+            System.out.println(dbSize+" Mb saved in "+db.getAbsolutePath());
+            
             //double dbSize=0.0;
             //output the generation stats
             if (processLog!=null) {
-                processLog.write(thresholdFactor+"\t"+k+"\t"+(Environement.getMemoryUsageAsMB()/1024)+"\t"+((endHashBuildTime-startHashBuildTime)/1000)+"\t"+hash.getKeys().size()+"\t"+(totalTuplesInHash/1e6)+"\t"+(dbSize/1024)+"\n");
+                processLog.write(alpha+"\t"+k+"\t"+(Environement.getMemoryUsageAsMB()/1024)+"\t"+((endHashBuildTime-startHashBuildTime)/1000)+"\t"+hash.getKeys().size()+"\t"+(totalTuplesInHash/1e6)+"\t"+(dbSize/1024)+"\n");
             }
             
             

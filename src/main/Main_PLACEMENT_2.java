@@ -9,7 +9,6 @@ import alignement.Alignment;
 import au.com.bytecode.opencsv.CSVWriter;
 import core.AAStates;
 import core.DNAStates;
-import core.older.PProbas;
 import core.PProbasSorted;
 import core.QueryWord;
 import core.SimpleHash;
@@ -19,34 +18,22 @@ import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.PAMLWrapper;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static main.Main_DBBUILD.TYPE_DNA;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import prog.ProgRunner;
 import tree.NewickReader;
 import tree.NewickWriter;
-import tree.PhyloNode;
-import tree.PhyloTree;
-import tree.ExtendedTree;
 import tree.Tree;
 
 /**
@@ -111,7 +98,8 @@ public class Main_PLACEMENT_2 {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=5;
+            
+            int queryLimit=1000000;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDetailedDiagsums=true;

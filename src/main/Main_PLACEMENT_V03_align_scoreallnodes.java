@@ -44,6 +44,7 @@ import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import tree.ExtendedTree;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.Tree;
@@ -105,13 +106,13 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=1000000;
+            int queryLimit=2;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDiagsums=false;
             boolean logPrePlacementDetailedDiagsums=false;
             //graph of words alignment
-            boolean graphAlignment=false;
+            boolean graphAlignment=true;
             
 
             ////////////////////////////////////////////////////////////////////
@@ -614,6 +615,16 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             Infos.println("### "+queryCounter+" READS WERE ANALYZED, NOW GENERATING OUTPUTS...");
             Infos.println("#######################################################################");
             long startOutputsTime=System.currentTimeMillis();
+            
+            
+//            for (int i = 0; i < tree.getNodeIdsByDFS().size(); i++) {
+//                System.out.println("nodeId: "+tree.getNodeIdsByDFS().get(i)+
+//                        "  -->  FakeToOriginal: "+((ExtendedTree)tree).getFakeToOriginalId(tree.getNodeIdsByDFS().get(i)));
+//                
+//            }
+//            
+            
+            
 
             ////////////////////////////////////////////////////////////////////
             //DIAGSUMS OUTPUT THE PLACEMENTS IN TSV FORMAT (completeScores)

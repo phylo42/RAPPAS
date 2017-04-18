@@ -93,6 +93,7 @@ public class ArgumentsParser {
                     File wd=new File(argsMap.get(index+1));
                     if (wd.isDirectory() && wd.canRead() && wd.canWrite()) {
                         this.workingDir=wd;
+                        wGiven=true;
                     } else {
                         System.out.println("Cannot read from / write to this directory: "+wd.getAbsolutePath());
                         System.exit(1);

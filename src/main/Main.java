@@ -38,22 +38,41 @@ public class Main {
             ///////////////////////////////////////////////////////////////////
             //TEST ZONE, forces arguments
             
-            String workDir="/media/ben/STOCK/DATA/viromeplacer/WD";
+            //String workDir="/media/ben/STOCK/DATA/viromeplacer/WD2";
+            String workDir="/home/ben/Dropbox/viromeplacer/test_datasets/WD2";
             
+            //String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";            
+            //String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
             //here,pplacer benchmark to build DB
-            String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
-//            String a=wd+"bv_refs_aln.fasta";
-            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
-            String t=inputsPath+"RAxML_result.bv_refs_aln";
-
+            String inputsPath="/home/ben/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+            
+            
+            
+//            String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
+//            //String a=wd+"bv_refs_aln.fasta";
+//            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
+//            String t=inputsPath+"RAxML_result.bv_refs_aln";
 //            a=inputsPath+"bv_refs_aln_stripped_99.5_SMALL_SUBSET.fasta";
 //            t=inputsPath+"RAxML_result.bv_refs_aln_SMALL_SUBSET.tree";
 
+            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+
+
+
             //pplacer benchmark queries 
-            String q=inputsPath+"mod_p4z1r36_query_only2.fasta";
-            //String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
-            //String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
-            String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+            
+//            String q=inputsPath+"mod_p4z1r36_query_only2.fasta";
+//            //String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
+//            //String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
+//            String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+
+
+            //String q="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
+            //String db="/media/ben/STOCK/DATA/viromeplacer/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+            
+            String q="/home/ben/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
+            String db="/home/ben/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
 
             //db build launch
@@ -68,18 +87,19 @@ public class Main {
 //                            ;
             
             // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0"
-//                            ;            
-//            
-//            
-//            
-//            
-//            args=arguments.split(" ");
+            String arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 1"
+                            ;            
+            
+            
+            
+          
+            args=arguments.split(" ");
+            
             //System.out.println(Arrays.toString(args));
             
            
@@ -99,7 +119,8 @@ public class Main {
             
             //parse program arguments
             ArgumentsParser argsParser = new ArgumentsParser(args);
-            //System.out.println(argsParser);
+            argsParser.pamlPath=new File("/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml");
+            
             
             if (argsParser.mode==ArgumentsParser.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");

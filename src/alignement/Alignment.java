@@ -142,19 +142,27 @@ public class Alignment implements Serializable {
     }
     
     public void writeAlignmentAsPhylip(File f) throws IOException {
-        int allowedLabelSize=20;
-        int numColumns=6;
+        
+        
+        //here choose 50 because PAML don't allow more !
+        int allowedLabelSize=50; //in fact(48 +2 spaces)
+        
+
+        int numColumns=4;
         FileWriter fw=new FileWriter(f);
         fw.append(String.valueOf(charMatrix.length)+" "+String.valueOf(charMatrix[0].length)+"\n");     
         for (int i = 0; i < charMatrix.length; i++) {
+            //add label
             String label=rowLabels[i];
             if (label.length()>allowedLabelSize) {
-                label=label.substring(0, allowedLabelSize);
+                label=label.substring(0, allowedLabelSize-2);
             }
             fw.append(label);
+
             for (int j = 0; j < (allowedLabelSize-label.length()); j++)  {
                 fw.write(' ');
             }
+            //add sequence
             for (int j=0;j<charMatrix[0].length;j++) {
                 if (j!=0 && (j%allowedLabelSize)==0)
                     if (j!=0 && (j%(allowedLabelSize*numColumns))==0)

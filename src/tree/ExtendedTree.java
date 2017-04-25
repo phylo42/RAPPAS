@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import javax.swing.tree.TreeModel;
 
 /**
@@ -49,7 +50,7 @@ public class ExtendedTree extends PhyloTree implements Tree {
     private int lastOriginalId=-1;
     private ArrayList<PhyloNode> newLeaves=null;
     
-    //stats of the tree extension
+    //associative maps describing the edges before and after tree extension
     /////////////////////////////////////////////////
     //map linking the new fake nodes to the original branches they come from.
     //for now, all fake nodes injected in a branch will be mapped to the 
@@ -59,6 +60,10 @@ public class ExtendedTree extends PhyloTree implements Tree {
     //so here, we associated nodeId of (fake nodes injected in the branch)
     //to nodeId of (son of the original branch before fake nodes injection)
     private HashMap<Integer,Integer> fakeNodesToOriginalNodes=null;
+    // index=edgeId ; key=son,val=parent
+    public LinkedHashMap<PhyloNode,PhyloNode> originalEdges=new LinkedHashMap<>();
+    // key=edgeId ; key=son,vals=parent
+    public LinkedHashMap<PhyloNode,PhyloNode> extendedEdges=new LinkedHashMap<>();
     
     
     
@@ -234,15 +239,21 @@ public class ExtendedTree extends PhyloTree implements Tree {
         }
 
 
+        //before conditions below (branchbreakThreshold), register edges in original map
+        if (!B.isRoot())
+            originalEdges.put(B, A);
 
-        if ((!node.isRoot()) && (((PhyloNode)node.getParent()).getId()<lastOriginalId) && (node.getId()<lastOriginalId) && (!(node.getBranchLengthToAncestor()<=branchbreakThreshold)) ) {
+        if ( (!B.isRoot()) &&
+             (((PhyloNode)B.getParent()).getId()<lastOriginalId) && 
+             (B.getId()<lastOriginalId) &&
+             (!(B.getBranchLengthToAncestor()<branchbreakThreshold)) ) {
 
             //define l_init and l_b for the current edge
-            float l_init=node.getBranchLengthToAncestor();
+            float l_init=A.getBranchLengthToAncestor();
             float l_b=(0.0f+l_init)/(N+1);
 //                System.out.println("  l_init:"+l_init+" l_b:"+l_b);
 
-            //cut parent from children
+            //cut parent A from children B
             A.remove(B);
 
 
@@ -254,16 +265,19 @@ public class ExtendedTree extends PhyloTree implements Tree {
                 fakeNodeCounter+=4;
                 PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_FakeX0", 0.01f);
                 PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX1", 0.01f);
-                PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX2", 0.01f);
-                PhyloNode fakeX3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_FakeX3", 0.01f);
-                X1.add(fakeX2);
-                X1.add(fakeX3);
+                PhyloNode X2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX2", 0.01f);
+                PhyloNode X3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_FakeX3", 0.01f);
+                X1.add(X2);
+                X1.add(X3);
                 X0.add(X1);
-                newLeaves.add(fakeX2);
-                newLeaves.add(fakeX3);
-                //register the internal nodes in the map
+                newLeaves.add(X2);
+                newLeaves.add(X3);
+                //register the internal nodes assoxiation in the map
                 fakeNodesToOriginalNodes.put(X0.getId(), B.getId());
                 fakeNodesToOriginalNodes.put(X1.getId(), B.getId());
+                extendedEdges.put(X2, X1);
+                extendedEdges.put(X3, X1);
+                extendedEdges.put(X1, X0);
 
                 //define length left from this X0 to B
                 float l_XO_B=l_init-l_b*(j+1);
@@ -284,13 +298,10 @@ public class ExtendedTree extends PhyloTree implements Tree {
                     l_sum_B_subtree=0;
                     sum_B_leaves=0;
                     //if this branch is from internal node to leaf
-                    //we will not define the XO-X1 length as the mean brnach
+                    //we will not define the XO-X1 length as the mean branch
                     //length of the subtree, but as l_b.
                     if (!B.isLeaf()) {
                         getBLFromMean_DFS(B,0);
-//                            System.out.println("     sum_B_leaves: "+sum_B_leaves);
-//                            System.out.println("     l_sum_B_subtree: "+l_sum_B_subtree);
-//                            System.out.println("     subtree_mean: "+((l_sum_B_subtree+0.0)/(sum_B_leaves+0.0)));
                         l_new=(sum_B_leaves*l_XO_B+l_sum_B_subtree)/sum_B_leaves;
                     } else {
                         sum_B_leaves=1;
@@ -298,18 +309,25 @@ public class ExtendedTree extends PhyloTree implements Tree {
                     }
 
                 }
-                //set branch lengths
-//                    System.out.println("     l_new (X0-X1): "+l_new);
-//                    System.out.println("     l parent-X0: "+l_b);
-//                    System.out.println("     l X0-B: "+l_XO_B);
+                //set branch lengths of X0 and X1
                 X1.setBranchLengthToAncestor(l_new);
                 X0.setBranchLengthToAncestor(l_b);
-                //attach X0 to parent and move
+                
+                //set branch length to nodes of original tree 
+                X1.setBranchLengthToOriginalAncestor(j*l_b+l_new);
+                X1.setBranchLengthToOriginalSon(l_XO_B+l_new);
+                X0.setBranchLengthToOriginalAncestor(j*l_b);
+                X0.setBranchLengthToOriginalSon(l_XO_B);
+                
+                
+                //attach X0 to parent
                 currentParent.add(X0);
+                extendedEdges.put(X0, currentParent);
+                //and will move to next X0
                 currentParent=X0;
             }
 
-            //when all X0 are added, the last X0 to B
+            //when all X0 are added, attach the last X0 to B
             currentParent.add(B);
             B.setBranchLengthToAncestor(l_init-l_b*N);  
 

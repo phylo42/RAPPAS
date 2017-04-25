@@ -191,7 +191,7 @@ public class Main_DBBUILD {
             //skip extended tree reconstruction
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on extended tree)
-            boolean launchAR=true;
+            boolean launchAR=false;
             
             
             

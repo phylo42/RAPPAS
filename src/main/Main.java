@@ -11,6 +11,8 @@ import core.States;
 import etc.Infos;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 import static main.Main_DBBUILD.TYPE_DNA;
 
 
@@ -37,14 +39,15 @@ public class Main {
             
             ///////////////////////////////////////////////////////////////////
             //TEST ZONE, forces arguments
+            String HOME = System.getenv("HOME");
+
             
             //String workDir="/media/ben/STOCK/DATA/viromeplacer/WD2";
-            String workDir="/home/ben/Dropbox/viromeplacer/test_datasets/WD2";
-            
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
             //String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";            
             //String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
             //here,pplacer benchmark to build DB
-            String inputsPath="/home/ben/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
             
             
             
@@ -71,8 +74,8 @@ public class Main {
             //String q="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
             //String db="/media/ben/STOCK/DATA/viromeplacer/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
             
-            String q="/home/ben/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
-            String db="/home/ben/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
+            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
 
             //db build launch
@@ -113,8 +116,7 @@ public class Main {
                 s=new AAStates();
            
             //TEST ZONE//
-            
-            
+
             
             
             //parse program arguments

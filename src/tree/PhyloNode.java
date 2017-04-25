@@ -20,11 +20,34 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     private static final long serialVersionUID = 2010L;
 
     //node  metadata
-    private int id=-1; //nodeId internal to the program
-    private int externalId=-1;//to memorize the id that the node had eventually
-    //in the external program used to build the posterior probabilites.
+    /////////////////////////////////////////
+    
+    //nodeId internal to our program (used by algorithms)
+    private int id=-1; 
+    //label internal to our program, used when outputing trees (used by algorithms)
     private String label=null;
-    private float branchLengthToAncestor=0.0f;    
+    
+    //to memorize the id that the node had eventually been given by the AR program
+    //(ex: PAML discards the labels of internal nodes and uses its own ids).
+    private int externalId=-1;
+    //actual branch length in the current tree
+    private float branchLengthToAncestor=0.0f;
+    //below are branch length related to the original tree (before addition of fake nodes)
+    //note that these values should be set to something else than 0 only 
+    //when the current PhyloNode represents a fake node (X0,X1,X2,X3).
+    //let's consider this:
+    //                        /-----X2
+    //                       /
+    //                   /--X1------X3
+    //                  /
+    //  OriginalNode1--X0-----OriginalNode2
+    //
+    //  for X2: branchLengthToOriginalAncestor= bl(X2;X1) + bl(X1;X0) + bl(X0;OriginalNode1)
+    //          branchLengthToOriginalSon= bl(X2;X1) + bl(X1;X0) + bl(X0;OriginalNode2)
+    
+    private float branchLengthToOriginalAncestor=0.0f;
+    private float branchLengthToOriginalSon=0.0f;
+    
     
     /** The number of leaves under this internal node (or 1 for leaves). */
     public int numberLeaves;
@@ -85,6 +108,24 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     public void setBranchLengthToAncestor(float branchLengthToAncestor) {
         this.branchLengthToAncestor = branchLengthToAncestor;
     }
+
+    public void setBranchLengthToOriginalAncestor(float branchLengthToOriginalAncestor) {
+        this.branchLengthToOriginalAncestor = branchLengthToOriginalAncestor;
+    }
+
+    public float getBranchLengthToOriginalAncestor() {
+        return branchLengthToOriginalAncestor;
+    }
+
+    public void setBranchLengthToOriginalSon(float branchLengthToOriginalSon) {
+        this.branchLengthToOriginalSon = branchLengthToOriginalSon;
+    }
+
+    public float getBranchLengthToOriginalSon() {
+        return branchLengthToOriginalSon;
+    }
+    
+    
 
     public int getNumberLeaves() {
         return numberLeaves;

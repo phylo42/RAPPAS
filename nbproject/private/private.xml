@@ -3,26 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-<<<<<<< HEAD
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/etc/Environement.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_PLACEMENT.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_PLACEMENT_V01_align_toptuplesperpostoscorefromalign.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/alignement/Alignment.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_DBBUILD.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/tree/ExtendedTree.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/PAMLWrapper.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_PLACEMENT_V02_align_toptuplestoscorefromalign.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_PLACEMENT_2.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_PLACEMENT_V03_align_scoreallnodes.java</file>
-=======
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_DBBUILD.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/ExtendedTree.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_test_relaxedTree.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/ArgumentsParser.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloNode.java</file>
->>>>>>> 44b4d7ee254cee047ab390348d5f6c82a5de8585
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_test_relaxedTree.java</file>
         </group>
     </open-files>
 </project-private>

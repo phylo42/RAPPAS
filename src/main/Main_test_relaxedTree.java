@@ -77,22 +77,33 @@ public class Main_test_relaxedTree {
 "632:0.012757127,AB907633:0.0020902834):0.0100815585,((DQ431016:0.0056616943,DQ431014:0.0058972114):0.011965532,((AY874541:0.011802373,(KC175339:0.014499976,(JN856008:0.035546154,AF124992:0.018812226):0.011" +
 "793815):0.001528329):0.004490078,(AY878324:0.0023628832,(AB907625:0.002437988,(AB781791:0.005369946,(AB907630:0.006924321,(AB907628:0.002390499,AB781792:0.00245468):0.0028974991):0.0050557973):0.004327501)" +
 ":1.0000005E-6):0.0059617604):0.008440271):0.0011446134):0.0022447358):0.08810771):0.011016391):0.005505663):0.0055800905):0.039562356):0.41650516):0.09997534):0.75645214);";
-            String t_basic="((L1:1,L2:2):4,((L3:2,L4:2):1,L5:4)):0";
-            String t_basic2="((L1:2,L2:2)I:2,L3:4)root:0";
+            String t_basic="((L1:1,L2:2):4,((L3:2,L4:2):1,L5:4))root:0;";
+            String t_basic2="((L1:0.5,L2:1)I:2,L3:4)root:0;";
+            String slide_examples="(AF516906:0.07242756981647756331,(KF843851:0.15174764181859606849,KJ473804:0.11465700686342394921):0.58137165331324824891,AB781795:0.09295312119421313135):0.0;";
             
-            String t_used=t_basic2;
+            String t_used=slide_examples;
             
             
             //very basic test of extension
-            NewickReader np=new NewickReader();
-            PhyloTree tree = np.parseNewickTree(t_used);
+            PhyloTree tree = NewickReader.parseNewickTree2(t_used);
+            
+            for (int i:tree.getNodeIdsByDFS()) {
+                System.out.println(tree.getById(i));
+            }
+            
             System.out.println(tree.getNodeCount()); 
-            ExtendedTree exTree=new ExtendedTree(tree, ExtendedTree.BRANCHING_ON_BRANCH, 2);
+            ExtendedTree exTree=new ExtendedTree(tree, 0.1f, 1);
+            
             System.out.println(exTree.getNodeCount());
-            System.out.println(exTree.originalEdges);
-            System.out.println(exTree.extendedEdges);
+            System.out.println(exTree.originalEdges.toString().replaceAll(",", "\n"));
+            System.out.println();
+            System.out.println(exTree.extendedEdges.toString().replaceAll(",", "\n"));
+            
+//            exTree.displayTree();
+//            Thread.sleep(60000);
+            
             NewickWriter nw = new NewickWriter(new File(System.getenv("HOME")+"/test.tree"));
-            nw.writeNewickTree(exTree, true, true, true);
+            nw.writeNewickTree(exTree, true, true, false);
             nw.close();
             
 

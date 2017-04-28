@@ -106,13 +106,13 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=3;
+            int queryLimit=1000000;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDiagsums=false;
             boolean logPrePlacementDetailedDiagsums=false;
             //graph of words alignment
-            boolean graphAlignment=true;
+            boolean graphAlignment=false;
             
 
             ////////////////////////////////////////////////////////////////////
@@ -131,6 +131,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             String ARPath=workDir+File.separator+"AR"+File.separator;
             //session itself
             boolean loadHash=true;
+            System.out.println("Loading ancestral words DB...");
             SessionNext session= SessionNext.load(db,loadHash);
             
             //type of Analysis//////////////////////////////////////////////////

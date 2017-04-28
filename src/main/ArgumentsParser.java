@@ -90,8 +90,7 @@ public class ArgumentsParser {
             }
             //check working directory
             if (argsMap.get(index).equals("-w") || argsMap.get(index).equals("--workdir")) {
-                    System.out.println("map:"+argsMap.get(index+1));
-                    System.out.println("file: "+(new File(argsMap.get(index+1)).getAbsolutePath()));
+                    System.out.println("wordDir: "+(new File(argsMap.get(index+1)).getAbsolutePath()));
                     File wd=new File(argsMap.get(index+1));
                     if (wd.isDirectory() && wd.canRead() && wd.canWrite()) {
                         this.workingDir=wd;

@@ -17,6 +17,7 @@ import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -49,6 +50,7 @@ public class NewickReader {
      * @param newickTree
      * @return 
      */
+    @Deprecated
     public PhyloTree parseNewickTree (String newickTree) {
         currentNodeIndex=0;
         level=0;
@@ -106,6 +108,7 @@ public class NewickReader {
      * @return
      * @throws FileNotFoundException 
      */
+    @Deprecated
     public PhyloTree parseNewickTree (File f) throws FileNotFoundException, IOException {
         BufferedReader br = new BufferedReader(new FileReader(f));
         String line=null;
@@ -122,7 +125,7 @@ public class NewickReader {
    
     
     
-    
+    @Deprecated
     private void addSubTrees(PhyloNode parent, String parentSubtree) {
         
         //System.out.println("CALL "+parent+"   "+parentSubtree);
@@ -240,6 +243,139 @@ public class NewickReader {
     }
     
 
+    public static PhyloTree parseNewickTree2(String s) {
+        int currentNodeIndex=-1;
+        int level=0;
+        
+        
+        Stack<PhyloNode> stackedLevels=new Stack<>();
+        HashMap<Integer,ArrayList<PhyloNode>> levelList=new HashMap<>();
+        levelList.put(level, new ArrayList<>()); //init highest level (=0)
+
+        StringBuilder sb=new StringBuilder();
+        boolean descending=false;
+        boolean ascending=false;
+        PhyloNode bufferedNode=null;
+        for (int i = 0; i < s.length(); i++) {
+//            System.out.println("--------------------------------------------");
+//            System.out.println("-BEFORE-------------------------------------");
+//            System.out.println("char:"+s.charAt(i));
+//            System.out.println("level:"+level);
+//            System.out.println("stack:"+stackedLevels);
+//            System.out.println("levelList:"+levelList);
+//            System.out.println("sb:"+sb);
+//            System.out.println("currentNodeIndex:"+currentNodeIndex);
+//            System.out.println("bufferedNode:"+bufferedNode);
+//            System.out.println("descending:"+descending);
+            //init new node when (
+            if (s.charAt(i)=='(') {
+                stackedLevels.push(new PhyloNode(++currentNodeIndex));
+                level++;
+                levelList.put(level, new ArrayList<>());
+                sb.delete(0, sb.length());
+                descending=true;
+                ascending=false;
+            //fill init but empty node when )
+            } else if (s.charAt(i)==')') {
+                //make node with previous node (if exists), at level before )
+                if (sb.length()>0) {
+                    //take potential content of sb
+                    //to fill node
+                    String[] data=sb.toString().split(":");
+                    String label=data[0];
+                    Float bl=-1.0f; 
+                    if (data.length>1) { bl=Float.parseFloat(data[1]); }
+                    if (!ascending)
+                        levelList.get(level).add(new PhyloNode(++currentNodeIndex, label, bl));
+                    else {
+                        bufferedNode.setLabel(label);
+                        bufferedNode.setBranchLengthToAncestor(bl);
+                    }
+                }
+                sb.delete(0, sb.length());
+                
+                //get parent which is on top of stack
+                bufferedNode=stackedLevels.pop();
+                //associate nodes to this parent
+                for (PhyloNode son:levelList.get(level)) {
+                    bufferedNode.add(son);
+                    //System.out.println("DO: parent="+bufferedNode+"  son="+son);
+                }
+                levelList.get(level).clear();
+                
+                //now moving to level after )
+                //not forgetting to register the paretn to this new level
+                level--;
+                descending=false;
+                ascending=true;
+                levelList.get(level).add(bufferedNode);
+
+            //add to current level when ,    
+            } else if (s.charAt(i)==',') {
+                //take potential content of sb
+                //to fill node
+                String[] data=sb.toString().split(":");
+                String label=data[0];
+                Float bl=-1.0f; 
+                if (data.length>1) { bl=Float.parseFloat(data[1]); }
+                //if comes from upper level, start list of nodes for this level
+                if (descending) {
+                    levelList.get(level).add(new PhyloNode(++currentNodeIndex, label, bl));
+                //if ascending, come up from subtree, we use the unstacked node
+                } else {
+                    bufferedNode.setLabel(label);
+                    bufferedNode.setBranchLengthToAncestor(bl);
+                    //levelList.get(level).add(bufferedNode);
+                }
+                 sb.delete(0, sb.length());
+                 
+                descending=false;
+                ascending=false;
+                 
+            //end of newick, take last node as root
+            } else if (s.charAt(i)==';') {
+                //take potential content of sb
+                //to fill node
+                String[] data=sb.toString().split(":");
+                String label=data[0];
+                Float bl=-1.0f; 
+                if (data.length>1) { bl=Float.parseFloat(data[1]); }
+                bufferedNode.setLabel(label);
+                bufferedNode.setBranchLengthToAncestor(bl);
+                        
+                        
+                        
+                        
+               
+            //simply fill the stringbuilder, 
+            //which content will be used when 
+            //new nodes needs to be filled with
+            //node name and branch length
+            } else {
+                sb.append(s.charAt(i));
+            }
+            
+            
+//            System.out.println("-AFTER----");
+//            System.out.println("char:"+s.charAt(i));
+//            System.out.println("level:"+level);
+//            System.out.println("stack:"+stackedLevels);
+//            System.out.println("levelList:"+levelList);
+//            System.out.println("sb:"+sb);
+//            System.out.println("currentNodeIndex:"+currentNodeIndex);
+//            System.out.println("bufferedNode:"+bufferedNode);
+//            System.out.println("descending:"+descending);
+        }
+        
+        
+        //last bufferedNode should be the root
+        PhyloTree tree=new PhyloTree(new PhyloTreeModel(bufferedNode));
+        tree.initIndexes();
+        return tree;
+        
+    }
+    
+    
     
     
     
@@ -247,7 +383,7 @@ public class NewickReader {
      * test main
      * @param args 
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         
         String treeFASTML=  "((JN856008:0.035546,AF124992:0.018812)N2:0.011794,(AY874541:0.011802,((((AB907632:0.012757,AB907633:0.002090)N7:0.010082,(((EU769559:0" +
                             ".006293,(EU769560:0.002622,AB907631:0.012287)N11:0.002049)N10:0.008871,AF124986:0.005430)N9:0.008257,((AB781796:0.020279,((AB907634:0." +
@@ -265,6 +401,16 @@ public class NewickReader {
                 + "(28_AY878324,(16_AB907625,(15_AB781791,(19_AB907630,(18_AB907628,24_AB781792)59)"
                 + "58)57)56)55)51)49)47)43)42)41)40)39)38)37)35)32)31;";
         
+        String t_basic="((L1:1,L2:2)X:4,((L3:2,L4:2)Y:1,L5:4)Z:4)root:0;";
+        String t_basic2="((L1:2,L2:2)I:2,L3:4)root:0;";
+        
+        
+        PhyloTree parseTree = parseNewickTree2(treeFASTML);
+        parseTree.displayTree();
+        
+        Thread.sleep(60000);
+        
+        System.exit(1);
         
 
         

@@ -1,2543 +1,0 @@
-BASEML in paml version 4.9, March 2015
-
-ns = 2586  	ls = 1683
-Reading sequences, sequential format..
-Reading seq # 1: 1057-129DG2R-13     Reading seq # 2: 112B-13     Reading seq # 3: 112Q-65     Reading seq # 4: 112Q-85     Reading seq # 5: 112Q-98     Reading seq # 6: 113F4-12     Reading seq # 7: 113F4-66     Reading seq # 8: 113F4-90     Reading seq # 9: 113F4-94     Reading seq #10: 113S1-20     Reading seq #11: 113S1-21     Reading seq #12: 113S1-24     Reading seq #13: 113S1-4     Reading seq #14: 113S1-51     Reading seq #15: 113S1-83     Reading seq #16: 113S1-84     Reading seq #17: 113S1-92     Reading seq #18: 123B-11-F     Reading seq #19: 123B-12     Reading seq #20: 123B-13-F     Reading seq #21: 123B-2-F     Reading seq #22: 123B-21     Reading seq #23: 123B-25     Reading seq #24: 123B-28     Reading seq #25: 123B-72     Reading seq #26: 123B-75-F     Reading seq #27: 123B-85-F     Reading seq #28: 123B-9     Reading seq #29: 123F-19     Reading seq #30: 123F-25     Reading seq #31: 123F-26     Reading seq #32: 123F-3     Reading seq #33: 123F-67     Reading seq #34: 123F-82     Reading seq #35: 123F2-102     Reading seq #36: 123F2-107     Reading seq #37: 123F2-17     Reading seq #38: 123F2-47     Reading seq #39: 123F2-5     Reading seq #40: 123F2-72     Reading seq #41: 123F2-80     Reading seq #42: 123F3-35     Reading seq #43: 123F3-40     Reading seq #44: 123F3-53     Reading seq #45: 123F3-54     Reading seq #46: 123F3-61     Reading seq #47: 123F3-78     Reading seq #48: 123Q-10     Reading seq #49: 123Q-104     Reading seq #50: 123Q-17     Reading seq #51: 123Q-21     Reading seq #52: 123Q-31     Reading seq #53: 123Q-4     Reading seq #54: 123Q-6     Reading seq #55: 127B-2     Reading seq #56: 127B-31     Reading seq #57: 127B-60     Reading seq #58: 127F-65     Reading seq #59: 127F-70     Reading seq #60: 127Q-100     Reading seq #61: 127Q-110     Reading seq #62: 127Q-23     Reading seq #63: 136B-22     Reading seq #64: 136B-75     Reading seq #65: 136F-115     Reading seq #66: 141B-14     Reading seq #67: 141B-19     Reading seq #68: 141B-3     Reading seq #69: 163B-1     Reading seq #70: 163B-19     Reading seq #71: 163B-51     Reading seq #72: 1BV-101     Reading seq #73: 1BV-20     Reading seq #74: 1BV-26     Reading seq #75: 1BV-4     Reading seq #76: 1BV-44     Reading seq #77: 1BV-48     Reading seq #78: 1BVBACT-1     Reading seq #79: 1BVBACT-11     Reading seq #80: 1BVBACT-18     Reading seq #81: 1BVBACT-2     Reading seq #82: 1BVBACT-24     Reading seq #83: 1BVBACT-28     Reading seq #84: 1BVBACT-82     Reading seq #85: 1BVBACT-87     Reading seq #86: 258B-16     Reading seq #87: 258B-86     Reading seq #88: 27VAG-2     Reading seq #89: 2BV-14     Reading seq #90: 2BV-15     Reading seq #91: 2BV-25     Reading seq #92: 2BV-41     Reading seq #93: 2BV-45     Reading seq #94: 2BVBACT-34     Reading seq #95: 2BVBACT-97     Reading seq #96: 2VAG-53     Reading seq #97: 2VAG-69     Reading seq #98: 3001-189R-13     Reading seq #99: 3001-189R-24     Reading seq #100: 3001-189R-46     Reading seq #101: 3001-189R-5     Reading seq #102: 3025-189R-100     Reading seq #103: 3025-189R-110     Reading seq #104: 3025-189R-21     Reading seq #105: 3025-189R-43     Reading seq #106: 3025-189R-59     Reading seq #107: 3025-189R-64     Reading seq #108: 3025-189R-78     Reading seq #109: 3025-338F-4     Reading seq #110: 3025-338F-43     Reading seq #111: 3025-338F-5     Reading seq #112: 3025-338F-60     Reading seq #113: 3025-338F-91     Reading seq #114: 3025-338F-92     Reading seq #115: 3025-9-F     Reading seq #116: 3376-129DG2R-17     Reading seq #117: 3376-129DG2R-65     Reading seq #118: 3BV-106     Reading seq #119: 3BV-15     Reading seq #120: 3BV-26     Reading seq #121: 3BV-37     Reading seq #122: 3BV-5     Reading seq #123: 3BV-52     Reading seq #124: 3BV-74     Reading seq #125: 4BVB-10     Reading seq #126: 4BVB-23     Reading seq #127: 4BVB-3     Reading seq #128: 4BVB-40     Reading seq #129: 4BVB-5     Reading seq #130: 4BVB-52     Reading seq #131: 4BVB-89     Reading seq #132: 4BVQ-3     Reading seq #133: 4BVQ-57     Reading seq #134: 4VAG-1     Reading seq #135: 4VAG-103     Reading seq #136: 4VAG-18     Reading seq #137: 4VAG-338F-15     Reading seq #138: 4VAG-89     Reading seq #139: 4VAG-92     Reading seq #140: 5BV-62     Reading seq #141: 5BV-63     Reading seq #142: 5BV-94     Reading seq #143: 5BVBACT-111     Reading seq #144: 5BVBACT-19     Reading seq #145: 5BVBACT-2     Reading seq #146: 5BVBACT-26     Reading seq #147: 5BVBACT-84     Reading seq #148: 5VAG-3     Reading seq #149: 5VAG-39     Reading seq #150: 5VAG-42     Reading seq #151: 6BV-15     Reading seq #152: 6BV-36     Reading seq #153: 6BV-7     Reading seq #154: 6BV-81     Reading seq #155: 7BV-93     Reading seq #156: 7BVA-2     Reading seq #157: 7BVA-22     Reading seq #158: 7BVA-26     Reading seq #159: 7BVA-28     Reading seq #160: 7BVA-4     Reading seq #161: 7BVA-47     Reading seq #162: 7BVA-49     Reading seq #163: 7BVA-99     Reading seq #164: 7BVB-16     Reading seq #165: 7BVB-17     Reading seq #166: 7BVB-26     Reading seq #167: 7BVB-4     Reading seq #168: 7BVB-6     Reading seq #169: 7BVB-73     Reading seq #170: 7BVB-75     Reading seq #171: 7BVB-92     Reading seq #172: 7BVC-108     Reading seq #173: 7BVC-90     Reading seq #174: 8BV-1     Reading seq #175: 8BV-109     Reading seq #176: 8BV-3     Reading seq #177: 8BV-4     Reading seq #178: 8BV-8     Reading seq #179: AF125206     Reading seq #180: AM697483     Reading seq #181: AY331416     Reading seq #182: DQ130020     Reading seq #183: DQ666092     Reading seq #184: FJ470446     Reading seq #185: FM872653     Reading seq #186: HM021342     Reading seq #187: HM021374     Reading seq #188: HM021391     Reading seq #189: HM021425     Reading seq #190: HM021428     Reading seq #191: HM021446     Reading seq #192: HM021540     Reading seq #193: S000000269     Reading seq #194: S000001207     Reading seq #195: S000001704     Reading seq #196: S000002018     Reading seq #197: S000002717     Reading seq #198: S000003123     Reading seq #199: S000003153     Reading seq #200: S000003483     Reading seq #201: S000003547     Reading seq #202: S000003746     Reading seq #203: S000004268     Reading seq #204: S000004313     Reading seq #205: S000004324     Reading seq #206: S000004762     Reading seq #207: S000005514     Reading seq #208: S000006177     Reading seq #209: S000006483     Reading seq #210: S000007275     Reading seq #211: S000007585     Reading seq #212: S000008152     Reading seq #213: S000008715     Reading seq #214: S000008742     Reading seq #215: S000009737     Reading seq #216: S000010068     Reading seq #217: S000010427     Reading seq #218: S000010448     Reading seq #219: S000010758     Reading seq #220: S000010870     Reading seq #221: S000011030     Reading seq #222: S000011541     Reading seq #223: S000011559     Reading seq #224: S000013318     Reading seq #225: S000013341     Reading seq #226: S000014356     Reading seq #227: S000014476     Reading seq #228: S000015364     Reading seq #229: S000015427     Reading seq #230: S000015704     Reading seq #231: S000016099     Reading seq #232: S000017346     Reading seq #233: S000018908     Reading seq #234: S000021505     Reading seq #235: S000055244     Reading seq #236: S000087730     Reading seq #237: S000087731     Reading seq #238: S000090215     Reading seq #239: S000096693     Reading seq #240: S000112115     Reading seq #241: S000125671     Reading seq #242: S000127667     Reading seq #243: S000127864     Reading seq #244: S000129424     Reading seq #245: S000130223     Reading seq #246: S000130242     Reading seq #247: S000131535     Reading seq #248: S000135860     Reading seq #249: S000140702     Reading seq #250: S000148042     Reading seq #251: S000148549     Reading seq #252: S000148551     Reading seq #253: S000148552     Reading seq #254: S000149022     Reading seq #255: S000149189     Reading seq #256: S000149439     Reading seq #257: S000262316     Reading seq #258: S000319464     Reading seq #259: S000319466     Reading seq #260: S000334747     Reading seq #261: S000335341     Reading seq #262: S000348930     Reading seq #263: S000348931     Reading seq #264: S000366397     Reading seq #265: S000366402     Reading seq #266: S000368429     Reading seq #267: S000368430     Reading seq #268: S000379919     Reading seq #269: S000380060     Reading seq #270: S000380222     Reading seq #271: S000380958     Reading seq #272: S000380997     Reading seq #273: S000381050     Reading seq #274: S000381682     Reading seq #275: S000381692     Reading seq #276: S000381771     Reading seq #277: S000381784     Reading seq #278: S000381984     Reading seq #279: S000381988     Reading seq #280: S000382416     Reading seq #281: S000382661     Reading seq #282: S000385771     Reading seq #283: S000385778     Reading seq #284: S000386900     Reading seq #285: S000386901     Reading seq #286: S000386904     Reading seq #287: S000386905     Reading seq #288: S000387302     Reading seq #289: S000387364     Reading seq #290: S000387859     Reading seq #291: S000388120     Reading seq #292: S000389883     Reading seq #293: S000389884     Reading seq #294: S000389885     Reading seq #295: S000389887     Reading seq #296: S000389893     Reading seq #297: S000389895     Reading seq #298: S000389896     Reading seq #299: S000389897     Reading seq #300: S000389899     Reading seq #301: S000389901     Reading seq #302: S000389903     Reading seq #303: S000389904     Reading seq #304: S000389909     Reading seq #305: S000389917     Reading seq #306: S000389918     Reading seq #307: S000389919     Reading seq #308: S000390171     Reading seq #309: S000393168     Reading seq #310: S000395079     Reading seq #311: S000398321     Reading seq #312: S000399515     Reading seq #313: S000399530     Reading seq #314: S000399795     Reading seq #315: S000400846     Reading seq #316: S000400850     Reading seq #317: S000404352     Reading seq #318: S000404711     Reading seq #319: S000405012     Reading seq #320: S000405651     Reading seq #321: S000405655     Reading seq #322: S000410519     Reading seq #323: S000414263     Reading seq #324: S000414273     Reading seq #325: S000414333     Reading seq #326: S000414453     Reading seq #327: S000414458     Reading seq #328: S000414459     Reading seq #329: S000414466     Reading seq #330: S000414473     Reading seq #331: S000414474     Reading seq #332: S000414599     Reading seq #333: S000414610     Reading seq #334: S000414614     Reading seq #335: S000414619     Reading seq #336: S000414717     Reading seq #337: S000414720     Reading seq #338: S000414721     Reading seq #339: S000420023     Reading seq #340: S000422104     Reading seq #341: S000427359     Reading seq #342: S000427506     Reading seq #343: S000428247     Reading seq #344: S000428921     Reading seq #345: S000428922     Reading seq #346: S000428924     Reading seq #347: S000428925     Reading seq #348: S000428928     Reading seq #349: S000431102     Reading seq #350: S000432293     Reading seq #351: S000432294     Reading seq #352: S000432295     Reading seq #353: S000432296     Reading seq #354: S000432300     Reading seq #355: S000432314     Reading seq #356: S000433822     Reading seq #357: S000434638     Reading seq #358: S000436355     Reading seq #359: S000437046     Reading seq #360: S000437047     Reading seq #361: S000437048     Reading seq #362: S000437049     Reading seq #363: S000438936     Reading seq #364: S000441859     Reading seq #365: S000444200     Reading seq #366: S000444212     Reading seq #367: S000444213     Reading seq #368: S000445104     Reading seq #369: S000445105     Reading seq #370: S000445106     Reading seq #371: S000445107     Reading seq #372: S000445108     Reading seq #373: S000469521     Reading seq #374: S000469522     Reading seq #375: S000478276     Reading seq #376: S000478277     Reading seq #377: S000478278     Reading seq #378: S000478279     Reading seq #379: S000478280     Reading seq #380: S000482457     Reading seq #381: S000482459     Reading seq #382: S000485949     Reading seq #383: S000496330     Reading seq #384: S000508582     Reading seq #385: S000527987     Reading seq #386: S000528124     Reading seq #387: S000528125     Reading seq #388: S000529044     Reading seq #389: S000531199     Reading seq #390: S000538861     Reading seq #391: S000539896     Reading seq #392: S000542976     Reading seq #393: S000542977     Reading seq #394: S000543947     Reading seq #395: S000546840     Reading seq #396: S000547355     Reading seq #397: S000547356     Reading seq #398: S000547357     Reading seq #399: S000551045     Reading seq #400: S000559093     Reading seq #401: S000559127     Reading seq #402: S000566917     Reading seq #403: S000574979     Reading seq #404: S000574981     Reading seq #405: S000587583     Reading seq #406: S000591317     Reading seq #407: S000604018     Reading seq #408: S000607439     Reading seq #409: S000608087     Reading seq #410: S000608871     Reading seq #411: S000608874     Reading seq #412: S000617861     Reading seq #413: S000617868     Reading seq #414: S000617883     Reading seq #415: S000617893     Reading seq #416: S000627084     Reading seq #417: S000629151     Reading seq #418: S000634343     Reading seq #419: S000636272     Reading seq #420: S000636355     Reading seq #421: S000639013     Reading seq #422: S000651464     Reading seq #423: S000651751     Reading seq #424: S000653590     Reading seq #425: S000653596     Reading seq #426: S000653955     Reading seq #427: S000701700     Reading seq #428: S000712811     Reading seq #429: S000712843     Reading seq #430: S000721390     Reading seq #431: S000735292     Reading seq #432: S000750177     Reading seq #433: S000750180     Reading seq #434: S000750660     Reading seq #435: S000775302     Reading seq #436: S000775411     Reading seq #437: S000775412     Reading seq #438: S000775413     Reading seq #439: S000776614     Reading seq #440: S000776819     Reading seq #441: S000805616     Reading seq #442: S000806299     Reading seq #443: S000824738     Reading seq #444: S000841838     Reading seq #445: S000842583     Reading seq #446: S000843157     Reading seq #447: S000843158     Reading seq #448: S000843159     Reading seq #449: S000843228     Reading seq #450: S000843231     Reading seq #451: S000843778     Reading seq #452: S000859966     Reading seq #453: S000860489     Reading seq #454: S000891902     Reading seq #455: S000901720     Reading seq #456: S000901949     Reading seq #457: S000902410     Reading seq #458: S000926211     Reading seq #459: S000926256     Reading seq #460: S000926528     Reading seq #461: S000926543     Reading seq #462: S000926617     Reading seq #463: S000926647     Reading seq #464: S000927167     Reading seq #465: S000942605     Reading seq #466: S000942615     Reading seq #467: S000942618     Reading seq #468: S000965468     Reading seq #469: S000965475     Reading seq #470: S000965487     Reading seq #471: S000965489     Reading seq #472: S000965607     Reading seq #473: S000978737     Reading seq #474: S000978896     Reading seq #475: S000980226     Reading seq #476: S000995186     Reading seq #477: S000995189     Reading seq #478: S000995921     Reading seq #479: S000995949     Reading seq #480: S000995957     Reading seq #481: S000996140     Reading seq #482: S000996141     Reading seq #483: S000996242     Reading seq #484: S001014695     Reading seq #485: S001015548     Reading seq #486: S001015580     Reading seq #487: S001019987     Reading seq #488: S001044497     Reading seq #489: S001045755     Reading seq #490: S001046089     Reading seq #491: S001095911     Reading seq #492: S001095993     Reading seq #493: S001096634     Reading seq #494: S001096707     Reading seq #495: S001096711     Reading seq #496: S001097562     Reading seq #497: S001098382     Reading seq #498: S001098504     Reading seq #499: S001098782     Reading seq #500: S001098970     Reading seq #501: S001098973     Reading seq #502: S001099337     Reading seq #503: S001152215     Reading seq #504: S001152591     Reading seq #505: S001153565     Reading seq #506: S001153626     Reading seq #507: S001154076     Reading seq #508: S001154131     Reading seq #509: S001154160     Reading seq #510: S001155252     Reading seq #511: S001168699     Reading seq #512: S001170129     Reading seq #513: S001171599     Reading seq #514: S001187498     Reading seq #515: S001187879     Reading seq #516: S001188095     Reading seq #517: S001188096     Reading seq #518: S001198469     Reading seq #519: S001198505     Reading seq #520: S001239719     Reading seq #521: S001240622     Reading seq #522: S001240626     Reading seq #523: S001240636     Reading seq #524: S001241390     Reading seq #525: S001241512     Reading seq #526: S001241993     Reading seq #527: S001242365     Reading seq #528: S001243290     Reading seq #529: S001243373     Reading seq #530: S001263766     Reading seq #531: S001263906     Reading seq #532: S001263912     Reading seq #533: S001264789     Reading seq #534: S001292608     Reading seq #535: S001292632     Reading seq #536: S001292769     Reading seq #537: S001292944     Reading seq #538: S001329877     Reading seq #539: S001329887     Reading seq #540: S001330005     Reading seq #541: S001330007     Reading seq #542: S001331333     Reading seq #543: S001352169     Reading seq #544: S001352427     Reading seq #545: S001352453     Reading seq #546: S001352676     Reading seq #547: S001352681     Reading seq #548: S001352689     Reading seq #549: S001352705     Reading seq #550: S001352707     Reading seq #551: S001352708     Reading seq #552: S001417839     Reading seq #553: S001418075     Reading seq #554: S001418737     Reading seq #555: S001418808     Reading seq #556: S001548994     Reading seq #557: S001549441     Reading seq #558: S001549472     Reading seq #559: S001549474     Reading seq #560: S001549682     Reading seq #561: S001549686     Reading seq #562: S001549687     Reading seq #563: S001549688     Reading seq #564: S001550487     Reading seq #565: S001551107     Reading seq #566: S001551111     Reading seq #567: S001574342     Reading seq #568: S001575023     Reading seq #569: S001575798     Reading seq #570: S001576647     Reading seq #571: S001576676     Reading seq #572: S001576749     Reading seq #573: S001576771     Reading seq #574: S001577610     Reading seq #575: S001587466     Reading seq #576: S001588040     Reading seq #577: S001589388     Reading seq #578: S001589391     Reading seq #579: S001589407     Reading seq #580: S001589410     Reading seq #581: S001609989     Reading seq #582: S001610120     Reading seq #583: S001610143     Reading seq #584: S001610144     Reading seq #585: S001611249     Reading seq #586: S001611250     Reading seq #587: S001611251     Reading seq #588: S001611252     Reading seq #589: S001611254     Reading seq #590: S001744172     Reading seq #591: S001744173     Reading seq #592: S001744175     Reading seq #593: S001744177     Reading seq #594: S001744699     Reading seq #595: S001745108     Reading seq #596: S001792812     Reading seq #597: S001792813     Reading seq #598: S001792815     Reading seq #599: S001792822     Reading seq #600: S001793392     Reading seq #601: S001793429     Reading seq #602: S001794135     Reading seq #603: S001794718     Reading seq #604: S001795447     Reading seq #605: S001795448     Reading seq #606: S001872170     Reading seq #607: S001872328     Reading seq #608: S001873961     Reading seq #609: S001873963     Reading seq #610: S001874825     Reading seq #611: S001875343     Reading seq #612: S001875493     Reading seq #613: S001879390     Reading seq #614: S001884222     Reading seq #615: S001885060     Reading seq #616: S001885130     Reading seq #617: S001885131     Reading seq #618: S001903884     Reading seq #619: S001903885     Reading seq #620: S001905112     Reading seq #621: S001910596     Reading seq #622: S001910616     Reading seq #623: S002034883     Reading seq #624: S002034908     Reading seq #625: S002034909     Reading seq #626: S002034920     Reading seq #627: S002034935     Reading seq #628: S002034937     Reading seq #629: S002034943     Reading seq #630: S002034953     Reading seq #631: S002034974     Reading seq #632: S002035496     Reading seq #633: S002038640     Reading seq #634: S002152610     Reading seq #635: S002152804     Reading seq #636: S002152859     Reading seq #637: S002152917     Reading seq #638: S002153140     Reading seq #639: S002156252     Reading seq #640: S002156579     Reading seq #641: S002156825     Reading seq #642: S002165072     Reading seq #643: S002165653     Reading seq #644: S002165655     Reading seq #645: S002166045     Reading seq #646: S002166047     Reading seq #647: S002166282     Reading seq #648: S002166285     Reading seq #649: S002166618     Reading seq #650: S002166847     Reading seq #651: S002167081     Reading seq #652: S002167711     Reading seq #653: 1305_FakeX2     Reading seq #654: 1306_FakeX3     Reading seq #655: 1309_FakeX2     Reading seq #656: 1310_FakeX3     Reading seq #657: 1313_FakeX2     Reading seq #658: 1314_FakeX3     Reading seq #659: 1317_FakeX2     Reading seq #660: 1318_FakeX3     Reading seq #661: 1321_FakeX2     Reading seq #662: 1322_FakeX3     Reading seq #663: 1325_FakeX2     Reading seq #664: 1326_FakeX3     Reading seq #665: 1329_FakeX2     Reading seq #666: 1330_FakeX3     Reading seq #667: 1333_FakeX2     Reading seq #668: 1334_FakeX3     Reading seq #669: 1337_FakeX2     Reading seq #670: 1338_FakeX3     Reading seq #671: 1341_FakeX2     Reading seq #672: 1342_FakeX3     Reading seq #673: 1345_FakeX2     Reading seq #674: 1346_FakeX3     Reading seq #675: 1349_FakeX2     Reading seq #676: 1350_FakeX3     Reading seq #677: 1353_FakeX2     Reading seq #678: 1354_FakeX3     Reading seq #679: 1357_FakeX2     Reading seq #680: 1358_FakeX3     Reading seq #681: 1361_FakeX2     Reading seq #682: 1362_FakeX3     Reading seq #683: 1365_FakeX2     Reading seq #684: 1366_FakeX3     Reading seq #685: 1369_FakeX2     Reading seq #686: 1370_FakeX3     Reading seq #687: 1373_FakeX2     Reading seq #688: 1374_FakeX3     Reading seq #689: 1377_FakeX2     Reading seq #690: 1378_FakeX3     Reading seq #691: 1381_FakeX2     Reading seq #692: 1382_FakeX3     Reading seq #693: 1385_FakeX2     Reading seq #694: 1386_FakeX3     Reading seq #695: 1389_FakeX2     Reading seq #696: 1390_FakeX3     Reading seq #697: 1393_FakeX2     Reading seq #698: 1394_FakeX3     Reading seq #699: 1397_FakeX2     Reading seq #700: 1398_FakeX3     Reading seq #701: 1401_FakeX2     Reading seq #702: 1402_FakeX3     Reading seq #703: 1405_FakeX2     Reading seq #704: 1406_FakeX3     Reading seq #705: 1409_FakeX2     Reading seq #706: 1410_FakeX3     Reading seq #707: 1413_FakeX2     Reading seq #708: 1414_FakeX3     Reading seq #709: 1417_FakeX2     Reading seq #710: 1418_FakeX3     Reading seq #711: 1421_FakeX2     Reading seq #712: 1422_FakeX3     Reading seq #713: 1425_FakeX2     Reading seq #714: 1426_FakeX3     Reading seq #715: 1429_FakeX2     Reading seq #716: 1430_FakeX3     Reading seq #717: 1433_FakeX2     Reading seq #718: 1434_FakeX3     Reading seq #719: 1437_FakeX2     Reading seq #720: 1438_FakeX3     Reading seq #721: 1441_FakeX2     Reading seq #722: 1442_FakeX3     Reading seq #723: 1445_FakeX2     Reading seq #724: 1446_FakeX3     Reading seq #725: 1449_FakeX2     Reading seq #726: 1450_FakeX3     Reading seq #727: 1453_FakeX2     Reading seq #728: 1454_FakeX3     Reading seq #729: 1457_FakeX2     Reading seq #730: 1458_FakeX3     Reading seq #731: 1461_FakeX2     Reading seq #732: 1462_FakeX3     Reading seq #733: 1465_FakeX2     Reading seq #734: 1466_FakeX3     Reading seq #735: 1469_FakeX2     Reading seq #736: 1470_FakeX3     Reading seq #737: 1473_FakeX2     Reading seq #738: 1474_FakeX3     Reading seq #739: 1477_FakeX2     Reading seq #740: 1478_FakeX3     Reading seq #741: 1481_FakeX2     Reading seq #742: 1482_FakeX3     Reading seq #743: 1485_FakeX2     Reading seq #744: 1486_FakeX3     Reading seq #745: 1489_FakeX2     Reading seq #746: 1490_FakeX3     Reading seq #747: 1493_FakeX2     Reading seq #748: 1494_FakeX3     Reading seq #749: 1497_FakeX2     Reading seq #750: 1498_FakeX3     Reading seq #751: 1501_FakeX2     Reading seq #752: 1502_FakeX3     Reading seq #753: 1505_FakeX2     Reading seq #754: 1506_FakeX3     Reading seq #755: 1509_FakeX2     Reading seq #756: 1510_FakeX3     Reading seq #757: 1513_FakeX2     Reading seq #758: 1514_FakeX3     Reading seq #759: 1517_FakeX2     Reading seq #760: 1518_FakeX3     Reading seq #761: 1521_FakeX2     Reading seq #762: 1522_FakeX3     Reading seq #763: 1525_FakeX2     Reading seq #764: 1526_FakeX3     Reading seq #765: 1529_FakeX2     Reading seq #766: 1530_FakeX3     Reading seq #767: 1533_FakeX2     Reading seq #768: 1534_FakeX3     Reading seq #769: 1537_FakeX2     Reading seq #770: 1538_FakeX3     Reading seq #771: 1541_FakeX2     Reading seq #772: 1542_FakeX3     Reading seq #773: 1545_FakeX2     Reading seq #774: 1546_FakeX3     Reading seq #775: 1549_FakeX2     Reading seq #776: 1550_FakeX3     Reading seq #777: 1553_FakeX2     Reading seq #778: 1554_FakeX3     Reading seq #779: 1557_FakeX2     Reading seq #780: 1558_FakeX3     Reading seq #781: 1561_FakeX2     Reading seq #782: 1562_FakeX3     Reading seq #783: 1565_FakeX2     Reading seq #784: 1566_FakeX3     Reading seq #785: 1569_FakeX2     Reading seq #786: 1570_FakeX3     Reading seq #787: 1573_FakeX2     Reading seq #788: 1574_FakeX3     Reading seq #789: 1577_FakeX2     Reading seq #790: 1578_FakeX3     Reading seq #791: 1581_FakeX2     Reading seq #792: 1582_FakeX3     Reading seq #793: 1585_FakeX2     Reading seq #794: 1586_FakeX3     Reading seq #795: 1589_FakeX2     Reading seq #796: 1590_FakeX3     Reading seq #797: 1593_FakeX2     Reading seq #798: 1594_FakeX3     Reading seq #799: 1597_FakeX2     Reading seq #800: 1598_FakeX3     Reading seq #801: 1601_FakeX2     Reading seq #802: 1602_FakeX3     Reading seq #803: 1605_FakeX2     Reading seq #804: 1606_FakeX3     Reading seq #805: 1609_FakeX2     Reading seq #806: 1610_FakeX3     Reading seq #807: 1613_FakeX2     Reading seq #808: 1614_FakeX3     Reading seq #809: 1617_FakeX2     Reading seq #810: 1618_FakeX3     Reading seq #811: 1621_FakeX2     Reading seq #812: 1622_FakeX3     Reading seq #813: 1625_FakeX2     Reading seq #814: 1626_FakeX3     Reading seq #815: 1629_FakeX2     Reading seq #816: 1630_FakeX3     Reading seq #817: 1633_FakeX2     Reading seq #818: 1634_FakeX3     Reading seq #819: 1637_FakeX2     Reading seq #820: 1638_FakeX3     Reading seq #821: 1641_FakeX2     Reading seq #822: 1642_FakeX3     Reading seq #823: 1645_FakeX2     Reading seq #824: 1646_FakeX3     Reading seq #825: 1649_FakeX2     Reading seq #826: 1650_FakeX3     Reading seq #827: 1653_FakeX2     Reading seq #828: 1654_FakeX3     Reading seq #829: 1657_FakeX2     Reading seq #830: 1658_FakeX3     Reading seq #831: 1661_FakeX2     Reading seq #832: 1662_FakeX3     Reading seq #833: 1665_FakeX2     Reading seq #834: 1666_FakeX3     Reading seq #835: 1669_FakeX2     Reading seq #836: 1670_FakeX3     Reading seq #837: 1673_FakeX2     Reading seq #838: 1674_FakeX3     Reading seq #839: 1677_FakeX2     Reading seq #840: 1678_FakeX3     Reading seq #841: 1681_FakeX2     Reading seq #842: 1682_FakeX3     Reading seq #843: 1685_FakeX2     Reading seq #844: 1686_FakeX3     Reading seq #845: 1689_FakeX2     Reading seq #846: 1690_FakeX3     Reading seq #847: 1693_FakeX2     Reading seq #848: 1694_FakeX3     Reading seq #849: 1697_FakeX2     Reading seq #850: 1698_FakeX3     Reading seq #851: 1701_FakeX2     Reading seq #852: 1702_FakeX3     Reading seq #853: 1705_FakeX2     Reading seq #854: 1706_FakeX3     Reading seq #855: 1709_FakeX2     Reading seq #856: 1710_FakeX3     Reading seq #857: 1713_FakeX2     Reading seq #858: 1714_FakeX3     Reading seq #859: 1717_FakeX2     Reading seq #860: 1718_FakeX3     Reading seq #861: 1721_FakeX2     Reading seq #862: 1722_FakeX3     Reading seq #863: 1725_FakeX2     Reading seq #864: 1726_FakeX3     Reading seq #865: 1729_FakeX2     Reading seq #866: 1730_FakeX3     Reading seq #867: 1733_FakeX2     Reading seq #868: 1734_FakeX3     Reading seq #869: 1737_FakeX2     Reading seq #870: 1738_FakeX3     Reading seq #871: 1741_FakeX2     Reading seq #872: 1742_FakeX3     Reading seq #873: 1745_FakeX2     Reading seq #874: 1746_FakeX3     Reading seq #875: 1749_FakeX2     Reading seq #876: 1750_FakeX3     Reading seq #877: 1753_FakeX2     Reading seq #878: 1754_FakeX3     Reading seq #879: 1757_FakeX2     Reading seq #880: 1758_FakeX3     Reading seq #881: 1761_FakeX2     Reading seq #882: 1762_FakeX3     Reading seq #883: 1765_FakeX2     Reading seq #884: 1766_FakeX3     Reading seq #885: 1769_FakeX2     Reading seq #886: 1770_FakeX3     Reading seq #887: 1773_FakeX2     Reading seq #888: 1774_FakeX3     Reading seq #889: 1777_FakeX2     Reading seq #890: 1778_FakeX3     Reading seq #891: 1781_FakeX2     Reading seq #892: 1782_FakeX3     Reading seq #893: 1785_FakeX2     Reading seq #894: 1786_FakeX3     Reading seq #895: 1789_FakeX2     Reading seq #896: 1790_FakeX3     Reading seq #897: 1793_FakeX2     Reading seq #898: 1794_FakeX3     Reading seq #899: 1797_FakeX2     Reading seq #900: 1798_FakeX3     Reading seq #901: 1801_FakeX2     Reading seq #902: 1802_FakeX3     Reading seq #903: 1805_FakeX2     Reading seq #904: 1806_FakeX3     Reading seq #905: 1809_FakeX2     Reading seq #906: 1810_FakeX3     Reading seq #907: 1813_FakeX2     Reading seq #908: 1814_FakeX3     Reading seq #909: 1817_FakeX2     Reading seq #910: 1818_FakeX3     Reading seq #911: 1821_FakeX2     Reading seq #912: 1822_FakeX3     Reading seq #913: 1825_FakeX2     Reading seq #914: 1826_FakeX3     Reading seq #915: 1829_FakeX2     Reading seq #916: 1830_FakeX3     Reading seq #917: 1833_FakeX2     Reading seq #918: 1834_FakeX3     Reading seq #919: 1837_FakeX2     Reading seq #920: 1838_FakeX3     Reading seq #921: 1841_FakeX2     Reading seq #922: 1842_FakeX3     Reading seq #923: 1845_FakeX2     Reading seq #924: 1846_FakeX3     Reading seq #925: 1849_FakeX2     Reading seq #926: 1850_FakeX3     Reading seq #927: 1853_FakeX2     Reading seq #928: 1854_FakeX3     Reading seq #929: 1857_FakeX2     Reading seq #930: 1858_FakeX3     Reading seq #931: 1861_FakeX2     Reading seq #932: 1862_FakeX3     Reading seq #933: 1865_FakeX2     Reading seq #934: 1866_FakeX3     Reading seq #935: 1869_FakeX2     Reading seq #936: 1870_FakeX3     Reading seq #937: 1873_FakeX2     Reading seq #938: 1874_FakeX3     Reading seq #939: 1877_FakeX2     Reading seq #940: 1878_FakeX3     Reading seq #941: 1881_FakeX2     Reading seq #942: 1882_FakeX3     Reading seq #943: 1885_FakeX2     Reading seq #944: 1886_FakeX3     Reading seq #945: 1889_FakeX2     Reading seq #946: 1890_FakeX3     Reading seq #947: 1893_FakeX2     Reading seq #948: 1894_FakeX3     Reading seq #949: 1897_FakeX2     Reading seq #950: 1898_FakeX3     Reading seq #951: 1901_FakeX2     Reading seq #952: 1902_FakeX3     Reading seq #953: 1905_FakeX2     Reading seq #954: 1906_FakeX3     Reading seq #955: 1909_FakeX2     Reading seq #956: 1910_FakeX3     Reading seq #957: 1913_FakeX2     Reading seq #958: 1914_FakeX3     Reading seq #959: 1917_FakeX2     Reading seq #960: 1918_FakeX3     Reading seq #961: 1921_FakeX2     Reading seq #962: 1922_FakeX3     Reading seq #963: 1925_FakeX2     Reading seq #964: 1926_FakeX3     Reading seq #965: 1929_FakeX2     Reading seq #966: 1930_FakeX3     Reading seq #967: 1933_FakeX2     Reading seq #968: 1934_FakeX3     Reading seq #969: 1937_FakeX2     Reading seq #970: 1938_FakeX3     Reading seq #971: 1941_FakeX2     Reading seq #972: 1942_FakeX3     Reading seq #973: 1945_FakeX2     Reading seq #974: 1946_FakeX3     Reading seq #975: 1949_FakeX2     Reading seq #976: 1950_FakeX3     Reading seq #977: 1953_FakeX2     Reading seq #978: 1954_FakeX3     Reading seq #979: 1957_FakeX2     Reading seq #980: 1958_FakeX3     Reading seq #981: 1961_FakeX2     Reading seq #982: 1962_FakeX3     Reading seq #983: 1965_FakeX2     Reading seq #984: 1966_FakeX3     Reading seq #985: 1969_FakeX2     Reading seq #986: 1970_FakeX3     Reading seq #987: 1973_FakeX2     Reading seq #988: 1974_FakeX3     Reading seq #989: 1977_FakeX2     Reading seq #990: 1978_FakeX3     Reading seq #991: 1981_FakeX2     Reading seq #992: 1982_FakeX3     Reading seq #993: 1985_FakeX2     Reading seq #994: 1986_FakeX3     Reading seq #995: 1989_FakeX2     Reading seq #996: 1990_FakeX3     Reading seq #997: 1993_FakeX2     Reading seq #998: 1994_FakeX3     Reading seq #999: 1997_FakeX2     Reading seq #1000: 1998_FakeX3     Reading seq #1001: 2001_FakeX2     Reading seq #1002: 2002_FakeX3     Reading seq #1003: 2005_FakeX2     Reading seq #1004: 2006_FakeX3     Reading seq #1005: 2009_FakeX2     Reading seq #1006: 2010_FakeX3     Reading seq #1007: 2013_FakeX2     Reading seq #1008: 2014_FakeX3     Reading seq #1009: 2017_FakeX2     Reading seq #1010: 2018_FakeX3     Reading seq #1011: 2021_FakeX2     Reading seq #1012: 2022_FakeX3     Reading seq #1013: 2025_FakeX2     Reading seq #1014: 2026_FakeX3     Reading seq #1015: 2029_FakeX2     Reading seq #1016: 2030_FakeX3     Reading seq #1017: 2033_FakeX2     Reading seq #1018: 2034_FakeX3     Reading seq #1019: 2037_FakeX2     Reading seq #1020: 2038_FakeX3     Reading seq #1021: 2041_FakeX2     Reading seq #1022: 2042_FakeX3     Reading seq #1023: 2045_FakeX2     Reading seq #1024: 2046_FakeX3     Reading seq #1025: 2049_FakeX2     Reading seq #1026: 2050_FakeX3     Reading seq #1027: 2053_FakeX2     Reading seq #1028: 2054_FakeX3     Reading seq #1029: 2057_FakeX2     Reading seq #1030: 2058_FakeX3     Reading seq #1031: 2061_FakeX2     Reading seq #1032: 2062_FakeX3     Reading seq #1033: 2065_FakeX2     Reading seq #1034: 2066_FakeX3     Reading seq #1035: 2069_FakeX2     Reading seq #1036: 2070_FakeX3     Reading seq #1037: 2073_FakeX2     Reading seq #1038: 2074_FakeX3     Reading seq #1039: 2077_FakeX2     Reading seq #1040: 2078_FakeX3     Reading seq #1041: 2081_FakeX2     Reading seq #1042: 2082_FakeX3     Reading seq #1043: 2085_FakeX2     Reading seq #1044: 2086_FakeX3     Reading seq #1045: 2089_FakeX2     Reading seq #1046: 2090_FakeX3     Reading seq #1047: 2093_FakeX2     Reading seq #1048: 2094_FakeX3     Reading seq #1049: 2097_FakeX2     Reading seq #1050: 2098_FakeX3     Reading seq #1051: 2101_FakeX2     Reading seq #1052: 2102_FakeX3     Reading seq #1053: 2105_FakeX2     Reading seq #1054: 2106_FakeX3     Reading seq #1055: 2109_FakeX2     Reading seq #1056: 2110_FakeX3     Reading seq #1057: 2113_FakeX2     Reading seq #1058: 2114_FakeX3     Reading seq #1059: 2117_FakeX2     Reading seq #1060: 2118_FakeX3     Reading seq #1061: 2121_FakeX2     Reading seq #1062: 2122_FakeX3     Reading seq #1063: 2125_FakeX2     Reading seq #1064: 2126_FakeX3     Reading seq #1065: 2129_FakeX2     Reading seq #1066: 2130_FakeX3     Reading seq #1067: 2133_FakeX2     Reading seq #1068: 2134_FakeX3     Reading seq #1069: 2137_FakeX2     Reading seq #1070: 2138_FakeX3     Reading seq #1071: 2141_FakeX2     Reading seq #1072: 2142_FakeX3     Reading seq #1073: 2145_FakeX2     Reading seq #1074: 2146_FakeX3     Reading seq #1075: 2149_FakeX2     Reading seq #1076: 2150_FakeX3     Reading seq #1077: 2153_FakeX2     Reading seq #1078: 2154_FakeX3     Reading seq #1079: 2157_FakeX2     Reading seq #1080: 2158_FakeX3     Reading seq #1081: 2161_FakeX2     Reading seq #1082: 2162_FakeX3     Reading seq #1083: 2165_FakeX2     Reading seq #1084: 2166_FakeX3     Reading seq #1085: 2169_FakeX2     Reading seq #1086: 2170_FakeX3     Reading seq #1087: 2173_FakeX2     Reading seq #1088: 2174_FakeX3     Reading seq #1089: 2177_FakeX2     Reading seq #1090: 2178_FakeX3     Reading seq #1091: 2181_FakeX2     Reading seq #1092: 2182_FakeX3     Reading seq #1093: 2185_FakeX2     Reading seq #1094: 2186_FakeX3     Reading seq #1095: 2189_FakeX2     Reading seq #1096: 2190_FakeX3     Reading seq #1097: 2193_FakeX2     Reading seq #1098: 2194_FakeX3     Reading seq #1099: 2197_FakeX2     Reading seq #1100: 2198_FakeX3     Reading seq #1101: 2201_FakeX2     Reading seq #1102: 2202_FakeX3     Reading seq #1103: 2205_FakeX2     Reading seq #1104: 2206_FakeX3     Reading seq #1105: 2209_FakeX2     Reading seq #1106: 2210_FakeX3     Reading seq #1107: 2213_FakeX2     Reading seq #1108: 2214_FakeX3     Reading seq #1109: 2217_FakeX2     Reading seq #1110: 2218_FakeX3     Reading seq #1111: 2221_FakeX2     Reading seq #1112: 2222_FakeX3     Reading seq #1113: 2225_FakeX2     Reading seq #1114: 2226_FakeX3     Reading seq #1115: 2229_FakeX2     Reading seq #1116: 2230_FakeX3     Reading seq #1117: 2233_FakeX2     Reading seq #1118: 2234_FakeX3     Reading seq #1119: 2237_FakeX2     Reading seq #1120: 2238_FakeX3     Reading seq #1121: 2241_FakeX2     Reading seq #1122: 2242_FakeX3     Reading seq #1123: 2245_FakeX2     Reading seq #1124: 2246_FakeX3     Reading seq #1125: 2249_FakeX2     Reading seq #1126: 2250_FakeX3     Reading seq #1127: 2253_FakeX2     Reading seq #1128: 2254_FakeX3     Reading seq #1129: 2257_FakeX2     Reading seq #1130: 2258_FakeX3     Reading seq #1131: 2261_FakeX2     Reading seq #1132: 2262_FakeX3     Reading seq #1133: 2265_FakeX2     Reading seq #1134: 2266_FakeX3     Reading seq #1135: 2269_FakeX2     Reading seq #1136: 2270_FakeX3     Reading seq #1137: 2273_FakeX2     Reading seq #1138: 2274_FakeX3     Reading seq #1139: 2277_FakeX2     Reading seq #1140: 2278_FakeX3     Reading seq #1141: 2281_FakeX2     Reading seq #1142: 2282_FakeX3     Reading seq #1143: 2285_FakeX2     Reading seq #1144: 2286_FakeX3     Reading seq #1145: 2289_FakeX2     Reading seq #1146: 2290_FakeX3     Reading seq #1147: 2293_FakeX2     Reading seq #1148: 2294_FakeX3     Reading seq #1149: 2297_FakeX2     Reading seq #1150: 2298_FakeX3     Reading seq #1151: 2301_FakeX2     Reading seq #1152: 2302_FakeX3     Reading seq #1153: 2305_FakeX2     Reading seq #1154: 2306_FakeX3     Reading seq #1155: 2309_FakeX2     Reading seq #1156: 2310_FakeX3     Reading seq #1157: 2313_FakeX2     Reading seq #1158: 2314_FakeX3     Reading seq #1159: 2317_FakeX2     Reading seq #1160: 2318_FakeX3     Reading seq #1161: 2321_FakeX2     Reading seq #1162: 2322_FakeX3     Reading seq #1163: 2325_FakeX2     Reading seq #1164: 2326_FakeX3     Reading seq #1165: 2329_FakeX2     Reading seq #1166: 2330_FakeX3     Reading seq #1167: 2333_FakeX2     Reading seq #1168: 2334_FakeX3     Reading seq #1169: 2337_FakeX2     Reading seq #1170: 2338_FakeX3     Reading seq #1171: 2341_FakeX2     Reading seq #1172: 2342_FakeX3     Reading seq #1173: 2345_FakeX2     Reading seq #1174: 2346_FakeX3     Reading seq #1175: 2349_FakeX2     Reading seq #1176: 2350_FakeX3     Reading seq #1177: 2353_FakeX2     Reading seq #1178: 2354_FakeX3     Reading seq #1179: 2357_FakeX2     Reading seq #1180: 2358_FakeX3     Reading seq #1181: 2361_FakeX2     Reading seq #1182: 2362_FakeX3     Reading seq #1183: 2365_FakeX2     Reading seq #1184: 2366_FakeX3     Reading seq #1185: 2369_FakeX2     Reading seq #1186: 2370_FakeX3     Reading seq #1187: 2373_FakeX2     Reading seq #1188: 2374_FakeX3     Reading seq #1189: 2377_FakeX2     Reading seq #1190: 2378_FakeX3     Reading seq #1191: 2381_FakeX2     Reading seq #1192: 2382_FakeX3     Reading seq #1193: 2385_FakeX2     Reading seq #1194: 2386_FakeX3     Reading seq #1195: 2389_FakeX2     Reading seq #1196: 2390_FakeX3     Reading seq #1197: 2393_FakeX2     Reading seq #1198: 2394_FakeX3     Reading seq #1199: 2397_FakeX2     Reading seq #1200: 2398_FakeX3     Reading seq #1201: 2401_FakeX2     Reading seq #1202: 2402_FakeX3     Reading seq #1203: 2405_FakeX2     Reading seq #1204: 2406_FakeX3     Reading seq #1205: 2409_FakeX2     Reading seq #1206: 2410_FakeX3     Reading seq #1207: 2413_FakeX2     Reading seq #1208: 2414_FakeX3     Reading seq #1209: 2417_FakeX2     Reading seq #1210: 2418_FakeX3     Reading seq #1211: 2421_FakeX2     Reading seq #1212: 2422_FakeX3     Reading seq #1213: 2425_FakeX2     Reading seq #1214: 2426_FakeX3     Reading seq #1215: 2429_FakeX2     Reading seq #1216: 2430_FakeX3     Reading seq #1217: 2433_FakeX2     Reading seq #1218: 2434_FakeX3     Reading seq #1219: 2437_FakeX2     Reading seq #1220: 2438_FakeX3     Reading seq #1221: 2441_FakeX2     Reading seq #1222: 2442_FakeX3     Reading seq #1223: 2445_FakeX2     Reading seq #1224: 2446_FakeX3     Reading seq #1225: 2449_FakeX2     Reading seq #1226: 2450_FakeX3     Reading seq #1227: 2453_FakeX2     Reading seq #1228: 2454_FakeX3     Reading seq #1229: 2457_FakeX2     Reading seq #1230: 2458_FakeX3     Reading seq #1231: 2461_FakeX2     Reading seq #1232: 2462_FakeX3     Reading seq #1233: 2465_FakeX2     Reading seq #1234: 2466_FakeX3     Reading seq #1235: 2469_FakeX2     Reading seq #1236: 2470_FakeX3     Reading seq #1237: 2473_FakeX2     Reading seq #1238: 2474_FakeX3     Reading seq #1239: 2477_FakeX2     Reading seq #1240: 2478_FakeX3     Reading seq #1241: 2481_FakeX2     Reading seq #1242: 2482_FakeX3     Reading seq #1243: 2485_FakeX2     Reading seq #1244: 2486_FakeX3     Reading seq #1245: 2489_FakeX2     Reading seq #1246: 2490_FakeX3     Reading seq #1247: 2493_FakeX2     Reading seq #1248: 2494_FakeX3     Reading seq #1249: 2497_FakeX2     Reading seq #1250: 2498_FakeX3     Reading seq #1251: 2501_FakeX2     Reading seq #1252: 2502_FakeX3     Reading seq #1253: 2505_FakeX2     Reading seq #1254: 2506_FakeX3     Reading seq #1255: 2509_FakeX2     Reading seq #1256: 2510_FakeX3     Reading seq #1257: 2513_FakeX2     Reading seq #1258: 2514_FakeX3     Reading seq #1259: 2517_FakeX2     Reading seq #1260: 2518_FakeX3     Reading seq #1261: 2521_FakeX2     Reading seq #1262: 2522_FakeX3     Reading seq #1263: 2525_FakeX2     Reading seq #1264: 2526_FakeX3     Reading seq #1265: 2529_FakeX2     Reading seq #1266: 2530_FakeX3     Reading seq #1267: 2533_FakeX2     Reading seq #1268: 2534_FakeX3     Reading seq #1269: 2537_FakeX2     Reading seq #1270: 2538_FakeX3     Reading seq #1271: 2541_FakeX2     Reading seq #1272: 2542_FakeX3     Reading seq #1273: 2545_FakeX2     Reading seq #1274: 2546_FakeX3     Reading seq #1275: 2549_FakeX2     Reading seq #1276: 2550_FakeX3     Reading seq #1277: 2553_FakeX2     Reading seq #1278: 2554_FakeX3     Reading seq #1279: 2557_FakeX2     Reading seq #1280: 2558_FakeX3     Reading seq #1281: 2561_FakeX2     Reading seq #1282: 2562_FakeX3     Reading seq #1283: 2565_FakeX2     Reading seq #1284: 2566_FakeX3     Reading seq #1285: 2569_FakeX2     Reading seq #1286: 2570_FakeX3     Reading seq #1287: 2573_FakeX2     Reading seq #1288: 2574_FakeX3     Reading seq #1289: 2577_FakeX2     Reading seq #1290: 2578_FakeX3     Reading seq #1291: 2581_FakeX2     Reading seq #1292: 2582_FakeX3     Reading seq #1293: 2585_FakeX2     Reading seq #1294: 2586_FakeX3     Reading seq #1295: 2589_FakeX2     Reading seq #1296: 2590_FakeX3     Reading seq #1297: 2593_FakeX2     Reading seq #1298: 2594_FakeX3     Reading seq #1299: 2597_FakeX2     Reading seq #1300: 2598_FakeX3     Reading seq #1301: 2601_FakeX2     Reading seq #1302: 2602_FakeX3     Reading seq #1303: 2605_FakeX2     Reading seq #1304: 2606_FakeX3     Reading seq #1305: 2609_FakeX2     Reading seq #1306: 2610_FakeX3     Reading seq #1307: 2613_FakeX2     Reading seq #1308: 2614_FakeX3     Reading seq #1309: 2617_FakeX2     Reading seq #1310: 2618_FakeX3     Reading seq #1311: 2621_FakeX2     Reading seq #1312: 2622_FakeX3     Reading seq #1313: 2625_FakeX2     Reading seq #1314: 2626_FakeX3     Reading seq #1315: 2629_FakeX2     Reading seq #1316: 2630_FakeX3     Reading seq #1317: 2633_FakeX2     Reading seq #1318: 2634_FakeX3     Reading seq #1319: 2637_FakeX2     Reading seq #1320: 2638_FakeX3     Reading seq #1321: 2641_FakeX2     Reading seq #1322: 2642_FakeX3     Reading seq #1323: 2645_FakeX2     Reading seq #1324: 2646_FakeX3     Reading seq #1325: 2649_FakeX2     Reading seq #1326: 2650_FakeX3     Reading seq #1327: 2653_FakeX2     Reading seq #1328: 2654_FakeX3     Reading seq #1329: 2657_FakeX2     Reading seq #1330: 2658_FakeX3     Reading seq #1331: 2661_FakeX2     Reading seq #1332: 2662_FakeX3     Reading seq #1333: 2665_FakeX2     Reading seq #1334: 2666_FakeX3     Reading seq #1335: 2669_FakeX2     Reading seq #1336: 2670_FakeX3     Reading seq #1337: 2673_FakeX2     Reading seq #1338: 2674_FakeX3     Reading seq #1339: 2677_FakeX2     Reading seq #1340: 2678_FakeX3     Reading seq #1341: 2681_FakeX2     Reading seq #1342: 2682_FakeX3     Reading seq #1343: 2685_FakeX2     Reading seq #1344: 2686_FakeX3     Reading seq #1345: 2689_FakeX2     Reading seq #1346: 2690_FakeX3     Reading seq #1347: 2693_FakeX2     Reading seq #1348: 2694_FakeX3     Reading seq #1349: 2697_FakeX2     Reading seq #1350: 2698_FakeX3     Reading seq #1351: 2701_FakeX2     Reading seq #1352: 2702_FakeX3     Reading seq #1353: 2705_FakeX2     Reading seq #1354: 2706_FakeX3     Reading seq #1355: 2709_FakeX2     Reading seq #1356: 2710_FakeX3     Reading seq #1357: 2713_FakeX2     Reading seq #1358: 2714_FakeX3     Reading seq #1359: 2717_FakeX2     Reading seq #1360: 2718_FakeX3     Reading seq #1361: 2721_FakeX2     Reading seq #1362: 2722_FakeX3     Reading seq #1363: 2725_FakeX2     Reading seq #1364: 2726_FakeX3     Reading seq #1365: 2729_FakeX2     Reading seq #1366: 2730_FakeX3     Reading seq #1367: 2733_FakeX2     Reading seq #1368: 2734_FakeX3     Reading seq #1369: 2737_FakeX2     Reading seq #1370: 2738_FakeX3     Reading seq #1371: 2741_FakeX2     Reading seq #1372: 2742_FakeX3     Reading seq #1373: 2745_FakeX2     Reading seq #1374: 2746_FakeX3     Reading seq #1375: 2749_FakeX2     Reading seq #1376: 2750_FakeX3     Reading seq #1377: 2753_FakeX2     Reading seq #1378: 2754_FakeX3     Reading seq #1379: 2757_FakeX2     Reading seq #1380: 2758_FakeX3     Reading seq #1381: 2761_FakeX2     Reading seq #1382: 2762_FakeX3     Reading seq #1383: 2765_FakeX2     Reading seq #1384: 2766_FakeX3     Reading seq #1385: 2769_FakeX2     Reading seq #1386: 2770_FakeX3     Reading seq #1387: 2773_FakeX2     Reading seq #1388: 2774_FakeX3     Reading seq #1389: 2777_FakeX2     Reading seq #1390: 2778_FakeX3     Reading seq #1391: 2781_FakeX2     Reading seq #1392: 2782_FakeX3     Reading seq #1393: 2785_FakeX2     Reading seq #1394: 2786_FakeX3     Reading seq #1395: 2789_FakeX2     Reading seq #1396: 2790_FakeX3     Reading seq #1397: 2793_FakeX2     Reading seq #1398: 2794_FakeX3     Reading seq #1399: 2797_FakeX2     Reading seq #1400: 2798_FakeX3     Reading seq #1401: 2801_FakeX2     Reading seq #1402: 2802_FakeX3     Reading seq #1403: 2805_FakeX2     Reading seq #1404: 2806_FakeX3     Reading seq #1405: 2809_FakeX2     Reading seq #1406: 2810_FakeX3     Reading seq #1407: 2813_FakeX2     Reading seq #1408: 2814_FakeX3     Reading seq #1409: 2817_FakeX2     Reading seq #1410: 2818_FakeX3     Reading seq #1411: 2821_FakeX2     Reading seq #1412: 2822_FakeX3     Reading seq #1413: 2825_FakeX2     Reading seq #1414: 2826_FakeX3     Reading seq #1415: 2829_FakeX2     Reading seq #1416: 2830_FakeX3     Reading seq #1417: 2833_FakeX2     Reading seq #1418: 2834_FakeX3     Reading seq #1419: 2837_FakeX2     Reading seq #1420: 2838_FakeX3     Reading seq #1421: 2841_FakeX2     Reading seq #1422: 2842_FakeX3     Reading seq #1423: 2845_FakeX2     Reading seq #1424: 2846_FakeX3     Reading seq #1425: 2849_FakeX2     Reading seq #1426: 2850_FakeX3     Reading seq #1427: 2853_FakeX2     Reading seq #1428: 2854_FakeX3     Reading seq #1429: 2857_FakeX2     Reading seq #1430: 2858_FakeX3     Reading seq #1431: 2861_FakeX2     Reading seq #1432: 2862_FakeX3     Reading seq #1433: 2865_FakeX2     Reading seq #1434: 2866_FakeX3     Reading seq #1435: 2869_FakeX2     Reading seq #1436: 2870_FakeX3     Reading seq #1437: 2873_FakeX2     Reading seq #1438: 2874_FakeX3     Reading seq #1439: 2877_FakeX2     Reading seq #1440: 2878_FakeX3     Reading seq #1441: 2881_FakeX2     Reading seq #1442: 2882_FakeX3     Reading seq #1443: 2885_FakeX2     Reading seq #1444: 2886_FakeX3     Reading seq #1445: 2889_FakeX2     Reading seq #1446: 2890_FakeX3     Reading seq #1447: 2893_FakeX2     Reading seq #1448: 2894_FakeX3     Reading seq #1449: 2897_FakeX2     Reading seq #1450: 2898_FakeX3     Reading seq #1451: 2901_FakeX2     Reading seq #1452: 2902_FakeX3     Reading seq #1453: 2905_FakeX2     Reading seq #1454: 2906_FakeX3     Reading seq #1455: 2909_FakeX2     Reading seq #1456: 2910_FakeX3     Reading seq #1457: 2913_FakeX2     Reading seq #1458: 2914_FakeX3     Reading seq #1459: 2917_FakeX2     Reading seq #1460: 2918_FakeX3     Reading seq #1461: 2921_FakeX2     Reading seq #1462: 2922_FakeX3     Reading seq #1463: 2925_FakeX2     Reading seq #1464: 2926_FakeX3     Reading seq #1465: 2929_FakeX2     Reading seq #1466: 2930_FakeX3     Reading seq #1467: 2933_FakeX2     Reading seq #1468: 2934_FakeX3     Reading seq #1469: 2937_FakeX2     Reading seq #1470: 2938_FakeX3     Reading seq #1471: 2941_FakeX2     Reading seq #1472: 2942_FakeX3     Reading seq #1473: 2945_FakeX2     Reading seq #1474: 2946_FakeX3     Reading seq #1475: 2949_FakeX2     Reading seq #1476: 2950_FakeX3     Reading seq #1477: 2953_FakeX2     Reading seq #1478: 2954_FakeX3     Reading seq #1479: 2957_FakeX2     Reading seq #1480: 2958_FakeX3     Reading seq #1481: 2961_FakeX2     Reading seq #1482: 2962_FakeX3     Reading seq #1483: 2965_FakeX2     Reading seq #1484: 2966_FakeX3     Reading seq #1485: 2969_FakeX2     Reading seq #1486: 2970_FakeX3     Reading seq #1487: 2973_FakeX2     Reading seq #1488: 2974_FakeX3     Reading seq #1489: 2977_FakeX2     Reading seq #1490: 2978_FakeX3     Reading seq #1491: 2981_FakeX2     Reading seq #1492: 2982_FakeX3     Reading seq #1493: 2985_FakeX2     Reading seq #1494: 2986_FakeX3     Reading seq #1495: 2989_FakeX2     Reading seq #1496: 2990_FakeX3     Reading seq #1497: 2993_FakeX2     Reading seq #1498: 2994_FakeX3     Reading seq #1499: 2997_FakeX2     Reading seq #1500: 2998_FakeX3     Reading seq #1501: 3001_FakeX2     Reading seq #1502: 3002_FakeX3     Reading seq #1503: 3005_FakeX2     Reading seq #1504: 3006_FakeX3     Reading seq #1505: 3009_FakeX2     Reading seq #1506: 3010_FakeX3     Reading seq #1507: 3013_FakeX2     Reading seq #1508: 3014_FakeX3     Reading seq #1509: 3017_FakeX2     Reading seq #1510: 3018_FakeX3     Reading seq #1511: 3021_FakeX2     Reading seq #1512: 3022_FakeX3     Reading seq #1513: 3025_FakeX2     Reading seq #1514: 3026_FakeX3     Reading seq #1515: 3029_FakeX2     Reading seq #1516: 3030_FakeX3     Reading seq #1517: 3033_FakeX2     Reading seq #1518: 3034_FakeX3     Reading seq #1519: 3037_FakeX2     Reading seq #1520: 3038_FakeX3     Reading seq #1521: 3041_FakeX2     Reading seq #1522: 3042_FakeX3     Reading seq #1523: 3045_FakeX2     Reading seq #1524: 3046_FakeX3     Reading seq #1525: 3049_FakeX2     Reading seq #1526: 3050_FakeX3     Reading seq #1527: 3053_FakeX2     Reading seq #1528: 3054_FakeX3     Reading seq #1529: 3057_FakeX2     Reading seq #1530: 3058_FakeX3     Reading seq #1531: 3061_FakeX2     Reading seq #1532: 3062_FakeX3     Reading seq #1533: 3065_FakeX2     Reading seq #1534: 3066_FakeX3     Reading seq #1535: 3069_FakeX2     Reading seq #1536: 3070_FakeX3     Reading seq #1537: 3073_FakeX2     Reading seq #1538: 3074_FakeX3     Reading seq #1539: 3077_FakeX2     Reading seq #1540: 3078_FakeX3     Reading seq #1541: 3081_FakeX2     Reading seq #1542: 3082_FakeX3     Reading seq #1543: 3085_FakeX2     Reading seq #1544: 3086_FakeX3     Reading seq #1545: 3089_FakeX2     Reading seq #1546: 3090_FakeX3     Reading seq #1547: 3093_FakeX2     Reading seq #1548: 3094_FakeX3     Reading seq #1549: 3097_FakeX2     Reading seq #1550: 3098_FakeX3     Reading seq #1551: 3101_FakeX2     Reading seq #1552: 3102_FakeX3     Reading seq #1553: 3105_FakeX2     Reading seq #1554: 3106_FakeX3     Reading seq #1555: 3109_FakeX2     Reading seq #1556: 3110_FakeX3     Reading seq #1557: 3113_FakeX2     Reading seq #1558: 3114_FakeX3     Reading seq #1559: 3117_FakeX2     Reading seq #1560: 3118_FakeX3     Reading seq #1561: 3121_FakeX2     Reading seq #1562: 3122_FakeX3     Reading seq #1563: 3125_FakeX2     Reading seq #1564: 3126_FakeX3     Reading seq #1565: 3129_FakeX2     Reading seq #1566: 3130_FakeX3     Reading seq #1567: 3133_FakeX2     Reading seq #1568: 3134_FakeX3     Reading seq #1569: 3137_FakeX2     Reading seq #1570: 3138_FakeX3     Reading seq #1571: 3141_FakeX2     Reading seq #1572: 3142_FakeX3     Reading seq #1573: 3145_FakeX2     Reading seq #1574: 3146_FakeX3     Reading seq #1575: 3149_FakeX2     Reading seq #1576: 3150_FakeX3     Reading seq #1577: 3153_FakeX2     Reading seq #1578: 3154_FakeX3     Reading seq #1579: 3157_FakeX2     Reading seq #1580: 3158_FakeX3     Reading seq #1581: 3161_FakeX2     Reading seq #1582: 3162_FakeX3     Reading seq #1583: 3165_FakeX2     Reading seq #1584: 3166_FakeX3     Reading seq #1585: 3169_FakeX2     Reading seq #1586: 3170_FakeX3     Reading seq #1587: 3173_FakeX2     Reading seq #1588: 3174_FakeX3     Reading seq #1589: 3177_FakeX2     Reading seq #1590: 3178_FakeX3     Reading seq #1591: 3181_FakeX2     Reading seq #1592: 3182_FakeX3     Reading seq #1593: 3185_FakeX2     Reading seq #1594: 3186_FakeX3     Reading seq #1595: 3189_FakeX2     Reading seq #1596: 3190_FakeX3     Reading seq #1597: 3193_FakeX2     Reading seq #1598: 3194_FakeX3     Reading seq #1599: 3197_FakeX2     Reading seq #1600: 3198_FakeX3     Reading seq #1601: 3201_FakeX2     Reading seq #1602: 3202_FakeX3     Reading seq #1603: 3205_FakeX2     Reading seq #1604: 3206_FakeX3     Reading seq #1605: 3209_FakeX2     Reading seq #1606: 3210_FakeX3     Reading seq #1607: 3213_FakeX2     Reading seq #1608: 3214_FakeX3     Reading seq #1609: 3217_FakeX2     Reading seq #1610: 3218_FakeX3     Reading seq #1611: 3221_FakeX2     Reading seq #1612: 3222_FakeX3     Reading seq #1613: 3225_FakeX2     Reading seq #1614: 3226_FakeX3     Reading seq #1615: 3229_FakeX2     Reading seq #1616: 3230_FakeX3     Reading seq #1617: 3233_FakeX2     Reading seq #1618: 3234_FakeX3     Reading seq #1619: 3237_FakeX2     Reading seq #1620: 3238_FakeX3     Reading seq #1621: 3241_FakeX2     Reading seq #1622: 3242_FakeX3     Reading seq #1623: 3245_FakeX2     Reading seq #1624: 3246_FakeX3     Reading seq #1625: 3249_FakeX2     Reading seq #1626: 3250_FakeX3     Reading seq #1627: 3253_FakeX2     Reading seq #1628: 3254_FakeX3     Reading seq #1629: 3257_FakeX2     Reading seq #1630: 3258_FakeX3     Reading seq #1631: 3261_FakeX2     Reading seq #1632: 3262_FakeX3     Reading seq #1633: 3265_FakeX2     Reading seq #1634: 3266_FakeX3     Reading seq #1635: 3269_FakeX2     Reading seq #1636: 3270_FakeX3     Reading seq #1637: 3273_FakeX2     Reading seq #1638: 3274_FakeX3     Reading seq #1639: 3277_FakeX2     Reading seq #1640: 3278_FakeX3     Reading seq #1641: 3281_FakeX2     Reading seq #1642: 3282_FakeX3     Reading seq #1643: 3285_FakeX2     Reading seq #1644: 3286_FakeX3     Reading seq #1645: 3289_FakeX2     Reading seq #1646: 3290_FakeX3     Reading seq #1647: 3293_FakeX2     Reading seq #1648: 3294_FakeX3     Reading seq #1649: 3297_FakeX2     Reading seq #1650: 3298_FakeX3     Reading seq #1651: 3301_FakeX2     Reading seq #1652: 3302_FakeX3     Reading seq #1653: 3305_FakeX2     Reading seq #1654: 3306_FakeX3     Reading seq #1655: 3309_FakeX2     Reading seq #1656: 3310_FakeX3     Reading seq #1657: 3313_FakeX2     Reading seq #1658: 3314_FakeX3     Reading seq #1659: 3317_FakeX2     Reading seq #1660: 3318_FakeX3     Reading seq #1661: 3321_FakeX2     Reading seq #1662: 3322_FakeX3     Reading seq #1663: 3325_FakeX2     Reading seq #1664: 3326_FakeX3     Reading seq #1665: 3329_FakeX2     Reading seq #1666: 3330_FakeX3     Reading seq #1667: 3333_FakeX2     Reading seq #1668: 3334_FakeX3     Reading seq #1669: 3337_FakeX2     Reading seq #1670: 3338_FakeX3     Reading seq #1671: 3341_FakeX2     Reading seq #1672: 3342_FakeX3     Reading seq #1673: 3345_FakeX2     Reading seq #1674: 3346_FakeX3     Reading seq #1675: 3349_FakeX2     Reading seq #1676: 3350_FakeX3     Reading seq #1677: 3353_FakeX2     Reading seq #1678: 3354_FakeX3     Reading seq #1679: 3357_FakeX2     Reading seq #1680: 3358_FakeX3     Reading seq #1681: 3361_FakeX2     Reading seq #1682: 3362_FakeX3     Reading seq #1683: 3365_FakeX2     Reading seq #1684: 3366_FakeX3     Reading seq #1685: 3369_FakeX2     Reading seq #1686: 3370_FakeX3     Reading seq #1687: 3373_FakeX2     Reading seq #1688: 3374_FakeX3     Reading seq #1689: 3377_FakeX2     Reading seq #1690: 3378_FakeX3     Reading seq #1691: 3381_FakeX2     Reading seq #1692: 3382_FakeX3     Reading seq #1693: 3385_FakeX2     Reading seq #1694: 3386_FakeX3     Reading seq #1695: 3389_FakeX2     Reading seq #1696: 3390_FakeX3     Reading seq #1697: 3393_FakeX2     Reading seq #1698: 3394_FakeX3     Reading seq #1699: 3397_FakeX2     Reading seq #1700: 3398_FakeX3     Reading seq #1701: 3401_FakeX2     Reading seq #1702: 3402_FakeX3     Reading seq #1703: 3405_FakeX2     Reading seq #1704: 3406_FakeX3     Reading seq #1705: 3409_FakeX2     Reading seq #1706: 3410_FakeX3     Reading seq #1707: 3413_FakeX2     Reading seq #1708: 3414_FakeX3     Reading seq #1709: 3417_FakeX2     Reading seq #1710: 3418_FakeX3     Reading seq #1711: 3421_FakeX2     Reading seq #1712: 3422_FakeX3     Reading seq #1713: 3425_FakeX2     Reading seq #1714: 3426_FakeX3     Reading seq #1715: 3429_FakeX2     Reading seq #1716: 3430_FakeX3     Reading seq #1717: 3433_FakeX2     Reading seq #1718: 3434_FakeX3     Reading seq #1719: 3437_FakeX2     Reading seq #1720: 3438_FakeX3     Reading seq #1721: 3441_FakeX2     Reading seq #1722: 3442_FakeX3     Reading seq #1723: 3445_FakeX2     Reading seq #1724: 3446_FakeX3     Reading seq #1725: 3449_FakeX2     Reading seq #1726: 3450_FakeX3     Reading seq #1727: 3453_FakeX2     Reading seq #1728: 3454_FakeX3     Reading seq #1729: 3457_FakeX2     Reading seq #1730: 3458_FakeX3     Reading seq #1731: 3461_FakeX2     Reading seq #1732: 3462_FakeX3     Reading seq #1733: 3465_FakeX2     Reading seq #1734: 3466_FakeX3     Reading seq #1735: 3469_FakeX2     Reading seq #1736: 3470_FakeX3     Reading seq #1737: 3473_FakeX2     Reading seq #1738: 3474_FakeX3     Reading seq #1739: 3477_FakeX2     Reading seq #1740: 3478_FakeX3     Reading seq #1741: 3481_FakeX2     Reading seq #1742: 3482_FakeX3     Reading seq #1743: 3485_FakeX2     Reading seq #1744: 3486_FakeX3     Reading seq #1745: 3489_FakeX2     Reading seq #1746: 3490_FakeX3     Reading seq #1747: 3493_FakeX2     Reading seq #1748: 3494_FakeX3     Reading seq #1749: 3497_FakeX2     Reading seq #1750: 3498_FakeX3     Reading seq #1751: 3501_FakeX2     Reading seq #1752: 3502_FakeX3     Reading seq #1753: 3505_FakeX2     Reading seq #1754: 3506_FakeX3     Reading seq #1755: 3509_FakeX2     Reading seq #1756: 3510_FakeX3     Reading seq #1757: 3513_FakeX2     Reading seq #1758: 3514_FakeX3     Reading seq #1759: 3517_FakeX2     Reading seq #1760: 3518_FakeX3     Reading seq #1761: 3521_FakeX2     Reading seq #1762: 3522_FakeX3     Reading seq #1763: 3525_FakeX2     Reading seq #1764: 3526_FakeX3     Reading seq #1765: 3529_FakeX2     Reading seq #1766: 3530_FakeX3     Reading seq #1767: 3533_FakeX2     Reading seq #1768: 3534_FakeX3     Reading seq #1769: 3537_FakeX2     Reading seq #1770: 3538_FakeX3     Reading seq #1771: 3541_FakeX2     Reading seq #1772: 3542_FakeX3     Reading seq #1773: 3545_FakeX2     Reading seq #1774: 3546_FakeX3     Reading seq #1775: 3549_FakeX2     Reading seq #1776: 3550_FakeX3     Reading seq #1777: 3553_FakeX2     Reading seq #1778: 3554_FakeX3     Reading seq #1779: 3557_FakeX2     Reading seq #1780: 3558_FakeX3     Reading seq #1781: 3561_FakeX2     Reading seq #1782: 3562_FakeX3     Reading seq #1783: 3565_FakeX2     Reading seq #1784: 3566_FakeX3     Reading seq #1785: 3569_FakeX2     Reading seq #1786: 3570_FakeX3     Reading seq #1787: 3573_FakeX2     Reading seq #1788: 3574_FakeX3     Reading seq #1789: 3577_FakeX2     Reading seq #1790: 3578_FakeX3     Reading seq #1791: 3581_FakeX2     Reading seq #1792: 3582_FakeX3     Reading seq #1793: 3585_FakeX2     Reading seq #1794: 3586_FakeX3     Reading seq #1795: 3589_FakeX2     Reading seq #1796: 3590_FakeX3     Reading seq #1797: 3593_FakeX2     Reading seq #1798: 3594_FakeX3     Reading seq #1799: 3597_FakeX2     Reading seq #1800: 3598_FakeX3     Reading seq #1801: 3601_FakeX2     Reading seq #1802: 3602_FakeX3     Reading seq #1803: 3605_FakeX2     Reading seq #1804: 3606_FakeX3     Reading seq #1805: 3609_FakeX2     Reading seq #1806: 3610_FakeX3     Reading seq #1807: 3613_FakeX2     Reading seq #1808: 3614_FakeX3     Reading seq #1809: 3617_FakeX2     Reading seq #1810: 3618_FakeX3     Reading seq #1811: 3621_FakeX2     Reading seq #1812: 3622_FakeX3     Reading seq #1813: 3625_FakeX2     Reading seq #1814: 3626_FakeX3     Reading seq #1815: 3629_FakeX2     Reading seq #1816: 3630_FakeX3     Reading seq #1817: 3633_FakeX2     Reading seq #1818: 3634_FakeX3     Reading seq #1819: 3637_FakeX2     Reading seq #1820: 3638_FakeX3     Reading seq #1821: 3641_FakeX2     Reading seq #1822: 3642_FakeX3     Reading seq #1823: 3645_FakeX2     Reading seq #1824: 3646_FakeX3     Reading seq #1825: 3649_FakeX2     Reading seq #1826: 3650_FakeX3     Reading seq #1827: 3653_FakeX2     Reading seq #1828: 3654_FakeX3     Reading seq #1829: 3657_FakeX2     Reading seq #1830: 3658_FakeX3     Reading seq #1831: 3661_FakeX2     Reading seq #1832: 3662_FakeX3     Reading seq #1833: 3665_FakeX2     Reading seq #1834: 3666_FakeX3     Reading seq #1835: 3669_FakeX2     Reading seq #1836: 3670_FakeX3     Reading seq #1837: 3673_FakeX2     Reading seq #1838: 3674_FakeX3     Reading seq #1839: 3677_FakeX2     Reading seq #1840: 3678_FakeX3     Reading seq #1841: 3681_FakeX2     Reading seq #1842: 3682_FakeX3     Reading seq #1843: 3685_FakeX2     Reading seq #1844: 3686_FakeX3     Reading seq #1845: 3689_FakeX2     Reading seq #1846: 3690_FakeX3     Reading seq #1847: 3693_FakeX2     Reading seq #1848: 3694_FakeX3     Reading seq #1849: 3697_FakeX2     Reading seq #1850: 3698_FakeX3     Reading seq #1851: 3701_FakeX2     Reading seq #1852: 3702_FakeX3     Reading seq #1853: 3705_FakeX2     Reading seq #1854: 3706_FakeX3     Reading seq #1855: 3709_FakeX2     Reading seq #1856: 3710_FakeX3     Reading seq #1857: 3713_FakeX2     Reading seq #1858: 3714_FakeX3     Reading seq #1859: 3717_FakeX2     Reading seq #1860: 3718_FakeX3     Reading seq #1861: 3721_FakeX2     Reading seq #1862: 3722_FakeX3     Reading seq #1863: 3725_FakeX2     Reading seq #1864: 3726_FakeX3     Reading seq #1865: 3729_FakeX2     Reading seq #1866: 3730_FakeX3     Reading seq #1867: 3733_FakeX2     Reading seq #1868: 3734_FakeX3     Reading seq #1869: 3737_FakeX2     Reading seq #1870: 3738_FakeX3     Reading seq #1871: 3741_FakeX2     Reading seq #1872: 3742_FakeX3     Reading seq #1873: 3745_FakeX2     Reading seq #1874: 3746_FakeX3     Reading seq #1875: 3749_FakeX2     Reading seq #1876: 3750_FakeX3     Reading seq #1877: 3753_FakeX2     Reading seq #1878: 3754_FakeX3     Reading seq #1879: 3757_FakeX2     Reading seq #1880: 3758_FakeX3     Reading seq #1881: 3761_FakeX2     Reading seq #1882: 3762_FakeX3     Reading seq #1883: 3765_FakeX2     Reading seq #1884: 3766_FakeX3     Reading seq #1885: 3769_FakeX2     Reading seq #1886: 3770_FakeX3     Reading seq #1887: 3773_FakeX2     Reading seq #1888: 3774_FakeX3     Reading seq #1889: 3777_FakeX2     Reading seq #1890: 3778_FakeX3     Reading seq #1891: 3781_FakeX2     Reading seq #1892: 3782_FakeX3     Reading seq #1893: 3785_FakeX2     Reading seq #1894: 3786_FakeX3     Reading seq #1895: 3789_FakeX2     Reading seq #1896: 3790_FakeX3     Reading seq #1897: 3793_FakeX2     Reading seq #1898: 3794_FakeX3     Reading seq #1899: 3797_FakeX2     Reading seq #1900: 3798_FakeX3     Reading seq #1901: 3801_FakeX2     Reading seq #1902: 3802_FakeX3     Reading seq #1903: 3805_FakeX2     Reading seq #1904: 3806_FakeX3     Reading seq #1905: 3809_FakeX2     Reading seq #1906: 3810_FakeX3     Reading seq #1907: 3813_FakeX2     Reading seq #1908: 3814_FakeX3     Reading seq #1909: 3817_FakeX2     Reading seq #1910: 3818_FakeX3     Reading seq #1911: 3821_FakeX2     Reading seq #1912: 3822_FakeX3     Reading seq #1913: 3825_FakeX2     Reading seq #1914: 3826_FakeX3     Reading seq #1915: 3829_FakeX2     Reading seq #1916: 3830_FakeX3     Reading seq #1917: 3833_FakeX2     Reading seq #1918: 3834_FakeX3     Reading seq #1919: 3837_FakeX2     Reading seq #1920: 3838_FakeX3     Reading seq #1921: 3841_FakeX2     Reading seq #1922: 3842_FakeX3     Reading seq #1923: 3845_FakeX2     Reading seq #1924: 3846_FakeX3     Reading seq #1925: 3849_FakeX2     Reading seq #1926: 3850_FakeX3     Reading seq #1927: 3853_FakeX2     Reading seq #1928: 3854_FakeX3     Reading seq #1929: 3857_FakeX2     Reading seq #1930: 3858_FakeX3     Reading seq #1931: 3861_FakeX2     Reading seq #1932: 3862_FakeX3     Reading seq #1933: 3865_FakeX2     Reading seq #1934: 3866_FakeX3     Reading seq #1935: 3869_FakeX2     Reading seq #1936: 3870_FakeX3     Reading seq #1937: 3873_FakeX2     Reading seq #1938: 3874_FakeX3     Reading seq #1939: 3877_FakeX2     Reading seq #1940: 3878_FakeX3     Reading seq #1941: 3881_FakeX2     Reading seq #1942: 3882_FakeX3     Reading seq #1943: 3885_FakeX2     Reading seq #1944: 3886_FakeX3     Reading seq #1945: 3889_FakeX2     Reading seq #1946: 3890_FakeX3     Reading seq #1947: 3893_FakeX2     Reading seq #1948: 3894_FakeX3     Reading seq #1949: 3897_FakeX2     Reading seq #1950: 3898_FakeX3     Reading seq #1951: 3901_FakeX2     Reading seq #1952: 3902_FakeX3     Reading seq #1953: 3905_FakeX2     Reading seq #1954: 3906_FakeX3     Reading seq #1955: 3909_FakeX2     Reading seq #1956: 3910_FakeX3     Reading seq #1957: 3913_FakeX2     Reading seq #1958: 3914_FakeX3     Reading seq #1959: 3917_FakeX2     Reading seq #1960: 3918_FakeX3     Reading seq #1961: 3921_FakeX2     Reading seq #1962: 3922_FakeX3     Reading seq #1963: 3925_FakeX2     Reading seq #1964: 3926_FakeX3     Reading seq #1965: 3929_FakeX2     Reading seq #1966: 3930_FakeX3     Reading seq #1967: 3933_FakeX2     Reading seq #1968: 3934_FakeX3     Reading seq #1969: 3937_FakeX2     Reading seq #1970: 3938_FakeX3     Reading seq #1971: 3941_FakeX2     Reading seq #1972: 3942_FakeX3     Reading seq #1973: 3945_FakeX2     Reading seq #1974: 3946_FakeX3     Reading seq #1975: 3949_FakeX2     Reading seq #1976: 3950_FakeX3     Reading seq #1977: 3953_FakeX2     Reading seq #1978: 3954_FakeX3     Reading seq #1979: 3957_FakeX2     Reading seq #1980: 3958_FakeX3     Reading seq #1981: 3961_FakeX2     Reading seq #1982: 3962_FakeX3     Reading seq #1983: 3965_FakeX2     Reading seq #1984: 3966_FakeX3     Reading seq #1985: 3969_FakeX2     Reading seq #1986: 3970_FakeX3     Reading seq #1987: 3973_FakeX2     Reading seq #1988: 3974_FakeX3     Reading seq #1989: 3977_FakeX2     Reading seq #1990: 3978_FakeX3     Reading seq #1991: 3981_FakeX2     Reading seq #1992: 3982_FakeX3     Reading seq #1993: 3985_FakeX2     Reading seq #1994: 3986_FakeX3     Reading seq #1995: 3989_FakeX2     Reading seq #1996: 3990_FakeX3     Reading seq #1997: 3993_FakeX2     Reading seq #1998: 3994_FakeX3     Reading seq #1999: 3997_FakeX2     Reading seq #2000: 3998_FakeX3     Reading seq #2001: 4001_FakeX2     Reading seq #2002: 4002_FakeX3     Reading seq #2003: 4005_FakeX2     Reading seq #2004: 4006_FakeX3     Reading seq #2005: 4009_FakeX2     Reading seq #2006: 4010_FakeX3     Reading seq #2007: 4013_FakeX2     Reading seq #2008: 4014_FakeX3     Reading seq #2009: 4017_FakeX2     Reading seq #2010: 4018_FakeX3     Reading seq #2011: 4021_FakeX2     Reading seq #2012: 4022_FakeX3     Reading seq #2013: 4025_FakeX2     Reading seq #2014: 4026_FakeX3     Reading seq #2015: 4029_FakeX2     Reading seq #2016: 4030_FakeX3     Reading seq #2017: 4033_FakeX2     Reading seq #2018: 4034_FakeX3     Reading seq #2019: 4037_FakeX2     Reading seq #2020: 4038_FakeX3     Reading seq #2021: 4041_FakeX2     Reading seq #2022: 4042_FakeX3     Reading seq #2023: 4045_FakeX2     Reading seq #2024: 4046_FakeX3     Reading seq #2025: 4049_FakeX2     Reading seq #2026: 4050_FakeX3     Reading seq #2027: 4053_FakeX2     Reading seq #2028: 4054_FakeX3     Reading seq #2029: 4057_FakeX2     Reading seq #2030: 4058_FakeX3     Reading seq #2031: 4061_FakeX2     Reading seq #2032: 4062_FakeX3     Reading seq #2033: 4065_FakeX2     Reading seq #2034: 4066_FakeX3     Reading seq #2035: 4069_FakeX2     Reading seq #2036: 4070_FakeX3     Reading seq #2037: 4073_FakeX2     Reading seq #2038: 4074_FakeX3     Reading seq #2039: 4077_FakeX2     Reading seq #2040: 4078_FakeX3     Reading seq #2041: 4081_FakeX2     Reading seq #2042: 4082_FakeX3     Reading seq #2043: 4085_FakeX2     Reading seq #2044: 4086_FakeX3     Reading seq #2045: 4089_FakeX2     Reading seq #2046: 4090_FakeX3     Reading seq #2047: 4093_FakeX2     Reading seq #2048: 4094_FakeX3     Reading seq #2049: 4097_FakeX2     Reading seq #2050: 4098_FakeX3     Reading seq #2051: 4101_FakeX2     Reading seq #2052: 4102_FakeX3     Reading seq #2053: 4105_FakeX2     Reading seq #2054: 4106_FakeX3     Reading seq #2055: 4109_FakeX2     Reading seq #2056: 4110_FakeX3     Reading seq #2057: 4113_FakeX2     Reading seq #2058: 4114_FakeX3     Reading seq #2059: 4117_FakeX2     Reading seq #2060: 4118_FakeX3     Reading seq #2061: 4121_FakeX2     Reading seq #2062: 4122_FakeX3     Reading seq #2063: 4125_FakeX2     Reading seq #2064: 4126_FakeX3     Reading seq #2065: 4129_FakeX2     Reading seq #2066: 4130_FakeX3     Reading seq #2067: 4133_FakeX2     Reading seq #2068: 4134_FakeX3     Reading seq #2069: 4137_FakeX2     Reading seq #2070: 4138_FakeX3     Reading seq #2071: 4141_FakeX2     Reading seq #2072: 4142_FakeX3     Reading seq #2073: 4145_FakeX2     Reading seq #2074: 4146_FakeX3     Reading seq #2075: 4149_FakeX2     Reading seq #2076: 4150_FakeX3     Reading seq #2077: 4153_FakeX2     Reading seq #2078: 4154_FakeX3     Reading seq #2079: 4157_FakeX2     Reading seq #2080: 4158_FakeX3     Reading seq #2081: 4161_FakeX2     Reading seq #2082: 4162_FakeX3     Reading seq #2083: 4165_FakeX2     Reading seq #2084: 4166_FakeX3     Reading seq #2085: 4169_FakeX2     Reading seq #2086: 4170_FakeX3     Reading seq #2087: 4173_FakeX2     Reading seq #2088: 4174_FakeX3     Reading seq #2089: 4177_FakeX2     Reading seq #2090: 4178_FakeX3     Reading seq #2091: 4181_FakeX2     Reading seq #2092: 4182_FakeX3     Reading seq #2093: 4185_FakeX2     Reading seq #2094: 4186_FakeX3     Reading seq #2095: 4189_FakeX2     Reading seq #2096: 4190_FakeX3     Reading seq #2097: 4193_FakeX2     Reading seq #2098: 4194_FakeX3     Reading seq #2099: 4197_FakeX2     Reading seq #2100: 4198_FakeX3     Reading seq #2101: 4201_FakeX2     Reading seq #2102: 4202_FakeX3     Reading seq #2103: 4205_FakeX2     Reading seq #2104: 4206_FakeX3     Reading seq #2105: 4209_FakeX2     Reading seq #2106: 4210_FakeX3     Reading seq #2107: 4213_FakeX2     Reading seq #2108: 4214_FakeX3     Reading seq #2109: 4217_FakeX2     Reading seq #2110: 4218_FakeX3     Reading seq #2111: 4221_FakeX2     Reading seq #2112: 4222_FakeX3     Reading seq #2113: 4225_FakeX2     Reading seq #2114: 4226_FakeX3     Reading seq #2115: 4229_FakeX2     Reading seq #2116: 4230_FakeX3     Reading seq #2117: 4233_FakeX2     Reading seq #2118: 4234_FakeX3     Reading seq #2119: 4237_FakeX2     Reading seq #2120: 4238_FakeX3     Reading seq #2121: 4241_FakeX2     Reading seq #2122: 4242_FakeX3     Reading seq #2123: 4245_FakeX2     Reading seq #2124: 4246_FakeX3     Reading seq #2125: 4249_FakeX2     Reading seq #2126: 4250_FakeX3     Reading seq #2127: 4253_FakeX2     Reading seq #2128: 4254_FakeX3     Reading seq #2129: 4257_FakeX2     Reading seq #2130: 4258_FakeX3     Reading seq #2131: 4261_FakeX2     Reading seq #2132: 4262_FakeX3     Reading seq #2133: 4265_FakeX2     Reading seq #2134: 4266_FakeX3     Reading seq #2135: 4269_FakeX2     Reading seq #2136: 4270_FakeX3     Reading seq #2137: 4273_FakeX2     Reading seq #2138: 4274_FakeX3     Reading seq #2139: 4277_FakeX2     Reading seq #2140: 4278_FakeX3     Reading seq #2141: 4281_FakeX2     Reading seq #2142: 4282_FakeX3     Reading seq #2143: 4285_FakeX2     Reading seq #2144: 4286_FakeX3     Reading seq #2145: 4289_FakeX2     Reading seq #2146: 4290_FakeX3     Reading seq #2147: 4293_FakeX2     Reading seq #2148: 4294_FakeX3     Reading seq #2149: 4297_FakeX2     Reading seq #2150: 4298_FakeX3     Reading seq #2151: 4301_FakeX2     Reading seq #2152: 4302_FakeX3     Reading seq #2153: 4305_FakeX2     Reading seq #2154: 4306_FakeX3     Reading seq #2155: 4309_FakeX2     Reading seq #2156: 4310_FakeX3     Reading seq #2157: 4313_FakeX2     Reading seq #2158: 4314_FakeX3     Reading seq #2159: 4317_FakeX2     Reading seq #2160: 4318_FakeX3     Reading seq #2161: 4321_FakeX2     Reading seq #2162: 4322_FakeX3     Reading seq #2163: 4325_FakeX2     Reading seq #2164: 4326_FakeX3     Reading seq #2165: 4329_FakeX2     Reading seq #2166: 4330_FakeX3     Reading seq #2167: 4333_FakeX2     Reading seq #2168: 4334_FakeX3     Reading seq #2169: 4337_FakeX2     Reading seq #2170: 4338_FakeX3     Reading seq #2171: 4341_FakeX2     Reading seq #2172: 4342_FakeX3     Reading seq #2173: 4345_FakeX2     Reading seq #2174: 4346_FakeX3     Reading seq #2175: 4349_FakeX2     Reading seq #2176: 4350_FakeX3     Reading seq #2177: 4353_FakeX2     Reading seq #2178: 4354_FakeX3     Reading seq #2179: 4357_FakeX2     Reading seq #2180: 4358_FakeX3     Reading seq #2181: 4361_FakeX2     Reading seq #2182: 4362_FakeX3     Reading seq #2183: 4365_FakeX2     Reading seq #2184: 4366_FakeX3     Reading seq #2185: 4369_FakeX2     Reading seq #2186: 4370_FakeX3     Reading seq #2187: 4373_FakeX2     Reading seq #2188: 4374_FakeX3     Reading seq #2189: 4377_FakeX2     Reading seq #2190: 4378_FakeX3     Reading seq #2191: 4381_FakeX2     Reading seq #2192: 4382_FakeX3     Reading seq #2193: 4385_FakeX2     Reading seq #2194: 4386_FakeX3     Reading seq #2195: 4389_FakeX2     Reading seq #2196: 4390_FakeX3     Reading seq #2197: 4393_FakeX2     Reading seq #2198: 4394_FakeX3     Reading seq #2199: 4397_FakeX2     Reading seq #2200: 4398_FakeX3     Reading seq #2201: 4401_FakeX2     Reading seq #2202: 4402_FakeX3     Reading seq #2203: 4405_FakeX2     Reading seq #2204: 4406_FakeX3     Reading seq #2205: 4409_FakeX2     Reading seq #2206: 4410_FakeX3     Reading seq #2207: 4413_FakeX2     Reading seq #2208: 4414_FakeX3     Reading seq #2209: 4417_FakeX2     Reading seq #2210: 4418_FakeX3     Reading seq #2211: 4421_FakeX2     Reading seq #2212: 4422_FakeX3     Reading seq #2213: 4425_FakeX2     Reading seq #2214: 4426_FakeX3     Reading seq #2215: 4429_FakeX2     Reading seq #2216: 4430_FakeX3     Reading seq #2217: 4433_FakeX2     Reading seq #2218: 4434_FakeX3     Reading seq #2219: 4437_FakeX2     Reading seq #2220: 4438_FakeX3     Reading seq #2221: 4441_FakeX2     Reading seq #2222: 4442_FakeX3     Reading seq #2223: 4445_FakeX2     Reading seq #2224: 4446_FakeX3     Reading seq #2225: 4449_FakeX2     Reading seq #2226: 4450_FakeX3     Reading seq #2227: 4453_FakeX2     Reading seq #2228: 4454_FakeX3     Reading seq #2229: 4457_FakeX2     Reading seq #2230: 4458_FakeX3     Reading seq #2231: 4461_FakeX2     Reading seq #2232: 4462_FakeX3     Reading seq #2233: 4465_FakeX2     Reading seq #2234: 4466_FakeX3     Reading seq #2235: 4469_FakeX2     Reading seq #2236: 4470_FakeX3     Reading seq #2237: 4473_FakeX2     Reading seq #2238: 4474_FakeX3     Reading seq #2239: 4477_FakeX2     Reading seq #2240: 4478_FakeX3     Reading seq #2241: 4481_FakeX2     Reading seq #2242: 4482_FakeX3     Reading seq #2243: 4485_FakeX2     Reading seq #2244: 4486_FakeX3     Reading seq #2245: 4489_FakeX2     Reading seq #2246: 4490_FakeX3     Reading seq #2247: 4493_FakeX2     Reading seq #2248: 4494_FakeX3     Reading seq #2249: 4497_FakeX2     Reading seq #2250: 4498_FakeX3     Reading seq #2251: 4501_FakeX2     Reading seq #2252: 4502_FakeX3     Reading seq #2253: 4505_FakeX2     Reading seq #2254: 4506_FakeX3     Reading seq #2255: 4509_FakeX2     Reading seq #2256: 4510_FakeX3     Reading seq #2257: 4513_FakeX2     Reading seq #2258: 4514_FakeX3     Reading seq #2259: 4517_FakeX2     Reading seq #2260: 4518_FakeX3     Reading seq #2261: 4521_FakeX2     Reading seq #2262: 4522_FakeX3     Reading seq #2263: 4525_FakeX2     Reading seq #2264: 4526_FakeX3     Reading seq #2265: 4529_FakeX2     Reading seq #2266: 4530_FakeX3     Reading seq #2267: 4533_FakeX2     Reading seq #2268: 4534_FakeX3     Reading seq #2269: 4537_FakeX2     Reading seq #2270: 4538_FakeX3     Reading seq #2271: 4541_FakeX2     Reading seq #2272: 4542_FakeX3     Reading seq #2273: 4545_FakeX2     Reading seq #2274: 4546_FakeX3     Reading seq #2275: 4549_FakeX2     Reading seq #2276: 4550_FakeX3     Reading seq #2277: 4553_FakeX2     Reading seq #2278: 4554_FakeX3     Reading seq #2279: 4557_FakeX2     Reading seq #2280: 4558_FakeX3     Reading seq #2281: 4561_FakeX2     Reading seq #2282: 4562_FakeX3     Reading seq #2283: 4565_FakeX2     Reading seq #2284: 4566_FakeX3     Reading seq #2285: 4569_FakeX2     Reading seq #2286: 4570_FakeX3     Reading seq #2287: 4573_FakeX2     Reading seq #2288: 4574_FakeX3     Reading seq #2289: 4577_FakeX2     Reading seq #2290: 4578_FakeX3     Reading seq #2291: 4581_FakeX2     Reading seq #2292: 4582_FakeX3     Reading seq #2293: 4585_FakeX2     Reading seq #2294: 4586_FakeX3     Reading seq #2295: 4589_FakeX2     Reading seq #2296: 4590_FakeX3     Reading seq #2297: 4593_FakeX2     Reading seq #2298: 4594_FakeX3     Reading seq #2299: 4597_FakeX2     Reading seq #2300: 4598_FakeX3     Reading seq #2301: 4601_FakeX2     Reading seq #2302: 4602_FakeX3     Reading seq #2303: 4605_FakeX2     Reading seq #2304: 4606_FakeX3     Reading seq #2305: 4609_FakeX2     Reading seq #2306: 4610_FakeX3     Reading seq #2307: 4613_FakeX2     Reading seq #2308: 4614_FakeX3     Reading seq #2309: 4617_FakeX2     Reading seq #2310: 4618_FakeX3     Reading seq #2311: 4621_FakeX2     Reading seq #2312: 4622_FakeX3     Reading seq #2313: 4625_FakeX2     Reading seq #2314: 4626_FakeX3     Reading seq #2315: 4629_FakeX2     Reading seq #2316: 4630_FakeX3     Reading seq #2317: 4633_FakeX2     Reading seq #2318: 4634_FakeX3     Reading seq #2319: 4637_FakeX2     Reading seq #2320: 4638_FakeX3     Reading seq #2321: 4641_FakeX2     Reading seq #2322: 4642_FakeX3     Reading seq #2323: 4645_FakeX2     Reading seq #2324: 4646_FakeX3     Reading seq #2325: 4649_FakeX2     Reading seq #2326: 4650_FakeX3     Reading seq #2327: 4653_FakeX2     Reading seq #2328: 4654_FakeX3     Reading seq #2329: 4657_FakeX2     Reading seq #2330: 4658_FakeX3     Reading seq #2331: 4661_FakeX2     Reading seq #2332: 4662_FakeX3     Reading seq #2333: 4665_FakeX2     Reading seq #2334: 4666_FakeX3     Reading seq #2335: 4669_FakeX2     Reading seq #2336: 4670_FakeX3     Reading seq #2337: 4673_FakeX2     Reading seq #2338: 4674_FakeX3     Reading seq #2339: 4677_FakeX2     Reading seq #2340: 4678_FakeX3     Reading seq #2341: 4681_FakeX2     Reading seq #2342: 4682_FakeX3     Reading seq #2343: 4685_FakeX2     Reading seq #2344: 4686_FakeX3     Reading seq #2345: 4689_FakeX2     Reading seq #2346: 4690_FakeX3     Reading seq #2347: 4693_FakeX2     Reading seq #2348: 4694_FakeX3     Reading seq #2349: 4697_FakeX2     Reading seq #2350: 4698_FakeX3     Reading seq #2351: 4701_FakeX2     Reading seq #2352: 4702_FakeX3     Reading seq #2353: 4705_FakeX2     Reading seq #2354: 4706_FakeX3     Reading seq #2355: 4709_FakeX2     Reading seq #2356: 4710_FakeX3     Reading seq #2357: 4713_FakeX2     Reading seq #2358: 4714_FakeX3     Reading seq #2359: 4717_FakeX2     Reading seq #2360: 4718_FakeX3     Reading seq #2361: 4721_FakeX2     Reading seq #2362: 4722_FakeX3     Reading seq #2363: 4725_FakeX2     Reading seq #2364: 4726_FakeX3     Reading seq #2365: 4729_FakeX2     Reading seq #2366: 4730_FakeX3     Reading seq #2367: 4733_FakeX2     Reading seq #2368: 4734_FakeX3     Reading seq #2369: 4737_FakeX2     Reading seq #2370: 4738_FakeX3     Reading seq #2371: 4741_FakeX2     Reading seq #2372: 4742_FakeX3     Reading seq #2373: 4745_FakeX2     Reading seq #2374: 4746_FakeX3     Reading seq #2375: 4749_FakeX2     Reading seq #2376: 4750_FakeX3     Reading seq #2377: 4753_FakeX2     Reading seq #2378: 4754_FakeX3     Reading seq #2379: 4757_FakeX2     Reading seq #2380: 4758_FakeX3     Reading seq #2381: 4761_FakeX2     Reading seq #2382: 4762_FakeX3     Reading seq #2383: 4765_FakeX2     Reading seq #2384: 4766_FakeX3     Reading seq #2385: 4769_FakeX2     Reading seq #2386: 4770_FakeX3     Reading seq #2387: 4773_FakeX2     Reading seq #2388: 4774_FakeX3     Reading seq #2389: 4777_FakeX2     Reading seq #2390: 4778_FakeX3     Reading seq #2391: 4781_FakeX2     Reading seq #2392: 4782_FakeX3     Reading seq #2393: 4785_FakeX2     Reading seq #2394: 4786_FakeX3     Reading seq #2395: 4789_FakeX2     Reading seq #2396: 4790_FakeX3     Reading seq #2397: 4793_FakeX2     Reading seq #2398: 4794_FakeX3     Reading seq #2399: 4797_FakeX2     Reading seq #2400: 4798_FakeX3     Reading seq #2401: 4801_FakeX2     Reading seq #2402: 4802_FakeX3     Reading seq #2403: 4805_FakeX2     Reading seq #2404: 4806_FakeX3     Reading seq #2405: 4809_FakeX2     Reading seq #2406: 4810_FakeX3     Reading seq #2407: 4813_FakeX2     Reading seq #2408: 4814_FakeX3     Reading seq #2409: 4817_FakeX2     Reading seq #2410: 4818_FakeX3     Reading seq #2411: 4821_FakeX2     Reading seq #2412: 4822_FakeX3     Reading seq #2413: 4825_FakeX2     Reading seq #2414: 4826_FakeX3     Reading seq #2415: 4829_FakeX2     Reading seq #2416: 4830_FakeX3     Reading seq #2417: 4833_FakeX2     Reading seq #2418: 4834_FakeX3     Reading seq #2419: 4837_FakeX2     Reading seq #2420: 4838_FakeX3     Reading seq #2421: 4841_FakeX2     Reading seq #2422: 4842_FakeX3     Reading seq #2423: 4845_FakeX2     Reading seq #2424: 4846_FakeX3     Reading seq #2425: 4849_FakeX2     Reading seq #2426: 4850_FakeX3     Reading seq #2427: 4853_FakeX2     Reading seq #2428: 4854_FakeX3     Reading seq #2429: 4857_FakeX2     Reading seq #2430: 4858_FakeX3     Reading seq #2431: 4861_FakeX2     Reading seq #2432: 4862_FakeX3     Reading seq #2433: 4865_FakeX2     Reading seq #2434: 4866_FakeX3     Reading seq #2435: 4869_FakeX2     Reading seq #2436: 4870_FakeX3     Reading seq #2437: 4873_FakeX2     Reading seq #2438: 4874_FakeX3     Reading seq #2439: 4877_FakeX2     Reading seq #2440: 4878_FakeX3     Reading seq #2441: 4881_FakeX2     Reading seq #2442: 4882_FakeX3     Reading seq #2443: 4885_FakeX2     Reading seq #2444: 4886_FakeX3     Reading seq #2445: 4889_FakeX2     Reading seq #2446: 4890_FakeX3     Reading seq #2447: 4893_FakeX2     Reading seq #2448: 4894_FakeX3     Reading seq #2449: 4897_FakeX2     Reading seq #2450: 4898_FakeX3     Reading seq #2451: 4901_FakeX2     Reading seq #2452: 4902_FakeX3     Reading seq #2453: 4905_FakeX2     Reading seq #2454: 4906_FakeX3     Reading seq #2455: 4909_FakeX2     Reading seq #2456: 4910_FakeX3     Reading seq #2457: 4913_FakeX2     Reading seq #2458: 4914_FakeX3     Reading seq #2459: 4917_FakeX2     Reading seq #2460: 4918_FakeX3     Reading seq #2461: 4921_FakeX2     Reading seq #2462: 4922_FakeX3     Reading seq #2463: 4925_FakeX2     Reading seq #2464: 4926_FakeX3     Reading seq #2465: 4929_FakeX2     Reading seq #2466: 4930_FakeX3     Reading seq #2467: 4933_FakeX2     Reading seq #2468: 4934_FakeX3     Reading seq #2469: 4937_FakeX2     Reading seq #2470: 4938_FakeX3     Reading seq #2471: 4941_FakeX2     Reading seq #2472: 4942_FakeX3     Reading seq #2473: 4945_FakeX2     Reading seq #2474: 4946_FakeX3     Reading seq #2475: 4949_FakeX2     Reading seq #2476: 4950_FakeX3     Reading seq #2477: 4953_FakeX2     Reading seq #2478: 4954_FakeX3     Reading seq #2479: 4957_FakeX2     Reading seq #2480: 4958_FakeX3     Reading seq #2481: 4961_FakeX2     Reading seq #2482: 4962_FakeX3     Reading seq #2483: 4965_FakeX2     Reading seq #2484: 4966_FakeX3     Reading seq #2485: 4969_FakeX2     Reading seq #2486: 4970_FakeX3     Reading seq #2487: 4973_FakeX2     Reading seq #2488: 4974_FakeX3     Reading seq #2489: 4977_FakeX2     Reading seq #2490: 4978_FakeX3     Reading seq #2491: 4981_FakeX2     Reading seq #2492: 4982_FakeX3     Reading seq #2493: 4985_FakeX2     Reading seq #2494: 4986_FakeX3     Reading seq #2495: 4989_FakeX2     Reading seq #2496: 4990_FakeX3     Reading seq #2497: 4993_FakeX2     Reading seq #2498: 4994_FakeX3     Reading seq #2499: 4997_FakeX2     Reading seq #2500: 4998_FakeX3     Reading seq #2501: 5001_FakeX2     Reading seq #2502: 5002_FakeX3     Reading seq #2503: 5005_FakeX2     Reading seq #2504: 5006_FakeX3     Reading seq #2505: 5009_FakeX2     Reading seq #2506: 5010_FakeX3     Reading seq #2507: 5013_FakeX2     Reading seq #2508: 5014_FakeX3     Reading seq #2509: 5017_FakeX2     Reading seq #2510: 5018_FakeX3     Reading seq #2511: 5021_FakeX2     Reading seq #2512: 5022_FakeX3     Reading seq #2513: 5025_FakeX2     Reading seq #2514: 5026_FakeX3     Reading seq #2515: 5029_FakeX2     Reading seq #2516: 5030_FakeX3     Reading seq #2517: 5033_FakeX2     Reading seq #2518: 5034_FakeX3     Reading seq #2519: 5037_FakeX2     Reading seq #2520: 5038_FakeX3     Reading seq #2521: 5041_FakeX2     Reading seq #2522: 5042_FakeX3     Reading seq #2523: 5045_FakeX2     Reading seq #2524: 5046_FakeX3     Reading seq #2525: 5049_FakeX2     Reading seq #2526: 5050_FakeX3     Reading seq #2527: 5053_FakeX2     Reading seq #2528: 5054_FakeX3     Reading seq #2529: 5057_FakeX2     Reading seq #2530: 5058_FakeX3     Reading seq #2531: 5061_FakeX2     Reading seq #2532: 5062_FakeX3     Reading seq #2533: 5065_FakeX2     Reading seq #2534: 5066_FakeX3     Reading seq #2535: 5069_FakeX2     Reading seq #2536: 5070_FakeX3     Reading seq #2537: 5073_FakeX2     Reading seq #2538: 5074_FakeX3     Reading seq #2539: 5077_FakeX2     Reading seq #2540: 5078_FakeX3     Reading seq #2541: 5081_FakeX2     Reading seq #2542: 5082_FakeX3     Reading seq #2543: 5085_FakeX2     Reading seq #2544: 5086_FakeX3     Reading seq #2545: 5089_FakeX2     Reading seq #2546: 5090_FakeX3     Reading seq #2547: 5093_FakeX2     Reading seq #2548: 5094_FakeX3     Reading seq #2549: 5097_FakeX2     Reading seq #2550: 5098_FakeX3     Reading seq #2551: 5101_FakeX2     Reading seq #2552: 5102_FakeX3     Reading seq #2553: 5105_FakeX2     Reading seq #2554: 5106_FakeX3     Reading seq #2555: 5109_FakeX2     Reading seq #2556: 5110_FakeX3     Reading seq #2557: 5113_FakeX2     Reading seq #2558: 5114_FakeX3     Reading seq #2559: 5117_FakeX2     Reading seq #2560: 5118_FakeX3     Reading seq #2561: 5121_FakeX2     Reading seq #2562: 5122_FakeX3     Reading seq #2563: 5125_FakeX2     Reading seq #2564: 5126_FakeX3     Reading seq #2565: 5129_FakeX2     Reading seq #2566: 5130_FakeX3     Reading seq #2567: 5133_FakeX2     Reading seq #2568: 5134_FakeX3     Reading seq #2569: 5137_FakeX2     Reading seq #2570: 5138_FakeX3     Reading seq #2571: 5141_FakeX2     Reading seq #2572: 5142_FakeX3     Reading seq #2573: 5145_FakeX2     Reading seq #2574: 5146_FakeX3     Reading seq #2575: 5149_FakeX2     Reading seq #2576: 5150_FakeX3     Reading seq #2577: 5153_FakeX2     Reading seq #2578: 5154_FakeX3     Reading seq #2579: 5157_FakeX2     Reading seq #2580: 5158_FakeX3     Reading seq #2581: 5161_FakeX2     Reading seq #2582: 5162_FakeX3     Reading seq #2583: 5165_FakeX2     Reading seq #2584: 5166_FakeX3     Reading seq #2585: 5169_FakeX2     Reading seq #2586: 5170_FakeX3     
-Sequences read..
-Counting site patterns..  0:00
-        1569 patterns at     1683 /     1683 sites (100.0%),  0:00
-Counting frequencies..
-
- 40108860 bytes for distance 
-129787680 bytes for conP
-   313800 bytes for fhK
-  8000000 bytes for space
-
-TREE #  1: 
-Branch lengths in tree are fixed.
-
-21 node(s) used for scaling (Yang 2000 J Mol Evol 51:423-432):
- 2627 2688 2804 2921 2966 3072 3297 3396 3518 3632 3723 3878 3976 4091 4146 4300 4421 4595 4658 4870 4919
-
-ntime & nrate & np:     0     5     5
-
-lnL0 = -86796.115708
-Out...
-lnL  = -86495.502339
-convergence?
-
-Estimated rates for sites go into file rates
-lnL = -86495.502339
-
-Reconstructed ancestral states go into file rst.
-Rates are variable among sites, marginal reconstructions only.
-
-lnL = -86495.502339 from ProbSitePattern.
-Marginal reconstruction.
-	Node 2587: lnL = -86495.502339
-	Node 2588: lnL = -86495.502339
-	Node 2589: lnL = -86495.502339
-	Node 2590: lnL = -86495.502339
-	Node 2591: lnL = -86495.502339
-	Node 2592: lnL = -86495.502339
-	Node 2593: lnL = -86495.502339
-	Node 2594: lnL = -86495.502339
-	Node 2595: lnL = -86495.502339
-	Node 2596: lnL = -86495.502339
-	Node 2597: lnL = -86495.502339
-	Node 2598: lnL = -86495.502339
-	Node 2599: lnL = -86495.502339
-	Node 2600: lnL = -86495.502339
-	Node 2601: lnL = -86495.502339
-	Node 2602: lnL = -86495.502339
-	Node 2603: lnL = -86495.502339
-	Node 2604: lnL = -86495.502339
-	Node 2605: lnL = -86495.502339
-	Node 2606: lnL = -86495.502339
-	Node 2607: lnL = -86495.502339
-	Node 2608: lnL = -86495.502339
-	Node 2609: lnL = -86495.502339
-	Node 2610: lnL = -86495.502339
-	Node 2611: lnL = -86495.502339
-	Node 2612: lnL = -86495.502339
-	Node 2613: lnL = -86495.502339
-	Node 2614: lnL = -86495.502339
-	Node 2615: lnL = -86495.502339
-	Node 2616: lnL = -86495.502339
-	Node 2617: lnL = -86495.502339
-	Node 2618: lnL = -86495.502339
-	Node 2619: lnL = -86495.502339
-	Node 2620: lnL = -86495.502339
-	Node 2621: lnL = -86495.502339
-	Node 2622: lnL = -86495.502339
-	Node 2623: lnL = -86495.502339
-	Node 2624: lnL = -86495.502339
-	Node 2625: lnL = -86495.502339
-	Node 2626: lnL = -86495.502339
-	Node 2627: lnL = -86495.502339
-	Node 2628: lnL = -86495.502339
-	Node 2629: lnL = -86495.502339
-	Node 2630: lnL = -86495.502339
-	Node 2631: lnL = -86495.502339
-	Node 2632: lnL = -86495.502339
-	Node 2633: lnL = -86495.502339
-	Node 2634: lnL = -86495.502339
-	Node 2635: lnL = -86495.502339
-	Node 2636: lnL = -86495.502339
-	Node 2637: lnL = -86495.502339
-	Node 2638: lnL = -86495.502339
-	Node 2639: lnL = -86495.502339
-	Node 2640: lnL = -86495.502339
-	Node 2641: lnL = -86495.502339
-	Node 2642: lnL = -86495.502339
-	Node 2643: lnL = -86495.502339
-	Node 2644: lnL = -86495.502339
-	Node 2645: lnL = -86495.502339
-	Node 2646: lnL = -86495.502339
-	Node 2647: lnL = -86495.502339
-	Node 2648: lnL = -86495.502339
-	Node 2649: lnL = -86495.502339
-	Node 2650: lnL = -86495.502339
-	Node 2651: lnL = -86495.502339
-	Node 2652: lnL = -86495.502339
-	Node 2653: lnL = -86495.502339
-	Node 2654: lnL = -86495.502339
-	Node 2655: lnL = -86495.502339
-	Node 2656: lnL = -86495.502339
-	Node 2657: lnL = -86495.502339
-	Node 2658: lnL = -86495.502339
-	Node 2659: lnL = -86495.502339
-	Node 2660: lnL = -86495.502339
-	Node 2661: lnL = -86495.502339
-	Node 2662: lnL = -86495.502339
-	Node 2663: lnL = -86495.502339
-	Node 2664: lnL = -86495.502339
-	Node 2665: lnL = -86495.502339
-	Node 2666: lnL = -86495.502339
-	Node 2667: lnL = -86495.502339
-	Node 2668: lnL = -86495.502339
-	Node 2669: lnL = -86495.502339
-	Node 2670: lnL = -86495.502339
-	Node 2671: lnL = -86495.502339
-	Node 2672: lnL = -86495.502339
-	Node 2673: lnL = -86495.502339
-	Node 2674: lnL = -86495.502339
-	Node 2675: lnL = -86495.502339
-	Node 2676: lnL = -86495.502339
-	Node 2677: lnL = -86495.502339
-	Node 2678: lnL = -86495.502339
-	Node 2679: lnL = -86495.502339
-	Node 2680: lnL = -86495.502339
-	Node 2681: lnL = -86495.502339
-	Node 2682: lnL = -86495.502339
-	Node 2683: lnL = -86495.502339
-	Node 2684: lnL = -86495.502339
-	Node 2685: lnL = -86495.502339
-	Node 2686: lnL = -86495.502339
-	Node 2687: lnL = -86495.502339
-	Node 2688: lnL = -86495.502339
-	Node 2689: lnL = -86495.502339
-	Node 2690: lnL = -86495.502339
-	Node 2691: lnL = -86495.502339
-	Node 2692: lnL = -86495.502339
-	Node 2693: lnL = -86495.502339
-	Node 2694: lnL = -86495.502339
-	Node 2695: lnL = -86495.502339
-	Node 2696: lnL = -86495.502339
-	Node 2697: lnL = -86495.502339
-	Node 2698: lnL = -86495.502339
-	Node 2699: lnL = -86495.502339
-	Node 2700: lnL = -86495.502339
-	Node 2701: lnL = -86495.502339
-	Node 2702: lnL = -86495.502339
-	Node 2703: lnL = -86495.502339
-	Node 2704: lnL = -86495.502339
-	Node 2705: lnL = -86495.502339
-	Node 2706: lnL = -86495.502339
-	Node 2707: lnL = -86495.502339
-	Node 2708: lnL = -86495.502339
-	Node 2709: lnL = -86495.502339
-	Node 2710: lnL = -86495.502339
-	Node 2711: lnL = -86495.502339
-	Node 2712: lnL = -86495.502339
-	Node 2713: lnL = -86495.502339
-	Node 2714: lnL = -86495.502339
-	Node 2715: lnL = -86495.502339
-	Node 2716: lnL = -86495.502339
-	Node 2717: lnL = -86495.502339
-	Node 2718: lnL = -86495.502339
-	Node 2719: lnL = -86495.502339
-	Node 2720: lnL = -86495.502339
-	Node 2721: lnL = -86495.502339
-	Node 2722: lnL = -86495.502339
-	Node 2723: lnL = -86495.502339
-	Node 2724: lnL = -86495.502339
-	Node 2725: lnL = -86495.502339
-	Node 2726: lnL = -86495.502339
-	Node 2727: lnL = -86495.502339
-	Node 2728: lnL = -86495.502339
-	Node 2729: lnL = -86495.502339
-	Node 2730: lnL = -86495.502339
-	Node 2731: lnL = -86495.502339
-	Node 2732: lnL = -86495.502339
-	Node 2733: lnL = -86495.502339
-	Node 2734: lnL = -86495.502339
-	Node 2735: lnL = -86495.502339
-	Node 2736: lnL = -86495.502339
-	Node 2737: lnL = -86495.502339
-	Node 2738: lnL = -86495.502339
-	Node 2739: lnL = -86495.502339
-	Node 2740: lnL = -86495.502339
-	Node 2741: lnL = -86495.502339
-	Node 2742: lnL = -86495.502339
-	Node 2743: lnL = -86495.502339
-	Node 2744: lnL = -86495.502339
-	Node 2745: lnL = -86495.502339
-	Node 2746: lnL = -86495.502339
-	Node 2747: lnL = -86495.502339
-	Node 2748: lnL = -86495.502339
-	Node 2749: lnL = -86495.502339
-	Node 2750: lnL = -86495.502339
-	Node 2751: lnL = -86495.502339
-	Node 2752: lnL = -86495.502339
-	Node 2753: lnL = -86495.502339
-	Node 2754: lnL = -86495.502339
-	Node 2755: lnL = -86495.502339
-	Node 2756: lnL = -86495.502339
-	Node 2757: lnL = -86495.502339
-	Node 2758: lnL = -86495.502339
-	Node 2759: lnL = -86495.502339
-	Node 2760: lnL = -86495.502339
-	Node 2761: lnL = -86495.502339
-	Node 2762: lnL = -86495.502339
-	Node 2763: lnL = -86495.502339
-	Node 2764: lnL = -86495.502339
-	Node 2765: lnL = -86495.502339
-	Node 2766: lnL = -86495.502339
-	Node 2767: lnL = -86495.502339
-	Node 2768: lnL = -86495.502339
-	Node 2769: lnL = -86495.502339
-	Node 2770: lnL = -86495.502339
-	Node 2771: lnL = -86495.502339
-	Node 2772: lnL = -86495.502339
-	Node 2773: lnL = -86495.502339
-	Node 2774: lnL = -86495.502339
-	Node 2775: lnL = -86495.502339
-	Node 2776: lnL = -86495.502339
-	Node 2777: lnL = -86495.502339
-	Node 2778: lnL = -86495.502339
-	Node 2779: lnL = -86495.502339
-	Node 2780: lnL = -86495.502339
-	Node 2781: lnL = -86495.502339
-	Node 2782: lnL = -86495.502339
-	Node 2783: lnL = -86495.502339
-	Node 2784: lnL = -86495.502339
-	Node 2785: lnL = -86495.502339
-	Node 2786: lnL = -86495.502339
-	Node 2787: lnL = -86495.502339
-	Node 2788: lnL = -86495.502339
-	Node 2789: lnL = -86495.502339
-	Node 2790: lnL = -86495.502339
-	Node 2791: lnL = -86495.502339
-	Node 2792: lnL = -86495.502339
-	Node 2793: lnL = -86495.502339
-	Node 2794: lnL = -86495.502339
-	Node 2795: lnL = -86495.502339
-	Node 2796: lnL = -86495.502339
-	Node 2797: lnL = -86495.502339
-	Node 2798: lnL = -86495.502339
-	Node 2799: lnL = -86495.502339
-	Node 2800: lnL = -86495.502339
-	Node 2801: lnL = -86495.502339
-	Node 2802: lnL = -86495.502339
-	Node 2803: lnL = -86495.502339
-	Node 2804: lnL = -86495.502339
-	Node 2805: lnL = -86495.502339
-	Node 2806: lnL = -86495.502339
-	Node 2807: lnL = -86495.502339
-	Node 2808: lnL = -86495.502339
-	Node 2809: lnL = -86495.502339
-	Node 2810: lnL = -86495.502339
-	Node 2811: lnL = -86495.502339
-	Node 2812: lnL = -86495.502339
-	Node 2813: lnL = -86495.502339
-	Node 2814: lnL = -86495.502339
-	Node 2815: lnL = -86495.502339
-	Node 2816: lnL = -86495.502339
-	Node 2817: lnL = -86495.502339
-	Node 2818: lnL = -86495.502339
-	Node 2819: lnL = -86495.502339
-	Node 2820: lnL = -86495.502339
-	Node 2821: lnL = -86495.502339
-	Node 2822: lnL = -86495.502339
-	Node 2823: lnL = -86495.502339
-	Node 2824: lnL = -86495.502339
-	Node 2825: lnL = -86495.502339
-	Node 2826: lnL = -86495.502339
-	Node 2827: lnL = -86495.502339
-	Node 2828: lnL = -86495.502339
-	Node 2829: lnL = -86495.502339
-	Node 2830: lnL = -86495.502339
-	Node 2831: lnL = -86495.502339
-	Node 2832: lnL = -86495.502339
-	Node 2833: lnL = -86495.502339
-	Node 2834: lnL = -86495.502339
-	Node 2835: lnL = -86495.502339
-	Node 2836: lnL = -86495.502339
-	Node 2837: lnL = -86495.502339
-	Node 2838: lnL = -86495.502339
-	Node 2839: lnL = -86495.502339
-	Node 2840: lnL = -86495.502339
-	Node 2841: lnL = -86495.502339
-	Node 2842: lnL = -86495.502339
-	Node 2843: lnL = -86495.502339
-	Node 2844: lnL = -86495.502339
-	Node 2845: lnL = -86495.502339
-	Node 2846: lnL = -86495.502339
-	Node 2847: lnL = -86495.502339
-	Node 2848: lnL = -86495.502339
-	Node 2849: lnL = -86495.502339
-	Node 2850: lnL = -86495.502339
-	Node 2851: lnL = -86495.502339
-	Node 2852: lnL = -86495.502339
-	Node 2853: lnL = -86495.502339
-	Node 2854: lnL = -86495.502339
-	Node 2855: lnL = -86495.502339
-	Node 2856: lnL = -86495.502339
-	Node 2857: lnL = -86495.502339
-	Node 2858: lnL = -86495.502339
-	Node 2859: lnL = -86495.502339
-	Node 2860: lnL = -86495.502339
-	Node 2861: lnL = -86495.502339
-	Node 2862: lnL = -86495.502339
-	Node 2863: lnL = -86495.502339
-	Node 2864: lnL = -86495.502339
-	Node 2865: lnL = -86495.502339
-	Node 2866: lnL = -86495.502339
-	Node 2867: lnL = -86495.502339
-	Node 2868: lnL = -86495.502339
-	Node 2869: lnL = -86495.502339
-	Node 2870: lnL = -86495.502339
-	Node 2871: lnL = -86495.502339
-	Node 2872: lnL = -86495.502339
-	Node 2873: lnL = -86495.502339
-	Node 2874: lnL = -86495.502339
-	Node 2875: lnL = -86495.502339
-	Node 2876: lnL = -86495.502339
-	Node 2877: lnL = -86495.502339
-	Node 2878: lnL = -86495.502339
-	Node 2879: lnL = -86495.502339
-	Node 2880: lnL = -86495.502339
-	Node 2881: lnL = -86495.502339
-	Node 2882: lnL = -86495.502339
-	Node 2883: lnL = -86495.502339
-	Node 2884: lnL = -86495.502339
-	Node 2885: lnL = -86495.502339
-	Node 2886: lnL = -86495.502339
-	Node 2887: lnL = -86495.502339
-	Node 2888: lnL = -86495.502339
-	Node 2889: lnL = -86495.502339
-	Node 2890: lnL = -86495.502339
-	Node 2891: lnL = -86495.502339
-	Node 2892: lnL = -86495.502339
-	Node 2893: lnL = -86495.502339
-	Node 2894: lnL = -86495.502339
-	Node 2895: lnL = -86495.502339
-	Node 2896: lnL = -86495.502339
-	Node 2897: lnL = -86495.502339
-	Node 2898: lnL = -86495.502339
-	Node 2899: lnL = -86495.502339
-	Node 2900: lnL = -86495.502339
-	Node 2901: lnL = -86495.502339
-	Node 2902: lnL = -86495.502339
-	Node 2903: lnL = -86495.502339
-	Node 2904: lnL = -86495.502339
-	Node 2905: lnL = -86495.502339
-	Node 2906: lnL = -86495.502339
-	Node 2907: lnL = -86495.502339
-	Node 2908: lnL = -86495.502339
-	Node 2909: lnL = -86495.502339
-	Node 2910: lnL = -86495.502339
-	Node 2911: lnL = -86495.502339
-	Node 2912: lnL = -86495.502339
-	Node 2913: lnL = -86495.502339
-	Node 2914: lnL = -86495.502339
-	Node 2915: lnL = -86495.502339
-	Node 2916: lnL = -86495.502339
-	Node 2917: lnL = -86495.502339
-	Node 2918: lnL = -86495.502339
-	Node 2919: lnL = -86495.502339
-	Node 2920: lnL = -86495.502339
-	Node 2921: lnL = -86495.502339
-	Node 2922: lnL = -86495.502339
-	Node 2923: lnL = -86495.502339
-	Node 2924: lnL = -86495.502339
-	Node 2925: lnL = -86495.502339
-	Node 2926: lnL = -86495.502339
-	Node 2927: lnL = -86495.502339
-	Node 2928: lnL = -86495.502339
-	Node 2929: lnL = -86495.502339
-	Node 2930: lnL = -86495.502339
-	Node 2931: lnL = -86495.502339
-	Node 2932: lnL = -86495.502339
-	Node 2933: lnL = -86495.502339
-	Node 2934: lnL = -86495.502339
-	Node 2935: lnL = -86495.502339
-	Node 2936: lnL = -86495.502339
-	Node 2937: lnL = -86495.502339
-	Node 2938: lnL = -86495.502339
-	Node 2939: lnL = -86495.502339
-	Node 2940: lnL = -86495.502339
-	Node 2941: lnL = -86495.502339
-	Node 2942: lnL = -86495.502339
-	Node 2943: lnL = -86495.502339
-	Node 2944: lnL = -86495.502339
-	Node 2945: lnL = -86495.502339
-	Node 2946: lnL = -86495.502339
-	Node 2947: lnL = -86495.502339
-	Node 2948: lnL = -86495.502339
-	Node 2949: lnL = -86495.502339
-	Node 2950: lnL = -86495.502339
-	Node 2951: lnL = -86495.502339
-	Node 2952: lnL = -86495.502339
-	Node 2953: lnL = -86495.502339
-	Node 2954: lnL = -86495.502339
-	Node 2955: lnL = -86495.502339
-	Node 2956: lnL = -86495.502339
-	Node 2957: lnL = -86495.502339
-	Node 2958: lnL = -86495.502339
-	Node 2959: lnL = -86495.502339
-	Node 2960: lnL = -86495.502339
-	Node 2961: lnL = -86495.502339
-	Node 2962: lnL = -86495.502339
-	Node 2963: lnL = -86495.502339
-	Node 2964: lnL = -86495.502339
-	Node 2965: lnL = -86495.502339
-	Node 2966: lnL = -86495.502339
-	Node 2967: lnL = -86495.502339
-	Node 2968: lnL = -86495.502339
-	Node 2969: lnL = -86495.502339
-	Node 2970: lnL = -86495.502339
-	Node 2971: lnL = -86495.502339
-	Node 2972: lnL = -86495.502339
-	Node 2973: lnL = -86495.502339
-	Node 2974: lnL = -86495.502339
-	Node 2975: lnL = -86495.502339
-	Node 2976: lnL = -86495.502339
-	Node 2977: lnL = -86495.502339
-	Node 2978: lnL = -86495.502339
-	Node 2979: lnL = -86495.502339
-	Node 2980: lnL = -86495.502339
-	Node 2981: lnL = -86495.502339
-	Node 2982: lnL = -86495.502339
-	Node 2983: lnL = -86495.502339
-	Node 2984: lnL = -86495.502339
-	Node 2985: lnL = -86495.502339
-	Node 2986: lnL = -86495.502339
-	Node 2987: lnL = -86495.502339
-	Node 2988: lnL = -86495.502339
-	Node 2989: lnL = -86495.502339
-	Node 2990: lnL = -86495.502339
-	Node 2991: lnL = -86495.502339
-	Node 2992: lnL = -86495.502339
-	Node 2993: lnL = -86495.502339
-	Node 2994: lnL = -86495.502339
-	Node 2995: lnL = -86495.502339
-	Node 2996: lnL = -86495.502339
-	Node 2997: lnL = -86495.502339
-	Node 2998: lnL = -86495.502339
-	Node 2999: lnL = -86495.502339
-	Node 3000: lnL = -86495.502339
-	Node 3001: lnL = -86495.502339
-	Node 3002: lnL = -86495.502339
-	Node 3003: lnL = -86495.502339
-	Node 3004: lnL = -86495.502339
-	Node 3005: lnL = -86495.502339
-	Node 3006: lnL = -86495.502339
-	Node 3007: lnL = -86495.502339
-	Node 3008: lnL = -86495.502339
-	Node 3009: lnL = -86495.502339
-	Node 3010: lnL = -86495.502339
-	Node 3011: lnL = -86495.502339
-	Node 3012: lnL = -86495.502339
-	Node 3013: lnL = -86495.502339
-	Node 3014: lnL = -86495.502339
-	Node 3015: lnL = -86495.502339
-	Node 3016: lnL = -86495.502339
-	Node 3017: lnL = -86495.502339
-	Node 3018: lnL = -86495.502339
-	Node 3019: lnL = -86495.502339
-	Node 3020: lnL = -86495.502339
-	Node 3021: lnL = -86495.502339
-	Node 3022: lnL = -86495.502339
-	Node 3023: lnL = -86495.502339
-	Node 3024: lnL = -86495.502339
-	Node 3025: lnL = -86495.502339
-	Node 3026: lnL = -86495.502339
-	Node 3027: lnL = -86495.502339
-	Node 3028: lnL = -86495.502339
-	Node 3029: lnL = -86495.502339
-	Node 3030: lnL = -86495.502339
-	Node 3031: lnL = -86495.502339
-	Node 3032: lnL = -86495.502339
-	Node 3033: lnL = -86495.502339
-	Node 3034: lnL = -86495.502339
-	Node 3035: lnL = -86495.502339
-	Node 3036: lnL = -86495.502339
-	Node 3037: lnL = -86495.502339
-	Node 3038: lnL = -86495.502339
-	Node 3039: lnL = -86495.502339
-	Node 3040: lnL = -86495.502339
-	Node 3041: lnL = -86495.502339
-	Node 3042: lnL = -86495.502339
-	Node 3043: lnL = -86495.502339
-	Node 3044: lnL = -86495.502339
-	Node 3045: lnL = -86495.502339
-	Node 3046: lnL = -86495.502339
-	Node 3047: lnL = -86495.502339
-	Node 3048: lnL = -86495.502339
-	Node 3049: lnL = -86495.502339
-	Node 3050: lnL = -86495.502339
-	Node 3051: lnL = -86495.502339
-	Node 3052: lnL = -86495.502339
-	Node 3053: lnL = -86495.502339
-	Node 3054: lnL = -86495.502339
-	Node 3055: lnL = -86495.502339
-	Node 3056: lnL = -86495.502339
-	Node 3057: lnL = -86495.502339
-	Node 3058: lnL = -86495.502339
-	Node 3059: lnL = -86495.502339
-	Node 3060: lnL = -86495.502339
-	Node 3061: lnL = -86495.502339
-	Node 3062: lnL = -86495.502339
-	Node 3063: lnL = -86495.502339
-	Node 3064: lnL = -86495.502339
-	Node 3065: lnL = -86495.502339
-	Node 3066: lnL = -86495.502339
-	Node 3067: lnL = -86495.502339
-	Node 3068: lnL = -86495.502339
-	Node 3069: lnL = -86495.502339
-	Node 3070: lnL = -86495.502339
-	Node 3071: lnL = -86495.502339
-	Node 3072: lnL = -86495.502339
-	Node 3073: lnL = -86495.502339
-	Node 3074: lnL = -86495.502339
-	Node 3075: lnL = -86495.502339
-	Node 3076: lnL = -86495.502339
-	Node 3077: lnL = -86495.502339
-	Node 3078: lnL = -86495.502339
-	Node 3079: lnL = -86495.502339
-	Node 3080: lnL = -86495.502339
-	Node 3081: lnL = -86495.502339
-	Node 3082: lnL = -86495.502339
-	Node 3083: lnL = -86495.502339
-	Node 3084: lnL = -86495.502339
-	Node 3085: lnL = -86495.502339
-	Node 3086: lnL = -86495.502339
-	Node 3087: lnL = -86495.502339
-	Node 3088: lnL = -86495.502339
-	Node 3089: lnL = -86495.502339
-	Node 3090: lnL = -86495.502339
-	Node 3091: lnL = -86495.502339
-	Node 3092: lnL = -86495.502339
-	Node 3093: lnL = -86495.502339
-	Node 3094: lnL = -86495.502339
-	Node 3095: lnL = -86495.502339
-	Node 3096: lnL = -86495.502339
-	Node 3097: lnL = -86495.502339
-	Node 3098: lnL = -86495.502339
-	Node 3099: lnL = -86495.502339
-	Node 3100: lnL = -86495.502339
-	Node 3101: lnL = -86495.502339
-	Node 3102: lnL = -86495.502339
-	Node 3103: lnL = -86495.502339
-	Node 3104: lnL = -86495.502339
-	Node 3105: lnL = -86495.502339
-	Node 3106: lnL = -86495.502339
-	Node 3107: lnL = -86495.502339
-	Node 3108: lnL = -86495.502339
-	Node 3109: lnL = -86495.502339
-	Node 3110: lnL = -86495.502339
-	Node 3111: lnL = -86495.502339
-	Node 3112: lnL = -86495.502339
-	Node 3113: lnL = -86495.502339
-	Node 3114: lnL = -86495.502339
-	Node 3115: lnL = -86495.502339
-	Node 3116: lnL = -86495.502339
-	Node 3117: lnL = -86495.502339
-	Node 3118: lnL = -86495.502339
-	Node 3119: lnL = -86495.502339
-	Node 3120: lnL = -86495.502339
-	Node 3121: lnL = -86495.502339
-	Node 3122: lnL = -86495.502339
-	Node 3123: lnL = -86495.502339
-	Node 3124: lnL = -86495.502339
-	Node 3125: lnL = -86495.502339
-	Node 3126: lnL = -86495.502339
-	Node 3127: lnL = -86495.502339
-	Node 3128: lnL = -86495.502339
-	Node 3129: lnL = -86495.502339
-	Node 3130: lnL = -86495.502339
-	Node 3131: lnL = -86495.502339
-	Node 3132: lnL = -86495.502339
-	Node 3133: lnL = -86495.502339
-	Node 3134: lnL = -86495.502339
-	Node 3135: lnL = -86495.502339
-	Node 3136: lnL = -86495.502339
-	Node 3137: lnL = -86495.502339
-	Node 3138: lnL = -86495.502339
-	Node 3139: lnL = -86495.502339
-	Node 3140: lnL = -86495.502339
-	Node 3141: lnL = -86495.502339
-	Node 3142: lnL = -86495.502339
-	Node 3143: lnL = -86495.502339
-	Node 3144: lnL = -86495.502339
-	Node 3145: lnL = -86495.502339
-	Node 3146: lnL = -86495.502339
-	Node 3147: lnL = -86495.502339
-	Node 3148: lnL = -86495.502339
-	Node 3149: lnL = -86495.502339
-	Node 3150: lnL = -86495.502339
-	Node 3151: lnL = -86495.502339
-	Node 3152: lnL = -86495.502339
-	Node 3153: lnL = -86495.502339
-	Node 3154: lnL = -86495.502339
-	Node 3155: lnL = -86495.502339
-	Node 3156: lnL = -86495.502339
-	Node 3157: lnL = -86495.502339
-	Node 3158: lnL = -86495.502339
-	Node 3159: lnL = -86495.502339
-	Node 3160: lnL = -86495.502339
-	Node 3161: lnL = -86495.502339
-	Node 3162: lnL = -86495.502339
-	Node 3163: lnL = -86495.502339
-	Node 3164: lnL = -86495.502339
-	Node 3165: lnL = -86495.502339
-	Node 3166: lnL = -86495.502339
-	Node 3167: lnL = -86495.502339
-	Node 3168: lnL = -86495.502339
-	Node 3169: lnL = -86495.502339
-	Node 3170: lnL = -86495.502339
-	Node 3171: lnL = -86495.502339
-	Node 3172: lnL = -86495.502339
-	Node 3173: lnL = -86495.502339
-	Node 3174: lnL = -86495.502339
-	Node 3175: lnL = -86495.502339
-	Node 3176: lnL = -86495.502339
-	Node 3177: lnL = -86495.502339
-	Node 3178: lnL = -86495.502339
-	Node 3179: lnL = -86495.502339
-	Node 3180: lnL = -86495.502339
-	Node 3181: lnL = -86495.502339
-	Node 3182: lnL = -86495.502339
-	Node 3183: lnL = -86495.502339
-	Node 3184: lnL = -86495.502339
-	Node 3185: lnL = -86495.502339
-	Node 3186: lnL = -86495.502339
-	Node 3187: lnL = -86495.502339
-	Node 3188: lnL = -86495.502339
-	Node 3189: lnL = -86495.502339
-	Node 3190: lnL = -86495.502339
-	Node 3191: lnL = -86495.502339
-	Node 3192: lnL = -86495.502339
-	Node 3193: lnL = -86495.502339
-	Node 3194: lnL = -86495.502339
-	Node 3195: lnL = -86495.502339
-	Node 3196: lnL = -86495.502339
-	Node 3197: lnL = -86495.502339
-	Node 3198: lnL = -86495.502339
-	Node 3199: lnL = -86495.502339
-	Node 3200: lnL = -86495.502339
-	Node 3201: lnL = -86495.502339
-	Node 3202: lnL = -86495.502339
-	Node 3203: lnL = -86495.502339
-	Node 3204: lnL = -86495.502339
-	Node 3205: lnL = -86495.502339
-	Node 3206: lnL = -86495.502339
-	Node 3207: lnL = -86495.502339
-	Node 3208: lnL = -86495.502339
-	Node 3209: lnL = -86495.502339
-	Node 3210: lnL = -86495.502339
-	Node 3211: lnL = -86495.502339
-	Node 3212: lnL = -86495.502339
-	Node 3213: lnL = -86495.502339
-	Node 3214: lnL = -86495.502339
-	Node 3215: lnL = -86495.502339
-	Node 3216: lnL = -86495.502339
-	Node 3217: lnL = -86495.502339
-	Node 3218: lnL = -86495.502339
-	Node 3219: lnL = -86495.502339
-	Node 3220: lnL = -86495.502339
-	Node 3221: lnL = -86495.502339
-	Node 3222: lnL = -86495.502339
-	Node 3223: lnL = -86495.502339
-	Node 3224: lnL = -86495.502339
-	Node 3225: lnL = -86495.502339
-	Node 3226: lnL = -86495.502339
-	Node 3227: lnL = -86495.502339
-	Node 3228: lnL = -86495.502339
-	Node 3229: lnL = -86495.502339
-	Node 3230: lnL = -86495.502339
-	Node 3231: lnL = -86495.502339
-	Node 3232: lnL = -86495.502339
-	Node 3233: lnL = -86495.502339
-	Node 3234: lnL = -86495.502339
-	Node 3235: lnL = -86495.502339
-	Node 3236: lnL = -86495.502339
-	Node 3237: lnL = -86495.502339
-	Node 3238: lnL = -86495.502339
-	Node 3239: lnL = -86495.502339
-	Node 3240: lnL = -86495.502339
-	Node 3241: lnL = -86495.502339
-	Node 3242: lnL = -86495.502339
-	Node 3243: lnL = -86495.502339
-	Node 3244: lnL = -86495.502339
-	Node 3245: lnL = -86495.502339
-	Node 3246: lnL = -86495.502339
-	Node 3247: lnL = -86495.502339
-	Node 3248: lnL = -86495.502339
-	Node 3249: lnL = -86495.502339
-	Node 3250: lnL = -86495.502339
-	Node 3251: lnL = -86495.502339
-	Node 3252: lnL = -86495.502339
-	Node 3253: lnL = -86495.502339
-	Node 3254: lnL = -86495.502339
-	Node 3255: lnL = -86495.502339
-	Node 3256: lnL = -86495.502339
-	Node 3257: lnL = -86495.502339
-	Node 3258: lnL = -86495.502339
-	Node 3259: lnL = -86495.502339
-	Node 3260: lnL = -86495.502339
-	Node 3261: lnL = -86495.502339
-	Node 3262: lnL = -86495.502339
-	Node 3263: lnL = -86495.502339
-	Node 3264: lnL = -86495.502339
-	Node 3265: lnL = -86495.502339
-	Node 3266: lnL = -86495.502339
-	Node 3267: lnL = -86495.502339
-	Node 3268: lnL = -86495.502339
-	Node 3269: lnL = -86495.502339
-	Node 3270: lnL = -86495.502339
-	Node 3271: lnL = -86495.502339
-	Node 3272: lnL = -86495.502339
-	Node 3273: lnL = -86495.502339
-	Node 3274: lnL = -86495.502339
-	Node 3275: lnL = -86495.502339
-	Node 3276: lnL = -86495.502339
-	Node 3277: lnL = -86495.502339
-	Node 3278: lnL = -86495.502339
-	Node 3279: lnL = -86495.502339
-	Node 3280: lnL = -86495.502339
-	Node 3281: lnL = -86495.502339
-	Node 3282: lnL = -86495.502339
-	Node 3283: lnL = -86495.502339
-	Node 3284: lnL = -86495.502339
-	Node 3285: lnL = -86495.502339
-	Node 3286: lnL = -86495.502339
-	Node 3287: lnL = -86495.502339
-	Node 3288: lnL = -86495.502339
-	Node 3289: lnL = -86495.502339
-	Node 3290: lnL = -86495.502339
-	Node 3291: lnL = -86495.502339
-	Node 3292: lnL = -86495.502339
-	Node 3293: lnL = -86495.502339
-	Node 3294: lnL = -86495.502339
-	Node 3295: lnL = -86495.502339
-	Node 3296: lnL = -86495.502339
-	Node 3297: lnL = -86495.502339
-	Node 3298: lnL = -86495.502339
-	Node 3299: lnL = -86495.502339
-	Node 3300: lnL = -86495.502339
-	Node 3301: lnL = -86495.502339
-	Node 3302: lnL = -86495.502339
-	Node 3303: lnL = -86495.502339
-	Node 3304: lnL = -86495.502339
-	Node 3305: lnL = -86495.502339
-	Node 3306: lnL = -86495.502339
-	Node 3307: lnL = -86495.502339
-	Node 3308: lnL = -86495.502339
-	Node 3309: lnL = -86495.502339
-	Node 3310: lnL = -86495.502339
-	Node 3311: lnL = -86495.502339
-	Node 3312: lnL = -86495.502339
-	Node 3313: lnL = -86495.502339
-	Node 3314: lnL = -86495.502339
-	Node 3315: lnL = -86495.502339
-	Node 3316: lnL = -86495.502339
-	Node 3317: lnL = -86495.502339
-	Node 3318: lnL = -86495.502339
-	Node 3319: lnL = -86495.502339
-	Node 3320: lnL = -86495.502339
-	Node 3321: lnL = -86495.502339
-	Node 3322: lnL = -86495.502339
-	Node 3323: lnL = -86495.502339
-	Node 3324: lnL = -86495.502339
-	Node 3325: lnL = -86495.502339
-	Node 3326: lnL = -86495.502339
-	Node 3327: lnL = -86495.502339
-	Node 3328: lnL = -86495.502339
-	Node 3329: lnL = -86495.502339
-	Node 3330: lnL = -86495.502339
-	Node 3331: lnL = -86495.502339
-	Node 3332: lnL = -86495.502339
-	Node 3333: lnL = -86495.502339
-	Node 3334: lnL = -86495.502339
-	Node 3335: lnL = -86495.502339
-	Node 3336: lnL = -86495.502339
-	Node 3337: lnL = -86495.502339
-	Node 3338: lnL = -86495.502339
-	Node 3339: lnL = -86495.502339
-	Node 3340: lnL = -86495.502339
-	Node 3341: lnL = -86495.502339
-	Node 3342: lnL = -86495.502339
-	Node 3343: lnL = -86495.502339
-	Node 3344: lnL = -86495.502339
-	Node 3345: lnL = -86495.502339
-	Node 3346: lnL = -86495.502339
-	Node 3347: lnL = -86495.502339
-	Node 3348: lnL = -86495.502339
-	Node 3349: lnL = -86495.502339
-	Node 3350: lnL = -86495.502339
-	Node 3351: lnL = -86495.502339
-	Node 3352: lnL = -86495.502339
-	Node 3353: lnL = -86495.502339
-	Node 3354: lnL = -86495.502339
-	Node 3355: lnL = -86495.502339
-	Node 3356: lnL = -86495.502339
-	Node 3357: lnL = -86495.502339
-	Node 3358: lnL = -86495.502339
-	Node 3359: lnL = -86495.502339
-	Node 3360: lnL = -86495.502339
-	Node 3361: lnL = -86495.502339
-	Node 3362: lnL = -86495.502339
-	Node 3363: lnL = -86495.502339
-	Node 3364: lnL = -86495.502339
-	Node 3365: lnL = -86495.502339
-	Node 3366: lnL = -86495.502339
-	Node 3367: lnL = -86495.502339
-	Node 3368: lnL = -86495.502339
-	Node 3369: lnL = -86495.502339
-	Node 3370: lnL = -86495.502339
-	Node 3371: lnL = -86495.502339
-	Node 3372: lnL = -86495.502339
-	Node 3373: lnL = -86495.502339
-	Node 3374: lnL = -86495.502339
-	Node 3375: lnL = -86495.502339
-	Node 3376: lnL = -86495.502339
-	Node 3377: lnL = -86495.502339
-	Node 3378: lnL = -86495.502339
-	Node 3379: lnL = -86495.502339
-	Node 3380: lnL = -86495.502339
-	Node 3381: lnL = -86495.502339
-	Node 3382: lnL = -86495.502339
-	Node 3383: lnL = -86495.502339
-	Node 3384: lnL = -86495.502339
-	Node 3385: lnL = -86495.502339
-	Node 3386: lnL = -86495.502339
-	Node 3387: lnL = -86495.502339
-	Node 3388: lnL = -86495.502339
-	Node 3389: lnL = -86495.502339
-	Node 3390: lnL = -86495.502339
-	Node 3391: lnL = -86495.502339
-	Node 3392: lnL = -86495.502339
-	Node 3393: lnL = -86495.502339
-	Node 3394: lnL = -86495.502339
-	Node 3395: lnL = -86495.502339
-	Node 3396: lnL = -86495.502339
-	Node 3397: lnL = -86495.502339
-	Node 3398: lnL = -86495.502339
-	Node 3399: lnL = -86495.502339
-	Node 3400: lnL = -86495.502339
-	Node 3401: lnL = -86495.502339
-	Node 3402: lnL = -86495.502339
-	Node 3403: lnL = -86495.502339
-	Node 3404: lnL = -86495.502339
-	Node 3405: lnL = -86495.502339
-	Node 3406: lnL = -86495.502339
-	Node 3407: lnL = -86495.502339
-	Node 3408: lnL = -86495.502339
-	Node 3409: lnL = -86495.502339
-	Node 3410: lnL = -86495.502339
-	Node 3411: lnL = -86495.502339
-	Node 3412: lnL = -86495.502339
-	Node 3413: lnL = -86495.502339
-	Node 3414: lnL = -86495.502339
-	Node 3415: lnL = -86495.502339
-	Node 3416: lnL = -86495.502339
-	Node 3417: lnL = -86495.502339
-	Node 3418: lnL = -86495.502339
-	Node 3419: lnL = -86495.502339
-	Node 3420: lnL = -86495.502339
-	Node 3421: lnL = -86495.502339
-	Node 3422: lnL = -86495.502339
-	Node 3423: lnL = -86495.502339
-	Node 3424: lnL = -86495.502339
-	Node 3425: lnL = -86495.502339
-	Node 3426: lnL = -86495.502339
-	Node 3427: lnL = -86495.502339
-	Node 3428: lnL = -86495.502339
-	Node 3429: lnL = -86495.502339
-	Node 3430: lnL = -86495.502339
-	Node 3431: lnL = -86495.502339
-	Node 3432: lnL = -86495.502339
-	Node 3433: lnL = -86495.502339
-	Node 3434: lnL = -86495.502339
-	Node 3435: lnL = -86495.502339
-	Node 3436: lnL = -86495.502339
-	Node 3437: lnL = -86495.502339
-	Node 3438: lnL = -86495.502339
-	Node 3439: lnL = -86495.502339
-	Node 3440: lnL = -86495.502339
-	Node 3441: lnL = -86495.502339
-	Node 3442: lnL = -86495.502339
-	Node 3443: lnL = -86495.502339
-	Node 3444: lnL = -86495.502339
-	Node 3445: lnL = -86495.502339
-	Node 3446: lnL = -86495.502339
-	Node 3447: lnL = -86495.502339
-	Node 3448: lnL = -86495.502339
-	Node 3449: lnL = -86495.502339
-	Node 3450: lnL = -86495.502339
-	Node 3451: lnL = -86495.502339
-	Node 3452: lnL = -86495.502339
-	Node 3453: lnL = -86495.502339
-	Node 3454: lnL = -86495.502339
-	Node 3455: lnL = -86495.502339
-	Node 3456: lnL = -86495.502339
-	Node 3457: lnL = -86495.502339
-	Node 3458: lnL = -86495.502339
-	Node 3459: lnL = -86495.502339
-	Node 3460: lnL = -86495.502339
-	Node 3461: lnL = -86495.502339
-	Node 3462: lnL = -86495.502339
-	Node 3463: lnL = -86495.502339
-	Node 3464: lnL = -86495.502339
-	Node 3465: lnL = -86495.502339
-	Node 3466: lnL = -86495.502339
-	Node 3467: lnL = -86495.502339
-	Node 3468: lnL = -86495.502339
-	Node 3469: lnL = -86495.502339
-	Node 3470: lnL = -86495.502339
-	Node 3471: lnL = -86495.502339
-	Node 3472: lnL = -86495.502339
-	Node 3473: lnL = -86495.502339
-	Node 3474: lnL = -86495.502339
-	Node 3475: lnL = -86495.502339
-	Node 3476: lnL = -86495.502339
-	Node 3477: lnL = -86495.502339
-	Node 3478: lnL = -86495.502339
-	Node 3479: lnL = -86495.502339
-	Node 3480: lnL = -86495.502339
-	Node 3481: lnL = -86495.502339
-	Node 3482: lnL = -86495.502339
-	Node 3483: lnL = -86495.502339
-	Node 3484: lnL = -86495.502339
-	Node 3485: lnL = -86495.502339
-	Node 3486: lnL = -86495.502339
-	Node 3487: lnL = -86495.502339
-	Node 3488: lnL = -86495.502339
-	Node 3489: lnL = -86495.502339
-	Node 3490: lnL = -86495.502339
-	Node 3491: lnL = -86495.502339
-	Node 3492: lnL = -86495.502339
-	Node 3493: lnL = -86495.502339
-	Node 3494: lnL = -86495.502339
-	Node 3495: lnL = -86495.502339
-	Node 3496: lnL = -86495.502339
-	Node 3497: lnL = -86495.502339
-	Node 3498: lnL = -86495.502339
-	Node 3499: lnL = -86495.502339
-	Node 3500: lnL = -86495.502339
-	Node 3501: lnL = -86495.502339
-	Node 3502: lnL = -86495.502339
-	Node 3503: lnL = -86495.502339
-	Node 3504: lnL = -86495.502339
-	Node 3505: lnL = -86495.502339
-	Node 3506: lnL = -86495.502339
-	Node 3507: lnL = -86495.502339
-	Node 3508: lnL = -86495.502339
-	Node 3509: lnL = -86495.502339
-	Node 3510: lnL = -86495.502339
-	Node 3511: lnL = -86495.502339
-	Node 3512: lnL = -86495.502339
-	Node 3513: lnL = -86495.502339
-	Node 3514: lnL = -86495.502339
-	Node 3515: lnL = -86495.502339
-	Node 3516: lnL = -86495.502339
-	Node 3517: lnL = -86495.502339
-	Node 3518: lnL = -86495.502339
-	Node 3519: lnL = -86495.502339
-	Node 3520: lnL = -86495.502339
-	Node 3521: lnL = -86495.502339
-	Node 3522: lnL = -86495.502339
-	Node 3523: lnL = -86495.502339
-	Node 3524: lnL = -86495.502339
-	Node 3525: lnL = -86495.502339
-	Node 3526: lnL = -86495.502339
-	Node 3527: lnL = -86495.502339
-	Node 3528: lnL = -86495.502339
-	Node 3529: lnL = -86495.502339
-	Node 3530: lnL = -86495.502339
-	Node 3531: lnL = -86495.502339
-	Node 3532: lnL = -86495.502339
-	Node 3533: lnL = -86495.502339
-	Node 3534: lnL = -86495.502339
-	Node 3535: lnL = -86495.502339
-	Node 3536: lnL = -86495.502339
-	Node 3537: lnL = -86495.502339
-	Node 3538: lnL = -86495.502339
-	Node 3539: lnL = -86495.502339
-	Node 3540: lnL = -86495.502339
-	Node 3541: lnL = -86495.502339
-	Node 3542: lnL = -86495.502339
-	Node 3543: lnL = -86495.502339
-	Node 3544: lnL = -86495.502339
-	Node 3545: lnL = -86495.502339
-	Node 3546: lnL = -86495.502339
-	Node 3547: lnL = -86495.502339
-	Node 3548: lnL = -86495.502339
-	Node 3549: lnL = -86495.502339
-	Node 3550: lnL = -86495.502339
-	Node 3551: lnL = -86495.502339
-	Node 3552: lnL = -86495.502339
-	Node 3553: lnL = -86495.502339
-	Node 3554: lnL = -86495.502339
-	Node 3555: lnL = -86495.502339
-	Node 3556: lnL = -86495.502339
-	Node 3557: lnL = -86495.502339
-	Node 3558: lnL = -86495.502339
-	Node 3559: lnL = -86495.502339
-	Node 3560: lnL = -86495.502339
-	Node 3561: lnL = -86495.502339
-	Node 3562: lnL = -86495.502339
-	Node 3563: lnL = -86495.502339
-	Node 3564: lnL = -86495.502339
-	Node 3565: lnL = -86495.502339
-	Node 3566: lnL = -86495.502339
-	Node 3567: lnL = -86495.502339
-	Node 3568: lnL = -86495.502339
-	Node 3569: lnL = -86495.502339
-	Node 3570: lnL = -86495.502339
-	Node 3571: lnL = -86495.502339
-	Node 3572: lnL = -86495.502339
-	Node 3573: lnL = -86495.502339
-	Node 3574: lnL = -86495.502339
-	Node 3575: lnL = -86495.502339
-	Node 3576: lnL = -86495.502339
-	Node 3577: lnL = -86495.502339
-	Node 3578: lnL = -86495.502339
-	Node 3579: lnL = -86495.502339
-	Node 3580: lnL = -86495.502339
-	Node 3581: lnL = -86495.502339
-	Node 3582: lnL = -86495.502339
-	Node 3583: lnL = -86495.502339
-	Node 3584: lnL = -86495.502339
-	Node 3585: lnL = -86495.502339
-	Node 3586: lnL = -86495.502339
-	Node 3587: lnL = -86495.502339
-	Node 3588: lnL = -86495.502339
-	Node 3589: lnL = -86495.502339
-	Node 3590: lnL = -86495.502339
-	Node 3591: lnL = -86495.502339
-	Node 3592: lnL = -86495.502339
-	Node 3593: lnL = -86495.502339
-	Node 3594: lnL = -86495.502339
-	Node 3595: lnL = -86495.502339
-	Node 3596: lnL = -86495.502339
-	Node 3597: lnL = -86495.502339
-	Node 3598: lnL = -86495.502339
-	Node 3599: lnL = -86495.502339
-	Node 3600: lnL = -86495.502339
-	Node 3601: lnL = -86495.502339
-	Node 3602: lnL = -86495.502339
-	Node 3603: lnL = -86495.502339
-	Node 3604: lnL = -86495.502339
-	Node 3605: lnL = -86495.502339
-	Node 3606: lnL = -86495.502339
-	Node 3607: lnL = -86495.502339
-	Node 3608: lnL = -86495.502339
-	Node 3609: lnL = -86495.502339
-	Node 3610: lnL = -86495.502339
-	Node 3611: lnL = -86495.502339
-	Node 3612: lnL = -86495.502339
-	Node 3613: lnL = -86495.502339
-	Node 3614: lnL = -86495.502339
-	Node 3615: lnL = -86495.502339
-	Node 3616: lnL = -86495.502339
-	Node 3617: lnL = -86495.502339
-	Node 3618: lnL = -86495.502339
-	Node 3619: lnL = -86495.502339
-	Node 3620: lnL = -86495.502339
-	Node 3621: lnL = -86495.502339
-	Node 3622: lnL = -86495.502339
-	Node 3623: lnL = -86495.502339
-	Node 3624: lnL = -86495.502339
-	Node 3625: lnL = -86495.502339
-	Node 3626: lnL = -86495.502339
-	Node 3627: lnL = -86495.502339
-	Node 3628: lnL = -86495.502339
-	Node 3629: lnL = -86495.502339
-	Node 3630: lnL = -86495.502339
-	Node 3631: lnL = -86495.502339
-	Node 3632: lnL = -86495.502339
-	Node 3633: lnL = -86495.502339
-	Node 3634: lnL = -86495.502339
-	Node 3635: lnL = -86495.502339
-	Node 3636: lnL = -86495.502339
-	Node 3637: lnL = -86495.502339
-	Node 3638: lnL = -86495.502339
-	Node 3639: lnL = -86495.502339
-	Node 3640: lnL = -86495.502339
-	Node 3641: lnL = -86495.502339
-	Node 3642: lnL = -86495.502339
-	Node 3643: lnL = -86495.502339
-	Node 3644: lnL = -86495.502339
-	Node 3645: lnL = -86495.502339
-	Node 3646: lnL = -86495.502339
-	Node 3647: lnL = -86495.502339
-	Node 3648: lnL = -86495.502339
-	Node 3649: lnL = -86495.502339
-	Node 3650: lnL = -86495.502339
-	Node 3651: lnL = -86495.502339
-	Node 3652: lnL = -86495.502339
-	Node 3653: lnL = -86495.502339
-	Node 3654: lnL = -86495.502339
-	Node 3655: lnL = -86495.502339
-	Node 3656: lnL = -86495.502339
-	Node 3657: lnL = -86495.502339
-	Node 3658: lnL = -86495.502339
-	Node 3659: lnL = -86495.502339
-	Node 3660: lnL = -86495.502339
-	Node 3661: lnL = -86495.502339
-	Node 3662: lnL = -86495.502339
-	Node 3663: lnL = -86495.502339
-	Node 3664: lnL = -86495.502339
-	Node 3665: lnL = -86495.502339
-	Node 3666: lnL = -86495.502339
-	Node 3667: lnL = -86495.502339
-	Node 3668: lnL = -86495.502339
-	Node 3669: lnL = -86495.502339
-	Node 3670: lnL = -86495.502339
-	Node 3671: lnL = -86495.502339
-	Node 3672: lnL = -86495.502339
-	Node 3673: lnL = -86495.502339
-	Node 3674: lnL = -86495.502339
-	Node 3675: lnL = -86495.502339
-	Node 3676: lnL = -86495.502339
-	Node 3677: lnL = -86495.502339
-	Node 3678: lnL = -86495.502339
-	Node 3679: lnL = -86495.502339
-	Node 3680: lnL = -86495.502339
-	Node 3681: lnL = -86495.502339
-	Node 3682: lnL = -86495.502339
-	Node 3683: lnL = -86495.502339
-	Node 3684: lnL = -86495.502339
-	Node 3685: lnL = -86495.502339
-	Node 3686: lnL = -86495.502339
-	Node 3687: lnL = -86495.502339
-	Node 3688: lnL = -86495.502339
-	Node 3689: lnL = -86495.502339
-	Node 3690: lnL = -86495.502339
-	Node 3691: lnL = -86495.502339
-	Node 3692: lnL = -86495.502339
-	Node 3693: lnL = -86495.502339
-	Node 3694: lnL = -86495.502339
-	Node 3695: lnL = -86495.502339
-	Node 3696: lnL = -86495.502339
-	Node 3697: lnL = -86495.502339
-	Node 3698: lnL = -86495.502339
-	Node 3699: lnL = -86495.502339
-	Node 3700: lnL = -86495.502339
-	Node 3701: lnL = -86495.502339
-	Node 3702: lnL = -86495.502339
-	Node 3703: lnL = -86495.502339
-	Node 3704: lnL = -86495.502339
-	Node 3705: lnL = -86495.502339
-	Node 3706: lnL = -86495.502339
-	Node 3707: lnL = -86495.502339
-	Node 3708: lnL = -86495.502339
-	Node 3709: lnL = -86495.502339
-	Node 3710: lnL = -86495.502339
-	Node 3711: lnL = -86495.502339
-	Node 3712: lnL = -86495.502339
-	Node 3713: lnL = -86495.502339
-	Node 3714: lnL = -86495.502339
-	Node 3715: lnL = -86495.502339
-	Node 3716: lnL = -86495.502339
-	Node 3717: lnL = -86495.502339
-	Node 3718: lnL = -86495.502339
-	Node 3719: lnL = -86495.502339
-	Node 3720: lnL = -86495.502339
-	Node 3721: lnL = -86495.502339
-	Node 3722: lnL = -86495.502339
-	Node 3723: lnL = -86495.502339
-	Node 3724: lnL = -86495.502339
-	Node 3725: lnL = -86495.502339
-	Node 3726: lnL = -86495.502339
-	Node 3727: lnL = -86495.502339
-	Node 3728: lnL = -86495.502339
-	Node 3729: lnL = -86495.502339
-	Node 3730: lnL = -86495.502339
-	Node 3731: lnL = -86495.502339
-	Node 3732: lnL = -86495.502339
-	Node 3733: lnL = -86495.502339
-	Node 3734: lnL = -86495.502339
-	Node 3735: lnL = -86495.502339
-	Node 3736: lnL = -86495.502339
-	Node 3737: lnL = -86495.502339
-	Node 3738: lnL = -86495.502339
-	Node 3739: lnL = -86495.502339
-	Node 3740: lnL = -86495.502339
-	Node 3741: lnL = -86495.502339
-	Node 3742: lnL = -86495.502339
-	Node 3743: lnL = -86495.502339
-	Node 3744: lnL = -86495.502339
-	Node 3745: lnL = -86495.502339
-	Node 3746: lnL = -86495.502339
-	Node 3747: lnL = -86495.502339
-	Node 3748: lnL = -86495.502339
-	Node 3749: lnL = -86495.502339
-	Node 3750: lnL = -86495.502339
-	Node 3751: lnL = -86495.502339
-	Node 3752: lnL = -86495.502339
-	Node 3753: lnL = -86495.502339
-	Node 3754: lnL = -86495.502339
-	Node 3755: lnL = -86495.502339
-	Node 3756: lnL = -86495.502339
-	Node 3757: lnL = -86495.502339
-	Node 3758: lnL = -86495.502339
-	Node 3759: lnL = -86495.502339
-	Node 3760: lnL = -86495.502339
-	Node 3761: lnL = -86495.502339
-	Node 3762: lnL = -86495.502339
-	Node 3763: lnL = -86495.502339
-	Node 3764: lnL = -86495.502339
-	Node 3765: lnL = -86495.502339
-	Node 3766: lnL = -86495.502339
-	Node 3767: lnL = -86495.502339
-	Node 3768: lnL = -86495.502339
-	Node 3769: lnL = -86495.502339
-	Node 3770: lnL = -86495.502339
-	Node 3771: lnL = -86495.502339
-	Node 3772: lnL = -86495.502339
-	Node 3773: lnL = -86495.502339
-	Node 3774: lnL = -86495.502339
-	Node 3775: lnL = -86495.502339
-	Node 3776: lnL = -86495.502339
-	Node 3777: lnL = -86495.502339
-	Node 3778: lnL = -86495.502339
-	Node 3779: lnL = -86495.502339
-	Node 3780: lnL = -86495.502339
-	Node 3781: lnL = -86495.502339
-	Node 3782: lnL = -86495.502339
-	Node 3783: lnL = -86495.502339
-	Node 3784: lnL = -86495.502339
-	Node 3785: lnL = -86495.502339
-	Node 3786: lnL = -86495.502339
-	Node 3787: lnL = -86495.502339
-	Node 3788: lnL = -86495.502339
-	Node 3789: lnL = -86495.502339
-	Node 3790: lnL = -86495.502339
-	Node 3791: lnL = -86495.502339
-	Node 3792: lnL = -86495.502339
-	Node 3793: lnL = -86495.502339
-	Node 3794: lnL = -86495.502339
-	Node 3795: lnL = -86495.502339
-	Node 3796: lnL = -86495.502339
-	Node 3797: lnL = -86495.502339
-	Node 3798: lnL = -86495.502339
-	Node 3799: lnL = -86495.502339
-	Node 3800: lnL = -86495.502339
-	Node 3801: lnL = -86495.502339
-	Node 3802: lnL = -86495.502339
-	Node 3803: lnL = -86495.502339
-	Node 3804: lnL = -86495.502339
-	Node 3805: lnL = -86495.502339
-	Node 3806: lnL = -86495.502339
-	Node 3807: lnL = -86495.502339
-	Node 3808: lnL = -86495.502339
-	Node 3809: lnL = -86495.502339
-	Node 3810: lnL = -86495.502339
-	Node 3811: lnL = -86495.502339
-	Node 3812: lnL = -86495.502339
-	Node 3813: lnL = -86495.502339
-	Node 3814: lnL = -86495.502339
-	Node 3815: lnL = -86495.502339
-	Node 3816: lnL = -86495.502339
-	Node 3817: lnL = -86495.502339
-	Node 3818: lnL = -86495.502339
-	Node 3819: lnL = -86495.502339
-	Node 3820: lnL = -86495.502339
-	Node 3821: lnL = -86495.502339
-	Node 3822: lnL = -86495.502339
-	Node 3823: lnL = -86495.502339
-	Node 3824: lnL = -86495.502339
-	Node 3825: lnL = -86495.502339
-	Node 3826: lnL = -86495.502339
-	Node 3827: lnL = -86495.502339
-	Node 3828: lnL = -86495.502339
-	Node 3829: lnL = -86495.502339
-	Node 3830: lnL = -86495.502339
-	Node 3831: lnL = -86495.502339
-	Node 3832: lnL = -86495.502339
-	Node 3833: lnL = -86495.502339
-	Node 3834: lnL = -86495.502339
-	Node 3835: lnL = -86495.502339
-	Node 3836: lnL = -86495.502339
-	Node 3837: lnL = -86495.502339
-	Node 3838: lnL = -86495.502339
-	Node 3839: lnL = -86495.502339
-	Node 3840: lnL = -86495.502339
-	Node 3841: lnL = -86495.502339
-	Node 3842: lnL = -86495.502339
-	Node 3843: lnL = -86495.502339
-	Node 3844: lnL = -86495.502339
-	Node 3845: lnL = -86495.502339
-	Node 3846: lnL = -86495.502339
-	Node 3847: lnL = -86495.502339
-	Node 3848: lnL = -86495.502339
-	Node 3849: lnL = -86495.502339
-	Node 3850: lnL = -86495.502339
-	Node 3851: lnL = -86495.502339
-	Node 3852: lnL = -86495.502339
-	Node 3853: lnL = -86495.502339
-	Node 3854: lnL = -86495.502339
-	Node 3855: lnL = -86495.502339
-	Node 3856: lnL = -86495.502339
-	Node 3857: lnL = -86495.502339
-	Node 3858: lnL = -86495.502339
-	Node 3859: lnL = -86495.502339
-	Node 3860: lnL = -86495.502339
-	Node 3861: lnL = -86495.502339
-	Node 3862: lnL = -86495.502339
-	Node 3863: lnL = -86495.502339
-	Node 3864: lnL = -86495.502339
-	Node 3865: lnL = -86495.502339
-	Node 3866: lnL = -86495.502339
-	Node 3867: lnL = -86495.502339
-	Node 3868: lnL = -86495.502339
-	Node 3869: lnL = -86495.502339
-	Node 3870: lnL = -86495.502339
-	Node 3871: lnL = -86495.502339
-	Node 3872: lnL = -86495.502339
-	Node 3873: lnL = -86495.502339
-	Node 3874: lnL = -86495.502339
-	Node 3875: lnL = -86495.502339
-	Node 3876: lnL = -86495.502339
-	Node 3877: lnL = -86495.502339
-	Node 3878: lnL = -86495.502339
-	Node 3879: lnL = -86495.502339
-	Node 3880: lnL = -86495.502339
-	Node 3881: lnL = -86495.502339
-	Node 3882: lnL = -86495.502339
-	Node 3883: lnL = -86495.502339
-	Node 3884: lnL = -86495.502339
-	Node 3885: lnL = -86495.502339
-	Node 3886: lnL = -86495.502339
-	Node 3887: lnL = -86495.502339
-	Node 3888: lnL = -86495.502339
-	Node 3889: lnL = -86495.502339
-	Node 3890: lnL = -86495.502339
-	Node 3891: lnL = -86495.502339
-	Node 3892: lnL = -86495.502339
-	Node 3893: lnL = -86495.502339
-	Node 3894: lnL = -86495.502339
-	Node 3895: lnL = -86495.502339
-	Node 3896: lnL = -86495.502339
-	Node 3897: lnL = -86495.502339
-	Node 3898: lnL = -86495.502339
-	Node 3899: lnL = -86495.502339
-	Node 3900: lnL = -86495.502339
-	Node 3901: lnL = -86495.502339
-	Node 3902: lnL = -86495.502339
-	Node 3903: lnL = -86495.502339
-	Node 3904: lnL = -86495.502339
-	Node 3905: lnL = -86495.502339
-	Node 3906: lnL = -86495.502339
-	Node 3907: lnL = -86495.502339
-	Node 3908: lnL = -86495.502339
-	Node 3909: lnL = -86495.502339
-	Node 3910: lnL = -86495.502339
-	Node 3911: lnL = -86495.502339
-	Node 3912: lnL = -86495.502339
-	Node 3913: lnL = -86495.502339
-	Node 3914: lnL = -86495.502339
-	Node 3915: lnL = -86495.502339
-	Node 3916: lnL = -86495.502339
-	Node 3917: lnL = -86495.502339
-	Node 3918: lnL = -86495.502339
-	Node 3919: lnL = -86495.502339
-	Node 3920: lnL = -86495.502339
-	Node 3921: lnL = -86495.502339
-	Node 3922: lnL = -86495.502339
-	Node 3923: lnL = -86495.502339
-	Node 3924: lnL = -86495.502339
-	Node 3925: lnL = -86495.502339
-	Node 3926: lnL = -86495.502339
-	Node 3927: lnL = -86495.502339
-	Node 3928: lnL = -86495.502339
-	Node 3929: lnL = -86495.502339
-	Node 3930: lnL = -86495.502339
-	Node 3931: lnL = -86495.502339
-	Node 3932: lnL = -86495.502339
-	Node 3933: lnL = -86495.502339
-	Node 3934: lnL = -86495.502339
-	Node 3935: lnL = -86495.502339
-	Node 3936: lnL = -86495.502339
-	Node 3937: lnL = -86495.502339
-	Node 3938: lnL = -86495.502339
-	Node 3939: lnL = -86495.502339
-	Node 3940: lnL = -86495.502339
-	Node 3941: lnL = -86495.502339
-	Node 3942: lnL = -86495.502339
-	Node 3943: lnL = -86495.502339
-	Node 3944: lnL = -86495.502339
-	Node 3945: lnL = -86495.502339
-	Node 3946: lnL = -86495.502339
-	Node 3947: lnL = -86495.502339
-	Node 3948: lnL = -86495.502339
-	Node 3949: lnL = -86495.502339
-	Node 3950: lnL = -86495.502339
-	Node 3951: lnL = -86495.502339
-	Node 3952: lnL = -86495.502339
-	Node 3953: lnL = -86495.502339
-	Node 3954: lnL = -86495.502339
-	Node 3955: lnL = -86495.502339
-	Node 3956: lnL = -86495.502339
-	Node 3957: lnL = -86495.502339
-	Node 3958: lnL = -86495.502339
-	Node 3959: lnL = -86495.502339
-	Node 3960: lnL = -86495.502339
-	Node 3961: lnL = -86495.502339
-	Node 3962: lnL = -86495.502339
-	Node 3963: lnL = -86495.502339
-	Node 3964: lnL = -86495.502339
-	Node 3965: lnL = -86495.502339
-	Node 3966: lnL = -86495.502339
-	Node 3967: lnL = -86495.502339
-	Node 3968: lnL = -86495.502339
-	Node 3969: lnL = -86495.502339
-	Node 3970: lnL = -86495.502339
-	Node 3971: lnL = -86495.502339
-	Node 3972: lnL = -86495.502339
-	Node 3973: lnL = -86495.502339
-	Node 3974: lnL = -86495.502339
-	Node 3975: lnL = -86495.502339
-	Node 3976: lnL = -86495.502339
-	Node 3977: lnL = -86495.502339
-	Node 3978: lnL = -86495.502339
-	Node 3979: lnL = -86495.502339
-	Node 3980: lnL = -86495.502339
-	Node 3981: lnL = -86495.502339
-	Node 3982: lnL = -86495.502339
-	Node 3983: lnL = -86495.502339
-	Node 3984: lnL = -86495.502339
-	Node 3985: lnL = -86495.502339
-	Node 3986: lnL = -86495.502339
-	Node 3987: lnL = -86495.502339
-	Node 3988: lnL = -86495.502339
-	Node 3989: lnL = -86495.502339
-	Node 3990: lnL = -86495.502339
-	Node 3991: lnL = -86495.502339
-	Node 3992: lnL = -86495.502339
-	Node 3993: lnL = -86495.502339
-	Node 3994: lnL = -86495.502339
-	Node 3995: lnL = -86495.502339
-	Node 3996: lnL = -86495.502339
-	Node 3997: lnL = -86495.502339
-	Node 3998: lnL = -86495.502339
-	Node 3999: lnL = -86495.502339
-	Node 4000: lnL = -86495.502339
-	Node 4001: lnL = -86495.502339
-	Node 4002: lnL = -86495.502339
-	Node 4003: lnL = -86495.502339
-	Node 4004: lnL = -86495.502339
-	Node 4005: lnL = -86495.502339
-	Node 4006: lnL = -86495.502339
-	Node 4007: lnL = -86495.502339
-	Node 4008: lnL = -86495.502339
-	Node 4009: lnL = -86495.502339
-	Node 4010: lnL = -86495.502339
-	Node 4011: lnL = -86495.502339
-	Node 4012: lnL = -86495.502339
-	Node 4013: lnL = -86495.502339
-	Node 4014: lnL = -86495.502339
-	Node 4015: lnL = -86495.502339
-	Node 4016: lnL = -86495.502339
-	Node 4017: lnL = -86495.502339
-	Node 4018: lnL = -86495.502339
-	Node 4019: lnL = -86495.502339
-	Node 4020: lnL = -86495.502339
-	Node 4021: lnL = -86495.502339
-	Node 4022: lnL = -86495.502339
-	Node 4023: lnL = -86495.502339
-	Node 4024: lnL = -86495.502339
-	Node 4025: lnL = -86495.502339
-	Node 4026: lnL = -86495.502339
-	Node 4027: lnL = -86495.502339
-	Node 4028: lnL = -86495.502339
-	Node 4029: lnL = -86495.502339
-	Node 4030: lnL = -86495.502339
-	Node 4031: lnL = -86495.502339
-	Node 4032: lnL = -86495.502339
-	Node 4033: lnL = -86495.502339
-	Node 4034: lnL = -86495.502339
-	Node 4035: lnL = -86495.502339
-	Node 4036: lnL = -86495.502339
-	Node 4037: lnL = -86495.502339
-	Node 4038: lnL = -86495.502339
-	Node 4039: lnL = -86495.502339
-	Node 4040: lnL = -86495.502339
-	Node 4041: lnL = -86495.502339
-	Node 4042: lnL = -86495.502339
-	Node 4043: lnL = -86495.502339
-	Node 4044: lnL = -86495.502339
-	Node 4045: lnL = -86495.502339
-	Node 4046: lnL = -86495.502339
-	Node 4047: lnL = -86495.502339
-	Node 4048: lnL = -86495.502339
-	Node 4049: lnL = -86495.502339
-	Node 4050: lnL = -86495.502339
-	Node 4051: lnL = -86495.502339
-	Node 4052: lnL = -86495.502339
-	Node 4053: lnL = -86495.502339
-	Node 4054: lnL = -86495.502339
-	Node 4055: lnL = -86495.502339
-	Node 4056: lnL = -86495.502339
-	Node 4057: lnL = -86495.502339
-	Node 4058: lnL = -86495.502339
-	Node 4059: lnL = -86495.502339
-	Node 4060: lnL = -86495.502339
-	Node 4061: lnL = -86495.502339
-	Node 4062: lnL = -86495.502339
-	Node 4063: lnL = -86495.502339
-	Node 4064: lnL = -86495.502339
-	Node 4065: lnL = -86495.502339
-	Node 4066: lnL = -86495.502339
-	Node 4067: lnL = -86495.502339
-	Node 4068: lnL = -86495.502339
-	Node 4069: lnL = -86495.502339
-	Node 4070: lnL = -86495.502339
-	Node 4071: lnL = -86495.502339
-	Node 4072: lnL = -86495.502339
-	Node 4073: lnL = -86495.502339
-	Node 4074: lnL = -86495.502339
-	Node 4075: lnL = -86495.502339
-	Node 4076: lnL = -86495.502339
-	Node 4077: lnL = -86495.502339
-	Node 4078: lnL = -86495.502339
-	Node 4079: lnL = -86495.502339
-	Node 4080: lnL = -86495.502339
-	Node 4081: lnL = -86495.502339
-	Node 4082: lnL = -86495.502339
-	Node 4083: lnL = -86495.502339
-	Node 4084: lnL = -86495.502339
-	Node 4085: lnL = -86495.502339
-	Node 4086: lnL = -86495.502339
-	Node 4087: lnL = -86495.502339
-	Node 4088: lnL = -86495.502339
-	Node 4089: lnL = -86495.502339
-	Node 4090: lnL = -86495.502339
-	Node 4091: lnL = -86495.502339
-	Node 4092: lnL = -86495.502339
-	Node 4093: lnL = -86495.502339
-	Node 4094: lnL = -86495.502339
-	Node 4095: lnL = -86495.502339
-	Node 4096: lnL = -86495.502339
-	Node 4097: lnL = -86495.502339
-	Node 4098: lnL = -86495.502339
-	Node 4099: lnL = -86495.502339
-	Node 4100: lnL = -86495.502339
-	Node 4101: lnL = -86495.502339
-	Node 4102: lnL = -86495.502339
-	Node 4103: lnL = -86495.502339
-	Node 4104: lnL = -86495.502339
-	Node 4105: lnL = -86495.502339
-	Node 4106: lnL = -86495.502339
-	Node 4107: lnL = -86495.502339
-	Node 4108: lnL = -86495.502339
-	Node 4109: lnL = -86495.502339
-	Node 4110: lnL = -86495.502339
-	Node 4111: lnL = -86495.502339
-	Node 4112: lnL = -86495.502339
-	Node 4113: lnL = -86495.502339
-	Node 4114: lnL = -86495.502339
-	Node 4115: lnL = -86495.502339
-	Node 4116: lnL = -86495.502339
-	Node 4117: lnL = -86495.502339
-	Node 4118: lnL = -86495.502339
-	Node 4119: lnL = -86495.502339
-	Node 4120: lnL = -86495.502339
-	Node 4121: lnL = -86495.502339
-	Node 4122: lnL = -86495.502339
-	Node 4123: lnL = -86495.502339
-	Node 4124: lnL = -86495.502339
-	Node 4125: lnL = -86495.502339
-	Node 4126: lnL = -86495.502339
-	Node 4127: lnL = -86495.502339
-	Node 4128: lnL = -86495.502339
-	Node 4129: lnL = -86495.502339
-	Node 4130: lnL = -86495.502339
-	Node 4131: lnL = -86495.502339
-	Node 4132: lnL = -86495.502339
-	Node 4133: lnL = -86495.502339
-	Node 4134: lnL = -86495.502339
-	Node 4135: lnL = -86495.502339
-	Node 4136: lnL = -86495.502339
-	Node 4137: lnL = -86495.502339
-	Node 4138: lnL = -86495.502339
-	Node 4139: lnL = -86495.502339
-	Node 4140: lnL = -86495.502339
-	Node 4141: lnL = -86495.502339
-	Node 4142: lnL = -86495.502339
-	Node 4143: lnL = -86495.502339
-	Node 4144: lnL = -86495.502339
-	Node 4145: lnL = -86495.502339
-	Node 4146: lnL = -86495.502339
-	Node 4147: lnL = -86495.502339
-	Node 4148: lnL = -86495.502339
-	Node 4149: lnL = -86495.502339
-	Node 4150: lnL = -86495.502339
-	Node 4151: lnL = -86495.502339
-	Node 4152: lnL = -86495.502339
-	Node 4153: lnL = -86495.502339
-	Node 4154: lnL = -86495.502339
-	Node 4155: lnL = -86495.502339
-	Node 4156: lnL = -86495.502339
-	Node 4157: lnL = -86495.502339
-	Node 4158: lnL = -86495.502339
-	Node 4159: lnL = -86495.502339
-	Node 4160: lnL = -86495.502339
-	Node 4161: lnL = -86495.502339
-	Node 4162: lnL = -86495.502339
-	Node 4163: lnL = -86495.502339
-	Node 4164: lnL = -86495.502339
-	Node 4165: lnL = -86495.502339
-	Node 4166: lnL = -86495.502339
-	Node 4167: lnL = -86495.502339
-	Node 4168: lnL = -86495.502339
-	Node 4169: lnL = -86495.502339
-	Node 4170: lnL = -86495.502339
-	Node 4171: lnL = -86495.502339
-	Node 4172: lnL = -86495.502339
-	Node 4173: lnL = -86495.502339
-	Node 4174: lnL = -86495.502339
-	Node 4175: lnL = -86495.502339
-	Node 4176: lnL = -86495.502339
-	Node 4177: lnL = -86495.502339
-	Node 4178: lnL = -86495.502339
-	Node 4179: lnL = -86495.502339
-	Node 4180: lnL = -86495.502339
-	Node 4181: lnL = -86495.502339
-	Node 4182: lnL = -86495.502339
-	Node 4183: lnL = -86495.502339
-	Node 4184: lnL = -86495.502339
-	Node 4185: lnL = -86495.502339
-	Node 4186: lnL = -86495.502339
-	Node 4187: lnL = -86495.502339
-	Node 4188: lnL = -86495.502339
-	Node 4189: lnL = -86495.502339
-	Node 4190: lnL = -86495.502339
-	Node 4191: lnL = -86495.502339
-	Node 4192: lnL = -86495.502339
-	Node 4193: lnL = -86495.502339
-	Node 4194: lnL = -86495.502339
-	Node 4195: lnL = -86495.502339
-	Node 4196: lnL = -86495.502339
-	Node 4197: lnL = -86495.502339
-	Node 4198: lnL = -86495.502339
-	Node 4199: lnL = -86495.502339
-	Node 4200: lnL = -86495.502339
-	Node 4201: lnL = -86495.502339
-	Node 4202: lnL = -86495.502339
-	Node 4203: lnL = -86495.502339
-	Node 4204: lnL = -86495.502339
-	Node 4205: lnL = -86495.502339
-	Node 4206: lnL = -86495.502339
-	Node 4207: lnL = -86495.502339
-	Node 4208: lnL = -86495.502339
-	Node 4209: lnL = -86495.502339
-	Node 4210: lnL = -86495.502339
-	Node 4211: lnL = -86495.502339
-	Node 4212: lnL = -86495.502339
-	Node 4213: lnL = -86495.502339
-	Node 4214: lnL = -86495.502339
-	Node 4215: lnL = -86495.502339
-	Node 4216: lnL = -86495.502339
-	Node 4217: lnL = -86495.502339
-	Node 4218: lnL = -86495.502339
-	Node 4219: lnL = -86495.502339
-	Node 4220: lnL = -86495.502339
-	Node 4221: lnL = -86495.502339
-	Node 4222: lnL = -86495.502339
-	Node 4223: lnL = -86495.502339
-	Node 4224: lnL = -86495.502339
-	Node 4225: lnL = -86495.502339
-	Node 4226: lnL = -86495.502339
-	Node 4227: lnL = -86495.502339
-	Node 4228: lnL = -86495.502339
-	Node 4229: lnL = -86495.502339
-	Node 4230: lnL = -86495.502339
-	Node 4231: lnL = -86495.502339
-	Node 4232: lnL = -86495.502339
-	Node 4233: lnL = -86495.502339
-	Node 4234: lnL = -86495.502339
-	Node 4235: lnL = -86495.502339
-	Node 4236: lnL = -86495.502339
-	Node 4237: lnL = -86495.502339
-	Node 4238: lnL = -86495.502339
-	Node 4239: lnL = -86495.502339
-	Node 4240: lnL = -86495.502339
-	Node 4241: lnL = -86495.502339
-	Node 4242: lnL = -86495.502339
-	Node 4243: lnL = -86495.502339
-	Node 4244: lnL = -86495.502339
-	Node 4245: lnL = -86495.502339
-	Node 4246: lnL = -86495.502339
-	Node 4247: lnL = -86495.502339
-	Node 4248: lnL = -86495.502339
-	Node 4249: lnL = -86495.502339
-	Node 4250: lnL = -86495.502339
-	Node 4251: lnL = -86495.502339
-	Node 4252: lnL = -86495.502339
-	Node 4253: lnL = -86495.502339
-	Node 4254: lnL = -86495.502339
-	Node 4255: lnL = -86495.502339
-	Node 4256: lnL = -86495.502339
-	Node 4257: lnL = -86495.502339
-	Node 4258: lnL = -86495.502339
-	Node 4259: lnL = -86495.502339
-	Node 4260: lnL = -86495.502339
-	Node 4261: lnL = -86495.502339
-	Node 4262: lnL = -86495.502339
-	Node 4263: lnL = -86495.502339
-	Node 4264: lnL = -86495.502339
-	Node 4265: lnL = -86495.502339
-	Node 4266: lnL = -86495.502339
-	Node 4267: lnL = -86495.502339
-	Node 4268: lnL = -86495.502339
-	Node 4269: lnL = -86495.502339
-	Node 4270: lnL = -86495.502339
-	Node 4271: lnL = -86495.502339
-	Node 4272: lnL = -86495.502339
-	Node 4273: lnL = -86495.502339
-	Node 4274: lnL = -86495.502339
-	Node 4275: lnL = -86495.502339
-	Node 4276: lnL = -86495.502339
-	Node 4277: lnL = -86495.502339
-	Node 4278: lnL = -86495.502339
-	Node 4279: lnL = -86495.502339
-	Node 4280: lnL = -86495.502339
-	Node 4281: lnL = -86495.502339
-	Node 4282: lnL = -86495.502339
-	Node 4283: lnL = -86495.502339
-	Node 4284: lnL = -86495.502339
-	Node 4285: lnL = -86495.502339
-	Node 4286: lnL = -86495.502339
-	Node 4287: lnL = -86495.502339
-	Node 4288: lnL = -86495.502339
-	Node 4289: lnL = -86495.502339
-	Node 4290: lnL = -86495.502339
-	Node 4291: lnL = -86495.502339
-	Node 4292: lnL = -86495.502339
-	Node 4293: lnL = -86495.502339
-	Node 4294: lnL = -86495.502339
-	Node 4295: lnL = -86495.502339
-	Node 4296: lnL = -86495.502339
-	Node 4297: lnL = -86495.502339
-	Node 4298: lnL = -86495.502339
-	Node 4299: lnL = -86495.502339
-	Node 4300: lnL = -86495.502339
-	Node 4301: lnL = -86495.502339
-	Node 4302: lnL = -86495.502339
-	Node 4303: lnL = -86495.502339
-	Node 4304: lnL = -86495.502339
-	Node 4305: lnL = -86495.502339
-	Node 4306: lnL = -86495.502339
-	Node 4307: lnL = -86495.502339
-	Node 4308: lnL = -86495.502339
-	Node 4309: lnL = -86495.502339
-	Node 4310: lnL = -86495.502339
-	Node 4311: lnL = -86495.502339
-	Node 4312: lnL = -86495.502339
-	Node 4313: lnL = -86495.502339
-	Node 4314: lnL = -86495.502339
-	Node 4315: lnL = -86495.502339
-	Node 4316: lnL = -86495.502339
-	Node 4317: lnL = -86495.502339
-	Node 4318: lnL = -86495.502339
-	Node 4319: lnL = -86495.502339
-	Node 4320: lnL = -86495.502339
-	Node 4321: lnL = -86495.502339
-	Node 4322: lnL = -86495.502339
-	Node 4323: lnL = -86495.502339
-	Node 4324: lnL = -86495.502339
-	Node 4325: lnL = -86495.502339
-	Node 4326: lnL = -86495.502339
-	Node 4327: lnL = -86495.502339
-	Node 4328: lnL = -86495.502339
-	Node 4329: lnL = -86495.502339
-	Node 4330: lnL = -86495.502339
-	Node 4331: lnL = -86495.502339
-	Node 4332: lnL = -86495.502339
-	Node 4333: lnL = -86495.502339
-	Node 4334: lnL = -86495.502339
-	Node 4335: lnL = -86495.502339
-	Node 4336: lnL = -86495.502339
-	Node 4337: lnL = -86495.502339
-	Node 4338: lnL = -86495.502339
-	Node 4339: lnL = -86495.502339
-	Node 4340: lnL = -86495.502339
-	Node 4341: lnL = -86495.502339
-	Node 4342: lnL = -86495.502339
-	Node 4343: lnL = -86495.502339
-	Node 4344: lnL = -86495.502339
-	Node 4345: lnL = -86495.502339
-	Node 4346: lnL = -86495.502339
-	Node 4347: lnL = -86495.502339
-	Node 4348: lnL = -86495.502339
-	Node 4349: lnL = -86495.502339
-	Node 4350: lnL = -86495.502339
-	Node 4351: lnL = -86495.502339
-	Node 4352: lnL = -86495.502339
-	Node 4353: lnL = -86495.502339
-	Node 4354: lnL = -86495.502339
-	Node 4355: lnL = -86495.502339
-	Node 4356: lnL = -86495.502339
-	Node 4357: lnL = -86495.502339
-	Node 4358: lnL = -86495.502339
-	Node 4359: lnL = -86495.502339
-	Node 4360: lnL = -86495.502339
-	Node 4361: lnL = -86495.502339
-	Node 4362: lnL = -86495.502339
-	Node 4363: lnL = -86495.502339
-	Node 4364: lnL = -86495.502339
-	Node 4365: lnL = -86495.502339
-	Node 4366: lnL = -86495.502339
-	Node 4367: lnL = -86495.502339
-	Node 4368: lnL = -86495.502339
-	Node 4369: lnL = -86495.502339
-	Node 4370: lnL = -86495.502339
-	Node 4371: lnL = -86495.502339
-	Node 4372: lnL = -86495.502339
-	Node 4373: lnL = -86495.502339
-	Node 4374: lnL = -86495.502339
-	Node 4375: lnL = -86495.502339
-	Node 4376: lnL = -86495.502339
-	Node 4377: lnL = -86495.502339
-	Node 4378: lnL = -86495.502339
-	Node 4379: lnL = -86495.502339
-	Node 4380: lnL = -86495.502339
-	Node 4381: lnL = -86495.502339
-	Node 4382: lnL = -86495.502339
-	Node 4383: lnL = -86495.502339
-	Node 4384: lnL = -86495.502339
-	Node 4385: lnL = -86495.502339
-	Node 4386: lnL = -86495.502339
-	Node 4387: lnL = -86495.502339
-	Node 4388: lnL = -86495.502339
-	Node 4389: lnL = -86495.502339
-	Node 4390: lnL = -86495.502339
-	Node 4391: lnL = -86495.502339
-	Node 4392: lnL = -86495.502339
-	Node 4393: lnL = -86495.502339
-	Node 4394: lnL = -86495.502339
-	Node 4395: lnL = -86495.502339
-	Node 4396: lnL = -86495.502339
-	Node 4397: lnL = -86495.502339
-	Node 4398: lnL = -86495.502339
-	Node 4399: lnL = -86495.502339
-	Node 4400: lnL = -86495.502339
-	Node 4401: lnL = -86495.502339
-	Node 4402: lnL = -86495.502339
-	Node 4403: lnL = -86495.502339
-	Node 4404: lnL = -86495.502339
-	Node 4405: lnL = -86495.502339
-	Node 4406: lnL = -86495.502339
-	Node 4407: lnL = -86495.502339
-	Node 4408: lnL = -86495.502339
-	Node 4409: lnL = -86495.502339
-	Node 4410: lnL = -86495.502339
-	Node 4411: lnL = -86495.502339
-	Node 4412: lnL = -86495.502339
-	Node 4413: lnL = -86495.502339
-	Node 4414: lnL = -86495.502339
-	Node 4415: lnL = -86495.502339
-	Node 4416: lnL = -86495.502339
-	Node 4417: lnL = -86495.502339
-	Node 4418: lnL = -86495.502339
-	Node 4419: lnL = -86495.502339
-	Node 4420: lnL = -86495.502339
-	Node 4421: lnL = -86495.502339
-	Node 4422: lnL = -86495.502339
-	Node 4423: lnL = -86495.502339
-	Node 4424: lnL = -86495.502339
-	Node 4425: lnL = -86495.502339
-	Node 4426: lnL = -86495.502339
-	Node 4427: lnL = -86495.502339
-	Node 4428: lnL = -86495.502339
-	Node 4429: lnL = -86495.502339
-	Node 4430: lnL = -86495.502339
-	Node 4431: lnL = -86495.502339
-	Node 4432: lnL = -86495.502339
-	Node 4433: lnL = -86495.502339
-	Node 4434: lnL = -86495.502339
-	Node 4435: lnL = -86495.502339
-	Node 4436: lnL = -86495.502339
-	Node 4437: lnL = -86495.502339
-	Node 4438: lnL = -86495.502339
-	Node 4439: lnL = -86495.502339
-	Node 4440: lnL = -86495.502339
-	Node 4441: lnL = -86495.502339
-	Node 4442: lnL = -86495.502339
-	Node 4443: lnL = -86495.502339
-	Node 4444: lnL = -86495.502339
-	Node 4445: lnL = -86495.502339
-	Node 4446: lnL = -86495.502339
-	Node 4447: lnL = -86495.502339
-	Node 4448: lnL = -86495.502339
-	Node 4449: lnL = -86495.502339
-	Node 4450: lnL = -86495.502339
-	Node 4451: lnL = -86495.502339
-	Node 4452: lnL = -86495.502339
-	Node 4453: lnL = -86495.502339
-	Node 4454: lnL = -86495.502339
-	Node 4455: lnL = -86495.502339
-	Node 4456: lnL = -86495.502339
-	Node 4457: lnL = -86495.502339
-	Node 4458: lnL = -86495.502339
-	Node 4459: lnL = -86495.502339
-	Node 4460: lnL = -86495.502339
-	Node 4461: lnL = -86495.502339
-	Node 4462: lnL = -86495.502339
-	Node 4463: lnL = -86495.502339
-	Node 4464: lnL = -86495.502339
-	Node 4465: lnL = -86495.502339
-	Node 4466: lnL = -86495.502339
-	Node 4467: lnL = -86495.502339
-	Node 4468: lnL = -86495.502339
-	Node 4469: lnL = -86495.502339
-	Node 4470: lnL = -86495.502339
-	Node 4471: lnL = -86495.502339
-	Node 4472: lnL = -86495.502339
-	Node 4473: lnL = -86495.502339
-	Node 4474: lnL = -86495.502339
-	Node 4475: lnL = -86495.502339
-	Node 4476: lnL = -86495.502339
-	Node 4477: lnL = -86495.502339
-	Node 4478: lnL = -86495.502339
-	Node 4479: lnL = -86495.502339
-	Node 4480: lnL = -86495.502339
-	Node 4481: lnL = -86495.502339
-	Node 4482: lnL = -86495.502339
-	Node 4483: lnL = -86495.502339
-	Node 4484: lnL = -86495.502339
-	Node 4485: lnL = -86495.502339
-	Node 4486: lnL = -86495.502339
-	Node 4487: lnL = -86495.502339
-	Node 4488: lnL = -86495.502339
-	Node 4489: lnL = -86495.502339
-	Node 4490: lnL = -86495.502339
-	Node 4491: lnL = -86495.502339
-	Node 4492: lnL = -86495.502339
-	Node 4493: lnL = -86495.502339
-	Node 4494: lnL = -86495.502339
-	Node 4495: lnL = -86495.502339
-	Node 4496: lnL = -86495.502339
-	Node 4497: lnL = -86495.502339
-	Node 4498: lnL = -86495.502339
-	Node 4499: lnL = -86495.502339
-	Node 4500: lnL = -86495.502339
-	Node 4501: lnL = -86495.502339
-	Node 4502: lnL = -86495.502339
-	Node 4503: lnL = -86495.502339
-	Node 4504: lnL = -86495.502339
-	Node 4505: lnL = -86495.502339
-	Node 4506: lnL = -86495.502339
-	Node 4507: lnL = -86495.502339
-	Node 4508: lnL = -86495.502339
-	Node 4509: lnL = -86495.502339
-	Node 4510: lnL = -86495.502339
-	Node 4511: lnL = -86495.502339
-	Node 4512: lnL = -86495.502339
-	Node 4513: lnL = -86495.502339
-	Node 4514: lnL = -86495.502339
-	Node 4515: lnL = -86495.502339
-	Node 4516: lnL = -86495.502339
-	Node 4517: lnL = -86495.502339
-	Node 4518: lnL = -86495.502339
-	Node 4519: lnL = -86495.502339
-	Node 4520: lnL = -86495.502339
-	Node 4521: lnL = -86495.502339
-	Node 4522: lnL = -86495.502339
-	Node 4523: lnL = -86495.502339
-	Node 4524: lnL = -86495.502339
-	Node 4525: lnL = -86495.502339
-	Node 4526: lnL = -86495.502339
-	Node 4527: lnL = -86495.502339
-	Node 4528: lnL = -86495.502339
-	Node 4529: lnL = -86495.502339
-	Node 4530: lnL = -86495.502339
-	Node 4531: lnL = -86495.502339
-	Node 4532: lnL = -86495.502339
-	Node 4533: lnL = -86495.502339
-	Node 4534: lnL = -86495.502339
-	Node 4535: lnL = -86495.502339
-	Node 4536: lnL = -86495.502339
-	Node 4537: lnL = -86495.502339
-	Node 4538: lnL = -86495.502339
-	Node 4539: lnL = -86495.502339
-	Node 4540: lnL = -86495.502339
-	Node 4541: lnL = -86495.502339
-	Node 4542: lnL = -86495.502339
-	Node 4543: lnL = -86495.502339
-	Node 4544: lnL = -86495.502339
-	Node 4545: lnL = -86495.502339
-	Node 4546: lnL = -86495.502339
-	Node 4547: lnL = -86495.502339
-	Node 4548: lnL = -86495.502339
-	Node 4549: lnL = -86495.502339
-	Node 4550: lnL = -86495.502339
-	Node 4551: lnL = -86495.502339
-	Node 4552: lnL = -86495.502339
-	Node 4553: lnL = -86495.502339
-	Node 4554: lnL = -86495.502339
-	Node 4555: lnL = -86495.502339
-	Node 4556: lnL = -86495.502339
-	Node 4557: lnL = -86495.502339
-	Node 4558: lnL = -86495.502339
-	Node 4559: lnL = -86495.502339
-	Node 4560: lnL = -86495.502339
-	Node 4561: lnL = -86495.502339
-	Node 4562: lnL = -86495.502339
-	Node 4563: lnL = -86495.502339
-	Node 4564: lnL = -86495.502339
-	Node 4565: lnL = -86495.502339
-	Node 4566: lnL = -86495.502339
-	Node 4567: lnL = -86495.502339
-	Node 4568: lnL = -86495.502339
-	Node 4569: lnL = -86495.502339
-	Node 4570: lnL = -86495.502339
-	Node 4571: lnL = -86495.502339
-	Node 4572: lnL = -86495.502339
-	Node 4573: lnL = -86495.502339
-	Node 4574: lnL = -86495.502339
-	Node 4575: lnL = -86495.502339
-	Node 4576: lnL = -86495.502339
-	Node 4577: lnL = -86495.502339
-	Node 4578: lnL = -86495.502339
-	Node 4579: lnL = -86495.502339
-	Node 4580: lnL = -86495.502339
-	Node 4581: lnL = -86495.502339
-	Node 4582: lnL = -86495.502339
-	Node 4583: lnL = -86495.502339
-	Node 4584: lnL = -86495.502339
-	Node 4585: lnL = -86495.502339
-	Node 4586: lnL = -86495.502339
-	Node 4587: lnL = -86495.502339
-	Node 4588: lnL = -86495.502339
-	Node 4589: lnL = -86495.502339
-	Node 4590: lnL = -86495.502339
-	Node 4591: lnL = -86495.502339
-	Node 4592: lnL = -86495.502339
-	Node 4593: lnL = -86495.502339
-	Node 4594: lnL = -86495.502339
-	Node 4595: lnL = -86495.502339
-	Node 4596: lnL = -86495.502339
-	Node 4597: lnL = -86495.502339
-	Node 4598: lnL = -86495.502339
-	Node 4599: lnL = -86495.502339
-	Node 4600: lnL = -86495.502339
-	Node 4601: lnL = -86495.502339
-	Node 4602: lnL = -86495.502339
-	Node 4603: lnL = -86495.502339
-	Node 4604: lnL = -86495.502339
-	Node 4605: lnL = -86495.502339
-	Node 4606: lnL = -86495.502339
-	Node 4607: lnL = -86495.502339
-	Node 4608: lnL = -86495.502339
-	Node 4609: lnL = -86495.502339
-	Node 4610: lnL = -86495.502339
-	Node 4611: lnL = -86495.502339
-	Node 4612: lnL = -86495.502339
-	Node 4613: lnL = -86495.502339
-	Node 4614: lnL = -86495.502339
-	Node 4615: lnL = -86495.502339
-	Node 4616: lnL = -86495.502339
-	Node 4617: lnL = -86495.502339
-	Node 4618: lnL = -86495.502339
-	Node 4619: lnL = -86495.502339
-	Node 4620: lnL = -86495.502339
-	Node 4621: lnL = -86495.502339
-	Node 4622: lnL = -86495.502339
-	Node 4623: lnL = -86495.502339
-	Node 4624: lnL = -86495.502339
-	Node 4625: lnL = -86495.502339
-	Node 4626: lnL = -86495.502339
-	Node 4627: lnL = -86495.502339
-	Node 4628: lnL = -86495.502339
-	Node 4629: lnL = -86495.502339
-	Node 4630: lnL = -86495.502339
-	Node 4631: lnL = -86495.502339
-	Node 4632: lnL = -86495.502339
-	Node 4633: lnL = -86495.502339
-	Node 4634: lnL = -86495.502339
-	Node 4635: lnL = -86495.502339
-	Node 4636: lnL = -86495.502339
-	Node 4637: lnL = -86495.502339
-	Node 4638: lnL = -86495.502339
-	Node 4639: lnL = -86495.502339
-	Node 4640: lnL = -86495.502339
-	Node 4641: lnL = -86495.502339
-	Node 4642: lnL = -86495.502339
-	Node 4643: lnL = -86495.502339
-	Node 4644: lnL = -86495.502339
-	Node 4645: lnL = -86495.502339
-	Node 4646: lnL = -86495.502339
-	Node 4647: lnL = -86495.502339
-	Node 4648: lnL = -86495.502339
-	Node 4649: lnL = -86495.502339
-	Node 4650: lnL = -86495.502339
-	Node 4651: lnL = -86495.502339
-	Node 4652: lnL = -86495.502339
-	Node 4653: lnL = -86495.502339
-	Node 4654: lnL = -86495.502339
-	Node 4655: lnL = -86495.502339
-	Node 4656: lnL = -86495.502339
-	Node 4657: lnL = -86495.502339
-	Node 4658: lnL = -86495.502339
-	Node 4659: lnL = -86495.502339
-	Node 4660: lnL = -86495.502339
-	Node 4661: lnL = -86495.502339
-	Node 4662: lnL = -86495.502339
-	Node 4663: lnL = -86495.502339
-	Node 4664: lnL = -86495.502339
-	Node 4665: lnL = -86495.502339
-	Node 4666: lnL = -86495.502339
-	Node 4667: lnL = -86495.502339
-	Node 4668: lnL = -86495.502339
-	Node 4669: lnL = -86495.502339
-	Node 4670: lnL = -86495.502339
-	Node 4671: lnL = -86495.502339
-	Node 4672: lnL = -86495.502339
-	Node 4673: lnL = -86495.502339
-	Node 4674: lnL = -86495.502339
-	Node 4675: lnL = -86495.502339
-	Node 4676: lnL = -86495.502339
-	Node 4677: lnL = -86495.502339
-	Node 4678: lnL = -86495.502339
-	Node 4679: lnL = -86495.502339
-	Node 4680: lnL = -86495.502339
-	Node 4681: lnL = -86495.502339
-	Node 4682: lnL = -86495.502339
-	Node 4683: lnL = -86495.502339
-	Node 4684: lnL = -86495.502339
-	Node 4685: lnL = -86495.502339
-	Node 4686: lnL = -86495.502339
-	Node 4687: lnL = -86495.502339
-	Node 4688: lnL = -86495.502339
-	Node 4689: lnL = -86495.502339
-	Node 4690: lnL = -86495.502339
-	Node 4691: lnL = -86495.502339
-	Node 4692: lnL = -86495.502339
-	Node 4693: lnL = -86495.502339
-	Node 4694: lnL = -86495.502339
-	Node 4695: lnL = -86495.502339
-	Node 4696: lnL = -86495.502339
-	Node 4697: lnL = -86495.502339
-	Node 4698: lnL = -86495.502339
-	Node 4699: lnL = -86495.502339
-	Node 4700: lnL = -86495.502339
-	Node 4701: lnL = -86495.502339
-	Node 4702: lnL = -86495.502339
-	Node 4703: lnL = -86495.502339
-	Node 4704: lnL = -86495.502339
-	Node 4705: lnL = -86495.502339
-	Node 4706: lnL = -86495.502339
-	Node 4707: lnL = -86495.502339
-	Node 4708: lnL = -86495.502339
-	Node 4709: lnL = -86495.502339
-	Node 4710: lnL = -86495.502339
-	Node 4711: lnL = -86495.502339
-	Node 4712: lnL = -86495.502339
-	Node 4713: lnL = -86495.502339
-	Node 4714: lnL = -86495.502339
-	Node 4715: lnL = -86495.502339
-	Node 4716: lnL = -86495.502339
-	Node 4717: lnL = -86495.502339
-	Node 4718: lnL = -86495.502339
-	Node 4719: lnL = -86495.502339
-	Node 4720: lnL = -86495.502339
-	Node 4721: lnL = -86495.502339
-	Node 4722: lnL = -86495.502339
-	Node 4723: lnL = -86495.502339
-	Node 4724: lnL = -86495.502339
-	Node 4725: lnL = -86495.502339
-	Node 4726: lnL = -86495.502339
-	Node 4727: lnL = -86495.502339
-	Node 4728: lnL = -86495.502339
-	Node 4729: lnL = -86495.502339
-	Node 4730: lnL = -86495.502339
-	Node 4731: lnL = -86495.502339
-	Node 4732: lnL = -86495.502339
-	Node 4733: lnL = -86495.502339
-	Node 4734: lnL = -86495.502339
-	Node 4735: lnL = -86495.502339
-	Node 4736: lnL = -86495.502339
-	Node 4737: lnL = -86495.502339
-	Node 4738: lnL = -86495.502339
-	Node 4739: lnL = -86495.502339
-	Node 4740: lnL = -86495.502339
-	Node 4741: lnL = -86495.502339
-	Node 4742: lnL = -86495.502339
-	Node 4743: lnL = -86495.502339
-	Node 4744: lnL = -86495.502339
-	Node 4745: lnL = -86495.502339
-	Node 4746: lnL = -86495.502339
-	Node 4747: lnL = -86495.502339
-	Node 4748: lnL = -86495.502339
-	Node 4749: lnL = -86495.502339
-	Node 4750: lnL = -86495.502339
-	Node 4751: lnL = -86495.502339
-	Node 4752: lnL = -86495.502339
-	Node 4753: lnL = -86495.502339
-	Node 4754: lnL = -86495.502339
-	Node 4755: lnL = -86495.502339
-	Node 4756: lnL = -86495.502339
-	Node 4757: lnL = -86495.502339
-	Node 4758: lnL = -86495.502339
-	Node 4759: lnL = -86495.502339
-	Node 4760: lnL = -86495.502339
-	Node 4761: lnL = -86495.502339
-	Node 4762: lnL = -86495.502339
-	Node 4763: lnL = -86495.502339
-	Node 4764: lnL = -86495.502339
-	Node 4765: lnL = -86495.502339
-	Node 4766: lnL = -86495.502339
-	Node 4767: lnL = -86495.502339
-	Node 4768: lnL = -86495.502339
-	Node 4769: lnL = -86495.502339
-	Node 4770: lnL = -86495.502339
-	Node 4771: lnL = -86495.502339
-	Node 4772: lnL = -86495.502339
-	Node 4773: lnL = -86495.502339
-	Node 4774: lnL = -86495.502339
-	Node 4775: lnL = -86495.502339
-	Node 4776: lnL = -86495.502339
-	Node 4777: lnL = -86495.502339
-	Node 4778: lnL = -86495.502339
-	Node 4779: lnL = -86495.502339
-	Node 4780: lnL = -86495.502339
-	Node 4781: lnL = -86495.502339
-	Node 4782: lnL = -86495.502339
-	Node 4783: lnL = -86495.502339
-	Node 4784: lnL = -86495.502339
-	Node 4785: lnL = -86495.502339
-	Node 4786: lnL = -86495.502339
-	Node 4787: lnL = -86495.502339
-	Node 4788: lnL = -86495.502339
-	Node 4789: lnL = -86495.502339
-	Node 4790: lnL = -86495.502339
-	Node 4791: lnL = -86495.502339
-	Node 4792: lnL = -86495.502339
-	Node 4793: lnL = -86495.502339
-	Node 4794: lnL = -86495.502339
-	Node 4795: lnL = -86495.502339
-	Node 4796: lnL = -86495.502339
-	Node 4797: lnL = -86495.502339
-	Node 4798: lnL = -86495.502339
-	Node 4799: lnL = -86495.502339
-	Node 4800: lnL = -86495.502339
-	Node 4801: lnL = -86495.502339
-	Node 4802: lnL = -86495.502339
-	Node 4803: lnL = -86495.502339
-	Node 4804: lnL = -86495.502339
-	Node 4805: lnL = -86495.502339
-	Node 4806: lnL = -86495.502339
-	Node 4807: lnL = -86495.502339
-	Node 4808: lnL = -86495.502339
-	Node 4809: lnL = -86495.502339
-	Node 4810: lnL = -86495.502339
-	Node 4811: lnL = -86495.502339
-	Node 4812: lnL = -86495.502339
-	Node 4813: lnL = -86495.502339
-	Node 4814: lnL = -86495.502339
-	Node 4815: lnL = -86495.502339
-	Node 4816: lnL = -86495.502339
-	Node 4817: lnL = -86495.502339
-	Node 4818: lnL = -86495.502339
-	Node 4819: lnL = -86495.502339
-	Node 4820: lnL = -86495.502339
-	Node 4821: lnL = -86495.502339
-	Node 4822: lnL = -86495.502339
-	Node 4823: lnL = -86495.502339
-	Node 4824: lnL = -86495.502339
-	Node 4825: lnL = -86495.502339
-	Node 4826: lnL = -86495.502339
-	Node 4827: lnL = -86495.502339
-	Node 4828: lnL = -86495.502339
-	Node 4829: lnL = -86495.502339
-	Node 4830: lnL = -86495.502339
-	Node 4831: lnL = -86495.502339
-	Node 4832: lnL = -86495.502339
-	Node 4833: lnL = -86495.502339
-	Node 4834: lnL = -86495.502339
-	Node 4835: lnL = -86495.502339
-	Node 4836: lnL = -86495.502339
-	Node 4837: lnL = -86495.502339
-	Node 4838: lnL = -86495.502339
-	Node 4839: lnL = -86495.502339
-	Node 4840: lnL = -86495.502339
-	Node 4841: lnL = -86495.502339
-	Node 4842: lnL = -86495.502339
-	Node 4843: lnL = -86495.502339
-	Node 4844: lnL = -86495.502339
-	Node 4845: lnL = -86495.502339
-	Node 4846: lnL = -86495.502339
-	Node 4847: lnL = -86495.502339
-	Node 4848: lnL = -86495.502339
-	Node 4849: lnL = -86495.502339
-	Node 4850: lnL = -86495.502339
-	Node 4851: lnL = -86495.502339
-	Node 4852: lnL = -86495.502339
-	Node 4853: lnL = -86495.502339
-	Node 4854: lnL = -86495.502339
-	Node 4855: lnL = -86495.502339
-	Node 4856: lnL = -86495.502339
-	Node 4857: lnL = -86495.502339
-	Node 4858: lnL = -86495.502339
-	Node 4859: lnL = -86495.502339
-	Node 4860: lnL = -86495.502339
-	Node 4861: lnL = -86495.502339
-	Node 4862: lnL = -86495.502339
-	Node 4863: lnL = -86495.502339
-	Node 4864: lnL = -86495.502339
-	Node 4865: lnL = -86495.502339
-	Node 4866: lnL = -86495.502339
-	Node 4867: lnL = -86495.502339
-	Node 4868: lnL = -86495.502339
-	Node 4869: lnL = -86495.502339
-	Node 4870: lnL = -86495.502339
-	Node 4871: lnL = -86495.502339
-	Node 4872: lnL = -86495.502339
-	Node 4873: lnL = -86495.502339
-	Node 4874: lnL = -86495.502339
-	Node 4875: lnL = -86495.502339
-	Node 4876: lnL = -86495.502339
-	Node 4877: lnL = -86495.502339
-	Node 4878: lnL = -86495.502339
-	Node 4879: lnL = -86495.502339
-	Node 4880: lnL = -86495.502339
-	Node 4881: lnL = -86495.502339
-	Node 4882: lnL = -86495.502339
-	Node 4883: lnL = -86495.502339
-	Node 4884: lnL = -86495.502339
-	Node 4885: lnL = -86495.502339
-	Node 4886: lnL = -86495.502339
-	Node 4887: lnL = -86495.502339
-	Node 4888: lnL = -86495.502339
-	Node 4889: lnL = -86495.502339
-	Node 4890: lnL = -86495.502339
-	Node 4891: lnL = -86495.502339
-	Node 4892: lnL = -86495.502339
-	Node 4893: lnL = -86495.502339
-	Node 4894: lnL = -86495.502339
-	Node 4895: lnL = -86495.502339
-	Node 4896: lnL = -86495.502339
-	Node 4897: lnL = -86495.502339
-	Node 4898: lnL = -86495.502339
-	Node 4899: lnL = -86495.502339
-	Node 4900: lnL = -86495.502339
-	Node 4901: lnL = -86495.502339
-	Node 4902: lnL = -86495.502339
-	Node 4903: lnL = -86495.502339
-	Node 4904: lnL = -86495.502339
-	Node 4905: lnL = -86495.502339
-	Node 4906: lnL = -86495.502339
-	Node 4907: lnL = -86495.502339
-	Node 4908: lnL = -86495.502339
-	Node 4909: lnL = -86495.502339
-	Node 4910: lnL = -86495.502339
-	Node 4911: lnL = -86495.502339
-	Node 4912: lnL = -86495.502339
-	Node 4913: lnL = -86495.502339
-	Node 4914: lnL = -86495.502339
-	Node 4915: lnL = -86495.502339
-	Node 4916: lnL = -86495.502339
-	Node 4917: lnL = -86495.502339
-	Node 4918: lnL = -86495.502339
-	Node 4919: lnL = -86495.502339
-	Node 4920: lnL = -86495.502339
-	Node 4921: lnL = -86495.502339
-	Node 4922: lnL = -86495.502339
-	Node 4923: lnL = -86495.502339
-	Node 4924: lnL = -86495.502339
-	Node 4925: lnL = -86495.502339
-	Node 4926: lnL = -86495.502339
-	Node 4927: lnL = -86495.502339
-	Node 4928: lnL = -86495.502339
-	Node 4929: lnL = -86495.502339
-	Node 4930: lnL = -86495.502339
-	Node 4931: lnL = -86495.502339
-	Node 4932: lnL = -86495.502339
-	Node 4933: lnL = -86495.502339
-	Node 4934: lnL = -86495.502339
-	Node 4935: lnL = -86495.502339
-	Node 4936: lnL = -86495.502339
-	Node 4937: lnL = -86495.502339
-	Node 4938: lnL = -86495.502339
-	Node 4939: lnL = -86495.502339
-	Node 4940: lnL = -86495.502339
-	Node 4941: lnL = -86495.502339
-	Node 4942: lnL = -86495.502339
-	Node 4943: lnL = -86495.502339
-	Node 4944: lnL = -86495.502339
-	Node 4945: lnL = -86495.502339
-	Node 4946: lnL = -86495.502339
-	Node 4947: lnL = -86495.502339
-	Node 4948: lnL = -86495.502339
-	Node 4949: lnL = -86495.502339
-	Node 4950: lnL = -86495.502339
-	Node 4951: lnL = -86495.502339
-	Node 4952: lnL = -86495.502339
-	Node 4953: lnL = -86495.502339
-	Node 4954: lnL = -86495.502339
-	Node 4955: lnL = -86495.502339
-	Node 4956: lnL = -86495.502339
-	Node 4957: lnL = -86495.502339
-	Node 4958: lnL = -86495.502339
-	Node 4959: lnL = -86495.502339
-	Node 4960: lnL = -86495.502339
-	Node 4961: lnL = -86495.502339
-	Node 4962: lnL = -86495.502339
-	Node 4963: lnL = -86495.502339
-	Node 4964: lnL = -86495.502339
-	Node 4965: lnL = -86495.502339
-	Node 4966: lnL = -86495.502339
-	Node 4967: lnL = -86495.502339
-	Node 4968: lnL = -86495.502339
-	Node 4969: lnL = -86495.502339
-	Node 4970: lnL = -86495.502339
-	Node 4971: lnL = -86495.502339
-	Node 4972: lnL = -86495.502339
-	Node 4973: lnL = -86495.502339
-	Node 4974: lnL = -86495.502339
-	Node 4975: lnL = -86495.502339
-	Node 4976: lnL = -86495.502339
-	Node 4977: lnL = -86495.502339
-	Node 4978: lnL = -86495.502339
-	Node 4979: lnL = -86495.502339
-	Node 4980: lnL = -86495.502339
-	Node 4981: lnL = -86495.502339
-	Node 4982: lnL = -86495.502339
-	Node 4983: lnL = -86495.502339
-	Node 4984: lnL = -86495.502339
-	Node 4985: lnL = -86495.502339
-	Node 4986: lnL = -86495.502339
-	Node 4987: lnL = -86495.502339
-	Node 4988: lnL = -86495.502339
-	Node 4989: lnL = -86495.502339
-	Node 4990: lnL = -86495.502339
-	Node 4991: lnL = -86495.502339
-	Node 4992: lnL = -86495.502339
-	Node 4993: lnL = -86495.502339
-	Node 4994: lnL = -86495.502339
-	Node 4995: lnL = -86495.502339
-	Node 4996: lnL = -86495.502339
-	Node 4997: lnL = -86495.502339
-	Node 4998: lnL = -86495.502339
-	Node 4999: lnL = -86495.502339
-	Node 5000: lnL = -86495.502339
-	Node 5001: lnL = -86495.502339
-	Node 5002: lnL = -86495.502339
-	Node 5003: lnL = -86495.502339
-	Node 5004: lnL = -86495.502339
-	Node 5005: lnL = -86495.502339
-	Node 5006: lnL = -86495.502339
-	Node 5007: lnL = -86495.502339
-	Node 5008: lnL = -86495.502339
-	Node 5009: lnL = -86495.502339
-	Node 5010: lnL = -86495.502339
-	Node 5011: lnL = -86495.502339
-	Node 5012: lnL = -86495.502339
-	Node 5013: lnL = -86495.502339
-	Node 5014: lnL = -86495.502339
-	Node 5015: lnL = -86495.502339
-	Node 5016: lnL = -86495.502339
-	Node 5017: lnL = -86495.502339
-	Node 5018: lnL = -86495.502339
-	Node 5019: lnL = -86495.502339
-	Node 5020: lnL = -86495.502339
-	Node 5021: lnL = -86495.502339
-	Node 5022: lnL = -86495.502339
-	Node 5023: lnL = -86495.502339
-	Node 5024: lnL = -86495.502339
-	Node 5025: lnL = -86495.502339
-	Node 5026: lnL = -86495.502339
-	Node 5027: lnL = -86495.502339
-	Node 5028: lnL = -86495.502339
-	Node 5029: lnL = -86495.502339
-	Node 5030: lnL = -86495.502339
-	Node 5031: lnL = -86495.502339
-	Node 5032: lnL = -86495.502339
-	Node 5033: lnL = -86495.502339
-	Node 5034: lnL = -86495.502339
-	Node 5035: lnL = -86495.502339
-	Node 5036: lnL = -86495.502339
-	Node 5037: lnL = -86495.502339
-	Node 5038: lnL = -86495.502339
-	Node 5039: lnL = -86495.502339
-	Node 5040: lnL = -86495.502339
-	Node 5041: lnL = -86495.502339
-	Node 5042: lnL = -86495.502339
-	Node 5043: lnL = -86495.502339
-	Node 5044: lnL = -86495.502339
-	Node 5045: lnL = -86495.502339
-	Node 5046: lnL = -86495.502339
-	Node 5047: lnL = -86495.502339
-	Node 5048: lnL = -86495.502339
-	Node 5049: lnL = -86495.502339
-	Node 5050: lnL = -86495.502339
-	Node 5051: lnL = -86495.502339
-	Node 5052: lnL = -86495.502339
-	Node 5053: lnL = -86495.502339
-	Node 5054: lnL = -86495.502339
-	Node 5055: lnL = -86495.502339
-	Node 5056: lnL = -86495.502339
-	Node 5057: lnL = -86495.502339
-	Node 5058: lnL = -86495.502339
-	Node 5059: lnL = -86495.502339
-	Node 5060: lnL = -86495.502339
-	Node 5061: lnL = -86495.502339
-	Node 5062: lnL = -86495.502339
-	Node 5063: lnL = -86495.502339
-	Node 5064: lnL = -86495.502339
-	Node 5065: lnL = -86495.502339
-	Node 5066: lnL = -86495.502339
-	Node 5067: lnL = -86495.502339
-	Node 5068: lnL = -86495.502339
-	Node 5069: lnL = -86495.502339
-	Node 5070: lnL = -86495.502339
-	Node 5071: lnL = -86495.502339
-	Node 5072: lnL = -86495.502339
-	Node 5073: lnL = -86495.502339
-	Node 5074: lnL = -86495.502339
-	Node 5075: lnL = -86495.502339
-	Node 5076: lnL = -86495.502339
-	Node 5077: lnL = -86495.502339
-	Node 5078: lnL = -86495.502339
-	Node 5079: lnL = -86495.502339
-	Node 5080: lnL = -86495.502339
-	Node 5081: lnL = -86495.502339
-	Node 5082: lnL = -86495.502339
-	Node 5083: lnL = -86495.502339
-	Node 5084: lnL = -86495.502339
-	Node 5085: lnL = -86495.502339
-	Node 5086: lnL = -86495.502339
-	Node 5087: lnL = -86495.502339
-	Node 5088: lnL = -86495.502339
-	Node 5089: lnL = -86495.502339
-	Node 5090: lnL = -86495.502339
-	Node 5091: lnL = -86495.502339
-	Node 5092: lnL = -86495.502339
-	Node 5093: ln

@@ -31,7 +31,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     //(ex: PAML discards the labels of internal nodes and uses its own ids).
     private int externalId=-1;
     //actual branch length in the current tree
-    private float branchLengthToAncestor=0.0f;
+    private float branchLengthToAncestor=-1.0f;
     //below are branch length related to the original tree (before addition of fake nodes)
     //note that these values should be set to something else than 0 only 
     //when the current PhyloNode represents a fake node (X0,X1,X2,X3).
@@ -45,8 +45,8 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     //  for X2: branchLengthToOriginalAncestor= bl(X2;X1) + bl(X1;X0) + bl(X0;OriginalNode1)
     //          branchLengthToOriginalSon= bl(X2;X1) + bl(X1;X0) + bl(X0;OriginalNode2)
     
-    private float branchLengthToOriginalAncestor=0.0f;
-    private float branchLengthToOriginalSon=0.0f;
+    private float branchLengthToOriginalAncestor=-1.0f;
+    private float branchLengthToOriginalSon=-1.0f;
     
     
     /** The number of leaves under this internal node (or 1 for leaves). */
@@ -69,13 +69,22 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
      */
     public PhyloNode() {
         nf.setMinimumFractionDigits(3);
-        nf.setMaximumFractionDigits(12);
+        nf.setMaximumFractionDigits(6);
     }
     
+    /**
+     * empty constructor for situation where node can be filled with metadata only later
+     * @param id 
+     */
+    public PhyloNode(int id) {
+        nf.setMinimumFractionDigits(3);
+        nf.setMaximumFractionDigits(6);
+        this.id=id;
+    }
     
     public PhyloNode(int id, String label, float branchLengthToAncestor) {
         nf.setMinimumFractionDigits(3);
-        nf.setMaximumFractionDigits(12);
+        nf.setMaximumFractionDigits(6);
         this.branchLengthToAncestor=branchLengthToAncestor;
         this.id=id;
         this.label=label;
@@ -141,7 +150,18 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     public String toString() {
         //return this.hashCode()+" id:"+id+" label:"+label+" bl:"+nf.format(branchLengthToAncestor);
         //System.out.println("id:"+id+" extId:"+externalId+" label:"+label+" bl:"+nf.format(branchLengthToAncestor));
-        return "id:"+id+" extId:"+externalId+" label:"+label+" bl:"+nf.format(branchLengthToAncestor);
+        StringBuilder sb=new StringBuilder();
+
+        sb.append("["+id);
+        if (externalId>-1.0f)
+            sb.append(":"+externalId);
+        sb.append("]");
+        sb.append(label+":"+nf.format(branchLengthToAncestor));
+        if (branchLengthToOriginalAncestor>-1.0f)
+            sb.append(":bla:"+nf.format(branchLengthToOriginalAncestor));
+        if (branchLengthToOriginalSon>-1.0f)
+            sb.append(":bls:"+nf.format(branchLengthToOriginalSon));                    
+        return sb.toString();
     }
 
     

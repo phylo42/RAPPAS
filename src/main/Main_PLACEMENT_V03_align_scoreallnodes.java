@@ -106,7 +106,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=2;
+            int queryLimit=3;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDiagsums=false;

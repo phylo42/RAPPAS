@@ -2,5 +2,7 @@
 /WD/AR/finished/rst
 /WD/AR/rst
 /rst
-/dist
-/build
+/dist/*
+/build/*
+/nbproject/*
+

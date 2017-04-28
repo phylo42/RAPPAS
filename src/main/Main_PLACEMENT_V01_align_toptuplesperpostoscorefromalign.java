@@ -80,8 +80,8 @@ public class Main_PLACEMENT_V01_align_toptuplesperpostoscorefromalign {
             String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
             //String q=inputsPath+"mod_p4z1r36_query_only2.fasta";
             //String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
-            String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
-            
+            //String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
+            String q=inputsPath+"mod_p4z1r36_query_ancestrals_rearranged.fasta";
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             //PARAMETERS
@@ -103,7 +103,7 @@ public class Main_PLACEMENT_V01_align_toptuplesperpostoscorefromalign {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=10000;
+            int queryLimit=3;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDiagsums=false;

@@ -91,7 +91,7 @@ public class Environement {
         double allowed=new Double(Runtime.getRuntime().maxMemory()/1048576);
         double free=new Double(Runtime.getRuntime().freeMemory()/1048576);
         double actuallyUsed=allocated-free;
-        System.out.println("MEMORY: used:"+df.format(actuallyUsed)+"MB (" + df.format(free)+"MB free), from allocated:"+df.format(allocated)+"MB (max alloc allowed:" +df.format(allowed)+"MB)");
+        System.out.println("Memory: used:"+df.format(actuallyUsed)+"MB (" + df.format(free)+"MB free), from allocated:"+df.format(allocated)+"MB (max alloc allowed:" +df.format(allowed)+"MB)");
     }
 
     /**
@@ -105,7 +105,7 @@ public class Environement {
         double allowed=new Double(Runtime.getRuntime().maxMemory()/1048576);
         double free=new Double(Runtime.getRuntime().freeMemory()/1048576);
         double actuallyUsed=allocated-free;
-        return "MEMORY: used:"+df.format(actuallyUsed)+"MB (" + df.format(free)+"MB free), from allocated:"+df.format(allocated)+"MB (max alloc allowed:" +df.format(allowed)+"MB)";
+        return "Memory: used:"+df.format(actuallyUsed)+"MB (" + df.format(free)+"MB free), from allocated:"+df.format(allocated)+"MB (max alloc allowed:" +df.format(allowed)+"MB)";
     }
     
     /**

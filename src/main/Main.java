@@ -23,7 +23,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main {
 
-    private final static String consoleVersion="0.1";
+    private final static String consoleVersion="0.2";
 
     public static void main (String[] args) {
         try {
@@ -41,41 +41,31 @@ public class Main {
             //TEST ZONE, forces arguments
             String HOME = System.getenv("HOME");
 
+            //DATASET BASIC RAPID TESTS:
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+//            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
             
-            //String workDir="/media/ben/STOCK/DATA/viromeplacer/WD2";
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
-            //String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";            
-            //String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-            //here,pplacer benchmark to build DB
-            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-            
-            
-            
-//            String inputsPath="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/";
-//            //String a=wd+"bv_refs_aln.fasta";
-//            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
-//            String t=inputsPath+"RAxML_result.bv_refs_aln";
-//            a=inputsPath+"bv_refs_aln_stripped_99.5_SMALL_SUBSET.fasta";
-//            t=inputsPath+"RAxML_result.bv_refs_aln_SMALL_SUBSET.tree";
-
-            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+            //DATASET LARGER SET:
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
+            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
+            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
+            String t=inputsPath+"RAxML_result.bv_refs_aln";
 
 
+            //QUERIES::
+            
+            //DATASET BASIC RAPID TESTS:
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
+//            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
             //pplacer benchmark queries 
-            
-//            String q=inputsPath+"mod_p4z1r36_query_only2.fasta";
-//            //String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
-//            //String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
-//            String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+//          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
+//          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
+            String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
-
-            //String q="/media/ben/STOCK/DATA/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
-            //String db="/media/ben/STOCK/DATA/viromeplacer/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
-            
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
-            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
 
             //db build launch
@@ -95,7 +85,7 @@ public class Main {
                             + "-w "+workDir+" "
                             + "-q "+q+" "
                             + "-d "+db+" "
-                            + "-v 1"
+                            + "-v 0"
                             ;            
             
             
@@ -143,12 +133,12 @@ public class Main {
                                             argsParser.databaseFile,
                                             argsParser.workingDir
                                             );
-                System.out.println("# queries placed: "+placed);
+                System.out.println("# query reads placed: "+placed);
             }
             
             
             long endTime=System.currentTimeMillis();
-            System.out.println("TOTAL EXECUTION TIME: "+(endTime-startTime)+" ms");
+            System.out.println("Total execution: "+(endTime-startTime)+" ms");
             
         } catch (Exception ex) {
             ex.printStackTrace();

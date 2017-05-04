@@ -23,7 +23,7 @@
  *
  */
 
-package core.hashmap;
+package core.hash;
 
 import java.util.function.Consumer;
 import java.util.function.BiConsumer;

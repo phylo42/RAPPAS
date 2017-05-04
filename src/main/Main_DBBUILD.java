@@ -9,7 +9,7 @@ import alignement.Alignment;
 import core.AAStates;
 import core.DNAStates;
 import core.PProbasSorted;
-import core.SimpleHash;
+import core.hash.SimpleHash;
 import core.States;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;

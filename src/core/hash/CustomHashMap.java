@@ -23,7 +23,7 @@
  *
  */
 
-package core.hashmap;
+package core.hash;
 
 import core.ProbabilisticWord;
 import java.util.*;

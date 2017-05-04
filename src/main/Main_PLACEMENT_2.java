@@ -11,7 +11,7 @@ import core.AAStates;
 import core.DNAStates;
 import core.PProbasSorted;
 import core.QueryWord;
-import core.SimpleHash;
+import core.hash.SimpleHash;
 import core.States;
 import core.algos.SequenceKnife;
 import etc.Environement;

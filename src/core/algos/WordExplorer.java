@@ -10,7 +10,7 @@ import core.DNAStates;
 import core.older.PProbas;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
-import core.SimpleHash;
+import core.hash.SimpleHash;
 import core.States;
 import etc.Environement;
 import etc.Infos;

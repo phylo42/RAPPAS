@@ -23,7 +23,7 @@
  *
  */
 
-package core.hashmap;
+package core.hash;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;

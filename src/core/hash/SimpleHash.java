@@ -3,10 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package core.hash;
 
 import core.older.PProbas;
 import alignement.Alignment;
+import core.DNAStates;
+import core.ProbabilisticWord;
+import core.States;
+import core.Word;
 import core.algos.SequenceKnife;
 import core.algos.WordGenerator;
 import etc.Environement;

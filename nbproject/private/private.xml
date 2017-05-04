@@ -3,21 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_test_relaxedTree.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/ProbabilisticWord.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/hashmap/CustomHashMap.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/PProbasSorted.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/SimpleHash_v2.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/ArgumentsParser.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/SimpleHash.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloNode.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/SimpleWord.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_DBBUILD.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/ExtendedTree.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/AbstractWord.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_PLACEMENT_V03_align_scoreallnodes.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/hash/SimpleHash_v2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main.java</file>
         </group>
     </open-files>
 </project-private>

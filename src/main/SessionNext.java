@@ -7,7 +7,7 @@ package main;
 
 import alignement.Alignment;
 import core.PProbasSorted;
-import core.SimpleHash;
+import core.hash.SimpleHash;
 import core.States;
 import etc.Infos;
 import inputs.InputManagerNext;

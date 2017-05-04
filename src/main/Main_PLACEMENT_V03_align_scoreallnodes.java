@@ -106,7 +106,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=1000000;
+            int queryLimit=10000000;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
             boolean logDiagsums=false;
@@ -214,7 +214,8 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             /////////////////////
             //PLACEMENT OF THE QUERIES
             FASTAPointer fp=new FASTAPointer(q, false);
-            Infos.println("Input fasta contains "+fp.getContentSize()+" sequences");
+            int totalQueries=fp.getContentSize();
+            Infos.println("Input fasta contains "+totalQueries+" sequences");
             fp.resetPointer();
             FileWriter fw =new FileWriter(new File(logPath+"queries.fasta"));
             
@@ -225,6 +226,9 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
                 
                 if (queryCounter>=queryLimit)
                     break;
+                if ((queryCounter%10000)==0) {
+                    System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(queryCounter/totalQueries)+"%)");
+                }
                 
                 Infos.println("#######################################################################");
                 Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());

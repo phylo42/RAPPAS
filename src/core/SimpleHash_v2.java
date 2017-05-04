@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -32,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +50,7 @@ public class SimpleHash_v2 implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
-    CustomHashMap<Word,LinkedList<Tuple>> hash=null;
+    CustomHashMap<Word,CustomNode> hash=null;
 
     public SimpleHash_v2() {
         hash=new CustomHashMap<>();
@@ -64,43 +66,26 @@ public class SimpleHash_v2 implements Serializable{
     
     public void addTuple(Word w, float PPStar,int nodeId,int refPos) {
         if (!hash.containsKey(w)) {
-            hash.put(w, new LinkedList<>());
+            hash.put(w, new CustomNode());
         }
-        hash.get(w).add(new Tuple(PPStar,nodeId,refPos));
-    }
-    
-    public LinkedList<Tuple> getAllTuples(Word w) {
-        return hash.get(w);
-    }
-    
-    public List<Tuple> getTopTuples(Word w,float PPStarTresholdAsLog10) {
-        return hash.get(w).stream().filter(t -> t.PPStar>=PPStarTresholdAsLog10).collect(Collectors.toList());
+        hash.get(w).registerTuple(nodeId, refPos, PPStar);
     }
 
-    public CustomHashMap<Word, LinkedList<Tuple>> getHash() {
+    public CustomHashMap<Word, CustomNode> getHash() {
         return hash;
     }
+
     
     
     
-    /**
-     * 
-     * @param w
-     * @param PPStarTresholdAsLog10
-     * @param nodeIdsTested  a boolean table, with true in the positions corresponding to the nodeIds which are used for preplacement
-     * @return 
-     */
-    public List<Tuple> getTopTuplesUnderNodeShift(Word w,float PPStarTresholdAsLog10, boolean[] nodeIdsTested) {
-        return hash.get(w).stream().filter(t -> ( t.PPStar>=PPStarTresholdAsLog10 && nodeIdsTested[t.nodeId] )).collect(Collectors.toList());
-    }    
-    public Tuple getTopTuple(Word w) {
-        LinkedList<Tuple> l;
-        return (l=hash.get(w))==null ? null : l.getFirst();
+  
+    public Pair getTopPair(Word w) {
+        return hash.get(w).getBestPair();
     }    
     
     public void sortTuples() {
         double startTime=System.currentTimeMillis();
-        hash.values().stream().forEach( l -> {Collections.sort(l);} );
+        hash.values().stream().forEach( l -> {l.sort();} );
         double endTime=System.currentTimeMillis();
         Infos.println("Tuples sorting took "+(endTime-startTime)+" ms");
     }
@@ -109,8 +94,8 @@ public class SimpleHash_v2 implements Serializable{
         return hash.keySet();
     }
           
-    public List<Tuple> getTuples(Word w) {
-        return hash.get(w);
+    public List<Pair> getTuples(Word w,int position) {
+        return hash.get(w).getPairList(position);
     }
 
     public Set<Word> getKeys() {
@@ -269,7 +254,7 @@ public class SimpleHash_v2 implements Serializable{
 
             
             //HERE Search how many Nodes per hash bucket.
-            CustomHashMap.Node<Word, LinkedList<Tuple>>[] accessToHash = hash.getHash().getAccessToHash();
+            CustomHashMap.Node<Word, CustomNode>[] accessToHash = hash.getHash().getAccessToHash();
             for (int i = 0; i < accessToHash.length; i++) {
                 Object node = accessToHash[i];
                 if (node instanceof core.hashmap.CustomHashMap.TreeNode) {
@@ -324,49 +309,129 @@ public class SimpleHash_v2 implements Serializable{
     ////////////////////////////////////////////////////////////////////////////
     
     /**
-     * Intermediate table in the 
+     * Intermediate table used to select the (nodeId,PP*) pairs through 
+     * associated reference position.
      */
-    public class PositionPointers implements Serializable {
-    
-        private static final long serialVersionUID = 7020L;
+    public class CustomNode {
+            
+        //small init capacity because if k around 8 to 12, few occurences are
+        //expected in the ref alignment
+        ArrayList<PairList> positionsPointers=new ArrayList<>(3);
+
+        public CustomNode() {}
         
-        Hashtable t=null;
-    
-        ArrayList<Integer> positions=null;
-        ArrayList<TreeMap<Float,Integer>> tupleList=null;
+        public void registerTuple(int nodeId, int refPosition, float PPStar) {
+            boolean refPositionAlreadyRegistered=false;
+            for (PairList p:positionsPointers) {
+                if (p.getRefPosition()==refPosition) {
+                    refPositionAlreadyRegistered=true;
+                    break;
+                }
+            }
+            if (!refPositionAlreadyRegistered) {
+                PairList pl=new PairList(refPosition);
+                pl.add(new Pair(nodeId, PPStar));
+                positionsPointers.add(pl);
+            } else {
+                getPairList(refPosition).add(new Pair(nodeId, PPStar));
+            }
+        }
 
-        public PositionPointers() {}
-
-        public ArrayList<Integer> getPositions() {
-            return positions;
+        public int[] getPositions() {
+            return positionsPointers.stream().mapToInt(pp->pp.refPosition).toArray();
         }
         
-        public void addWord(ProbabilisticWord w) {
+        /**
+         * get all Pairs associated to a particular reference position.
+         * @param refPosition
+         * @return 
+         */
+        public ArrayList<Pair> getPairList(int refPosition) {
+            for (PairList list:positionsPointers) {
+                if (list.getRefPosition()==refPosition)
+                    return list;
+            }
+            return null;
+        }
+        
+        /**
+         * get best (nodeId;PP*).
+         * @return 
+         */
+        public Pair getBestPair() {
+            return positionsPointers.get(0).get(0);
+        }
+        
+        /**
+         * get best reference position.
+         * @return 
+         */
+        public Integer getBestPosition() {
+            return positionsPointers.get(0).getRefPosition();
+        }
+        
+        public void sort() {
+            //sort each list of Pair objects
+            for (Iterator<PairList> iterator = positionsPointers.iterator(); iterator.hasNext();) {
+                PairList ppl = iterator.next();
+                Collections.sort(ppl);
+            }
+            //then sort these list (= sort the position by the PP* at 1st 
+            //position of the list
+            Collections.sort(positionsPointers);            
+        }  
+        
+        
+        /**
+         * internal class just to link a reference position to a LinkedList
+         */
+        private class PairList extends ArrayList<Pair> implements Comparable<PairList> {
+            int refPosition=-1;
+
+            public PairList(int refPosition) {
+                this.refPosition=refPosition;
+            }
+
+            public int getRefPosition() {
+                return refPosition;
+            }
+
+            /**
+             * Comparable retrieving inversed order to set. Work considering 
+             * that the list of Pair object is already sorted (best PP* as
+             * index 0).
+             * @param o
+             * @return 
+             */
+            public int compareTo(PairList o) {
+                if ((this.get(0).getPPStar()-o.get(0).getPPStar())<0.0) {
+                    return 1;
+                } else if ((this.get(0).getPPStar()-o.get(0).getPPStar())>0.0){
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+
             
         }
         
         
-        
-    
     }
     
     
-    /**
-     * simple object defining the caracteristics of particular word
-     */
-    public class Tuple implements Comparable<Tuple>,Serializable {
-        
-        private static final long serialVersionUID = 7010L;
 
-        
-        protected float PPStar=-1.0f;
-        protected int nodeId=-1;
-        protected int refPos=-1; 
-        
-        public Tuple(float PPStar,int nodeId, int refPos) {
-            this.PPStar=PPStar;
+    /**
+     * Pair representing a (nodeId,PP*) association. These are used in the 
+     * LinkedLists
+     */
+    public class Pair implements Comparable<Pair>{
+        int nodeId=-1;
+        float PPStar=-1.0f;
+
+        public Pair(int nodeId, float PPStar) {
             this.nodeId=nodeId;
-            this.refPos=refPos;
+            this.PPStar=PPStar;
         }
 
         public int getNodeId() {
@@ -377,35 +442,33 @@ public class SimpleHash_v2 implements Serializable{
             return PPStar;
         }
 
-        public int getRefPos() {
-            return refPos;
+        public void setNodeId(int nodeId) {
+            this.nodeId = nodeId;
         }
-        
-        /**
-        * the comparator is inversed to return highest values first when sorting
-        * @param o
-        * @return 
-        */
-        @Override
-       public int compareTo(Tuple o) {
-           if (this.PPStar-o.PPStar<0.0) {
-               return 1;
-           } else if (this.PPStar-o.PPStar>0.0){
-               return -1;
-           } else {
-               return 0;
-           }
-       }
+
+        public void setPPStar(float PPStar) {
+            this.PPStar = PPStar;
+        }
 
         @Override
-        public String toString() {
-            return "Tuple: nodeId="+nodeId+" refPos="+refPos+" PPStar="+PPStar;
+        /**
+         * the comparator is inversed to put highest values first
+         * @param o
+         * @return 
+         */
+        public int compareTo(Pair o) {
+            if ((this.PPStar-o.getPPStar())<0.0) {
+                return 1;
+            } else if ((this.PPStar-o.getPPStar())>0.0){
+                return -1;
+            } else {
+                return 0;
+            }
         }
-        public String toStringCSV() {
-            return nodeId+","+refPos+","+PPStar;
-        }
-       
+        
     }
+    
+
     
     
     

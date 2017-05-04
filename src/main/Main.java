@@ -46,7 +46,7 @@ public class Main {
 //            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
 //            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
 //            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
-            
+//            
             //DATASET LARGER SET:
             String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
             String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
@@ -61,7 +61,8 @@ public class Main {
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
             //pplacer benchmark queries 
-            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+            //String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+            String q="/home/benclaff/mod_2VGB.qc.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
             String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
@@ -128,7 +129,7 @@ public class Main {
                                             );
             } else if (argsParser.mode==ArgumentsParser.PLACEMENT_MODE) {
                 System.out.println("Starting placement pipeline...");
-                int placed=Main_PLACEMENT_V03_align_scoreallnodes.Main_PLACEMENT_V03_align_scoreallnodes(
+                int placed=Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved.Main_PLACEMENT_V03_align_scoreallnodes(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
                                             argsParser.workingDir

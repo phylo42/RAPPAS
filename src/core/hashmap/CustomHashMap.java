@@ -3,9 +3,9 @@
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
- *
- *
- *
+ * CUSTOMIZED version of HashMap from original Java implementation
+ * The Node class is extended to include positions pointing to
+ * linkedLists of (node,PP*)
  *
  *
  *
@@ -25,6 +25,7 @@
 
 package core.hashmap;
 
+import core.ProbabilisticWord;
 import java.util.*;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -122,8 +123,8 @@ import java.util.function.Function;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @param <K> the type of keys maintained by this map
- * @param <V> the type of mapped values
+ * @param <Word> the type of keys maintained by this map
+ * @param <Tuple> the type of mapped values
  *
  * @author  Doug Lea
  * @author  Josh Bloch
@@ -136,8 +137,8 @@ import java.util.function.Function;
  * @see     Hashtable
  * @since   1.2
  */
-public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
-    implements Map<K,V>, Cloneable, Serializable {
+public class CustomHashMap<Word,Tuple> extends CustomAbstractMap<Word,Tuple>
+    implements Map<Word,Tuple>, Cloneable, Serializable {
     
     
     private static final long serialVersionUID = 362498820763181265L;
@@ -277,30 +278,37 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     /**
      * Basic hash bin node, used for most entries.  (See below for
      * TreeNode subclass, and in LinkedCustomHashMap for its Entry subclass.)
+     * CUSTOMIZED: Modified to include positions pointing to linkedLists of (node,PP*)
      */
-    public static class Node<K,V> implements Map.Entry<K,V> {
+    public static class Node<V,W> implements Map.Entry<V,W> {
         final int hash;
-        final K key;
-        V value;
-        Node<K,V> next;
+        final V key;
+        W value;
+        Node<V,W> next;
+        
+        //tables to register ref position value and corresponding linkedList
+        ArrayList<Integer> pos=new ArrayList<>(3); //set ot 2 because with k around 8 or 10 few positions are possible
+        ArrayList<LinkedList> nodes=new ArrayList<>();
+        
+        
 
-        Node(int hash, K key, V value, Node<K,V> next) {
+        Node(int hash, V key, W value, Node<V,W> next) {
             this.hash = hash;
             this.key = key;
             this.value = value;
             this.next = next;
         }
 
-        public final K getKey()        { return key; }
-        public final V getValue()      { return value; }
+        public final V getKey()        { return key; }
+        public final W getValue()      { return value; }
         public final String toString() { return key + "=" + value; }
 
         public final int hashCode() {
             return Objects.hashCode(key) ^ Objects.hashCode(value);
         }
 
-        public final V setValue(V newValue) {
-            V oldValue = value;
+        public final W setValue(W newValue) {
+            W oldValue = value;
             value = newValue;
             return oldValue;
         }
@@ -318,6 +326,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
         }
     }
 
+    
+    
     /* ---------------- Static utilities -------------- */
 
     /**
@@ -395,13 +405,14 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * (We also tolerate length zero in some operations to allow
      * bootstrapping mechanics that are currently not needed.)
      */
-    transient Node<K,V>[] table;
+    transient Node<Word,Tuple>[] table;
+    
 
     /**
      * Holds cached entrySet(). Note that AbstractMap fields are used
      * for keySet() and values().
      */
-    transient Set<Map.Entry<K,V>> entrySet;
+    transient Set<Map.Entry<Word,Tuple>> entrySet;
 
     /**
      * The number of key-value mappings contained in this map.
@@ -487,13 +498,13 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @param   m the map whose mappings are to be placed in this map
      * @throws  NullPointerException if the specified map is null
      */
-    public CustomHashMap(Map<? extends K, ? extends V> m) {
+    public CustomHashMap(Map<? extends Word, ? extends Tuple> m) {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
         putMapEntries(m, false);
     }
 
     
-    public  Node<K,V>[] getAccessToHash() {
+    public  Node<Word,Tuple>[] getAccessToHash() {
         return table;
     }
     
@@ -510,7 +521,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @param evict false when initially constructing this map, else
      * true (relayed to method afterNodeInsertion).
      */
-    final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
+    final void putMapEntries(Map<? extends Word, ? extends Tuple> m, boolean evict) {
         int s = m.size();
         if (s > 0) {
             if (table == null) { // pre-size
@@ -522,9 +533,9 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             }
             else if (s > threshold)
                 resize();
-            for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
-                K key = e.getKey();
-                V value = e.getValue();
+            for (Map.Entry<? extends Word, ? extends Tuple> e : m.entrySet()) {
+                Word key = e.getKey();
+                Tuple value = e.getValue();
                 putVal(hash(key), key, value, false, evict);
             }
         }
@@ -565,8 +576,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *
      * @see #put(Object, Object)
      */
-    public V get(Object key) {
-        Node<K,V> e;
+    public Tuple get(Object key) {
+        Node<Word,Tuple> e;
         return (e = getNode(hash(key), key)) == null ? null : e.value;
     }
 
@@ -577,8 +588,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @param key the key
      * @return the node, or null if none
      */
-    final Node<K,V> getNode(int hash, Object key) {
-       Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+    final Node<Word,Tuple> getNode(int hash, Object key) {
+       Node<Word,Tuple>[] tab; Node<Word,Tuple> first, e; int n; Word k;
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
@@ -586,7 +597,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
                 return first;
             if ((e = first.next) != null) {
                 if (first instanceof TreeNode)
-                    return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+                    return ((TreeNode<Word,Tuple>)first).getTreeNode(hash, key);
                 do {
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
@@ -621,7 +632,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *         (A <tt>null</tt> return can also indicate that the map
      *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
-    public V put(K key, V value) {
+    public Tuple put(Word key, Tuple value) {
         return putVal(hash(key), key, value, false, true);
     }
 
@@ -635,20 +646,20 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @param evict if false, the table is in creation mode.
      * @return previous value, or null if none
      */
-    final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+    final Tuple putVal(int hash, Word key, Tuple value, boolean onlyIfAbsent,
                    boolean evict) {
-        Node<K,V>[] tab; Node<K,V> p; int n, i;
+        Node<Word,Tuple>[] tab; Node<Word,Tuple> p; int n, i;
         if ((tab = table) == null || (n = tab.length) == 0)
             n = (tab = resize()).length;
         if ((p = tab[i = (n - 1) & hash]) == null)
             tab[i] = newNode(hash, key, value, null);
         else {
-            Node<K,V> e; K k;
+            Node<Word,Tuple> e; Word k;
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 e = p;
             else if (p instanceof TreeNode)
-                e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+                e = ((TreeNode<Word,Tuple>)p).putTreeVal(this, tab, hash, key, value);
             else {
                 for (int binCount = 0; ; ++binCount) {
                     if ((e = p.next) == null) {
@@ -664,7 +675,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
                 }
             }
             if (e != null) { // existing mapping for key
-                V oldValue = e.value;
+                Tuple oldValue = e.value;
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
                 afterNodeAccess(e);
@@ -691,8 +702,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *
      * @return the table
      */
-    final Node<K,V>[] resize() {
-        Node<K,V>[] oldTab = table;
+    final Node<Word,Tuple>[] resize() {
+        Node<Word,Tuple>[] oldTab = table;
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
         int oldThr = threshold;
         int newCap, newThr = 0;
@@ -718,21 +729,21 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
         }
         threshold = newThr;
         @SuppressWarnings({"rawtypes","unchecked"})
-            Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+            Node<Word,Tuple>[] newTab = (Node<Word,Tuple>[])new Node[newCap];
         table = newTab;
         if (oldTab != null) {
             for (int j = 0; j < oldCap; ++j) {
-                Node<K,V> e;
+                Node<Word,Tuple> e;
                 if ((e = oldTab[j]) != null) {
                     oldTab[j] = null;
                     if (e.next == null)
                         newTab[e.hash & (newCap - 1)] = e;
                     else if (e instanceof TreeNode)
-                        ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                        ((TreeNode<Word,Tuple>)e).split(this, newTab, j, oldCap);
                     else { // preserve order
-                        Node<K,V> loHead = null, loTail = null;
-                        Node<K,V> hiHead = null, hiTail = null;
-                        Node<K,V> next;
+                        Node<Word,Tuple> loHead = null, loTail = null;
+                        Node<Word,Tuple> hiHead = null, hiTail = null;
+                        Node<Word,Tuple> next;
                         do {
                             next = e.next;
                             if ((e.hash & oldCap) == 0) {
@@ -769,14 +780,14 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * Replaces all linked nodes in bin at index for given hash unless
      * table is too small, in which case resizes instead.
      */
-    final void treeifyBin(Node<K,V>[] tab, int hash) {
-        int n, index; Node<K,V> e;
+    final void treeifyBin(Node<Word,Tuple>[] tab, int hash) {
+        int n, index; Node<Word,Tuple> e;
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
         else if ((e = tab[index = (n - 1) & hash]) != null) {
-            TreeNode<K,V> hd = null, tl = null;
+            TreeNode<Word,Tuple> hd = null, tl = null;
             do {
-                TreeNode<K,V> p = replacementTreeNode(e, null);
+                TreeNode<Word,Tuple> p = replacementTreeNode(e, null);
                 if (tl == null)
                     hd = p;
                 else {
@@ -798,7 +809,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @param m mappings to be stored in this map
      * @throws NullPointerException if the specified map is null
      */
-    public void putAll(Map<? extends K, ? extends V> m) {
+    public void putAll(Map<? extends Word, ? extends Tuple> m) {
         putMapEntries(m, true);
     }
 
@@ -811,8 +822,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *         (A <tt>null</tt> return can also indicate that the map
      *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
-    public V remove(Object key) {
-        Node<K,V> e;
+    public Tuple remove(Object key) {
+        Node<Word,Tuple> e;
         return (e = removeNode(hash(key), key, null, false, true)) == null ?
             null : e.value;
     }
@@ -827,18 +838,18 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * @param movable if false do not move other nodes while removing
      * @return the node, or null if none
      */
-    final Node<K,V> removeNode(int hash, Object key, Object value,
+    final Node<Word,Tuple> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
-        Node<K,V>[] tab; Node<K,V> p; int n, index;
+        Node<Word,Tuple>[] tab; Node<Word,Tuple> p; int n, index;
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
-            Node<K,V> node = null, e; K k; V v;
+            Node<Word,Tuple> node = null, e; Word k; Tuple v;
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 node = p;
             else if ((e = p.next) != null) {
                 if (p instanceof TreeNode)
-                    node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
+                    node = ((TreeNode<Word,Tuple>)p).getTreeNode(hash, key);
                 else {
                     do {
                         if (e.hash == hash &&
@@ -854,7 +865,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             if (node != null && (!matchValue || (v = node.value) == value ||
                                  (value != null && value.equals(v)))) {
                 if (node instanceof TreeNode)
-                    ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
+                    ((TreeNode<Word,Tuple>)node).removeTreeNode(this, tab, movable);
                 else if (node == p)
                     tab[index] = node.next;
                 else
@@ -873,7 +884,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      * The map will be empty after this call returns.
      */
     public void clear() {
-        Node<K,V>[] tab;
+        Node<Word,Tuple>[] tab;
         modCount++;
         if ((tab = table) != null && size > 0) {
             size = 0;
@@ -891,10 +902,10 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *         specified value
      */
     public boolean containsValue(Object value) {
-        Node<K,V>[] tab; V v;
+        Node<Word,Tuple>[] tab; Tuple v;
         if ((tab = table) != null && size > 0) {
             for (int i = 0; i < tab.length; ++i) {
-                for (Node<K,V> e = tab[i]; e != null; e = e.next) {
+                for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next) {
                     if ((v = e.value) == value ||
                         (value != null && value.equals(v)))
                         return true;
@@ -919,8 +930,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *
      * @return a set view of the keys contained in this map
      */
-    public Set<K> keySet() {
-        Set<K> ks = keySet;
+    public Set<Word> keySet() {
+        Set<Word> ks = keySet;
         if (ks == null) {
             ks = new KeySet();
             keySet = ks;
@@ -929,27 +940,27 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     
-    AbstractMap<K, V> a;
+    AbstractMap<Word, Tuple> a;
     
-    final class KeySet extends AbstractSet<K> {
+    final class KeySet extends AbstractSet<Word> {
         public final int size()                 { return size; }
         public final void clear()               { CustomHashMap.this.clear(); }
-        public final Iterator<K> iterator()     { return new KeyIterator(); }
+        public final Iterator<Word> iterator()     { return new KeyIterator(); }
         public final boolean contains(Object o) { return containsKey(o); }
         public final boolean remove(Object key) {
             return removeNode(hash(key), key, null, false, true) != null;
         }
-        public final Spliterator<K> spliterator() {
+        public final Spliterator<Word> spliterator() {
             return new KeySpliterator<>(CustomHashMap.this, 0, -1, 0, 0);
         }
-        public final void forEach(Consumer<? super K> action) {
-            Node<K,V>[] tab;
+        public final void forEach(Consumer<? super Word> action) {
+            Node<Word,Tuple>[] tab;
             if (action == null)
                 throw new NullPointerException();
             if (size > 0 && (tab = table) != null) {
                 int mc = modCount;
                 for (int i = 0; i < tab.length; ++i) {
-                    for (Node<K,V> e = tab[i]; e != null; e = e.next)
+                    for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next)
                         action.accept(e.key);
                 }
                 if (modCount != mc)
@@ -973,8 +984,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *
      * @return a view of the values contained in this map
      */
-    public Collection<V> values() {
-        Collection<V> vs = values;
+    public Collection<Tuple> values() {
+        Collection<Tuple> vs = values;
         if (vs == null) {
             vs = new Values();
             values = vs;
@@ -982,22 +993,22 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
         return vs;
     }
 
-    final class Values extends AbstractCollection<V> {
+    final class Values extends AbstractCollection<Tuple> {
         public final int size()                 { return size; }
         public final void clear()               { CustomHashMap.this.clear(); }
-        public final Iterator<V> iterator()     { return new ValueIterator(); }
+        public final Iterator<Tuple> iterator()     { return new ValueIterator(); }
         public final boolean contains(Object o) { return containsValue(o); }
-        public final Spliterator<V> spliterator() {
+        public final Spliterator<Tuple> spliterator() {
             return new ValueSpliterator<>(CustomHashMap.this, 0, -1, 0, 0);
         }
-        public final void forEach(Consumer<? super V> action) {
-            Node<K,V>[] tab;
+        public final void forEach(Consumer<? super Tuple> action) {
+            Node<Word,Tuple>[] tab;
             if (action == null)
                 throw new NullPointerException();
             if (size > 0 && (tab = table) != null) {
                 int mc = modCount;
                 for (int i = 0; i < tab.length; ++i) {
-                    for (Node<K,V> e = tab[i]; e != null; e = e.next)
+                    for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next)
                         action.accept(e.value);
                 }
                 if (modCount != mc)
@@ -1022,15 +1033,15 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      *
      * @return a set view of the mappings contained in this map
      */
-    public Set<Map.Entry<K,V>> entrySet() {
-        Set<Map.Entry<K,V>> es;
+    public Set<Map.Entry<Word,Tuple>> entrySet() {
+        Set<Map.Entry<Word,Tuple>> es;
         return (es = entrySet) == null ? (entrySet = new EntrySet()) : es;
     }
 
-    final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
+    final class EntrySet extends AbstractSet<Map.Entry<Word,Tuple>> {
         public final int size()                 { return size; }
         public final void clear()               { CustomHashMap.this.clear(); }
-        public final Iterator<Map.Entry<K,V>> iterator() {
+        public final Iterator<Map.Entry<Word,Tuple>> iterator() {
             return new EntryIterator();
         }
         public final boolean contains(Object o) {
@@ -1038,7 +1049,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
                 return false;
             Map.Entry<?,?> e = (Map.Entry<?,?>) o;
             Object key = e.getKey();
-            Node<K,V> candidate = getNode(hash(key), key);
+            Node<Word,Tuple> candidate = getNode(hash(key), key);
             return candidate != null && candidate.equals(e);
         }
         public final boolean remove(Object o) {
@@ -1050,17 +1061,17 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             }
             return false;
         }
-        public final Spliterator<Map.Entry<K,V>> spliterator() {
+        public final Spliterator<Map.Entry<Word,Tuple>> spliterator() {
             return new EntrySpliterator<>(CustomHashMap.this, 0, -1, 0, 0);
         }
-        public final void forEach(Consumer<? super Map.Entry<K,V>> action) {
-            Node<K,V>[] tab;
+        public final void forEach(Consumer<? super Map.Entry<Word,Tuple>> action) {
+            Node<Word,Tuple>[] tab;
             if (action == null)
                 throw new NullPointerException();
             if (size > 0 && (tab = table) != null) {
                 int mc = modCount;
                 for (int i = 0; i < tab.length; ++i) {
-                    for (Node<K,V> e = tab[i]; e != null; e = e.next)
+                    for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next)
                         action.accept(e);
                 }
                 if (modCount != mc)
@@ -1072,13 +1083,13 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     // Overrides of JDK8 Map extension methods
 
     @Override
-    public V getOrDefault(Object key, V defaultValue) {
-        Node<K,V> e;
+    public Tuple getOrDefault(Object key, Tuple defaultValue) {
+        Node<Word,Tuple> e;
         return (e = getNode(hash(key), key)) == null ? defaultValue : e.value;
     }
 
     @Override
-    public V putIfAbsent(K key, V value) {
+    public Tuple putIfAbsent(Word key, Tuple value) {
         return putVal(hash(key), key, value, true, true);
     }
 
@@ -1088,8 +1099,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public boolean replace(K key, V oldValue, V newValue) {
-        Node<K,V> e; V v;
+    public boolean replace(Word key, Tuple oldValue, Tuple newValue) {
+        Node<Word,Tuple> e; Tuple v;
         if ((e = getNode(hash(key), key)) != null &&
             ((v = e.value) == oldValue || (v != null && v.equals(oldValue)))) {
             e.value = newValue;
@@ -1100,10 +1111,10 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public V replace(K key, V value) {
-        Node<K,V> e;
+    public Tuple replace(Word key, Tuple value) {
+        Node<Word,Tuple> e;
         if ((e = getNode(hash(key), key)) != null) {
-            V oldValue = e.value;
+            Tuple oldValue = e.value;
             e.value = value;
             afterNodeAccess(e);
             return oldValue;
@@ -1112,23 +1123,23 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public V computeIfAbsent(K key,
-                             Function<? super K, ? extends V> mappingFunction) {
+    public Tuple computeIfAbsent(Word key,
+                             Function<? super Word, ? extends Tuple> mappingFunction) {
         if (mappingFunction == null)
             throw new NullPointerException();
         int hash = hash(key);
-        Node<K,V>[] tab; Node<K,V> first; int n, i;
+        Node<Word,Tuple>[] tab; Node<Word,Tuple> first; int n, i;
         int binCount = 0;
-        TreeNode<K,V> t = null;
-        Node<K,V> old = null;
+        TreeNode<Word,Tuple> t = null;
+        Node<Word,Tuple> old = null;
         if (size > threshold || (tab = table) == null ||
             (n = tab.length) == 0)
             n = (tab = resize()).length;
         if ((first = tab[i = (n - 1) & hash]) != null) {
             if (first instanceof TreeNode)
-                old = (t = (TreeNode<K,V>)first).getTreeNode(hash, key);
+                old = (t = (TreeNode<Word,Tuple>)first).getTreeNode(hash, key);
             else {
-                Node<K,V> e = first; K k;
+                Node<Word,Tuple> e = first; Word k;
                 do {
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k)))) {
@@ -1138,13 +1149,13 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
                     ++binCount;
                 } while ((e = e.next) != null);
             }
-            V oldValue;
+            Tuple oldValue;
             if (old != null && (oldValue = old.value) != null) {
                 afterNodeAccess(old);
                 return oldValue;
             }
         }
-        V v = mappingFunction.apply(key);
+        Tuple v = mappingFunction.apply(key);
         if (v == null) {
             return null;
         } else if (old != null) {
@@ -1165,15 +1176,15 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
         return v;
     }
 
-    public V computeIfPresent(K key,
-                              BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    public Tuple computeIfPresent(Word key,
+                              BiFunction<? super Word, ? super Tuple, ? extends Tuple> remappingFunction) {
         if (remappingFunction == null)
             throw new NullPointerException();
-        Node<K,V> e; V oldValue;
+        Node<Word,Tuple> e; Tuple oldValue;
         int hash = hash(key);
         if ((e = getNode(hash, key)) != null &&
             (oldValue = e.value) != null) {
-            V v = remappingFunction.apply(key, oldValue);
+            Tuple v = remappingFunction.apply(key, oldValue);
             if (v != null) {
                 e.value = v;
                 afterNodeAccess(e);
@@ -1186,23 +1197,23 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public V compute(K key,
-                     BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    public Tuple compute(Word key,
+                     BiFunction<? super Word, ? super Tuple, ? extends Tuple> remappingFunction) {
         if (remappingFunction == null)
             throw new NullPointerException();
         int hash = hash(key);
-        Node<K,V>[] tab; Node<K,V> first; int n, i;
+        Node<Word,Tuple>[] tab; Node<Word,Tuple> first; int n, i;
         int binCount = 0;
-        TreeNode<K,V> t = null;
-        Node<K,V> old = null;
+        TreeNode<Word,Tuple> t = null;
+        Node<Word,Tuple> old = null;
         if (size > threshold || (tab = table) == null ||
             (n = tab.length) == 0)
             n = (tab = resize()).length;
         if ((first = tab[i = (n - 1) & hash]) != null) {
             if (first instanceof TreeNode)
-                old = (t = (TreeNode<K,V>)first).getTreeNode(hash, key);
+                old = (t = (TreeNode<Word,Tuple>)first).getTreeNode(hash, key);
             else {
-                Node<K,V> e = first; K k;
+                Node<Word,Tuple> e = first; Word k;
                 do {
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k)))) {
@@ -1213,8 +1224,8 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
                 } while ((e = e.next) != null);
             }
         }
-        V oldValue = (old == null) ? null : old.value;
-        V v = remappingFunction.apply(key, oldValue);
+        Tuple oldValue = (old == null) ? null : old.value;
+        Tuple v = remappingFunction.apply(key, oldValue);
         if (old != null) {
             if (v != null) {
                 old.value = v;
@@ -1239,25 +1250,25 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public V merge(K key, V value,
-                   BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+    public Tuple merge(Word key, Tuple value,
+                   BiFunction<? super Tuple, ? super Tuple, ? extends Tuple> remappingFunction) {
         if (value == null)
             throw new NullPointerException();
         if (remappingFunction == null)
             throw new NullPointerException();
         int hash = hash(key);
-        Node<K,V>[] tab; Node<K,V> first; int n, i;
+        Node<Word,Tuple>[] tab; Node<Word,Tuple> first; int n, i;
         int binCount = 0;
-        TreeNode<K,V> t = null;
-        Node<K,V> old = null;
+        TreeNode<Word,Tuple> t = null;
+        Node<Word,Tuple> old = null;
         if (size > threshold || (tab = table) == null ||
             (n = tab.length) == 0)
             n = (tab = resize()).length;
         if ((first = tab[i = (n - 1) & hash]) != null) {
             if (first instanceof TreeNode)
-                old = (t = (TreeNode<K,V>)first).getTreeNode(hash, key);
+                old = (t = (TreeNode<Word,Tuple>)first).getTreeNode(hash, key);
             else {
-                Node<K,V> e = first; K k;
+                Node<Word,Tuple> e = first; Word k;
                 do {
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k)))) {
@@ -1269,7 +1280,7 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             }
         }
         if (old != null) {
-            V v;
+            Tuple v;
             if (old.value != null)
                 v = remappingFunction.apply(old.value, value);
             else
@@ -1298,14 +1309,14 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public void forEach(BiConsumer<? super K, ? super V> action) {
-        Node<K,V>[] tab;
+    public void forEach(BiConsumer<? super Word, ? super Tuple> action) {
+        Node<Word,Tuple>[] tab;
         if (action == null)
             throw new NullPointerException();
         if (size > 0 && (tab = table) != null) {
             int mc = modCount;
             for (int i = 0; i < tab.length; ++i) {
-                for (Node<K,V> e = tab[i]; e != null; e = e.next)
+                for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next)
                     action.accept(e.key, e.value);
             }
             if (modCount != mc)
@@ -1314,14 +1325,14 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     @Override
-    public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
-        Node<K,V>[] tab;
+    public void replaceAll(BiFunction<? super Word, ? super Tuple, ? extends Tuple> function) {
+        Node<Word,Tuple>[] tab;
         if (function == null)
             throw new NullPointerException();
         if (size > 0 && (tab = table) != null) {
             int mc = modCount;
             for (int i = 0; i < tab.length; ++i) {
-                for (Node<K,V> e = tab[i]; e != null; e = e.next) {
+                for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next) {
                     e.value = function.apply(e.key, e.value);
                 }
             }
@@ -1342,9 +1353,9 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     @SuppressWarnings("unchecked")
     @Override
     public Object clone() {
-        CustomHashMap<K,V> result;
+        CustomHashMap<Word,Tuple> result;
         try {
-            result = (CustomHashMap<K,V>)super.clone();
+            result = (CustomHashMap<Word,Tuple>)super.clone();
         } catch (CloneNotSupportedException e) {
             // this shouldn't happen, since we are Cloneable
             throw new InternalError(e);
@@ -1414,15 +1425,15 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             threshold = ((cap < MAXIMUM_CAPACITY && ft < MAXIMUM_CAPACITY) ?
                          (int)ft : Integer.MAX_VALUE);
             @SuppressWarnings({"rawtypes","unchecked"})
-                Node<K,V>[] tab = (Node<K,V>[])new Node[cap];
+                Node<Word,Tuple>[] tab = (Node<Word,Tuple>[])new Node[cap];
             table = tab;
 
             // Read the keys and values, and put the mappings in the CustomHashMap
             for (int i = 0; i < mappings; i++) {
                 @SuppressWarnings("unchecked")
-                    K key = (K) s.readObject();
+                    Word key = (Word) s.readObject();
                 @SuppressWarnings("unchecked")
-                    V value = (V) s.readObject();
+                    Tuple value = (Tuple) s.readObject();
                 putVal(hash(key), key, value, false, false);
             }
         }
@@ -1432,14 +1443,14 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     // iterators
 
     abstract class HashIterator {
-        Node<K,V> next;        // next entry to return
-        Node<K,V> current;     // current entry
+        Node<Word,Tuple> next;        // next entry to return
+        Node<Word,Tuple> current;     // current entry
         int expectedModCount;  // for fast-fail
         int index;             // current slot
 
         HashIterator() {
             expectedModCount = modCount;
-            Node<K,V>[] t = table;
+            Node<Word,Tuple>[] t = table;
             current = next = null;
             index = 0;
             if (t != null && size > 0) { // advance to first entry
@@ -1451,9 +1462,9 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
             return next != null;
         }
 
-        final Node<K,V> nextNode() {
-            Node<K,V>[] t;
-            Node<K,V> e = next;
+        final Node<Word,Tuple> nextNode() {
+            Node<Word,Tuple>[] t;
+            Node<Word,Tuple> e = next;
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
             if (e == null)
@@ -1465,31 +1476,31 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
         }
 
         public final void remove() {
-            Node<K,V> p = current;
+            Node<Word,Tuple> p = current;
             if (p == null)
                 throw new IllegalStateException();
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
             current = null;
-            K key = p.key;
+            Word key = p.key;
             removeNode(hash(key), key, null, false, false);
             expectedModCount = modCount;
         }
     }
 
     final class KeyIterator extends HashIterator
-        implements Iterator<K> {
-        public final K next() { return nextNode().key; }
+        implements Iterator<Word> {
+        public final Word next() { return nextNode().key; }
     }
 
     final class ValueIterator extends HashIterator
-        implements Iterator<V> {
-        public final V next() { return nextNode().value; }
+        implements Iterator<Tuple> {
+        public final Tuple next() { return nextNode().value; }
     }
 
     final class EntryIterator extends HashIterator
-        implements Iterator<Map.Entry<K,V>> {
-        public final Map.Entry<K,V> next() { return nextNode(); }
+        implements Iterator<Map.Entry<Word,Tuple>> {
+        public final Map.Entry<Word,Tuple> next() { return nextNode(); }
     }
 
     /* ------------------------------------------------------------ */
@@ -1759,22 +1770,22 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
      */
 
     // Create a regular (non-tree) node
-    Node<K,V> newNode(int hash, K key, V value, Node<K,V> next) {
+    Node<Word,Tuple> newNode(int hash, Word key, Tuple value, Node<Word,Tuple> next) {
         return new Node<>(hash, key, value, next);
     }
 
     // For conversion from TreeNodes to plain nodes
-    Node<K,V> replacementNode(Node<K,V> p, Node<K,V> next) {
+    Node<Word,Tuple> replacementNode(Node<Word,Tuple> p, Node<Word,Tuple> next) {
         return new Node<>(p.hash, p.key, p.value, next);
     }
 
     // Create a tree bin node
-    TreeNode<K,V> newTreeNode(int hash, K key, V value, Node<K,V> next) {
+    TreeNode<Word,Tuple> newTreeNode(int hash, Word key, Tuple value, Node<Word,Tuple> next) {
         return new TreeNode<>(hash, key, value, next);
     }
 
     // For treeifyBin
-    TreeNode<K,V> replacementTreeNode(Node<K,V> p, Node<K,V> next) {
+    TreeNode<Word,Tuple> replacementTreeNode(Node<Word,Tuple> p, Node<Word,Tuple> next) {
         return new TreeNode<>(p.hash, p.key, p.value, next);
     }
 
@@ -1792,16 +1803,16 @@ public class CustomHashMap<K,V> extends CustomAbstractMap<K,V>
     }
 
     // Callbacks to allow LinkedCustomHashMap post-actions
-    void afterNodeAccess(Node<K,V> p) { }
+    void afterNodeAccess(Node<Word,Tuple> p) { }
     void afterNodeInsertion(boolean evict) { }
-    void afterNodeRemoval(Node<K,V> p) { }
+    void afterNodeRemoval(Node<Word,Tuple> p) { }
 
     // Called only from writeObject, to ensure compatible ordering.
     void internalWriteEntries(java.io.ObjectOutputStream s) throws IOException {
-        Node<K,V>[] tab;
+        Node<Word,Tuple>[] tab;
         if (size > 0 && (tab = table) != null) {
             for (int i = 0; i < tab.length; ++i) {
-                for (Node<K,V> e = tab[i]; e != null; e = e.next) {
+                for (Node<Word,Tuple> e = tab[i]; e != null; e = e.next) {
                     s.writeObject(e.key);
                     s.writeObject(e.value);
                 }

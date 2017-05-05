@@ -32,7 +32,7 @@ import tree.Tree;
 
 /**
  * In this second hash version, the Nodes composing the buckets contain a table
- * of reference positions, which point to a list of Pairs representing 
+ * of positions pointing to a list of Pairs representing a
  * (nodeId, PP*)
  * @author ben
  */
@@ -67,6 +67,15 @@ public class SimpleHash_v2 implements Serializable{
         return hash.get(w).getBestPair();
     }    
     
+    public List<Pair> getPairsOfTopPosition(Word w) {
+        return hash.get(w).getPairList(hash.get(w).getBestPosition());
+    }  
+    
+    public int[] getPositions(Word w) {
+        return hash.get(w).getPositions();
+    }
+    
+    
     public void sortData() {
         double startTime=System.currentTimeMillis();
         hash.values().stream().forEach( l -> {l.sort();} );
@@ -93,7 +102,7 @@ public class SimpleHash_v2 implements Serializable{
      * @param position
      * @return 
      */
-    public List<Pair> getTuples(Word w,int position) {
+    public List<Pair> getPairs(Word w,int position) {
         if (hash.containsKey(w)) {
             return hash.get(w).getPairList(position);
         } else {
@@ -120,8 +129,14 @@ public class SimpleHash_v2 implements Serializable{
             String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
             String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
             String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
-
-
+            
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
+//            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
+//            String t=inputsPath+"RAxML_result.bv_refs_aln";
+            
+            
+            
             String rst=workDir+"/AR/rst";
             
             
@@ -187,86 +202,87 @@ public class SimpleHash_v2 implements Serializable{
             ///////////////////////////////////////////////////::
             ///// TEST ON HASH V1
             boolean testBuckets=false;
+            boolean doHashV1=true;
+            final SimpleHash hash=new SimpleHash();
             
-            //prepare simplified hash
-            SimpleHash hash=new SimpleHash();
-
-            Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
-            Infos.println("Building all words probas...");
-            //Word Explorer
-            int totalTuplesInHash=0;
-            int nodeCounter=0;
-            double[] wordsPerNode=new double[tree.getInternalNodesByDFS().size()];
-            double startHashBuildTime=System.currentTimeMillis();
-            for (int nodeId:tree.getInternalNodesByDFS()) {
-                Infos.println("NodeId: "+nodeId+" "+tree.getById(nodeId).toString() );
-                    //DEBUG
-                    //if(nodeId!=709)
-                    //    continue;
-                    //DEBUG                
+            if (doHashV1) {
                 
-                double startMerScanTime=System.currentTimeMillis();
-                WordExplorer wd =null;
-                int totalTuplesPassingThreshold=0;
-                for (int pos:knife.getMerOrder()) {
+                Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
+                Infos.println("Building all words probas...");
+                //Word Explorer
+                int totalTuplesInHash=0;
+                int nodeCounter=0;
+                double[] wordsPerNode=new double[tree.getInternalNodesByDFS().size()];
+                double startHashBuildTime=System.currentTimeMillis();
+                for (int nodeId:tree.getInternalNodesByDFS()) {
+                    Infos.println("NodeId: "+nodeId+" "+tree.getById(nodeId).toString() );
+                        //DEBUG
+                        //if(nodeId!=709)
+                        //    continue;
+                        //DEBUG                
 
-                    if(pos+k-1>align.getLength()-1)
-                        continue;
-                    //DEBUG
-                    //if(pos<1198 || pos>1202)
-                    //    continue;
-                    //DEBUG
-                    
-                    //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
-                    double startScanTime=System.currentTimeMillis();
-                    wd =new WordExplorer(   k,
-                                            pos,
-                                            nodeId,
-                                            pprobas,
-                                            wordPPStarThresholdAsLog
-                                        );
-                    
-                    for (int j = 0; j < pprobas.getStateCount(); j++) {
-                        wd.exploreWords(pos, j);
+                    double startMerScanTime=System.currentTimeMillis();
+                    WordExplorer wd =null;
+                    int totalTuplesPassingThreshold=0;
+                    for (int pos:knife.getMerOrder()) {
+
+                        if(pos+k-1>align.getLength()-1)
+                            continue;
+                        //DEBUG
+                        //if(pos<1198 || pos>1202)
+                        //    continue;
+                        //DEBUG
+
+                        //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
+                        double startScanTime=System.currentTimeMillis();
+                        wd =new WordExplorer(   k,
+                                                pos,
+                                                nodeId,
+                                                pprobas,
+                                                wordPPStarThresholdAsLog
+                                            );
+
+                        for (int j = 0; j < pprobas.getStateCount(); j++) {
+                            wd.exploreWords(pos, j);
+                        }
+
+                        //register the words in the hash
+                        wd.getRetainedWords().stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
+                        totalTuplesPassingThreshold+=wd.getRetainedWords().size();
+
+                        //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
+                        //Infos.println("Words in this position:"+wd.getRetainedWords().size());
+
+                        //double endScanTime=System.currentTimeMillis();
+                        //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
+
+                        wd=null;
                     }
-                    
-                    //register the words in the hash
-                    wd.getRetainedWords().stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
-                    totalTuplesPassingThreshold+=wd.getRetainedWords().size();
-                    
-                    //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
-                    //Infos.println("Words in this position:"+wd.getRetainedWords().size());
-                    
-                    //double endScanTime=System.currentTimeMillis();
-                    //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
-                    
-                    wd=null;
+                    wordsPerNode[nodeCounter]=totalTuplesPassingThreshold;
+                    totalTuplesInHash+=totalTuplesPassingThreshold;
+
+
+                    //register all words in the hash
+                    //Infos.println("Tuples in this node:"+totalTuplesPassingThreshold);
+                    double endMerScanTime=System.currentTimeMillis();
+                    //Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
+                    //Environement.printMemoryUsageDescription();
+                    nodeCounter++;
+
                 }
-                wordsPerNode[nodeCounter]=totalTuplesPassingThreshold;
-                totalTuplesInHash+=totalTuplesPassingThreshold;
-                
-                
-                //register all words in the hash
-                //Infos.println("Tuples in this node:"+totalTuplesPassingThreshold);
-                double endMerScanTime=System.currentTimeMillis();
-                //Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
-                //Environement.printMemoryUsageDescription();
-                nodeCounter++;
-                
+
+
+                Infos.println("Resorting hash components...");
+                hash.sortTuples();
+
+                double endHashBuildTime=System.currentTimeMillis();
+                Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
+                Infos.println("Words in the hash: "+hash.getKeys().size());
+                Infos.println("Tuples in the hash:"+totalTuplesInHash);
+
+                fw.close();
+            
             }
-
-            
-            Infos.println("Resorting hash components...");
-            hash.sortTuples();
-            
-            double endHashBuildTime=System.currentTimeMillis();
-            Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            Infos.println("Words in the hash: "+hash.getKeys().size());
-            Infos.println("Tuples in the hash:"+totalTuplesInHash);
-
-            fw.close();
-            
-            
             
             
             
@@ -281,10 +297,10 @@ public class SimpleHash_v2 implements Serializable{
             Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
             Infos.println("Building all words probas...");
             //Word Explorer
-            totalTuplesInHash=0;
-            nodeCounter=0;
-            wordsPerNode=new double[tree.getInternalNodesByDFS().size()];
-            startHashBuildTime=System.currentTimeMillis();
+            int totalTuplesInHash=0;
+            int nodeCounter=0;
+            double[] wordsPerNode=new double[tree.getInternalNodesByDFS().size()];
+            long startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:tree.getInternalNodesByDFS()) {
                 Infos.println("NodeId: "+nodeId+" "+tree.getById(nodeId).toString() );
                     //DEBUG
@@ -346,9 +362,9 @@ public class SimpleHash_v2 implements Serializable{
             Infos.println("Resorting hash_v2 components...");
             hash2.sortData();
             
-            endHashBuildTime=System.currentTimeMillis();
+            long endHashBuildTime=System.currentTimeMillis();
             Infos.println("Overall, hash_v2 built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            Infos.println("Words in the hash_v2: "+hash.getKeys().size());
+            Infos.println("Words in the hash_v2: "+hash2.getKeys().size());
             Infos.println("Tuples in the hash_v2:"+totalTuplesInHash);
 
             
@@ -378,7 +394,12 @@ public class SimpleHash_v2 implements Serializable{
             ///// CHECK IF THEY CONTAIN SAME VALUES
             System.out.println("##########################################");
             
-            byte[] word={1, 0, 0, 0, 3, 1, 2, 0}; //matches positions 1717,983,2149
+            byte[] word={1, 0, 0, 0, 3, 1, 2, 0}; //matches positions 1717,983,2149 for 26,4,1 nodes respectively
+            //byte[] word={1, 1, 3, 0, 1, 3, 0, 1}; // matches 11 positions ! 388,895,898,1276,2200,2215,2253,2266,2452,2521,2581
+
+            //byte[] word={1, 0, 0, 0, 3, 1, 2, 0};
+            //byte[] word={1, 0, 0, 0, 3, 1, 2, 0};
+                    
             Word w=new SimpleWord(word);
             
             //all words in hash
@@ -388,14 +409,22 @@ public class SimpleHash_v2 implements Serializable{
             //hash2.getHash().entrySet().stream().forEach(e->{System.out.println(e.getKey()+" --> "+e.getValue().getPositions().length);});
             
             System.out.println("-----");
-            System.out.println(hash.getTuples(w).toString().replaceAll(",", "\n"));
+            if (doHashV1)
+                System.out.println(hash.getTuples(w).toString().replaceAll(",", "\n"));
             System.out.println("-----");
-            System.out.println(hash2.getTuples(w, 1717).toString().replaceAll(",", "\n"));
-            System.out.println(hash2.getTuples(w, 983).toString().replaceAll(",", "\n"));
-            System.out.println(hash2.getTuples(w, 2149).toString().replaceAll(",", "\n"));
+            int[] positions=hash2.getPositions(w);
+            for (int p:positions) {
+                System.out.println(p+":\n"+hash2.getPairs(w, p).toString().replaceAll(",", "\n"));
+            }
+            
+            int i=0;
+            for (Word wo:hash2.getKeys()) {
+                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo).size());
+                i++;
+            }
             
             
-            
+
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {

@@ -125,15 +125,16 @@ public class SimpleHash_v2 implements Serializable{
             String HOME = System.getenv("HOME");
 
             //DATASET BASIC RAPID TESTS:
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
-            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+//            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
             
-//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
-//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
-//            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
-//            String t=inputsPath+"RAxML_result.bv_refs_aln";
+            //DATASET LARGE TESTS:
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
+            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
+            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
+            String t=inputsPath+"RAxML_result.bv_refs_aln";
             
             
             

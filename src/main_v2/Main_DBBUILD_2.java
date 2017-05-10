@@ -3,13 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main;
+package main_v2;
 
+import main_v2.SessionNext_v2;
 import alignement.Alignment;
 import core.hash.SimpleHash;
 import core.States;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
+import core.hash.SimpleHash_v2;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -26,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import main.Main_PLACEMENT;
 import static main.Main_PLACEMENT.inputStreamToOutputStream;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -43,7 +46,7 @@ import tree.ExtendedTree;
  *
  * @author ben
  */
-public class Main_DBBUILD {
+public class Main_DBBUILD_2 {
     
     public static final int TYPE_DNA=1;
     public static final int TYPE_PROT=1;
@@ -94,12 +97,12 @@ public class Main_DBBUILD {
             
             
         } catch (IOException ex) {
-            Logger.getLogger(Main_DBBUILD.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main_DBBUILD_2.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 fw.close();
             } catch (IOException ex) {
-                Logger.getLogger(Main_DBBUILD.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main_DBBUILD_2.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
                 
@@ -184,7 +187,7 @@ public class Main_DBBUILD {
             //skip extended tree reconstruction
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on extended tree)
-            boolean launchAR=false;
+            boolean launchAR=true;
             
             
             
@@ -301,7 +304,7 @@ public class Main_DBBUILD {
                 sb.append("fix_alpha = 1   * 0: estimate alpha; 1: fix alpha at value below\n");
                 sb.append("alpha = 0.433838   * initial or fixed alpha, 0:infinity (constant rate)\n");
                 sb.append("Malpha = 0   * 1: different alpha's for genes, 0: one alpha\n");
-                sb.append("ncatG = 25   * # of categories in the dG, AdG, or nparK models of rates\n");
+                sb.append("ncatG = 4   * # of categories in the dG, AdG, or nparK models of rates\n");
                 sb.append("nparK = 0   * rate-class models. 1:rK, 2:rK&fK, 3:rK&MK(1/K), 4:rK&MK\n");
                 sb.append("nhomo = 0   * 0 & 1: homogeneous, 2: kappa for branches, 3: N1, 4: N2\n");
                 sb.append("getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
@@ -365,7 +368,7 @@ public class Main_DBBUILD {
             ////////////////////////////////////////////////////////////////////
             //LOAD THE NEW POSTERIOR PROBAS AND PAML TREE MADE FROM THE AR
 
-            SessionNext session=new SessionNext(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
+            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
             
             Infos.println("Loading final dataset (PAML tree and Posterior Probas ; alignment)...");
             InputManagerNext im=new InputManagerNext(InputManagerNext.SOURCE_PAML, fileRelaxedAlignmentFasta, null, statsFromRelaxedTree, s);
@@ -383,7 +386,7 @@ public class Main_DBBUILD {
             Infos.println("NodeId=0, 5 first statesIndexes:"+ Arrays.deepToString(im.getPProbas().getStateIndexSet(0, 0, 5)));
             
             //prepare simplified hash
-            SimpleHash hash=new SimpleHash();
+            SimpleHash_v2 hash=new SimpleHash_v2();
             
             System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+thresholdAsLog);
@@ -452,7 +455,7 @@ public class Main_DBBUILD {
 
             
             Infos.println("Sorting hash components...");
-            hash.sortTuples();
+            hash.sortData();
             
             double endHashBuildTime=System.currentTimeMillis();
             System.out.println("Hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
@@ -466,7 +469,7 @@ public class Main_DBBUILD {
             ////////////////////////////////////////////////////////////////////
             //OUTPUT SOME STATS IN THE log directory
             
-            double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getTuples(w).size()).toArray();
+            //double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getPairs(w).size()).toArray();
             //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
             //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
             

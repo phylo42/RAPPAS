@@ -3,8 +3,9 @@
  * and open the template in the editor.
  */
 
-package main;
+package main_v2;
 
+import main.*;
 import core.AAStates;
 import core.DNAStates;
 import core.States;
@@ -21,7 +22,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  *
  * @author linard
  */
-public class Main {
+public class Main_v2 {
 
     private final static String consoleVersion="0.2";
 
@@ -50,8 +51,8 @@ public class Main {
             //DATASET LARGER SET:
             String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
             String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
-            String a=inputsPath+"bv_refs_aln_stripped_99.5.fasta";
-            String t=inputsPath+"RAxML_result.bv_refs_aln";
+            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
+            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
 
 
             //QUERIES::
@@ -111,13 +112,13 @@ public class Main {
             
             
             //parse program arguments
-            ArgumentsParser argsParser = new ArgumentsParser(args);
+            ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
             argsParser.pamlPath=new File("/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml");
             
             
             if (argsParser.mode==ArgumentsParser.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
-                Main_DBBUILD.DBGeneration(  null,
+                Main_DBBUILD_2.DBGeneration(  null,
                                             argsParser.k,
                                             argsParser.alpha,
                                             argsParser.fakeBranchAmount,

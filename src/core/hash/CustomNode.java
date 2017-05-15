@@ -5,6 +5,7 @@
  */
 package core.hash;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -15,7 +16,10 @@ import java.util.Iterator;
  * associated reference position.
  * @author ben
  */
-public class CustomNode {
+public class CustomNode implements Serializable {
+    
+    private static final long serialVersionUID = 7200L;
+
 
     //small init capacity because if k around 8 to 12, few occurences are
     //expected in the ref alignment
@@ -88,7 +92,10 @@ public class CustomNode {
     /**
      * internal class just to link a reference position to a LinkedList
      */
-    private class PairList extends ArrayList<Pair> implements Comparable<PairList> {
+    private class PairList extends ArrayList<Pair> implements Comparable<PairList>,Serializable {
+        
+        private static final long serialVersionUID = 7210L;
+        
         int refPosition=-1;
 
         public PairList(int refPosition) {

@@ -208,6 +208,7 @@ public class ArgumentsParser_v2 {
                         if (queries.isFile() && queries.canRead()) {
                             this.queriesFile=queries;
                         } else {
+                            System.out.println(queries.getAbsolutePath());
                             System.out.println("Cannot open queries: Not a file or no read permission.");
                             System.exit(1);
                         }
@@ -218,6 +219,7 @@ public class ArgumentsParser_v2 {
                         if (database.isFile() && database.canRead()) {
                             this.databaseFile=database;
                         } else {
+                            System.out.println(database.getAbsolutePath());
                             System.out.println("Cannot open database: Not a file or no read permission.");
                             System.exit(1);
                         }

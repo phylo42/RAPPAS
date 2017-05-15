@@ -24,7 +24,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.2";
+    private final static String consoleVersion="0.3";
 
     public static void main (String[] args) {
         try {
@@ -58,37 +58,37 @@ public class Main_v2 {
             //QUERIES::
             
             //DATASET BASIC RAPID TESTS:
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
-            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
+//            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
             //pplacer benchmark queries 
-            //String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //            String q="/home/benclaff/mod_2VGB.qc.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
-//            String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
+            String db=workDir+File.separator+"PAML_session_params_k8_mk8_f1.5_t3.9106607E-4";
 
 
 
             //db build launch
-            String arguments=
-                              "-m b "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.5)+" "
-                            + "-v 1"
-                            ;
+//            String arguments=
+//                              "-m b "
+//                            + "-w "+workDir+" "
+//                            + "-i "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.5)+" "
+//                            + "-v 1"
+//                            ;
             
             // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0"
-//                            ;            
+            String arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 0"
+                            ;            
             
             
             
@@ -131,7 +131,7 @@ public class Main_v2 {
                 
             } else if (argsParser.mode==ArgumentsParser.PLACEMENT_MODE) {
                 System.out.println("Starting placement pipeline...");
-                int placed=Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved.Main_PLACEMENT_V03_align_scoreallnodes(
+                int placed=Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved.Main_PLACEMENT_V05_align_scoreallnodes(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
                                             argsParser.workingDir

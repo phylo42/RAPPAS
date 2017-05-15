@@ -5,13 +5,19 @@
  */
 package core.hash;
 
+import java.io.Serializable;
+
 
 /**
  * Pair representing a (nodeId,PP*) association. These are used in the 
  * LinkedLists
  * @author ben
  */
-public class Pair implements Comparable<Pair>{
+public class Pair implements Comparable<Pair>,Serializable {
+    
+    private static final long serialVersionUID = 7100L;
+
+    
     int nodeId=-1;
     float PPStar=-1.0f;
 

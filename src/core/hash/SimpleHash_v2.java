@@ -64,15 +64,27 @@ public class SimpleHash_v2 implements Serializable{
     }
 
     public Pair getTopPair(Word w) {
-        return hash.get(w).getBestPair();
+        CustomNode cn=null;
+        if ((cn=hash.get(w))!=null)
+            return cn.getBestPair();
+        else
+            return null;
     }    
     
     public List<Pair> getPairsOfTopPosition(Word w) {
-        return hash.get(w).getPairList(hash.get(w).getBestPosition());
+        CustomNode cn=null;
+        if ((cn=hash.get(w))!=null)
+            return cn.getPairList(cn.getBestPosition());
+        else
+            return null;
     }  
     
     public int[] getPositions(Word w) {
-        return hash.get(w).getPositions();
+        CustomNode cn=null;
+        if ((cn=hash.get(w))!=null)
+            return cn.getPositions();
+        else
+            return null;
     }
     
     

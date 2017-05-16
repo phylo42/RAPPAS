@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -52,6 +53,13 @@ public class SimpleHash_v2 implements Serializable{
         System.out.println("INIT HASH("+(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue()+1)+",1.0)");
     }
     
+    /**
+     * only entry point to fill the hash (used at DB generation)
+     * @param w
+     * @param PPStar
+     * @param nodeId
+     * @param refPos 
+     */
     public void addTuple(Word w, float PPStar,int nodeId,int refPos) {
         if (!hash.containsKey(w)) {
             hash.put(w, new CustomNode());
@@ -59,10 +67,19 @@ public class SimpleHash_v2 implements Serializable{
         hash.get(w).registerTuple(nodeId, refPos, PPStar);
     }
 
+    /**
+     * for debug purposes only (access to CustomHashMap hashtable)
+     * @return 
+     */
     public CustomHashMap<Word, CustomNode> getHash() {
         return hash;
     }
 
+    /**
+     * best (nodeId,PP*) associated to this word
+     * @param w
+     * @return 
+     */
     public Pair getTopPair(Word w) {
         CustomNode cn=null;
         if ((cn=hash.get(w))!=null)
@@ -71,6 +88,12 @@ public class SimpleHash_v2 implements Serializable{
             return null;
     }    
     
+    /**
+     * retrieves only (nodeId,PP*) pairs stored under the position
+     * associated to the best PP*
+     * @param w
+     * @return 
+     */
     public List<Pair> getPairsOfTopPosition(Word w) {
         CustomNode cn=null;
         if ((cn=hash.get(w))!=null)
@@ -79,6 +102,11 @@ public class SimpleHash_v2 implements Serializable{
             return null;
     }  
     
+    /**
+     * reference alignment positions associated to a word
+     * @param w
+     * @return 
+     */
     public int[] getPositions(Word w) {
         CustomNode cn=null;
         if ((cn=hash.get(w))!=null)
@@ -122,12 +150,57 @@ public class SimpleHash_v2 implements Serializable{
         }
     }
 
-    public Set<Word> getKeys() {
+    public Set<Word> keySet() {
         return hash.keySet();
     }
     
     
     
+    
+    /**
+     * empty all the positions which where not associated to the best PP*
+     */
+    public void reduceToMediumHash() {
+        for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
+            Word next = iterator.next();
+            hash.get(next).clearPairsOfWorsePositions();
+        }
+        
+    }
+
+    /**
+     * empty all the positions which where not associated to the best PP*,
+     * and retains only X pairs at the best position
+     */
+    public void reducetoSmallHash(int X) {
+        for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
+            Word next = iterator.next();
+            hash.get(next).clearPairsOfWorsePositionsAndLimitToXPairs(X);
+        }
+    }
+    
+    
+    
+    /**
+     * Basic DFS to explore the RED/BLACK tree associated to buckets
+     * @param root 
+     */
+    int DFSCount=0;
+    private int bucketDFS(CustomHashMap.TreeNode root) {
+        if (root.getLeft()!=null)
+            bucketDFS(root.getLeft());
+        if (root.getRight()!=null)
+            bucketDFS(root.getRight());
+        return DFSCount++;
+    }
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////////
+ 
+    
+    
+    //to test the class
     public static void main(String[] args) {
         
         System.setProperty("debug.verbose", "1");
@@ -377,7 +450,7 @@ public class SimpleHash_v2 implements Serializable{
             
             long endHashBuildTime=System.currentTimeMillis();
             Infos.println("Overall, hash_v2 built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            Infos.println("Words in the hash_v2: "+hash2.getKeys().size());
+            Infos.println("Words in the hash_v2: "+hash2.keySet().size());
             Infos.println("Tuples in the hash_v2:"+totalTuplesInHash);
 
             
@@ -416,7 +489,7 @@ public class SimpleHash_v2 implements Serializable{
             Word w=new SimpleWord(word);
             
             //all words in hash
-            //hash.getKeys().stream().forEach(key->{System.out.println(key);});
+            //hash.keySet().stream().forEach(key->{System.out.println(key);});
             
             //number of positions per word
             //hash2.getHash().entrySet().stream().forEach(e->{System.out.println(e.getKey()+" --> "+e.getValue().getPositions().length);});
@@ -431,7 +504,7 @@ public class SimpleHash_v2 implements Serializable{
             }
             
             int i=0;
-            for (Word wo:hash2.getKeys()) {
+            for (Word wo:hash2.keySet()) {
                 System.out.println(i+":"+hash2.getPairsOfTopPosition(wo).size());
                 i++;
             }
@@ -456,22 +529,7 @@ public class SimpleHash_v2 implements Serializable{
     
     
     
-    /**
-     * Basic DFS to explore the RED/BLACK tree associated to buckets
-     * @param root 
-     */
-    int DFSCount=0;
-    private int bucketDFS(CustomHashMap.TreeNode root) {
-        if (root.getLeft()!=null)
-            bucketDFS(root.getLeft());
-        if (root.getRight()!=null)
-            bucketDFS(root.getRight());
-        return DFSCount++;
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
- 
-    
+
     
 
     

@@ -65,9 +65,11 @@ public class SessionNext_v2 {
     }
     
     
-    public boolean store(File f) {
+    public boolean storeFullHash(File f) {
         try {
             long startTime = System.currentTimeMillis();
+            
+            Infos.println("Storing of \"FULL\" hash");
             FileOutputStream fos = new FileOutputStream(f);
             ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
             oos.writeInt(k);
@@ -87,6 +89,7 @@ public class SessionNext_v2 {
             oos.writeObject(hash);
             oos.close();
             fos.close();
+            
             long endTime = System.currentTimeMillis();
             Infos.println("Complete session storage " + (endTime - startTime) + " ms");
             Infos.println("Session stored in : "+f.getAbsolutePath());
@@ -96,6 +99,92 @@ public class SessionNext_v2 {
         }
         return true;
     }
+    
+    /**
+     * should be called AFTER storeFullHash
+     * @param f
+     * @return 
+     */
+    public boolean storeMediumHash(File f) {
+        try {
+            long startTime = System.currentTimeMillis();
+            
+            Infos.println("Storing of \"MEDIUM\" hash");
+            hash.reduceToMediumHash();
+            FileOutputStream fos = new FileOutputStream(f);
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
+            oos.writeInt(k);
+            oos.writeInt(minK);
+            oos.writeFloat(factor);
+            oos.writeFloat(stateThreshold);
+            oos.writeFloat(wordThreshold);
+            Infos.println("Storing of States");
+            oos.writeObject(states);
+            Infos.println("Storing of Alignment");
+            oos.writeObject(align);
+            Infos.println("Storing of Tree");
+            oos.writeObject(tree);
+            Infos.println("Storing of PPStats");
+            oos.writeObject(parsedProbas);
+            Infos.println("Storing of Hash");
+            oos.writeObject(hash);
+            oos.close();
+            fos.close();
+            
+            long endTime = System.currentTimeMillis();
+            Infos.println("Complete session storage " + (endTime - startTime) + " ms");
+            Infos.println("Session stored in : "+f.getAbsolutePath());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * should be called AFTER storeSmallHash
+     * @param f
+     * @return 
+     */
+    public boolean storeSmallHash(File f, int X) {
+        try {
+            long startTime = System.currentTimeMillis();
+            
+            Infos.println("Storing of \"SMALL\" hash");
+            hash.reducetoSmallHash(X);
+            FileOutputStream fos = new FileOutputStream(f);
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
+            oos.writeInt(k);
+            oos.writeInt(minK);
+            oos.writeFloat(factor);
+            oos.writeFloat(stateThreshold);
+            oos.writeFloat(wordThreshold);
+            Infos.println("Storing of States");
+            oos.writeObject(states);
+            Infos.println("Storing of Alignment");
+            oos.writeObject(align);
+            Infos.println("Storing of Tree");
+            oos.writeObject(tree);
+            Infos.println("Storing of PPStats");
+            oos.writeObject(parsedProbas);
+            Infos.println("Storing of Hash");
+            oos.writeObject(hash);
+            oos.close();
+            fos.close();
+            
+            long endTime = System.currentTimeMillis();
+            Infos.println("Complete session storage " + (endTime - startTime) + " ms");
+            Infos.println("Session stored in : "+f.getAbsolutePath());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+    
+    
+    
+    
     
     public static SessionNext_v2 load(File f,boolean loadHash) {
         try {

@@ -9,8 +9,10 @@ import main_v2.SessionNext_v2;
 import alignement.Alignment;
 import core.hash.SimpleHash;
 import core.States;
+import core.Word;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
+import core.hash.CustomNode;
 import core.hash.SimpleHash_v2;
 import etc.Environement;
 import etc.Infos;
@@ -25,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +39,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
+import org.openjdk.jol.info.ClassLayout;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
@@ -189,6 +193,8 @@ public class Main_DBBUILD_2 {
             //skip paml marginal ancestral reconstruction (made on extended tree)
             boolean launchAR=false;
             
+            boolean histogramNumberPositionsPerNode=true;
+            boolean hitsogramNumberNodesPerFirstPosition=true;
             
             
             
@@ -416,7 +422,6 @@ public class Main_DBBUILD_2 {
                     //DEBUG
                     
                     //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
-                    double startScanTime=System.currentTimeMillis();
                     wd =new WordExplorer(   k,
                                             pos,
                                             nodeId,
@@ -459,7 +464,7 @@ public class Main_DBBUILD_2 {
             
             double endHashBuildTime=System.currentTimeMillis();
             System.out.println("Hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            System.out.println("Words in the hash: "+hash.getKeys().size());
+            System.out.println("Words in the hash: "+hash.keySet().size());
             System.out.println("Tuples in the hash:"+totalTuplesInHash);
 
             
@@ -469,7 +474,7 @@ public class Main_DBBUILD_2 {
             ////////////////////////////////////////////////////////////////////
             //OUTPUT SOME STATS IN THE log directory
             
-            //double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getPairs(w).size()).toArray();
+            //double[] vals=hash.keySet().stream().mapToDouble(w->hash.getPairs(w).size()).toArray();
             //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
             //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
             
@@ -478,20 +483,84 @@ public class Main_DBBUILD_2 {
             //SAVE THE HASH BY JAVA SERIALIZATION
             System.out.println("Serialization of the database...");
             session.associateHash(hash);
-            File db=new File(workDir+File.separator+"PAML_session_params_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold);
-            session.store(db);
+            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+wordPPStarThreshold);
+            File dbfull=new File(db.getAbsoluteFile()+".full");
+            File dbmedium=new File(db.getAbsoluteFile()+".medium");
+            File dbsmall=new File(db.getAbsoluteFile()+".small");
+            session.storeFullHash(dbfull);
+            //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
+            //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
+            session.storeMediumHash(dbmedium);
+            session.storeSmallHash(dbsmall, 10);
             im=null;
             session=null;  
+            System.gc();
+            Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
+            Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
+            Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
+
 
             
-            System.gc();
-            double dbSize=Environement.getFileSize(db);
-            System.out.println(dbSize+" Mb saved in "+db.getAbsolutePath());
-            
-            //double dbSize=0.0;
-            //output the generation stats
-            if (processLog!=null) {
-                processLog.write(alpha+"\t"+k+"\t"+(Environement.getMemoryUsageAsMB()/1024)+"\t"+((endHashBuildTime-startHashBuildTime)/1000)+"\t"+hash.getKeys().size()+"\t"+(totalTuplesInHash/1e6)+"\t"+(dbSize/1024)+"\n");
+            ////////////////////////////
+            //output some stats:
+            if (histogramNumberPositionsPerNode) {
+                Infos.println("Building #positions_per_word histogram...");
+                double[] values=new double[hash.keySet().size()];
+                int i=0;
+                for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
+                    Word next = iterator.next();
+                    values[i]=new Double(hash.getPositions(next).length);
+                    i++;
+                }
+                //jfreechat histogram construction and output as image
+                HistogramDataset dataset = new HistogramDataset();
+                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+                int bins=25;
+                dataset.addSeries("Big",values,bins);
+                String plotTitle = "#positions_per_word"; 
+                String xaxis = "#positions";
+                String yaxis = "proportion"; 
+                PlotOrientation orientation = PlotOrientation.VERTICAL; 
+                boolean show = false; 
+                boolean toolTips = false;
+                boolean urls = false; 
+                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+                        dataset, orientation, show, toolTips, urls);
+                int width = 500;
+                int height = 300; 
+                try {
+                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Npositions_per_word.png"), chart, width, height);
+                } catch (IOException e) {}
+            }
+                
+            if (hitsogramNumberNodesPerFirstPosition) {
+                Infos.println("Building #nodes_per_1stposition histogram...");
+                double[] values=new double[hash.keySet().size()];
+                int i=0;
+                for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
+                    Word next = iterator.next();
+                    values[i]=new Double(hash.getPairsOfTopPosition(next).size());
+                    i++;
+                }
+                //jfreechat histogram construction and output as image
+                HistogramDataset dataset = new HistogramDataset();
+                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+                int bins=25;
+                dataset.addSeries("Big",values,bins,0,500);
+                String plotTitle = "#nodes_per_1stposition"; 
+                String xaxis = "#nodes";
+                String yaxis = "proportion"; 
+                PlotOrientation orientation = PlotOrientation.VERTICAL; 
+                boolean show = false; 
+                boolean toolTips = false;
+                boolean urls = false; 
+                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+                        dataset, orientation, show, toolTips, urls);
+                int width = 500;
+                int height = 300; 
+                try {
+                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
+                } catch (IOException e) {}
             }
             
             

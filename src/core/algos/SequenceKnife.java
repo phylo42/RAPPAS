@@ -158,7 +158,9 @@ public class SequenceKnife {
      * @return 
      */
     public QueryWord getWordAt(int queryPosition) {
+        assert queryPosition>-1;
         assert queryPosition<(sequence.length-k+1);
+        //this needs optimization !!! to avoid the copy
         return new QueryWord(Arrays.copyOfRange(sequence, queryPosition, queryPosition+k),queryPosition);
     }
     
@@ -171,6 +173,16 @@ public class SequenceKnife {
     public int[] getMerOrder() {
        return merOrder; 
     }
+    
+    /**
+     * max number of words that can be built from this sequence (length-k+1)/s
+     * @return 
+     */
+    public int getMaxWordCount() {
+        return (this.sequence.length-this.k+1)/this.step;
+    }
+    
+    
     
     /**
      * must be called to retireve mers one by one

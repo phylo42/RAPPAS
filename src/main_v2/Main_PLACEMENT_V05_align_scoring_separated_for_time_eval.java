@@ -5,7 +5,6 @@
  */
 package main_v2;
 
-import main.*;
 import alignement.Alignment;
 import au.com.bytecode.opencsv.CSVWriter;
 import charts.ChartsForNodes;
@@ -15,7 +14,6 @@ import core.DiagSum;
 import core.PProbasSorted;
 import core.QueryWord;
 import core.Score;
-import core.hash.SimpleHash;
 import core.States;
 import core.algos.SequenceKnife;
 import core.hash.Pair;
@@ -25,29 +23,22 @@ import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import java.awt.GridLayout;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import tree.ExtendedTree;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.Tree;
@@ -56,8 +47,8 @@ import tree.Tree;
  * Algo in this version:
  * 
  * 1. all words of the query are searched in the hash
- *    --> we store the corresponding nodes in a list
- *    --> positions are used to define the alignment
+ *    --> we storeFullHash the corresponding nodes in a list
+    --> positions are used to define the alignment
  * 2. using the alignment, for all nodes stored in the previous list, 
  *    we search query words associated to the positions 
  *    --> we build diagsums for this node selection nodes (1 per node)
@@ -68,7 +59,7 @@ import tree.Tree;
  * 
  * @author ben
  */
-public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
+public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
     
     //sequence type
     public static int TYPE_DNA=1;
@@ -93,13 +84,7 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             //PARAMETERS
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
-            
-            
-            //preplacement parameters//////////////////////////////////////////
-            //for a number of nodes =total_nodes/nodeShift , build diagsum vectors
-            //think to keep sum of the diagsums to do mean at the end and highlight positions > to mean
-            int nodeShift=100; // carefull, brings an error when nodeShift<2
-            if (nodeShift<2) {nodeShift=2;}
+              
             // pour stocker ou non dans hash
             //minimum read/ref overlap,in bp. When not respected, read not reported
             int minOverlap=100;
@@ -109,7 +94,7 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=100000000;
+            int queryLimit=100000;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
 
@@ -141,9 +126,9 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             int analysisType=-1;
             //States: DNA or AA
             if (s instanceof DNAStates)
-                analysisType=Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved.TYPE_DNA;
+                analysisType=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.TYPE_DNA;
             else if (s instanceof AAStates)
-                analysisType=Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved.TYPE_PROTEIN;
+                analysisType=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.TYPE_PROTEIN;
             
             //posterior probas parameters///////////////////////////////////////
             //mers size
@@ -202,26 +187,24 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             //LOAD FINISHED, TIME TO START THE PLACEMENT PROCESS
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
             
-
+            //global timer for align + scoring
             long startTotalTime=System.currentTimeMillis();
-
 
             ////////////////////////////////////////////////////////////////////
             //MAP TO REGISTER PLACEMENTS: map(query)=(map(score)=positions_in_align)  !position in align, not diagsum
             HashMap<String,LinkedList<Score>> placementCompleteScore=new HashMap<>(); //fasta-> score=(score;PP*)
 
-           ////////////////////////////////////////////////////////////////////
-           //DIAGSUMS OUTPUT THE PLACEMENTS IN TSV FORMAT (completeScores)
-           ////////////////////////////////////////////////////////////////////
-           CSVWriter fwPlacement=new CSVWriter(new FileWriter(new File(logPath+"placements.tsv")), '\t');
-           String[] header=new String[4];
-           header[0]="Query";
-           header[1]="NodeId";
-           header[2]="ExtNodeId";
-           header[2]="OriginalNodeId";
-           header[3]="PP*";
-           fwPlacement.writeNext(header);
+            ////////////////////////////////////////////////////////////////////
+            //TO OUTPUT THE PLACEMENTS IN TSV FORMAT (completeScores)
+            ////////////////////////////////////////////////////////////////////
+            int bufferSize=2097152; // buffer of 2mo
+            BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements.tsv")),bufferSize);
+            StringBuffer sb=new StringBuffer("Query\tNodeId\tExtNodeId\tOriginalNodeId\tPP*\n");
             
             
             /////////////////////
@@ -232,7 +215,31 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             fp.resetPointer();
             //FileWriter fw =new FileWriter(new File(logPath+"queries.fasta"));
             
+            
+            ///////////////////////////////////////////////////////            
+            // VECTOR USED TO ALIGN AND SCORE NODES
+            
+            //list of variable size, reset at each read
+            HashMap<Integer,Boolean> selectedNodes=new HashMap<>(); 
+            //instanciated once
+            int[] nodeOccurences=new int[tree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
+            float[] nodeScores=new float[tree.getNodeCount()]; // tab[score] --> index=nodeId
+            Arrays.fill(nodeOccurences, 0);
+            Arrays.fill(nodeScores, 0.0f);     
+            
+            
+            ///////////////////////////////////////////////////////            
+            // BUFFERS FOR FILE WRITERS
+            
+            
+            
+            
             int queryCounter=0;
+            long totalAlignTime=0;
+            long totalScoringTime=0;
+            long totalWritingTime=0;
+            long totalResetTime=0;
+            
             Fasta fasta=null;
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                
@@ -247,37 +254,33 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
                 Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
                 Infos.println("#######################################################################");
                 //fw.append(fasta.getFormatedFasta()+"\n");
-                long startScanTime=System.currentTimeMillis();
+                long startAlignTime=System.currentTimeMillis();
                 int queryLength=fasta.getSequence().length();
                 Infos.println("Query length: "+queryLength);
                 
-
-                
-                
-
-
-
                 
                 ///////////////////////////////////
-                // LOOP ON QUERY WORDS
+                // PREPARE QUERY K-MERS
                 QueryWord qw=null;
                 SequenceKnife sk=new SequenceKnife(fasta, k, min_k, s, queryWordSampling);
                 //Infos.println("Mer order: "+Arrays.toString(rk.getMerOrder()));
                 int queryWordCounter=0;
                 int queryWordFoundCounter=0;
                 
-               
-                //a diagsum based only on a the single top best PP* associated to a query word.
-                //accumulating all nodes, just taing higher PP* and corresponding positions
-                DiagSum bestPPStarsDiagsum=new DiagSum(queryLength, align.getLength(), minOverlap, k, sk.getStep());
+  
                 
-
-                //preparing preplacement graph data :
+                
+                //if alignment graph are required
+                DiagSum bestPPStarsDiagsum=null;
                 double[][] graphDataForTopTuples =null;
-                int xSize=bestPPStarsDiagsum.getSize();
-                int ySize=queryLength;
-                
+                int xSize=-1;
                 if (graphAlignment) {
+                    //a diagsum based only on a the single top best PP* associated to a query word.
+                    //accumulating all nodes, just taing higher PP* and corresponding positions
+                    bestPPStarsDiagsum=new DiagSum(queryLength, align.getLength(), minOverlap, k, sk.getStep());
+                    //preparing preplacement graph data :
+                    xSize=bestPPStarsDiagsum.getSize();
+                    int ySize=queryLength;
                     graphDataForTopTuples =new double[3][xSize*ySize];
                     //init the Z axis (PP*) to very small values for all possible (X,Y)
                         for (int y = 0; y < ySize; y++) {
@@ -289,49 +292,24 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
                             }
                         }
                 }
-                    
                 
                 
-                
-
-                // MATRIX DESCRIBING ALIGNMENT
+                // PREPARE MATRIX DESCRIBING ALIGNMENT
                 //////////////////////////////////////////
                 
-                //[x][y] = [queryPosition][n_ieme_hit_in_alignment]
-                ArrayList<Integer>[] alignmentMatrix=new ArrayList[queryLength-k+1];
-                for (int i = 0; i < alignmentMatrix.length; i++) {
-                    alignmentMatrix[i]=new ArrayList<>(5);
-                }
-                //Arrays.fill(alignmentMatrix,new ArrayList<Integer>()); //not working, ask why in internet
+                //[query_position]=reference_position
+                int[] alignmentMatrix=new int[queryLength-k+1];
+                //filled with -1 ; a -1 val means the word was not found in hash
+                Arrays.fill(alignmentMatrix,-1);
                 
-                // LIST OF NODES ENCOUNTERED DURING ALIGNMENT, USED FOR LATER PLACEMENT
+                
+                // BUILD THE ALIGNMENT
                 ///////////////////////////////////////////////////////
-                boolean[] nodesEncountered=new boolean[tree.getNodeCount()]; //tab[score]=true/false
-                int encounteredCount=0;
-                
-                
-                
-                //ON TOP OF DIAGSUM APPROACH, BUILD THE REFERENCE COMPLETE SCORE
-                //////////////////////////////////////////////////////////////////
-                //when all tuples of all nodes are parsed, to compare these placements.
-                //here, all alignmnet built from topTuples is used to define the ref positions
-                //then ALL tuples corresponding to this position are read
-                //if present sum the allPairs PP* t, if not, sum PP* threshold 
-                Float[] completeScore=new Float[tree.getNodeCount()];
-                float baseline=thresholdAsLog*sk.getMerOrder().length;
-                Arrays.fill(completeScore,baseline);
-                //completeScore[score]=baseline, for now do not take into account 
-                //correction do to partial overlap should be later
-                
-                
-                
-                // ITERTION ON ALL QUERY WORDS, TO BUILD THE ALIGNMENT
-                ///////////////////////////////////////////////////////
-                
+
                 while ((qw=sk.getNextWord())!=null) {
                     //Infos.println("Query mer: "+qw.toString());
 
-
+                    //get top Pair associated to this word
                     Pair topPair = hash.getTopPair(qw);
                     //if this word is not registered in the hash
                     if (topPair==null) {
@@ -339,28 +317,21 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
                         continue;
                     }
                     //word is in the hash
+                    queryWordCounter++;
                     queryWordFoundCounter++;
-                    
-                    
+                    //top position of this word
                     int topPosition=hash.getPositions(qw)[0];
-                    
-                    //get best PP* of each query word (whatever node/position)
-                    //////////////////////////////////////////////////////////
-                    
-                    //a diagsum based only on a the single top best PP* associate dto a word.
+                    //graph of alignment, if asked
                     if(graphAlignment) {
-                    int topDiagSumPos=topPosition-qw.getOriginalPosition()+(queryLength-minOverlap);
+                        int topDiagSumPos=topPosition-qw.getOriginalPosition()+(queryLength-minOverlap);
                         if (topDiagSumPos>-1 && topDiagSumPos<bestPPStarsDiagsum.getSize()) {
                                 graphDataForTopTuples[2][queryWordCounter*xSize+topPosition]= topPair.getPPStar();                        
                         }
                     }
-                    
-                    if (nodesEncountered[topPair.getNodeId()]==false)
-                        encounteredCount++;
-                    nodesEncountered[topPair.getNodeId()]=true;
-                    alignmentMatrix[qw.getOriginalPosition()].add(topPosition);
-        
-                    queryWordCounter++;
+                    //register the alignment itself
+                    alignmentMatrix[qw.getOriginalPosition()]=topPosition;
+                    //register nodes that were hit during alignment (only those will be scored)
+                    selectedNodes.put(topPair.getNodeId(), true);
                     
                     //DEBUG
                     //if (queryWordCounter>1000)
@@ -373,12 +344,8 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
 //                for (int i = 0; i < alignmentMatrix.length; i++) {
 //                    System.out.println("alignment i="+i+": "+alignmentMatrix[i]);
 //                }
-                //check diagsum stats
-//                for (int i = 0; i < bestPPStarsPerPositionDiagsum.getSize(); i++) {
-//                    System.out.println("pre-diagsum i="+i+": #words="+bestPPStarsPerPositionDiagsum.getEffectiveWordCount(i)+" PP*="+bestPPStarsPerPositionDiagsum.getSum(i));
-//                }
 
-                
+                //display alignment result of requested
                 if (graphAlignment) {
                     //graph for topTuplePerPos
                     DefaultXYZDataset datasetForGraph=new DefaultXYZDataset();
@@ -396,84 +363,103 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
                
 
                 Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
-                long endScanTime=System.currentTimeMillis();
-                System.out.println("Alignment ("+encounteredCount+" candidate nodes registered) took "+(endScanTime-startScanTime)+" ms");
+                long endAlignTime=System.currentTimeMillis();
+                totalAlignTime+=(endAlignTime-startAlignTime);
+                Infos.println("Alignment ("+selectedNodes.keySet().size()+" candidate nodes registered) took "+(endAlignTime-startAlignTime)+" ms");
            
                 
 
-                // HERE reuse the alignment vector to determine which positions 
-                //should be tested for all nodes
-                
-                //load the PP* of these positions nodes per nodes
-                //build the diagsums per nodes 
-                //select peeks including #words > threshold
-                //select the node with the best peeks as the best placement
-                
-                startScanTime=System.currentTimeMillis();
+                // ALIGNMENT DONE, NOW SCORING SELECTED NODES
+                ///////////////////////////////////////////////////////
+
+                long startScoringTime=System.currentTimeMillis();
                 //to register which node is assined to which line of preplacementAllDiagsum
-                Infos.println("Launching search on candidate nodes...");
-
-                
-                
-                //now, pass again on all algnment positions, but search them in 
-                //all internal nodes.
-                //only alignment positions whose coordinates matches a
-                //diagsumPos associated to more than (20-k+1)/s words
-                //(20 consecutive represented by consecutive words)
-                //will be tested
-                
-                
-
-                
-                //V2, pickup nodes directly from tuples corrsponding to position, avoiding to check all nodes
-                for (int alignPos = 0; alignPos < alignmentMatrix.length; alignPos++) {
-                    QueryWord word=sk.getWordAt(alignPos);
-                    if (alignmentMatrix[alignPos].size()>0) {
-                        Integer bestRefPos=alignmentMatrix[alignPos].get(0);
-                        List<Pair> allPairs = hash.getPairsOfTopPosition(word);
-                        //if (allPairs==null) {continue;}
-                        //System.out.println("allPairs:"+allPairs);
+                Infos.println("Launching scoring on candidate nodes...");
+                Infos.println("Candidate nodes: ("+selectedNodes.keySet().size()+") "+selectedNodes.keySet());
+                //V3, pickup PP* associated to position defined by the alignment
+                //and only for the nodes encountered in the alignment phase
+                for (int queryPos = 0; queryPos < alignmentMatrix.length; queryPos++) {
+                    //if this position was indeed aligned
+                    int refPos;
+                    if ((refPos=alignmentMatrix[queryPos])>-1) {
+                        QueryWord word=sk.getWordAt(queryPos);
+                        //pairs of (nodeId,PP*)
+                        List<Pair> allPairs = hash.getPairs(word, refPos);
                         for (int i = 0; i < allPairs.size(); i++) {
-                            Pair currentPair = allPairs.get(i);
-                            //completeScore, based only on 1st refPos (eq. topPair)
-                            completeScore[currentPair.getNodeId()]+=-thresholdAsLog+currentPair.getPPStar();
+                            Pair p = allPairs.get(i);
+                            //score only encountered nodes
+                            if (selectedNodes.get(p.getNodeId())!=null) {
+                                nodeOccurences[p.getNodeId()]+=1;
+                                nodeScores[p.getNodeId()]+=p.getPPStar();
+                            }
                         }
+                    //position not aligned, 
+                    } else {
+                        
                     }
+                
                 }            
                 
-                
-                endScanTime=System.currentTimeMillis();
-                System.out.println("Targeted scan on "+tree.getInternalNodesByDFS().size()+" nodes took "+(endScanTime-startScanTime)+" ms");
-                
-                
-                
-                //check the completeScore content
-                placementCompleteScore.put(fasta.getHeader(), new LinkedList<>());
-                for (int i = 0; i < completeScore.length; i++) {
-                    if (completeScore[i]!=baseline) {
-                        placementCompleteScore.get(fasta.getHeader()).add(new Score(i, completeScore[i]));
+                //now add the score corresponding to the words not found,
+                // i.e. threshold*#_words_not_scored (because no in hash)
+                int maxWords=sk.getMaxWordCount();
+
+                float bestScore=Float.NEGATIVE_INFINITY;
+                int bestNode=-1;
+                for (Iterator<Integer> iterator = selectedNodes.keySet().iterator(); iterator.hasNext();) {
+                    Integer nodeId = iterator.next();
+                    nodeScores[nodeId]+=thresholdAsLog*(maxWords-nodeOccurences[nodeId]);
+                    if(nodeScores[nodeId]>bestScore) {
+                        bestScore=nodeScores[nodeId];
+                        bestNode=nodeId;
                     }
                 }
-                Collections.sort(placementCompleteScore.get(fasta.getHeader()));
                 
-                String[] data=new String[4];
-
-               data[0]=fasta.getHeader();
-               int n=0;
-               for (Iterator<Score> iterator1= placementCompleteScore.get(fasta.getHeader()).iterator(); iterator1.hasNext();) {
-                   Score nextNodePlacement = iterator1.next();
-                   data[1]=String.valueOf(nextNodePlacement.getNodeId());
-                   data[2]=String.valueOf(tree.getById(nextNodePlacement.getNodeId()).getExternalId());
-                   data[3]=String.valueOf(nextNodePlacement.getPPStar());
-                   fwPlacement.writeNext(data);
-                   n++;
-                   if (n>5)
-                       break;
-               }
-
-
-
                 
+                
+                long endScoringTime=System.currentTimeMillis();
+                totalScoringTime+=endScoringTime-startScoringTime;
+                
+                
+                //TO DEBUG
+//                System.out.println(fasta.getHeader());
+//                System.out.print("bestNode:"+bestNode);
+//                System.out.print("\t\tbestScore:"+bestScore);
+//                System.out.println("\t\tbestSCore (normalized by #mers):"+(bestScore/sk.getMaxWordCount()));
+//                System.out.println("nodeScores:"+Arrays.toString(nodeScores));
+//                System.out.println("nodeOccurences:"+Arrays.toString(nodeOccurences));
+//                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
+                
+                
+                //write result in file
+                long startWritingTime=System.currentTimeMillis();
+                sb.append(fasta.getHeader()+"\t");
+                sb.append(String.valueOf(bestNode)+"\t");
+                sb.append(String.valueOf(tree.getById(bestNode).getExternalId())+"\t");
+                sb.append(String.valueOf(nodeScores[bestNode])+"\n");
+                //push the stringbuffer to the bufferedwriter every 10000 sequences
+                if ((queryCounter%10000)==0) {
+                    int size=sb.length();
+                    fwPlacement.append(sb);
+                    fwPlacement.flush();
+                    sb=null;
+                    sb=new StringBuffer(size);
+                }
+                long endWritingTime=System.currentTimeMillis();
+                totalWritingTime+=endWritingTime-startWritingTime;
+                
+                
+
+                //reset the scoring vectors
+                long startResetTime=System.currentTimeMillis();
+                for (Iterator<Integer> iterator = selectedNodes.keySet().iterator(); iterator.hasNext();) {
+                    Integer nodeId = iterator.next();
+                    nodeScores[nodeId]=0.0f;
+                    nodeOccurences[nodeId]=0;
+                }
+                selectedNodes.clear();
+                long endResetTime=System.currentTimeMillis();
+                totalResetTime+=endResetTime-startResetTime;
                 
                 queryCounter++;
             }
@@ -485,7 +471,11 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             
 
             long endTotalTime=System.currentTimeMillis();
-            System.out.println("Placement took "+(endTotalTime-startTotalTime)+" ms");
+            System.out.println("Alignments took on average: "+(totalAlignTime/queryCounter)+" ms");
+            System.out.println("Scoring took on average: "+(totalScoringTime/queryCounter)+" ms");
+            System.out.println("Writing took on average: "+(totalWritingTime/queryCounter)+" ms");
+            System.out.println("Reset took on average: "+(totalResetTime/queryCounter)+" ms");
+            System.out.println("Process (whithout DB load) took: "+(endTotalTime-startTotalTime)+" ms");
             Infos.println("#######################################################################");
             Infos.println("### DONE, placement execution took (excluding DB load): "+(endTotalTime-startTotalTime)+" ms");
             Infos.println("#######################################################################");
@@ -516,7 +506,7 @@ public class Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved {
             return queryCounter;
             
         } catch (IOException ex) {
-            Logger.getLogger(Main_PLACEMENT_V05_align_scoreallnodes_diagsumeltsremoved.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
         }
         

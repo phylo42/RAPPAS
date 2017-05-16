@@ -17,8 +17,12 @@ import java.util.Iterator;
  */
 public class ArgumentsParser_v2 {
 
-    public static final int DBBUILD_MODE=1;
-    public static final int PLACEMENT_MODE=2;
+    public static final int DBBUILD_MODE=0;
+    public static final int PLACEMENT_MODE=1;
+    
+    public static final int DB_FULL=0;
+    public static final int DB_MEDIUM=0;
+    public static final int DB_SMALL=0;
     
     private HashMap<Integer,String> argsMap=null;
     
@@ -40,6 +44,7 @@ public class ArgumentsParser_v2 {
     public int minOverlap=100; //default =100
     public File queriesFile=null;
     public File databaseFile=null;
+    public int dbsize=DB_FULL;
     
     public ArgumentsParser_v2(String[] args) {
         argsMap=new HashMap<Integer,String>();
@@ -224,7 +229,16 @@ public class ArgumentsParser_v2 {
                             System.exit(1);
                         }
                     }
-                    
+                    //test -s parameter
+                    if (argsMap.get(index).equals("--dbsize") || argsMap.get(index).equals("-s")) {
+                        if (argsMap.get(index+1).equalsIgnoreCase("full")) {
+                            this.dbsize=DB_FULL;
+                        } else if (argsMap.get(index+1).equalsIgnoreCase("medium")) {
+                            this.dbsize=DB_MEDIUM;
+                        } else if (argsMap.get(index+1).equalsIgnoreCase("small")) {
+                            this.dbsize=DB_SMALL;
+                        }
+                    }
                 }
                 break;
             //mode was not set, we must exit
@@ -244,30 +258,32 @@ public class ArgumentsParser_v2 {
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
         " Minimum usage,\n"+
         " 1.for building the initial database:\n"+
-        "   java -jar viromplacer.jar -m b -i alignment.fasta -t tree.newick\n"+
+        "   java -jar viromplacer.jar -m B -i alignment.fasta -t tree.newick\n"+
         " 2.for placing the reads:\n"+
-        "   java -jar viromplacer.jar -m p -q queries.fasta \n"+
+        "   java -jar viromplacer.jar -m P -q queries.fasta \n"+
         " Note: Do not hesistate to allocate more memory to the process.\n"+
         "       ex: java -jar -Xms8000m -Xmx16000m viromplacer.jar [...] \n"+
         "       Xms -> memory allocated at start ; Xmx maximum memory allocated  \n"+
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"+
         "-a (--alpha)      Alpha modificator levelling the score threshold. \n"+
-        "                  ancestral reconstruction and DB build (-d mode only).\n" +
-        "-d (--database)   The database of ancestral words (-p mode only). \n"+
+        "                  ancestral reconstruction and DB build (B mode only).\n" +
+        "-d (--database)   The database of ancestral words (P mode only). \n"+
         "-f (--fakebranch) # of fake branches to add on each original branch. \n"+
         "-i (--input)      Input sequences, in fasta format. When building the \n"+
         "                  database (-d mode), it is the multiple alignment from\n"+
         "                  which was inferred the phylogenetic tree. \n"+
-        "-k (--k)          Word length used for the DB build (-d mode only).\n" +
+        "-k (--k)          Word length used for the DB build (B mode only).\n" +
         "-l (--minoverlap) Option not implemented yet.\n" +
-        "-m (--mode)       One of 'b' for \"build\" or 'p' for \"place\"\n" +
+        "-m (--mode)       One of 'B' for \"Build\" or 'P' for \"Place\"\n" +
         "                   * b: DB of ancetral words and associated \n"+
         "                        probabilites is generated. \n" +
         "                   * p: Using a DB of ancestral words, queries are \n"+
         "                        placed on the reference tree.\n" +
+        "-s (--dbsize)     DB size to load for the placement (P mode only).\n" +    
+        "                  One of [full|medium|small] \n" +    
         "-t (--tree)       Reference tree, in newick format. Used for ancestral \n"+
-        "                  reconstruction and DB build (-d mode only).\n" +
-        "-q (--queries)    Sequences to place, in fasta format (-p mode only)\n" +
+        "                  reconstruction and DB build (B mode only).\n" +
+        "-q (--queries)    Sequences to place, in fasta format (P mode only)\n" +
         "-v (--verbose)    Verbosity level: 0=none ; 1=basic ; 2=full\n" +
         "-w (--workdir)    Path of the working directory (default= current dir).\n\n"
 

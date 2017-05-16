@@ -23,20 +23,20 @@ public class CustomNode implements Serializable {
 
     //small init capacity because if k around 8 to 12, few occurences are
     //expected in the ref alignment
-    ArrayList<PairList> positionsPointers=new ArrayList<>(3);
+    private ArrayList<PositionPointer> positionsPointers=new ArrayList<>(3);
 
     public CustomNode() {}
 
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
         boolean refPositionAlreadyRegistered=false;
-        for (PairList p:positionsPointers) {
+        for (PositionPointer p:positionsPointers) {
             if (p.getRefPosition()==refPosition) {
                 refPositionAlreadyRegistered=true;
                 break;
             }
         }
         if (!refPositionAlreadyRegistered) {
-            PairList pl=new PairList(refPosition);
+            PositionPointer pl=new PositionPointer(refPosition);
             pl.add(new Pair(nodeId, PPStar));
             positionsPointers.add(pl);
         } else {
@@ -79,8 +79,8 @@ public class CustomNode implements Serializable {
 
     public void sort() {
         //sort each list of Pair objects
-        for (Iterator<PairList> iterator = positionsPointers.iterator(); iterator.hasNext();) {
-            PairList ppl = iterator.next();
+        for (Iterator<PositionPointer> iterator = positionsPointers.iterator(); iterator.hasNext();) {
+            PositionPointer ppl = iterator.next();
             Collections.sort(ppl);
         }
         //then sort these list (= sort the position by the PP* at 1st 
@@ -88,17 +88,43 @@ public class CustomNode implements Serializable {
         Collections.sort(positionsPointers);            
     }  
 
+    
+    /**
+     * from the "full" hash, remove all (nodeId,PP*) pairs associated to positions
+     * which are not the position holding the best PP* --> "best position" hash
+     */
+    public void clearPairsOfWorsePositions() {
+        for (int i = 1; i < positionsPointers.size(); i++) {
+            positionsPointers.get(i).clear();
+        }
+    }
+    
+    /**
+     * from the "full" or "best position" hash, remove all (nodeId,PP*) 
+     * pairs associated to positions which are not the position holding
+     * the best PP*, then keeps only X (nodeid,PP*) pairs
+     */
+    public void clearPairsOfWorsePositionsAndLimitToXPairs(int X) {
+        clearPairsOfWorsePositions();
+        if (positionsPointers.get(0).size()>X) {
+            for (int i = X; i < positionsPointers.get(0).size(); i++) {
+                positionsPointers.get(0).remove(i);
+            }
+        }
+    }
+        
+    
 
     /**
      * internal class just to link a reference position to a LinkedList
      */
-    private class PairList extends ArrayList<Pair> implements Comparable<PairList>,Serializable {
+    private class PositionPointer extends ArrayList<Pair> implements Comparable<PositionPointer>,Serializable {
         
         private static final long serialVersionUID = 7210L;
         
-        int refPosition=-1;
+        private int refPosition=-1;
 
-        public PairList(int refPosition) {
+        public PositionPointer(int refPosition) {
             this.refPosition=refPosition;
         }
 
@@ -113,7 +139,7 @@ public class CustomNode implements Serializable {
          * @param o
          * @return 
          */
-        public int compareTo(PairList o) {
+        public int compareTo(PositionPointer o) {
             if ((this.get(0).getPPStar()-o.get(0).getPPStar())<0.0) {
                 return 1;
             } else if ((this.get(0).getPPStar()-o.get(0).getPPStar())>0.0){

@@ -10,9 +10,11 @@ import core.older.PProbas;
 import core.PProbasSorted;
 import core.States;
 import etc.Infos;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -137,8 +139,10 @@ public class InputManagerNext {
             Infos.println("Loading of alignment used " + (endTime - startTime) + " ms");
             //tree
             startTime = System.currentTimeMillis();
-            NewickReader np=new NewickReader();
-            this.tree = np.parseNewickTree(treeFile);
+            BufferedReader br=new BufferedReader(new FileReader(treeFile));
+            String treeString=null;
+            while((treeString=br.readLine())!=null) {}
+            this.tree = NewickReader.parseNewickTree2(treeString);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
             //probas

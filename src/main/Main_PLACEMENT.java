@@ -17,9 +17,11 @@ import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.PAMLWrapper;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -196,8 +198,10 @@ public class Main_PLACEMENT {
             
             /////////////////////
             //PARSE ORIGINAL TREE
-            NewickReader np=new NewickReader();
-            Tree tree = np.parseNewickTree(new File(t));
+            BufferedReader br=new BufferedReader(new FileReader(t));
+            String treeString=null;
+            while((treeString=br.readLine())!=null) {}
+            Tree tree = NewickReader.parseNewickTree2(treeString);
             
             /////////////////////
             //BUILD RELAXED TREE

@@ -74,8 +74,8 @@ public class ExtendedTree extends PhyloTree implements Tree {
      * @param tree
      * @param branchingMode one of BRANCHING_ON_NODE, BRANCHING_ON_BRANCH
      */
-    public ExtendedTree(Tree tree, int branchingMode ) {
-        super(tree.getModel());
+    public ExtendedTree(PhyloTree tree, int branchingMode ) {
+        super(tree.getModel(),tree.isRooted());
         this.branchingMode=branchingMode;
         
         

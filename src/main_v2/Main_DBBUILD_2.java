@@ -133,7 +133,7 @@ public class Main_DBBUILD_2 {
                                         int branchPerLengthAmount, 
                                         States s, 
                                         File a, 
-                                        File t,
+                                        String t,
                                         File workDir,
                                         File pamlPath
                                     ) {
@@ -229,8 +229,7 @@ public class Main_DBBUILD_2 {
             
             /////////////////////
             //PARSE ORIGINAL TREE
-            NewickReader np=new NewickReader();
-            PhyloTree tree = np.parseNewickTree(t);
+            PhyloTree tree = NewickReader.parseNewickTree2(t);
             
             /////////////////////
             //BUILD RELAXED TREE

@@ -16,9 +16,11 @@ import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.InputManagerNext;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -220,8 +222,10 @@ public class Main_DBBUILD {
             
             /////////////////////
             //PARSE ORIGINAL TREE
-            NewickReader np=new NewickReader();
-            PhyloTree tree = np.parseNewickTree(t);
+            BufferedReader br=new BufferedReader(new FileReader(t));
+            String treeString=null;
+            while((treeString=br.readLine())!=null) {}
+            PhyloTree tree = NewickReader.parseNewickTree2(treeString);
             
             /////////////////////
             //BUILD RELAXED TREE

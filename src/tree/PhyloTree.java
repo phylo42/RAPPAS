@@ -28,23 +28,30 @@ public class PhyloTree extends JTree implements Tree,Serializable {
     
     private static final long serialVersionUID = 2000L;
     
-    protected int nodeCount=0;
-    protected int leavesCount=0;
-    protected HashMap<String,PhyloNode> indexByName=null;
-    protected HashMap<Integer,PhyloNode> indexById=null;
+    private boolean isRooted=false;
+    private int nodeCount=0;
+    private int leavesCount=0;
+    //simple map of pointers to directly access the nodes by name/id
+    //whithout having to run along the tree again
+    private HashMap<String,PhyloNode> indexByName=null;
+    private HashMap<Integer,PhyloNode> indexById=null;
     
     
-    //filled by DFS searches
-    protected ArrayList<Integer> orderedLeavesIds=null;
-    protected ArrayList<Integer> orderedNodesIds=null;
-    protected ArrayList<Integer> orderedInternalNodesIds=null;
-    protected ArrayList<String> orderedNodesLabels=null;
+    //filled by a single DF search after calling init(),
+    //avoids to do it again in other program modules
+    private ArrayList<Integer> orderedLeavesIds=null;
+    private ArrayList<Integer> orderedNodesIds=null;
+    private ArrayList<Integer> orderedInternalNodesIds=null;
+    private ArrayList<String> orderedNodesLabels=null;
 
-    public PhyloTree() {
-    }
+    //necessary to use the Extended tree specialization
+    public PhyloTree() {}
+    
 
-    public PhyloTree(TreeModel newModel) {
+    protected PhyloTree(TreeModel newModel, boolean rooted) {
         super(newModel);
+        this.isRooted=rooted;
+        
     }
     
     public PhyloNode getByName(String nodeName) {
@@ -85,6 +92,20 @@ public class PhyloTree extends JTree implements Tree,Serializable {
      */
     public int getLeavesCount() {
         return leavesCount;
+    }
+    
+    public PhyloNode getRoot() {
+        return (PhyloNode)this.getModel().getRoot();
+    }
+    
+    
+    
+    /**
+     * as seen during newick parsing (2 or 3 sons at highest newick level)
+     * @return 
+     */
+    public boolean isRooted() {
+        return this.isRooted;
     }
 
     /**
@@ -219,7 +240,97 @@ public class PhyloTree extends JTree implements Tree,Serializable {
     }
     
     
+    /**
+     * return a map making the link between the nodeIds of this tree and another
+     * tree provided by the user: the mapping is based on the leaves labels,
+     * and a Depth First Traversals search. Nodes are mapped when going up
+     * @param treeOriginal
+     * @param <error>
+     * @return 
+     */
     
     
+    //--------------------------------------------------------------------------
+    //This block of methods is used to map the internal lables of a tree
+    //of similar topology than this tree (rooted or unrooted) 
+    HashMap<Integer,Integer> nodeMapping=new HashMap<>();
+    
+    public HashMap<Integer,Integer> mapNodes(PhyloTree otherTree) {
+        DFSforMapping(this.getRoot(),otherTree);
+        //finally, if both tree rooted on same edge, associate the root ids
+        //both trees rooted ?
+        if (this.isRooted() && otherTree.isRooted) {
+            System.out.println("both trees are rooted");
+            //rooted on same edge ? if yes roots can be mapped
+            PhyloNode root=this.getRoot();
+            Enumeration e=root.children();
+            boolean sameChildren=true;
+            while (e.hasMoreElements()) {
+                PhyloNode child=(PhyloNode)e.nextElement();
+                int idInOtherTree=nodeMapping.get(child.getId());
+                System.out.println("test "+child.getId()+" "+idInOtherTree);
+                System.out.println("A:"+otherTree.getById(idInOtherTree).getParent());
+                System.out.println("B:"+otherTree.getRoot());
+                if (otherTree.getById(idInOtherTree).getParent() != otherTree.getRoot()) {
+                    sameChildren=false;
+                }
+            }
+            if (sameChildren)
+                nodeMapping.put(this.getRoot().getId(), otherTree.getRoot().getId());
+        }
+        
+        return nodeMapping;
+    }
+    
+    /**
+     * starting from bait
+     * @param node 
+     */
+    private void DFSforMapping(PhyloNode node,PhyloTree otherTree) {
+        
+        //go down recursively is some children
+        Enumeration e=node.children();        
+        while (e.hasMoreElements()) {
+            PhyloNode n=(PhyloNode)e.nextElement();
+            DFSforMapping(n,otherTree);
+        }
+        //if root, no parent to associate
+        if (node.isRoot()) {
+            System.out.println("SKIP ROOT");
+            return;
+        }
+        System.out.println("IN: "+node);
+        
+        //returns up, time to associate associate nodes, 3 possible case:
+        //1. node child of root, 
+        //we will associate parent only if both trees are rooted on same branch
+        //this is verified after completing the mapping, in th mapnodes() method
+        if (((PhyloNode)node.getParent())==this.getRoot()) {
+            if (node.isLeaf()) {
+                PhyloNode otherLeaf=otherTree.getByName(node.getLabel());
+                nodeMapping.put(node.getId(), otherLeaf.getId());           
+            }
+        //2. a leaf, not problem to map parent
+        } else if (node.isLeaf()) {
+            //associate leaf
+            PhyloNode otherLeaf=otherTree.getByName(node.getLabel());
+            nodeMapping.put(node.getId(), otherLeaf.getId());
+            //associate parent of leaf
+            PhyloNode parent=(PhyloNode)node.getParent();
+            PhyloNode otherParent=(PhyloNode)otherLeaf.getParent();
+            nodeMapping.put(parent.getId(), otherParent.getId());
+        //3. internal node, reuse previous mapping to associate parent
+        } else {
+            int nodeId=node.getId();
+            int otherNodeId=nodeMapping.get(nodeId);
+            PhyloNode parent=(PhyloNode)node.getParent();
+            PhyloNode otherParent=(PhyloNode)otherTree.getById(otherNodeId).getParent();
+            nodeMapping.put(parent.getId(), otherParent.getId());
+        }
+        
+        System.out.println(nodeMapping);
+    }
+    //--------------------------------------------------------------------------
+
     
 }

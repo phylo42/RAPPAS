@@ -20,6 +20,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import tree.NewickReader;
@@ -41,7 +43,7 @@ public class PAMLWrapper implements DataWrapper {
     States states=null;
     
     //to accelerate parsin, will use this regexp
-    //careful, in paml outputscientic number with negative, but also positive(!) powers.
+    //careful, in paml outputscientic number with negative, but also positive('+' symbol present!) powers.
     //ex: T(1.000000E+00) C(1.050222E-12) A(2.261192E-13) G(1.568578E-13)
     String pattern="^\\s+([0-9]+)\\s+[0-9]+\\s+[^:]+:\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+";
     Pattern p=Pattern.compile(pattern);
@@ -67,7 +69,7 @@ public class PAMLWrapper implements DataWrapper {
      * @return
      * @throws IOException 
      */
-    public Tree parseTree(InputStream input) throws IOException {
+    public PhyloTree parseTree(InputStream input) throws IOException {
      
         BufferedReader br=new BufferedReader(new InputStreamReader(input,"UTF-8"));
         String line=null;
@@ -106,16 +108,14 @@ public class PAMLWrapper implements DataWrapper {
         //from PAML, necessary to associate posterior probas).
         
         //the 1st tree is the original input tree, with branch length
-        NewickReader np=new NewickReader();
         if (originalTreeString!=null) {
-            this.tree=np.parseNewickTree(originalTreeString);; //keep a reference, which will be used by parseProbas()
+            this.tree=NewickReader.parseNewickTree2(originalTreeString);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //now we parse the second tree
         PhyloTree thirdTree=null;
-        np=new NewickReader();
         if (originalTreeString!=null) {
-            thirdTree=np.parseNewickTree(thirdTreeString);; //keep a reference, which will be used by parseProbas()
+            this.tree=NewickReader.parseNewickTree2(originalTreeString);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //do do the same DFS pre-order in both trees to associate PAML
@@ -141,7 +141,7 @@ public class PAMLWrapper implements DataWrapper {
         return this.tree;
     }
     
-    
+    @Deprecated
     public PProbas parseProbas(InputStream input, float sitePPThreshold, boolean asLog10) throws IOException {
         
         PProbas matrix=new PProbas(tree.getNodeCount(), align.getLength(), states.getNonAmbiguousStatesCount());
@@ -225,57 +225,54 @@ public class PAMLWrapper implements DataWrapper {
      * @return
      * @throws IOException 
      */
-    public PProbasSorted parseSortedProbas(InputStream input, float sitePPThreshold, boolean asLog10, int debugNodeLimit) throws IOException {
+    public PProbasSorted parseSortedProbas(InputStream input, float sitePPThreshold, boolean asLog10, int debugNodeLimit){
         
-        PProbasSorted matrix=new PProbasSorted(tree.getNodeCount(), align.getLength(), states.getNonAmbiguousStatesCount());
-        
-        BufferedReader br=new BufferedReader(new InputStreamReader(input,"UTF-8"));
-        String line=null;
-        boolean start=false;
-        int currentPP=0;
+        BufferedReader br=null;
         int lineNumber=0;
-        String currentNode=null;
-        
-        int nodeId=-1;
-        int nodeCount=0;
-        ArrayList<SiteProba> probasPerSite=new ArrayList<>(states.getNonAmbiguousStatesCount());
-        for (int i = 0; i < states.getNonAmbiguousStatesCount(); i++) {
-            probasPerSite.add(new SiteProba());
-        }
-
-        Infos.println("Starting to parse PAML posterior probas...");
-        while ((line=br.readLine())!=null) {
-            lineNumber++;
-            if (lineNumber%500000==0) {
-                Infos.println("Line: >"+lineNumber);
-            }
-            
-            if (line.startsWith("Prob distribs at nodes,")) { //start of section
-                start=true;
-                continue;
-            }
-            if (line.trim().equals("") || line.trim().equals("site  Freq   Data")) { //useless lines
-                continue;
-            }
-            if (line.equals("Prob of best state at each node, listed by site")) { //end of section
-                break;
-            }
-            if (start) {
-                
-                               
-                if (line.startsWith("Prob distribution at node ")) {
-                    currentNode=line.split(" ")[4].replaceAll(",", "");
-                    //System.out.println("Current node: "+currentNode);
-                    nodeId=tree.getByName(currentNode).getId();
-                    //DEBUG
-                    nodeCount++;
-                    if (nodeCount>debugNodeLimit)
-                        break;
-                    //DEBUG
-                    continue;
+        PProbasSorted matrix=null;
+        try {
+            matrix=new PProbasSorted(tree.getNodeCount(), align.getLength(), states.getNonAmbiguousStatesCount());
+            br = new BufferedReader(new InputStreamReader(input,"UTF-8"));
+            String line=null;
+            boolean start=false;
+            int currentPP=0;
+            String currentNode=null;
+            int nodeId=-1;
+            int nodeCount=0;
+            ArrayList<SiteProba> probasPerSite=new ArrayList<>(states.getNonAmbiguousStatesCount());
+            for (int i = 0; i < states.getNonAmbiguousStatesCount(); i++) {
+                probasPerSite.add(new SiteProba());
+            }   Infos.println("Starting to parse PAML posterior probas...");
+            while ((line=br.readLine())!=null) {
+                lineNumber++;
+                if (lineNumber%500000==0) {
+                    Infos.println("Line: >"+lineNumber);
                 }
                 
-                try {
+                if (line.startsWith("Prob distribs at nodes,")) { //start of section
+                    start=true;
+                    continue;
+                }
+                if (line.trim().equals("") || line.trim().equals("site  Freq   Data")) { //useless lines
+                    continue;
+                }
+                if (line.equals("Prob of best state at each node, listed by site")) { //end of section
+                    break;
+                }
+                if (start) {
+                    
+                    if (line.startsWith("Prob distribution at node ")) {
+                        currentNode=line.split(" ")[4].replaceAll(",", "");
+                        //System.out.println("Current node: "+currentNode);
+                        nodeId=tree.getByName(currentNode).getId();
+                        //DEBUG
+                        nodeCount++;
+                        if (nodeCount>debugNodeLimit)
+                            break;
+                        //DEBUG
+                        continue;
+                    }
+                    
 
                     //groups:
                     //1: 1 (int of site)
@@ -329,24 +326,32 @@ public class PAMLWrapper implements DataWrapper {
                         probasPerSite.set(1,sp2);
                         probasPerSite.set(2,sp3);
                         probasPerSite.set(3,sp4);
-                        
-                        Collections.sort(probasPerSite);
-                        matrix.setStates(nodeId, site-1, probasPerSite);                    
-                    }
 
-                } catch (java.lang.NumberFormatException ex) {
-                    Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states.getStateCount()));
-                    ex.printStackTrace();
-                    br.close();
-                    System.exit(1);
+                        Collections.sort(probasPerSite);
+                        matrix.setStates(nodeId, site-1, probasPerSite);
+                    }
+                        
+                    currentPP++;
                 }
-                
-                currentPP++;
+            }
+            Infos.println( "Number of (site x nodes) for which pp were parsed: "+currentPP);
+            Infos.println( "Number of (sites) for which pp were parsed: "+(0.0+currentPP/(tree.getNodeCount()-tree.getLeavesCount())));
+            
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (java.lang.NumberFormatException ex) {
+            Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states.getStateCount()));                    
+            ex.printStackTrace();
+            System.exit(1);
+        } catch (IOException ex) {
+            Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                br.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        Infos.println( "Number of (site x nodes) for which pp were parsed: "+currentPP);
-        Infos.println( "Number of (sites) for which pp were parsed: "+(0.0+currentPP/(tree.getNodeCount()-tree.getLeavesCount())));
-        br.close();
         return matrix;
     }
     

@@ -5,29 +5,11 @@
  */
 package tree;
 
-import etc.Infos;
-import java.awt.Dimension;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StreamTokenizer;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Stack;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeModel;
 
 /**
  * 
@@ -35,249 +17,48 @@ import javax.swing.tree.DefaultTreeModel;
  */
 public class NewickReader {
     
-    private int currentNodeIndex=0;
-    //get root info name:length;
-    private Pattern rootPattern= Pattern.compile("\\)([^\\)]*);$"); //*? to make it non greedy    
-    //internal nodes infos are on the right of a subtree (subtree)name:length
-    private Pattern internalNodePattern= Pattern.compile("\\)([^\\)]*?):([0-9\\.Ee-]*?)$|\\)([^\\)]*?)$"); //*? to make it non greedy    
-    //simple name:length
-    private Pattern leafPattern =Pattern.compile("(.*?):([0-9\\.Ee-]*?)$|(.*)$");
-    
-    private int level=0;
-    
-    /**
-     * simple newick parser, assumes that the root is the first element of the newick sting representation
-     * @param newickTree
-     * @return 
-     */
-    @Deprecated
-    public PhyloTree parseNewickTree (String newickTree) {
-        currentNodeIndex=0;
-        level=0;
-//        long startTime = System.currentTimeMillis();
-        //we will initialize the root immediately during the newick parsing
-        PhyloNode root=null;
-        
-        //get root info
-        Matcher matcher = rootPattern.matcher(newickTree);
-
-        int rootStringLen=0;
-        String name="";
-        String len="";
-        String[] infos=null;
-        if (matcher.find()) {
-            infos=matcher.group(1).split(":");
-            name=infos[0];
-            if (infos.length>1) {len=infos[1];}
-        }
-
-        //the last element, with ';' is the root infos (label, branch length)
-        if (name.equals("") && len.equals("")) {
-            root=new PhyloNode(0, "root",0.0f);
-            rootStringLen=1; //only ;
-        } else if (len.equals("")) {
-            root=new PhyloNode(0, name,0.0f);
-            rootStringLen=name.length()+1; //name;
-        } else if (name.equals("")) {
-            root=new PhyloNode(0, "root", Float.parseFloat(len));
-            rootStringLen=1+len.length()+1; //:len;
-        } else {
-            root=new PhyloNode(0, "root", 0.0f);
-            rootStringLen=name.length()+1+len.length()+1; //name:len;
-        }
-        
-        if (root==null) {System.out.println("The newickTree input may be missing the terminal ';'.");return null;};
-        
-        //this removes the info of the root node and send the subtree to the recursivity
-        //-1 just to remove the last parenthesis
-        String subtree=newickTree.substring(0, newickTree.length()-rootStringLen-1);
-        //System.out.println("from root subtree:"+subtree);
-        addSubTrees(root,subtree);
-        
-//        long endTime = System.currentTimeMillis();
-//        System.out.println("Newick parsing used " + (endTime - startTime) + " ms");
-
-        PhyloTree tree=new PhyloTree(new PhyloTreeModel(root));
-        tree.initIndexes();
-        return tree;
-    }
-    
-    /**
-     * assumes that the newick string representation is the 1st line of the file
-     * @param f
-     * @return
-     * @throws FileNotFoundException 
-     */
-    @Deprecated
-    public PhyloTree parseNewickTree (File f) throws FileNotFoundException, IOException {
-        BufferedReader br = new BufferedReader(new FileReader(f));
-        String line=null;
-        PhyloTree tree=null;
-        while ((line=br.readLine())!=null) {
-            tree=parseNewickTree(line.trim());
-            break;
-        }
-        
-        br.close();
-        return tree;
-    }
-    
-   
-    
-    
-    @Deprecated
-    private void addSubTrees(PhyloNode parent, String parentSubtree) {
-        
-        //System.out.println("CALL "+parent+"   "+parentSubtree);
-        
-        //search all ',' of nestidness 1, parsing from left to right
-        ArrayList<Integer> nestedCommas=new ArrayList();
-        int nestedness=0;
-        for (int i=0;i<parentSubtree.length();i++) {
-            if (parentSubtree.charAt(i)=='(') {
-                nestedness++;
-                continue;
-            } else if (parentSubtree.charAt(i)==')') {
-                nestedness--;
-                continue;
-            }
-            if (parentSubtree.charAt(i)==',' && nestedness==1) {
-                nestedCommas.add(i);
-            }
-        }
-        //System.out.println(nestedCommas);
-        //System.out.println("parent subtrees before split: "+parentSubtree);
-        //split the current level by ',' of nesteness 1
-        int indexStart=1; //=1 to zap the '(' of the current level
-        ArrayList<String> subtrees=new ArrayList<>();
-        for (int i = 0; i < nestedCommas.size(); i++) {
-            Integer index = nestedCommas.get(i);
-            subtrees.add(parentSubtree.substring(indexStart, index));
-            indexStart=index+1;
-        }
-        //System.out.println("subTree size after split: "+subtrees.size());
-        //note there is 2 scenarios here: 
-        //1. the last element is a subtree which root has a name, (xxx)NAME:LEN
-        //2. the last element is a leaf NAME:LEN
-        //in second case, we remove the last ')' so that the internalNodePattern matches
-        subtrees.add(parentSubtree.substring(indexStart,parentSubtree.length()));
-        
-        //System.out.println("next subtrees: "+subtrees);
-        //for each split element, recursive call, or create a leaf if not a tree
-        for (int i = 0; i < subtrees.size(); i++) {
-            String subTree=subtrees.get(i);
-            Matcher m=null;
-            if (subTree.startsWith("(")) {//subtree
-                //if internal node has ')label:length' 
-                //Remove the last ) for the pattern to work
-                if (subTree.charAt(subTree.length()-1)==')') {
-                    //System.out.println("Remove last ) !");
-                    subTree=subTree.substring(0, subTree.length()-1);
-                }
-                //System.out.println("before internalnode pattern"+subTree);
-                m=internalNodePattern.matcher(subTree);
-                if (m.find()) {
-                    String name=m.group(1);
-                    String len=m.group(2);
-                    String nameAlt=m.group(3);//alternative for when the leaf name is a number and no :
-                    //System.out.println(name+"::"+len+"::"+nameAlt);
-                    if (name==null && len==null) {
-                        name=nameAlt;
-                        len="";
-                    }
-                    PhyloNode internalNode=null;
-                    if (!len.equals("")) {
-                        //System.out.println(Float.parseFloat(len));
-                        internalNode=new PhyloNode(++currentNodeIndex,name,Float.parseFloat(len));
-                    } else {
-                        internalNode=new PhyloNode(++currentNodeIndex,name,0.1f);
-                    }
-                    parent.add(internalNode);
-                    //remove the node info, just send the subtree to next recursive call
-                    //System.out.println("   INTERNnodeInfo: name='"+name+"':len='"+len+"'");
-                    int nodeInfoLength=-1;
-                    if (len.equals("")) {
-                        nodeInfoLength=name.length();
-                    } else {
-                        nodeInfoLength=name.length()+1+len.length();
-                    }                    
-                    //substring(1,end-1) to send the next 
-                    String nextSubTree=subTree.substring(0,subTree.length()-nodeInfoLength);
-                    addSubTrees(internalNode, nextSubTree);
-                } else {
-                    System.out.println("This subtree seems incorrect:\n"+subTree);
-                }
-            } else {//leaf
-                //if internal node was 'leaf)'
-                //Remove the last ) for the pattern to work
-                if (subTree.charAt(subTree.length()-1)==')') {
-                    //System.out.println("Remove last ) !");
-                    subTree=subTree.substring(0, subTree.length()-1);
-                }                
-                //System.out.println("before leaf pattern: "+subTree);
-                m=leafPattern.matcher(subTree);
-                if (m.find()) {
-                    String name=m.group(1);
-                    String len=m.group(2);
-                    String nameAlt=m.group(3);//alternative for when the leaf name is a number and no :
-                    if (name==null && len==null) {
-                        name=nameAlt;
-                        len="";
-                    }
-                    PhyloNode leaf=null;
-                    if (!len.equals("")) {
-                        //System.out.println(Float.parseFloat(len));
-                        leaf=new PhyloNode(++currentNodeIndex,name,Float.parseFloat(len));
-                    } else {
-                        leaf=new PhyloNode(++currentNodeIndex,name,0.1f);
-                    }
-                    //System.out.println("   LEAFnodeInfo: name='"+name+"':len='"+len+"'");
-                    parent.add(leaf);
-                } else {
-                    System.out.println("This leaf seems incorrect:\n"+subTree);
-                }
-            }
-            
-        }
-    
-    }
-    
-
     public static PhyloTree parseNewickTree2(String s) {
+        
+        //counter to build internal nodeIds
+        //(different from labels read in the newick)
         int currentNodeIndex=-1;
-        int level=0;
-        
-        
-        Stack<PhyloNode> stackedLevels=new Stack<>();
-        HashMap<Integer,ArrayList<PhyloNode>> levelList=new HashMap<>();
-        levelList.put(level, new ArrayList<>()); //init highest level (=0)
+        //tree depth
+        int depth=0;
+        //pile of parent nodes
+        Stack<PhyloNode> stackedParents=new Stack<>();
+        HashMap<Integer,ArrayList<PhyloNode>> nodesPerDepth=new HashMap<>();
+        nodesPerDepth.put(depth, new ArrayList<>()); //init highest depth (=0)
 
         StringBuilder sb=new StringBuilder();
         boolean descending=false;
         boolean ascending=false;
         PhyloNode bufferedNode=null;
+        //the newick is red from laft to rigth, parenthesis are used to 
+        //jump dig in and out at different depths
         for (int i = 0; i < s.length(); i++) {
+//            System.out.println("i:"+i);
 //            System.out.println("--------------------------------------------");
 //            System.out.println("-BEFORE-------------------------------------");
 //            System.out.println("char:"+s.charAt(i));
-//            System.out.println("level:"+level);
-//            System.out.println("stack:"+stackedLevels);
-//            System.out.println("levelList:"+levelList);
+//            System.out.println("depth:"+depth);
+//            System.out.println("stackedParents:"+stackedParents);
+//            System.out.println("nodesPerDepth:"+nodesPerDepth);
 //            System.out.println("sb:"+sb);
 //            System.out.println("currentNodeIndex:"+currentNodeIndex);
 //            System.out.println("bufferedNode:"+bufferedNode);
 //            System.out.println("descending:"+descending);
+//            System.out.println("ascending:"+ascending);
             //init new node when (
             if (s.charAt(i)=='(') {
-                stackedLevels.push(new PhyloNode(++currentNodeIndex));
-                level++;
-                levelList.put(level, new ArrayList<>());
+                stackedParents.push(new PhyloNode(++currentNodeIndex));
+                depth++;
+                nodesPerDepth.put(depth, new ArrayList<>());
                 sb.delete(0, sb.length());
                 descending=true;
                 ascending=false;
             //fill init but empty node when )
             } else if (s.charAt(i)==')') {
-                //make node with previous node (if exists), at level before )
+                //make node with previous node (if exists), at depth before )
                 if (sb.length()>0) {
                     //take potential content of sb
                     //to fill node
@@ -286,7 +67,7 @@ public class NewickReader {
                     Float bl=-1.0f; 
                     if (data.length>1) { bl=Float.parseFloat(data[1]); }
                     if (!ascending)
-                        levelList.get(level).add(new PhyloNode(++currentNodeIndex, label, bl));
+                        nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl));
                     else {
                         bufferedNode.setLabel(label);
                         bufferedNode.setBranchLengthToAncestor(bl);
@@ -295,22 +76,22 @@ public class NewickReader {
                 sb.delete(0, sb.length());
                 
                 //get parent which is on top of stack
-                bufferedNode=stackedLevels.pop();
+                bufferedNode=stackedParents.pop();
                 //associate nodes to this parent
-                for (PhyloNode son:levelList.get(level)) {
+                for (PhyloNode son:nodesPerDepth.get(depth)) {
                     bufferedNode.add(son);
                     //System.out.println("DO: parent="+bufferedNode+"  son="+son);
                 }
-                levelList.get(level).clear();
+                nodesPerDepth.get(depth).clear();
                 
-                //now moving to level after )
-                //not forgetting to register the paretn to this new level
-                level--;
+                //now moving to depth after )
+                //not forgetting to register the paretn to this new depth
+                depth--;
                 descending=false;
                 ascending=true;
-                levelList.get(level).add(bufferedNode);
+                nodesPerDepth.get(depth).add(bufferedNode);
 
-            //add to current level when ,    
+            //add to current depth when ,    
             } else if (s.charAt(i)==',') {
                 //take potential content of sb
                 //to fill node
@@ -318,16 +99,20 @@ public class NewickReader {
                 String label=data[0];
                 Float bl=-1.0f; 
                 if (data.length>1) { bl=Float.parseFloat(data[1]); }
-                //if comes from upper level, start list of nodes for this level
+                //if comes from upper depth, start list of nodes for this depth
                 if (descending) {
-                    levelList.get(level).add(new PhyloNode(++currentNodeIndex, label, bl));
+                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl));
                 //if ascending, come up from subtree, we use the unstacked node
-                } else {
+                } else if (ascending) {
                     bufferedNode.setLabel(label);
                     bufferedNode.setBranchLengthToAncestor(bl);
-                    //levelList.get(level).add(bufferedNode);
+                    //levelList.get(depth).add(bufferedNode);
+                //neither ascending or descending (case happening when unrooted
+                //tree, 1st level appears with 3 nodes, i.e. ((),(),());
+                } else {
+                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl));
                 }
-                 sb.delete(0, sb.length());
+                sb.delete(0, sb.length());
                  
                 descending=false;
                 ascending=false;
@@ -358,23 +143,40 @@ public class NewickReader {
             
 //            System.out.println("-AFTER----");
 //            System.out.println("char:"+s.charAt(i));
-//            System.out.println("level:"+level);
-//            System.out.println("stack:"+stackedLevels);
-//            System.out.println("levelList:"+levelList);
+//            System.out.println("depth:"+depth);
+//            System.out.println("stack:"+stackedParents);
+//            System.out.println("nodesPerDepth:"+nodesPerDepth);
 //            System.out.println("sb:"+sb);
 //            System.out.println("currentNodeIndex:"+currentNodeIndex);
 //            System.out.println("bufferedNode:"+bufferedNode);
 //            System.out.println("descending:"+descending);
+//            System.out.println("ascending:"+ascending);
+        }
+        
+        //if the root contain 2 sons, it's rooted, if three it's unrooted
+        boolean rooted=false;
+        int rootSons=0;
+        for (Enumeration e=bufferedNode.children();e.hasMoreElements();) {
+            PhyloNode pn= (PhyloNode)e.nextElement();
+            if (e!=null)
+                rootSons++;
+        }
+        //rooted
+        if (rootSons<3) {
+            rooted=true;
         }
         
         
         //last bufferedNode should be the root
-        PhyloTree tree=new PhyloTree(new PhyloTreeModel(bufferedNode));
+        PhyloTree tree=new PhyloTree(new PhyloTreeModel(bufferedNode),rooted);
+        //init indexes related to internal/leaves stats
         tree.initIndexes();
         return tree;
         
     }
     
+    
+
     
     
     
@@ -401,12 +203,41 @@ public class NewickReader {
                 + "(28_AY878324,(16_AB907625,(15_AB781791,(19_AB907630,(18_AB907628,24_AB781792)59)"
                 + "58)57)56)55)51)49)47)43)42)41)40)39)38)37)35)32)31;";
         
-        String t_basic="((L1:1,L2:2)X:4,((L3:2,L4:2)Y:1,L5:4)Z:4)root:0;";
+        String t_basic_unrooted="((L1:1,L2:2)X:4,(L3:2,L4:2)Y:1,L5:4)Z:4;"; //unrooted
+        String t_basic_rZX="((L1:1,L2:2)X:4,((L3:2,L4:2)Y:1,L5:4)Z:4)root:0;";//rooted on Z-X
+        String t_basic_rZX_inv="(((L3:2,L4:2)Y:1,L5:4)Z:4,(L1:1,L2:2)X:4)root:0;";//rooted on Z-X, inversed children of root
+        String t_basic_rZL5="(L5:4,((L3:2,L4:2)Y:1,(L1:1,L2:2)X:4)Z:4)root:0;"; //rooted on Z-L5
+
+
+        
         String t_basic2="((L1:2,L2:2)I:2,L3:4)root:0;";
+        String t_unrooted="(L3:4,L4:3,(L1:2,L2:2)I:2);";
+        String t_unrooted2="(L3:4,(L1:2,L2:2)I:2,L4:3);";
+        String t_unrooted3="((L1:2,L2:2)I:2,L3:4,L4:3);";
+        
+        System.out.println("START");
+        System.out.println(t_basic_rZL5);
+        System.out.println(t_basic_rZX);
+        
+        PhyloTree tree1 = NewickReader.parseNewickTree2(t_basic_rZX_inv);
+        System.out.println("t_basic parsed!");
+        tree1.displayTree();
+        System.out.println("isRooted:"+tree1.isRooted());
+        System.out.println("Struct root:"+tree1.getRoot());
+        
+        System.out.println("START");
+        PhyloTree tree2 = NewickReader.parseNewickTree2(t_basic_rZX);
+        System.out.println("t_basic_unrooted parsed!");
+        tree2.displayTree();
+        System.out.println("isRooted:"+tree2.isRooted());
+        System.out.println("Struct root:"+tree2.getRoot());
         
         
-        PhyloTree parseTree = parseNewickTree2(treeFASTML);
-        parseTree.displayTree();
+        //node mapping test
+        System.out.println(tree1.mapNodes(tree2));
+        
+        
+        
         
         Thread.sleep(60000);
         
@@ -416,7 +247,7 @@ public class NewickReader {
         
         //test parsing
         long startTime = System.currentTimeMillis();
-        PhyloTree t=new NewickReader().parseNewickTree(treeFASTML);
+        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML);
         long endTime = System.currentTimeMillis();
         System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
         

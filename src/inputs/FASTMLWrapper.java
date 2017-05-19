@@ -6,6 +6,7 @@
 package inputs;
 
 import alignement.Alignment;
+import core.PProbasSorted;
 import core.older.PProbas;
 import core.States;
 import etc.Infos;
@@ -101,6 +102,12 @@ public class FASTMLWrapper implements DataWrapper {
         br.close();
         return matrix;
     }
-    
+
+    @Override
+    public PProbasSorted parseSortedProbas(InputStream input, float sitePPThreshold, boolean asLog10, int debugNodeLimit) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+
     
 }

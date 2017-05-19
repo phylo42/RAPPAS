@@ -212,7 +212,7 @@ public class NewickWriter {
         
         //test parsing
         long startTime = System.currentTimeMillis();
-        PhyloTree t=new NewickReader().parseNewickTree(treeFASTML);
+        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML);
         long endTime = System.currentTimeMillis();
         System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
 

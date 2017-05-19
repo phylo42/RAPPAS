@@ -5,6 +5,7 @@
  */
 package inputs;
 
+import core.PProbasSorted;
 import core.older.PProbas;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,7 +28,7 @@ public interface DataWrapper {
      * @throws FileNotFoundException
      * @throws IOException 
      */    
-    public PProbas parseProbas(InputStream input, float sitePPThreshold, boolean asLog10) throws IOException;
+    public PProbasSorted parseSortedProbas(InputStream input, float sitePPThreshold, boolean asLog10, int debugNodeLimit);
 
     
     

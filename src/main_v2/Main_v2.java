@@ -10,7 +10,9 @@ import core.AAStates;
 import core.DNAStates;
 import core.States;
 import etc.Infos;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -120,13 +122,18 @@ public class Main_v2 {
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
+                //read tree
+                String tree=null;
+                BufferedReader br=new BufferedReader(new FileReader(t));
+                while ((tree=br.readLine())!=null) {}
+                
                 Main_DBBUILD_2.DBGeneration(  null,
                                             argsParser.k,
                                             argsParser.alpha,
                                             argsParser.fakeBranchAmount,
                                             s,
                                             argsParser.alignmentFile,
-                                            argsParser.treeFile,
+                                            tree,
                                             argsParser.workingDir,
                                             argsParser.pamlPath
                                             );

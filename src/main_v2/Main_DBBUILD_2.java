@@ -5,14 +5,11 @@
  */
 package main_v2;
 
-import main_v2.SessionNext_v2;
 import alignement.Alignment;
-import core.hash.SimpleHash;
 import core.States;
 import core.Word;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
-import core.hash.CustomNode;
 import core.hash.SimpleHash_v2;
 import etc.Environement;
 import etc.Infos;
@@ -39,7 +36,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
-import org.openjdk.jol.info.ClassLayout;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
@@ -135,7 +131,7 @@ public class Main_DBBUILD_2 {
                                         File a, 
                                         String t,
                                         File workDir,
-                                        File pamlPath
+                                        File ARExecutablePath
                                     ) {
         
         
@@ -162,7 +158,7 @@ public class Main_DBBUILD_2 {
             
             //build of extended tree/////////////////////////////////////////////
             float minBranchLength=0.001f;
-            String baseMLBinaries=pamlPath.getAbsolutePath();
+            String baseMLBinaries=ARExecutablePath.getAbsolutePath();
             //String baseMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml";
             //String codeMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/codeml";
              
@@ -280,86 +276,25 @@ public class Main_DBBUILD_2 {
             
             
             //////////////////////////////////////
-            //HERE LAUNCH BASEML ON RELAXED TREE
-            //todo
-            //can it be done whithout modifying ctl file but through cpmmand parameters ?
-            File statsFromRelaxedTree=new File(ARPath+"rst");;
+            //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
+
+            File statsFromRelaxedTree=new File(ARPath+"rst");
             if (launchAR) {
                 System.out.println("Launching PAML ancestral reconstruction...");
-                StringBuilder sb=new StringBuilder();
-                
+                File alignmentFile=null;
+                File treeFile=null;
                 if (buildRelaxedTree) {
-                    sb.append("seqfile = "+fileRelaxedAlignmentPhylip.getAbsolutePath()+"\n");
-                    sb.append("treefile = "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath()+"\n");
-                    
-                } else {
-                    sb.append("seqfile = "+a+"\n");
-                    sb.append("treefile = "+t+"\n");
-                }
-                sb.append("outfile = "+ARPath+"paml_output"+"\n");
-                sb.append("noisy = 2   * 0,1,2,3: how much rubbish on the screen\n");
-                sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
-                sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
-                sb.append("model = 7   * 0:JC69, 1:K80, 2:F81, 3:F84, 4:HKY85 5:T92, 6:TN93, 7:REV, 8:UNREST, 9:REVu; 10:UNRESTu\n");
-                sb.append("Mgene = 0   * 0:rates, 1:separate; 2:diff pi, 3:diff kapa, 4:all diff\n");
-                sb.append("* ndata = 100\n");
-                sb.append("clock = 0   * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
-                sb.append("fix_kappa = 0   * 0: estimate kappa; 1: fix kappa at value below\n");
-                sb.append("kappa = 5  * initial or fixed kappa\n");
-                sb.append("fix_alpha = 1   * 0: estimate alpha; 1: fix alpha at value below\n");
-                sb.append("alpha = 0.433838   * initial or fixed alpha, 0:infinity (constant rate)\n");
-                sb.append("Malpha = 0   * 1: different alpha's for genes, 0: one alpha\n");
-                sb.append("ncatG = 4   * # of categories in the dG, AdG, or nparK models of rates\n");
-                sb.append("nparK = 0   * rate-class models. 1:rK, 2:rK&fK, 3:rK&MK(1/K), 4:rK&MK\n");
-                sb.append("nhomo = 0   * 0 & 1: homogeneous, 2: kappa for branches, 3: N1, 4: N2\n");
-                sb.append("getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
-                sb.append("RateAncestor = 1   * (0,1,2): rates (alpha>0) or ancestral states\n");
-                sb.append("Small_Diff = 7e-6\n");
-                sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
-                sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
-                sb.append("fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                sb.append("method = 1  * Optimization method 0: simultaneous; 1: one branch a time\n");
-                       
-                FileWriter fw=new FileWriter(new File(ARPath+"baseml.ctl"));
-                Infos.println("Ancestral reconstruciton parameters written in: "+ARPath+"baseml.ctl");
-                fw.append(sb);
-                fw.close();
-                
-                //launch paml externally to build the posterior probas on the extended tree
-                List<String> com=new ArrayList<>();
-                com.add(baseMLBinaries);
-                com.add(ARPath+"baseml.ctl");
-                Infos.println("Ancestral reconstruct command: "+com);
-                
-                ProcessBuilder pb = new ProcessBuilder(com);
-                //pb.environment().entrySet().stream().forEach((e) ->{ System.out.println(e.getKey()+"="+e.getValue()); });
-                //env.put("VAR1", "myValue"); env.remove("OTHERVAR");
-                pb.directory(new File(ARPath));                
-                pb.redirectErrorStream(false);
-                pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-                pb.redirectInput(ProcessBuilder.Redirect.PIPE);
-                Process p = pb.start();
-                assert pb.redirectInput() == ProcessBuilder.Redirect.PIPE;
-                assert p.getInputStream().read() == -1; 
-                //redirect sdtout/stdin to files
-                FileOutputStream STDOUTOutputStream=new FileOutputStream(new File(ARPath+"AR_sdtout.txt"));
-                FileOutputStream STDERROutputStream=new FileOutputStream(new File(ARPath+"AR_sdterr.txt"));
-                if (verboseAR)
-                    inputStreamToOutputStream(new BufferedInputStream(p.getInputStream()), System.out);
-                inputStreamToOutputStream(new BufferedInputStream(p.getInputStream()), STDOUTOutputStream);
-                inputStreamToOutputStream(new BufferedInputStream(p.getErrorStream()), STDERROutputStream);
-                Infos.println("External process operating reconstruction is logged in: "+new File(ARPath+"AR_sdtout.txt").getAbsolutePath());
-                Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
-                try {
-                    p.waitFor();
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Main_PLACEMENT.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                    alignmentFile=fileRelaxedAlignmentPhylip;
+                    treeFile=fileRelaxedTreewithBLNoInternalNodeLabels;
 
-                STDOUTOutputStream.close();
-                STDERROutputStream.close();
-                Infos.println("Ancestral reconstruction finished.");
+                } else {
+                    alignmentFile=a;
+                    treeFile=new File(t);
+                }
+                ARProcessLauncher arpl=new ARProcessLauncher();
+                arpl.setExecutablePath(ARExecutablePath);
+                arpl.launchPAML(new File(ARPath), alignmentFile, treeFile, verboseAR);
+                
                 
             }
 
@@ -379,6 +314,8 @@ public class Main_DBBUILD_2 {
             InputManagerNext im=new InputManagerNext(InputManagerNext.SOURCE_PAML, fileRelaxedAlignmentFasta, null, statsFromRelaxedTree, s);
             session.associateStates(s);
             session.associateInputs(im);
+            
+            
             
             //positions for which word are built
             SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
@@ -569,9 +506,7 @@ public class Main_DBBUILD_2 {
             
             
             
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(WordExplorer.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(WordExplorer.class.getName()).log(Level.SEVERE, null, ex);
         }
         

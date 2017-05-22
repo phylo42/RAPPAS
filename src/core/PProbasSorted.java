@@ -18,10 +18,10 @@ public class PProbasSorted implements Serializable {
     
     float[][][] pp=null; //[nodeIndex][site][index]=PPStar
     byte[][][] states=null;//[nodeIndex][site][index]= State associated to PPStar
-    byte[][][] statesIndex=null;//[nodeIndex][site][index] =link from State value tp states table index
+    byte[][][] statesIndex=null;//[nodeIndex][site][index] =link from State value to states table index
     //example on pplacer benchmark:
     //pp[O][0]=[-0.51749474, -0.5934179, -0.64727, -0.665648]
-    //states[0[0]=[3, 0, 2, 1]
+    //states[0][0]=[3, 0, 2, 1]
     //statesIndex[0][0]=[1, 3, 2, 0]
     //note that the index of a node is defined through its DFS pre_order
 

@@ -42,7 +42,7 @@ public class PAMLWrapper implements DataWrapper {
     PhyloTree tree=null;
     States states=null;
     
-    //to accelerate parsin, will use this regexp
+    //to accelerate parsing, will use this regexp
     //careful, in paml outputscientic number with negative, but also positive('+' symbol present!) powers.
     //ex: T(1.000000E+00) C(1.050222E-12) A(2.261192E-13) G(1.568578E-13)
     String pattern="^\\s+([0-9]+)\\s+[0-9]+\\s+[^:]+:\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+";
@@ -51,7 +51,6 @@ public class PAMLWrapper implements DataWrapper {
     /**
      * Used Paml 'rst' file (all infos are in there)
      * @param inputAlign input alignment used in FASTML 
-     * @param inputTree tree.newick.text output from FASTML
      * @param states
      */
 
@@ -63,7 +62,7 @@ public class PAMLWrapper implements DataWrapper {
 
     
     /**
-     * pare the tree from the rst file (it contains several version of the tree,
+     * parse the tree from the rst file (it contains several version of the tree,
      * none with complete information, and the post probas)
      * @param input
      * @return
@@ -217,7 +216,7 @@ public class PAMLWrapper implements DataWrapper {
     
     
     /**
-     * 
+     * parse the posterior probas themselves
      * @param input
      * @param sitePPThreshold
      * @param asLog10

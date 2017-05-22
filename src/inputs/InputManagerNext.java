@@ -33,7 +33,7 @@ public class InputManagerNext {
     
     public static final int SOURCE_PAML=1;
     public static final int SOURCE_FASTML=2;
-    public static final int SOURCE_R_PHANGORN=3;
+    public static final int SOURCE_PHYML=3;
     
     private int currentActiveSource=-1;
     
@@ -118,6 +118,29 @@ public class InputManagerNext {
                 this.tree=pw.parseTree(new FileInputStream(probasFile));
             else
                 this.tree=pw.parseTree(new FileInputStream(treeFile));
+            endTime = System.currentTimeMillis();
+            Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
+            //probas
+            startTime = System.currentTimeMillis();
+            this.probas = pw.parseSortedProbas(new FileInputStream(probasFile),Float.MIN_VALUE,true,Integer.MAX_VALUE);
+            endTime = System.currentTimeMillis();
+            Infos.println("Loading of probas used " + (endTime - startTime) + " ms");
+        } else if (this.currentActiveSource==SOURCE_PHYML) {
+            //alignment
+            long startTime = System.currentTimeMillis();
+            FASTAPointer fpp=new FASTAPointer(alignmentFile,false);
+            Fasta f=null;
+            ArrayList<Fasta> fastas=new ArrayList<>();
+            while ((f=fpp.nextSequenceAsFastaObject())!=null) {
+                fastas.add(f);
+            }
+            long endTime = System.currentTimeMillis();
+            Infos.println("Loading of alignment used " + (endTime - startTime) + " ms");
+            this.align=new Alignment(fastas);
+            //tree
+            startTime = System.currentTimeMillis();
+            PHYMLWrapper pw=new PHYMLWrapper(align,s);
+            this.tree=pw.parseTree(new FileInputStream(treeFile));
             endTime = System.currentTimeMillis();
             Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
             //probas

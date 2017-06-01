@@ -518,24 +518,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
 
     
     
-    public static void inputStreamToOutputStream(final InputStream inputStream, final OutputStream out) {
-        Thread t = new Thread(new Runnable() {
 
-            @Override
-            public void run() {
-                try {
-                    int d;
-                    while ((d = inputStream.read()) != -1) {
-                        out.write(d);
-                    }
-                } catch (IOException ex) {
-                    Infos.println(ex.getCause());
-                }
-            }
-        });
-        t.setDaemon(true);
-        t.start();
-    }
     
     
     

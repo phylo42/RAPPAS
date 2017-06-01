@@ -16,20 +16,14 @@ import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.InputManagerNext;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import main.Main_PLACEMENT;
-import static main.Main_PLACEMENT.inputStreamToOutputStream;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -187,7 +181,7 @@ public class Main_DBBUILD_2 {
             //skip extended tree reconstruction
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on extended tree)
-            boolean launchAR=false;
+            boolean launchAR=true;
             
             boolean histogramNumberPositionsPerNode=true;
             boolean hitsogramNumberNodesPerFirstPosition=true;
@@ -280,7 +274,7 @@ public class Main_DBBUILD_2 {
 
             File statsFromRelaxedTree=new File(ARPath+"rst");
             if (launchAR) {
-                System.out.println("Launching PAML ancestral reconstruction...");
+                System.out.println("Launching ancestral reconstruction...");
                 File alignmentFile=null;
                 File treeFile=null;
                 if (buildRelaxedTree) {
@@ -291,13 +285,13 @@ public class Main_DBBUILD_2 {
                     alignmentFile=a;
                     treeFile=new File(t);
                 }
-                ARProcessLauncher arpl=new ARProcessLauncher();
-                arpl.setExecutablePath(ARExecutablePath);
-                arpl.launchPAML(new File(ARPath), alignmentFile, treeFile, verboseAR);
+                ARProcessLauncher arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARExecutablePath,verboseAR);
+                arpl.launchAR(new File(ARPath),alignmentFile, treeFile);
                 
                 
             }
 
+            System.exit(1);
             
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////

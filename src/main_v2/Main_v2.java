@@ -49,14 +49,20 @@ public class Main_v2 {
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
 //            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
 //            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.line";
             
-            //DATASET LARGER SET:
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
+            //DATASET LARGER SET --PAML--
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
+//            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
+//            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
+
+            //DATASET LARGER SET --PHYML--
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PHYML";
             String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
             String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
             String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
-
+            
 
             //QUERIES::
             
@@ -118,16 +124,19 @@ public class Main_v2 {
             
             //parse program arguments
             ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
-            argsParser.pamlPath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/baseml");
+            argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/paml4.9b_hacked/bin/baseml");
+            argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/phyml/src/phyml");
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
-                //read tree
+                //read line
+                String line=null;
                 String tree=null;
                 BufferedReader br=new BufferedReader(new FileReader(t));
-                while ((tree=br.readLine())!=null) {}
+                while ((line=br.readLine())!=null) {tree=line;}
+                br.close();
                 
-                Main_DBBUILD_2.DBGeneration(  null,
+                Main_DBBUILD_2.DBGeneration(null,
                                             argsParser.k,
                                             argsParser.alpha,
                                             argsParser.fakeBranchAmount,
@@ -135,7 +144,7 @@ public class Main_v2 {
                                             argsParser.alignmentFile,
                                             tree,
                                             argsParser.workingDir,
-                                            argsParser.pamlPath
+                                            argsParser.ARExecutablePath
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {

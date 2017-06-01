@@ -255,22 +255,28 @@ public class PhyloTree extends JTree implements Tree,Serializable {
     //of similar topology than this tree (rooted or unrooted) 
     HashMap<Integer,Integer> nodeMapping=new HashMap<>();
     
+    /**
+     * 
+     * @param otherTree
+     * @return 
+     */
     public HashMap<Integer,Integer> mapNodes(PhyloTree otherTree) {
         DFSforMapping(this.getRoot(),otherTree);
         //finally, if both tree rooted on same edge, associate the root ids
         //both trees rooted ?
         if (this.isRooted() && otherTree.isRooted) {
             System.out.println("both trees are rooted");
-            //rooted on same edge ? if yes roots can be mapped
+            //rooted on same edge ? if yes roots can be mapped between
+            //both trees, if not no mapping is done for the root
             PhyloNode root=this.getRoot();
             Enumeration e=root.children();
             boolean sameChildren=true;
             while (e.hasMoreElements()) {
                 PhyloNode child=(PhyloNode)e.nextElement();
                 int idInOtherTree=nodeMapping.get(child.getId());
-                System.out.println("test "+child.getId()+" "+idInOtherTree);
-                System.out.println("A:"+otherTree.getById(idInOtherTree).getParent());
-                System.out.println("B:"+otherTree.getRoot());
+//                System.out.println("test "+child.getId()+" "+idInOtherTree);
+//                System.out.println("A:"+otherTree.getById(idInOtherTree).getParent());
+//                System.out.println("B:"+otherTree.getRoot());
                 if (otherTree.getById(idInOtherTree).getParent() != otherTree.getRoot()) {
                     sameChildren=false;
                 }
@@ -283,8 +289,8 @@ public class PhyloTree extends JTree implements Tree,Serializable {
     }
     
     /**
-     * starting from bait
-     * @param node 
+     * do a depth first transversal to go to all nodes, starts from a bait node 
+     * @param node the bait node
      */
     private void DFSforMapping(PhyloNode node,PhyloTree otherTree) {
         
@@ -299,7 +305,7 @@ public class PhyloTree extends JTree implements Tree,Serializable {
             System.out.println("SKIP ROOT");
             return;
         }
-        System.out.println("IN: "+node);
+        //System.out.println("IN: "+node);
         
         //returns up, time to associate associate nodes, 3 possible case:
         //1. node child of root, 
@@ -328,7 +334,7 @@ public class PhyloTree extends JTree implements Tree,Serializable {
             nodeMapping.put(parent.getId(), otherParent.getId());
         }
         
-        System.out.println(nodeMapping);
+        //System.out.println(nodeMapping);
     }
     //--------------------------------------------------------------------------
 

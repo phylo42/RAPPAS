@@ -11,38 +11,142 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import main.Main_PLACEMENT;
-import static main.Main_PLACEMENT.inputStreamToOutputStream;
 
 /**
- *
+ * class used to setup the maginal ancerstral reconstruction (AR),
+ * using an external executable. Currently PAML and PHYML are supported.
  * @author ben
  */
 public class ARProcessLauncher {
-
+    
+    public static final int AR_PAML=1;
+    public static final int AR_PHYML=2;
+    public static final int AR_FASTML=3;
+    
+    public int currentProg=AR_PHYML;
     public File executable=null;
+    File ARPath=null;
+    File alignPath=null;
+    File treePath=null;
+    boolean verboseAR=true;
     
-    
-    public ARProcessLauncher() {}
-    
-    public void setExecutablePath(File pathToExecutable) {
+    /**
+     * prepare the marginal AR launcher
+     * @param AR_PROG one of ARProcessLauncher.AR_PAML,
+     * ARProcessLauncher.AR_PHYML ...etc...
+     */
+    public ARProcessLauncher(int AR_PROG, File pathToExecutable,boolean verboseAR) {
+        this.currentProg=AR_PROG;
         this.executable=pathToExecutable;
+        this.verboseAR=verboseAR;
+        
+        if (executable==null) {
+            System.out.println("Path to executable used for ancestral reconstruction is not set correctly.");
+            System.exit(1);
+        }
+        if ( (!pathToExecutable.isFile()) || (!pathToExecutable.canExecute()) ) {
+            System.out.println("AR executable is not a file or do not have execution rights.");
+            System.exit(1);
+        }
+        
+        
     }
     
     /**
-     * execute PAML for the AR
+     * launch marginal AR
+     * @param ARPath path in which the external AR program will work
+     * @param alignPath alignment in Phylip format, used for the marginal AR
+     * @param treePath tree in Newick format, used for the marginal AR
+     */
+    public void launchAR(File ARPath, File alignPath, File treePath) {
+        this.ARPath=ARPath;
+        this.alignPath=alignPath;
+        this.treePath=treePath;
+        switch (this.currentProg) {
+            case AR_PAML:
+                Infos.println("PAML AR was selected.");
+                launchPAML();
+                break;
+            case AR_PHYML:
+                Infos.println("PHYML AR was selected.");
+                launchPHYML();
+                break;
+            case AR_FASTML:
+                Infos.println("FASTML AR was selected.");
+                launchFASTML();
+                break;
+            default:
+                break;
+        }
+    }
+    
+
+    private void launchPHYML() {
+        if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
+            System.out.println("AR path is not a directory or do not have read rights.");
+            System.exit(1);
+        }
+        
+        try {
+           
+            //launch paml externally to build the posterior probas on the extended tree
+            List<String> com=new ArrayList<>();
+            com.add(executable.getAbsolutePath());
+            com.add("--ancestral"); //marginal reconstruct
+            com.add("-i"); //align
+            System.out.println(alignPath.getAbsolutePath());
+            com.add(alignPath.getAbsolutePath());
+            com.add("-u"); //tree
+            com.add(treePath.getAbsolutePath());
+            com.add("-m"); //model
+            com.add("GTR");
+            com.add("-c"); //number of relative substitution rate categories
+            com.add("4");
+            com.add("-b"); //neither approximate likelihood ratio test nor bootstrap values are computed
+            com.add("0");
+            com.add("-v"); //proportion of invariable sites
+            com.add("0.0");
+            com.add("-o"); //no parameter is optimised
+            com.add("n");
+            com.add("-a"); //gamma shape param
+            com.add("0.5");
+            com.add("--quiet"); //no interactive questions
+            
+            Infos.println("Ancestral reconstruct command: "+com);
+            
+            //execution
+            executeProcess(com);
+            
+
+        } catch (IOException ex) {
+            Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
+    
+    private void launchFASTML() {
+        System.out.println("FASTML AR not supported yet.");
+        System.exit(1);
+    }    
+
+    /**
+     * execute PAML program for the AR. First build the .ctl control file
+     * then execute PAML in the same directory.
      * @param ARPath
      * @param alignPath
      * @param treePath
-     * @param verboseAR
      */
-    public void launchPAML(File ARPath, File alignPath, File treePath,boolean verboseAR) {
-        if (executable==null) {
-            System.out.println("Path to executable used for ancestral reconstruction seems unset.");
+    private void launchPAML() {
+        
+        if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
+            System.out.println("AR path is not a directory or do not have read rights.");
             System.exit(1);
         }
         
@@ -52,7 +156,7 @@ public class ARProcessLauncher {
             sb.append("seqfile = "+alignPath.getAbsolutePath()+"\n");
             sb.append("treefile = "+treePath.getAbsolutePath()+"\n");
 
-            sb.append("outfile = "+ARPath+"paml_output"+"\n");
+            sb.append("outfile = "+ARPath+File.separator+"paml_output"+"\n");
             sb.append("noisy = 2   * 0,1,2,3: how much rubbish on the screen\n");
             sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
             sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
@@ -87,35 +191,8 @@ public class ARProcessLauncher {
             com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
             Infos.println("Ancestral reconstruct command: "+com);
             
-            ProcessBuilder pb = new ProcessBuilder(com);
-            //pb.environment().entrySet().stream().forEach((e) ->{ System.out.println(e.getKey()+"="+e.getValue()); });
-            //env.put("VAR1", "myValue"); env.remove("OTHERVAR");
-            pb.directory(ARPath);
-            pb.redirectErrorStream(false);
-            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-            pb.redirectInput(ProcessBuilder.Redirect.PIPE);
-            Process p = pb.start();
-            assert pb.redirectInput() == ProcessBuilder.Redirect.PIPE;
-            assert p.getInputStream().read() == -1;
-            //redirect sdtout/stdin to files
-            FileOutputStream STDOUTOutputStream=new FileOutputStream(new File(ARPath+"AR_sdtout.txt"));
-            FileOutputStream STDERROutputStream=new FileOutputStream(new File(ARPath+"AR_sdterr.txt"));
-            if (verboseAR)
-                inputStreamToOutputStream(new BufferedInputStream(p.getInputStream()), System.out);
-            inputStreamToOutputStream(new BufferedInputStream(p.getInputStream()), STDOUTOutputStream);
-            inputStreamToOutputStream(new BufferedInputStream(p.getErrorStream()), STDERROutputStream);
-            Infos.println("External process operating reconstruction is logged in: "+new File(ARPath+"AR_sdtout.txt").getAbsolutePath());
-            Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
-            try {
-                p.waitFor();
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main_PLACEMENT.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            STDOUTOutputStream.close();
-            STDERROutputStream.close();
-            Infos.println("Ancestral reconstruction finished.");
+            //execution
+            executeProcess(com);
             
             
         } catch (IOException ex) {
@@ -125,5 +202,60 @@ public class ARProcessLauncher {
         
     }
     
+    /**
+     * execution itself
+     * @param com 
+     */
+    private void executeProcess(List<String> com) throws IOException {
+
+        ProcessBuilder pb = new ProcessBuilder(com);
+        //pb.environment().entrySet().stream().forEach((e) ->{ System.out.println(e.getKey()+"="+e.getValue()); });
+        //env.put("VAR1", "myValue"); env.remove("OTHERVAR");
+        pb.directory(ARPath);
+        pb.redirectErrorStream(false);
+        pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+        pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+        Process p = pb.start();
+        assert pb.redirectInput() == ProcessBuilder.Redirect.PIPE;
+        assert p.getInputStream().read() == -1;
+        //redirect sdtout/stdin to files
+        FileOutputStream STDOUTOutputStream=new FileOutputStream(new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt"));
+        FileOutputStream STDERROutputStream=new FileOutputStream(new File(ARPath.getAbsolutePath()+File.separator+"AR_sdterr.txt"));
+        if (verboseAR)
+            inputStreamToOutputStream(p.getInputStream(), System.out);
+        inputStreamToOutputStream(p.getInputStream(), STDOUTOutputStream);
+        inputStreamToOutputStream(p.getErrorStream(), STDERROutputStream);
+        Infos.println("External process operating reconstruction is logged in: "+new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt").getAbsolutePath());
+        Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
+        try {
+            p.waitFor();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        STDOUTOutputStream.close();
+        STDERROutputStream.close();
+        Infos.println("Ancestral reconstruction finished.");
+    }
+    
+    
+    public static void inputStreamToOutputStream(final InputStream inputStream, final OutputStream out) {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    int d;
+                    BufferedInputStream bis=new BufferedInputStream(inputStream);
+                    while ((d = bis.read()) != -1) {
+                        out.write(d);
+                    }
+                } catch (IOException ex) {
+                    Infos.println(ex.getCause());
+                }
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
     
 }

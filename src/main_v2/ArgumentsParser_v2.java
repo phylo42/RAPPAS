@@ -38,7 +38,7 @@ public class ArgumentsParser_v2 {
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
-    public File pamlPath=new File("./baseml"); 
+    public File ARExecutablePath=new File("phyml"); 
     
     //parameters for placement
     public int minOverlap=100; //default =100

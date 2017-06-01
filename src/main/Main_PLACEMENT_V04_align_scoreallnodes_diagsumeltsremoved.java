@@ -30,21 +30,15 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import tree.ExtendedTree;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.Tree;
@@ -73,12 +67,7 @@ public class Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved {
     //memory mode
     public static int MEMORY_LOW=1;
     public static int MEMORY_LARGE=2;
-    
-    public static void main(String[] args) {
-        
-        
-        
-    }
+
     
     public static int Main_PLACEMENT_V03_align_scoreallnodes(File q, File db, File workDir) {
 

@@ -146,9 +146,8 @@ public class Alignment implements Serializable {
         
         //here choose 50 because PAML don't allow more !
         int allowedLabelSize=50; //in fact(48 +2 spaces)
+        int numColumns=2;
         
-
-        int numColumns=4;
         FileWriter fw=new FileWriter(f);
         fw.append(String.valueOf(charMatrix.length)+" "+String.valueOf(charMatrix[0].length)+"\n");     
         for (int i = 0; i < charMatrix.length; i++) {
@@ -165,7 +164,7 @@ public class Alignment implements Serializable {
             //add sequence
             for (int j=0;j<charMatrix[0].length;j++) {
                 if (j!=0 && (j%allowedLabelSize)==0)
-                    if (j!=0 && (j%(allowedLabelSize*numColumns))==0)
+                    if (allowedLabelSize*numColumns==0)
                         fw.write('\n');
                     else
                         fw.write(' ');

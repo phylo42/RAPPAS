@@ -123,6 +123,33 @@ public class ARProcessLauncher {
             //execution
             executeProcess(com);
             
+            //phyml is written all data files near the input aignment file...
+            //we move them to the AR directory
+            //files are:
+            // 1. alignName_phyml_ancestral_seq   (unused)
+            // 2. alignName_phyml_stats.txt       (used)
+            // 3. alignName_phyml_tree.txt        (used)
+            File stats=new File(alignPath.getAbsolutePath()+"_phyml_stats.txt");
+            File tree=new File(alignPath.getAbsolutePath()+"_phyml_tree.txt");
+            File seq=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_seq");
+            //check that they were correctly created
+            if (!stats.exists() || !stats.exists()) {
+                System.out.println("Phyml outputs are missing, the process may have failed...");
+                System.exit(1);
+            }
+            File statsNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_stats.txt");
+            File treeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_tree.txt");
+            File seqNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_ancestral_seq");
+            
+            boolean move=stats.renameTo(statsNew);
+            boolean move2=tree.renameTo(treeNew);
+            boolean move3=seq.renameTo(seqNew);
+            
+            if (!move || ! move2 || !move3) {
+                System.out.println("Could not move phyml results to /AR directory");
+                System.exit(1);
+            }
+            
 
         } catch (IOException ex) {
             Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
@@ -194,6 +221,9 @@ public class ARProcessLauncher {
             //execution
             executeProcess(com);
             
+            //here should add code to check that expected output files were created correctly
+            //TODO
+            
             
         } catch (IOException ex) {
             Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
@@ -229,13 +259,15 @@ public class ARProcessLauncher {
         Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
         try {
             p.waitFor();
+            Thread.sleep(1000);
         } catch (InterruptedException ex) {
             Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         STDOUTOutputStream.close();
         STDERROutputStream.close();
-        Infos.println("Ancestral reconstruction finished.");
+        System.out.println(""); //this line ensures line return after the external process output
+        System.out.println("Ancestral reconstruction finished.");
     }
     
     

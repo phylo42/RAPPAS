@@ -223,21 +223,21 @@ public class Main_DBBUILD_2 {
             
             /////////////////////
             //BUILD RELAXED TREE
-            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge.fasta");
-            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge.phylip");
-            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge_withBL.tree");
-            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_BrB_minbl"+minBranchLength+"_"+branchPerLengthAmount+"peredge_withBL_withoutInternalLabels.tree");;
+            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+".fasta");
+            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+".phylip");
+            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_mbl"+minBranchLength+"_"+branchPerLengthAmount+"_withBL.tree");
+            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+"_withBL_withoutInterLabels.tree");;
             //String extendedTreeForJplace=null;
-            ExtendedTree extendedTreeOnBranches=null;
+            ExtendedTree extendedTree=null;
             
             if (buildRelaxedTree) {
                 try {
                     System.out.println("Injecting fake nodes...");
-                    extendedTreeOnBranches=new ExtendedTree(tree,minBranchLength,branchPerLengthAmount);                    
-                    extendedTreeOnBranches.initIndexes(); // don't forget to reinit indexes !!!
-                    ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTreeOnBranches.getFakeLeaves();
-                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getLeavesCount()+ " leaves");
-                    Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getFakeLeaves().size()+ " FAKE_X new leaves");
+                    extendedTree=new ExtendedTree(tree,minBranchLength,branchPerLengthAmount);                    
+                    extendedTree.initIndexes(); // don't forget to reinit indexes !!!
+                    ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTree.getFakeLeaves();
+                    Infos.println("RelaxedTree contains "+extendedTree.getLeavesCount()+ " leaves");
+                    Infos.println("RelaxedTree contains "+extendedTree.getFakeLeaves().size()+ " FAKE_X new leaves");
                     //add new leaves to alignment
                     for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
                         PhyloNode node = listOfNewFakeLeaves.get(i);
@@ -253,13 +253,13 @@ public class Main_DBBUILD_2 {
                     //write extended trees
                     Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
                     NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
-                    nw.writeNewickTree(extendedTreeOnBranches, true, true, false);
+                    nw.writeNewickTree(extendedTree, true, true, false);
                     nw.close();
                     //write version without internal nodes labels
                     Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
                     nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
-                    nw.writeNewickTree(extendedTreeOnBranches, true, false, false);
-                    //extendedTreeForJplace=nw.getNewickTree(extendedTreeOnBranches, true, true, true);
+                    nw.writeNewickTree(extendedTree, true, false, false);
+                    //extendedTreeForJplace=nw.getNewickTree(extendedTree, true, true, true);
                     nw.close();
                 } catch (IOException ex) {
                     ex.printStackTrace();

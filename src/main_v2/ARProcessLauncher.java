@@ -31,9 +31,9 @@ public class ARProcessLauncher {
     
     public int currentProg=AR_PHYML;
     public File executable=null;
-    File ARPath=null;
-    File alignPath=null;
-    File treePath=null;
+    public File ARPath=null;
+    public File alignPath=null;
+    public File treePath=null;
     boolean verboseAR=true;
     
     /**

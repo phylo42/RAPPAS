@@ -14,7 +14,7 @@ import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.InputManagerNext;
+import inputs.ARProcessResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -279,7 +279,7 @@ public class Main_DBBUILD {
             //HERE LAUNCH BASEML ON RELAXED TREE
             //todo
             //can it be done whithout modifying ctl file but through cpmmand parameters ?
-            File statsFromRelaxedTree=new File(ARPath+"rst");;
+            File treeAndStatsFromAR=new File(ARPath+"rst");;
             if (launchAR) {
                 System.out.println("Launching PAML ancestral reconstruction...");
                 StringBuilder sb=new StringBuilder();
@@ -372,7 +372,12 @@ public class Main_DBBUILD {
             SessionNext session=new SessionNext(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
             
             Infos.println("Loading final dataset (PAML tree and Posterior Probas ; alignment)...");
-            InputManagerNext im=new InputManagerNext(InputManagerNext.SOURCE_PAML, fileRelaxedAlignmentFasta, null, statsFromRelaxedTree, s);
+            ARProcessResults im=new ARProcessResults(
+                                                    null,
+                                                    align,
+                                                    extendedTreeOnBranches,
+                                                    s,
+                                                    new File(ARPath));
             session.associateStates(s);
             session.associateInputs(im);
             

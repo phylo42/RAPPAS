@@ -44,12 +44,12 @@ public class PHYMLWrapper implements DataWrapper {
     
     /**
      * 
-     * @param inputAlign input alignment used in FASTML 
+     * @param ARInputAlign input alignment used at ancestral reconstruction
      * @param states
      */
 
-    public PHYMLWrapper(Alignment inputAlign, States states) {
-        this.align=inputAlign;
+    public PHYMLWrapper(Alignment ARInputAlign, States states) {
+        this.align=ARInputAlign;
         this.states=states;
     }
     

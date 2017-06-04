@@ -11,7 +11,7 @@ import core.hash.SimpleHash;
 import core.States;
 import core.hash.SimpleHash_v2;
 import etc.Infos;
-import inputs.InputManagerNext;
+import inputs.ARProcessResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -54,9 +54,9 @@ public class SessionNext_v2 {
         this.states=s;
     }
     
-    public void associateInputs(InputManagerNext im) {
-        this.tree=im.getTree();
-        this.align=im.getAlignment();
+    public void associateInputs(ARProcessResults im) {
+        this.tree=im.getARExtendedTree();
+        this.align=im.getExtendedAlignment();
         this.parsedProbas=im.getPProbas();
     }
     

@@ -131,12 +131,7 @@ public class Main_v2 {
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
-                //read line
-                String line=null;
-                String tree=null;
-                BufferedReader br=new BufferedReader(new FileReader(t));
-                while ((line=br.readLine())!=null) {tree=line;}
-                br.close();
+
                 
                 Main_DBBUILD_2.DBGeneration(null,
                                             argsParser.k,
@@ -144,7 +139,7 @@ public class Main_v2 {
                                             argsParser.fakeBranchAmount,
                                             s,
                                             argsParser.alignmentFile,
-                                            tree,
+                                            argsParser.treeFile,
                                             argsParser.workingDir,
                                             argsParser.ARExecutablePath
                                             );

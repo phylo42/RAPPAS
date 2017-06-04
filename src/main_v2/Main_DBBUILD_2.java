@@ -15,8 +15,10 @@ import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.InputManagerNext;
+import inputs.ARProcessResults;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -112,10 +114,12 @@ public class Main_DBBUILD_2 {
      * @param processLog null if not used
      * @param k
      * @param alpha 
+     * @param branchPerLengthAmount 
      * @param s 
-     * @param alignmentFile 
-     * @param treeFile 
+     * @param a 
+     * @param t 
      * @param workDir 
+     * @param ARExecutablePath 
      */
     public static void DBGeneration(    FileWriter processLog, 
                                         int k, 
@@ -123,7 +127,7 @@ public class Main_DBBUILD_2 {
                                         int branchPerLengthAmount, 
                                         States s, 
                                         File a, 
-                                        String t,
+                                        File t,
                                         File workDir,
                                         File ARExecutablePath
                                     ) {
@@ -219,7 +223,13 @@ public class Main_DBBUILD_2 {
             
             /////////////////////
             //PARSE ORIGINAL TREE
-            PhyloTree tree = NewickReader.parseNewickTree2(t);
+            //read line
+            String line=null;
+            String tline=null;
+            BufferedReader br=new BufferedReader(new FileReader(t));
+            while ((line=br.readLine())!=null) {tline=line;}
+            br.close();
+            PhyloTree tree = NewickReader.parseNewickTree2(tline);
             
             /////////////////////
             //BUILD RELAXED TREE
@@ -228,6 +238,7 @@ public class Main_DBBUILD_2 {
             File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_mbl"+minBranchLength+"_"+branchPerLengthAmount+"_withBL.tree");
             File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+"_withBL_withoutInterLabels.tree");;
             //String extendedTreeForJplace=null;
+            
             ExtendedTree extendedTree=null;
             
             if (buildRelaxedTree) {
@@ -273,6 +284,7 @@ public class Main_DBBUILD_2 {
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
 
             File statsFromRelaxedTree=new File(ARPath+"rst");
+            ARProcessLauncher arpl=null;
             if (launchAR) {
                 System.out.println("Launching ancestral reconstruction...");
                 File alignmentFile=null;
@@ -283,15 +295,12 @@ public class Main_DBBUILD_2 {
 
                 } else {
                     alignmentFile=a;
-                    treeFile=new File(t);
+                    treeFile=t;
                 }
-                ARProcessLauncher arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARExecutablePath,verboseAR);
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARExecutablePath,verboseAR);
                 arpl.launchAR(new File(ARPath),alignmentFile, treeFile);
-                
-                
             }
 
-            System.exit(1);
             
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -304,12 +313,21 @@ public class Main_DBBUILD_2 {
 
             SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
             
-            Infos.println("Loading final dataset (PAML tree and Posterior Probas ; alignment)...");
-            InputManagerNext im=new InputManagerNext(InputManagerNext.SOURCE_PAML, fileRelaxedAlignmentFasta, null, statsFromRelaxedTree, s);
+            Infos.println("Loading AR modified dataset (modified tree, modified alignment, Posterior Probas...)");
+            ARProcessResults im=null;
+            //read AR results with wrappers depending on chosen external AR software
+            //the input manager will take in charge the correspondance between
+            //the original tree tips and internal node names of the original tree
+            //and the modification operated by the AR software (with
+            //renames internal nodes/labels in its own way...)
+            im=new ARProcessResults(    arpl,
+                                        align,
+                                        extendedTree,
+                                        s,
+                                        new File(ARPath)
+                                    );
             session.associateStates(s);
             session.associateInputs(im);
-            
-            
             
             //positions for which word are built
             SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
@@ -320,6 +338,20 @@ public class Main_DBBUILD_2 {
             Infos.println("NodeId=0, 5 first PP:"+Arrays.deepToString(im.getPProbas().getPPSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(im.getPProbas().getStateSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first statesIndexes:"+ Arrays.deepToString(im.getPProbas().getStateIndexSet(0, 0, 5)));
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            
+            
+            System.exit(1);
+            
+            
+            
+            
+            
+            
             
             //prepare simplified hash
             SimpleHash_v2 hash=new SimpleHash_v2();

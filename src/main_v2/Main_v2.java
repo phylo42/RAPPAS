@@ -5,17 +5,12 @@
 
 package main_v2;
 
-import main.*;
 import core.AAStates;
 import core.DNAStates;
 import core.States;
-import etc.Infos;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
 import static main.Main_DBBUILD.TYPE_DNA;
 
 
@@ -43,11 +38,11 @@ public class Main_v2 {
             //TEST ZONE, forces arguments
             String HOME = System.getenv("HOME");
 
-            //DATASET BASIC RAPID TESTS:
+            //DATASET BASIC RAPID TESTS  --PAML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
 //            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
 //            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.line";
+//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
             
             //DATASET LARGER SET --PAML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
@@ -55,11 +50,20 @@ public class Main_v2 {
 //            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
 //            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
 
+
+
+            //DATASET BASIC RAPID TESTS --PHYML--
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
+            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+
+
             //DATASET LARGER SET --PHYML--
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PHYML";
-            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
-            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
-            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PHYML";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
+//            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
+//            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
             
 
             //QUERIES::

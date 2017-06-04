@@ -17,8 +17,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import static main.Main_DBBUILD.TYPE_DNA;
-import org.openjdk.jol.vm.VM;
-
 
 
 /**

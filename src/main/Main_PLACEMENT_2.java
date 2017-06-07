@@ -34,7 +34,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import tree.NewickReader;
 import tree.NewickWriter;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  *
@@ -178,7 +178,7 @@ public class Main_PLACEMENT_2 {
             
             //LOAD TREES////////////////////////////////////////////////////////
             NewickReader np=new NewickReader();
-            Tree tree = session.tree;
+            PhyloTree tree = session.tree;
             NewickWriter nw=new NewickWriter(new File("null"));
             String relaxedTreeForJplace=nw.getNewickTree(tree, true, true, true);
             //Infos.println(relaxedTreeForJplace);

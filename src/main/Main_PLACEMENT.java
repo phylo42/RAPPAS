@@ -44,7 +44,7 @@ import tree.NewickWriter;
 import tree.PhyloNode;
 import tree.PhyloTree;
 import tree.ExtendedTree;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  *
@@ -201,7 +201,7 @@ public class Main_PLACEMENT {
             BufferedReader br=new BufferedReader(new FileReader(t));
             String treeString=null;
             while((treeString=br.readLine())!=null) {}
-            Tree tree = NewickReader.parseNewickTree2(treeString);
+            PhyloTree tree = NewickReader.parseNewickTree2(treeString);
             
             /////////////////////
             //BUILD RELAXED TREE

@@ -20,7 +20,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.3";
+    private final static String consoleVersion="0.4";
 
     public static void main (String[] args) {
         try {
@@ -39,10 +39,10 @@ public class Main_v2 {
             String HOME = System.getenv("HOME");
 
             //DATASET BASIC RAPID TESTS  --PAML--
-//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
-//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-//            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
+            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
             
             //DATASET LARGER SET --PAML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD";
@@ -53,10 +53,10 @@ public class Main_v2 {
 
 
             //DATASET BASIC RAPID TESTS --PHYML--
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
-            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+//            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
 
 
             //DATASET LARGER SET --PHYML--
@@ -69,8 +69,8 @@ public class Main_v2 {
             //QUERIES::
             
             //DATASET BASIC RAPID TESTS:
-//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
-//            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4";
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
+            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
 
             //pplacer benchmark queries 
 //            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
@@ -83,25 +83,25 @@ public class Main_v2 {
 
 
             //db build launch
-            String arguments=
-                              "-m B "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.2)+" "
-                            + "-v 1"
-                            ;
+//            String arguments=
+//                              "-m B "
+//                            + "-w "+workDir+" "
+//                            + "-i "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.5)+" "
+//                            + "-v 1"
+//                            ;
             
             // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+".full "
-//                            + "-s medium"
-//                            + "-v 0"
-//                            ;            
+            String arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-s full "
+                            + "-v 1"
+                            ;            
             
             
             
@@ -127,7 +127,7 @@ public class Main_v2 {
             //parse program arguments
             ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
             argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/paml4.9b_hacked/bin/baseml");
-            argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/phyml/src/phyml");
+            //argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/phyml/src/phyml");
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");

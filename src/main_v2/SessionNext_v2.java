@@ -7,7 +7,6 @@ package main_v2;
 
 import alignement.Alignment;
 import core.PProbasSorted;
-import core.hash.SimpleHash;
 import core.States;
 import core.hash.SimpleHash_v2;
 import etc.Infos;
@@ -20,7 +19,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import tree.Tree;
+import java.util.HashMap;
+import tree.ExtendedTree;
+import tree.PhyloTree;
 
 /**
  *
@@ -37,7 +38,10 @@ public class SessionNext_v2 {
     
     States states=null;
     Alignment align=null;
-    Tree tree=null;
+    PhyloTree originalTree=null;
+    ExtendedTree extendedTree=null;
+    PhyloTree ARTree=null;
+    HashMap<Integer,Integer> nodeMapping=null;
     PProbasSorted parsedProbas=null;    
     SimpleHash_v2 hash=null;
     
@@ -54,10 +58,13 @@ public class SessionNext_v2 {
         this.states=s;
     }
     
-    public void associateInputs(ARProcessResults im) {
-        this.tree=im.getARExtendedTree();
-        this.align=im.getExtendedAlignment();
-        this.parsedProbas=im.getPProbas();
+    public void associateInputs(ARProcessResults arpl) {
+        this.originalTree=arpl.getOriginalTree();
+        this.extendedTree=arpl.getExtendedTree();
+        this.ARTree=arpl.getARTree();
+        this.nodeMapping=arpl.getTreeMapping();
+        this.align=arpl.getExtendedAlignment();
+        this.parsedProbas=arpl.getPProbas();
     }
     
     public void associateHash(SimpleHash_v2 hash) {
@@ -81,8 +88,14 @@ public class SessionNext_v2 {
             oos.writeObject(states);
             Infos.println("Storing of Alignment");
             oos.writeObject(align);
-            Infos.println("Storing of Tree");
-            oos.writeObject(tree);
+            Infos.println("Storing of Original Tree");
+            oos.writeObject(originalTree);
+            Infos.println("Storing of Extended Tree");
+            oos.writeObject(extendedTree);
+            Infos.println("Storing of AR Tree");
+            oos.writeObject(ARTree);
+            Infos.println("Storing of node mappings");
+            oos.writeObject(nodeMapping);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
             Infos.println("Storing of Hash");
@@ -122,8 +135,14 @@ public class SessionNext_v2 {
             oos.writeObject(states);
             Infos.println("Storing of Alignment");
             oos.writeObject(align);
-            Infos.println("Storing of Tree");
-            oos.writeObject(tree);
+            Infos.println("Storing of Original Tree");
+            oos.writeObject(originalTree);
+            Infos.println("Storing of Extended Tree");
+            oos.writeObject(extendedTree);
+            Infos.println("Storing of AR Tree");
+            oos.writeObject(ARTree);
+            Infos.println("Storing of node mappings");
+            oos.writeObject(nodeMapping);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
             Infos.println("Storing of Hash");
@@ -163,8 +182,14 @@ public class SessionNext_v2 {
             oos.writeObject(states);
             Infos.println("Storing of Alignment");
             oos.writeObject(align);
-            Infos.println("Storing of Tree");
-            oos.writeObject(tree);
+            Infos.println("Storing of Original Tree");
+            oos.writeObject(originalTree);
+            Infos.println("Storing of Extended Tree");
+            oos.writeObject(extendedTree);
+            Infos.println("Storing of AR Tree");
+            oos.writeObject(ARTree);
+            Infos.println("Storing of node mappings");
+            oos.writeObject(nodeMapping);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
             Infos.println("Storing of Hash");
@@ -201,9 +226,15 @@ public class SessionNext_v2 {
             s.states = (States)ois.readObject();
             Infos.println("Loading Alignment");
             s.align = (Alignment)ois.readObject();
-            Infos.println("Loading Tree");
-            s.tree = (Tree)ois.readObject();
-            Infos.println("Loading PPStats");
+            Infos.println("Loading Original Tree");
+            s.originalTree = (PhyloTree)ois.readObject();
+            Infos.println("Loading Extended Tree");
+            s.extendedTree = (ExtendedTree)ois.readObject();
+            Infos.println("Loading AR Tree");
+            s.ARTree = (PhyloTree)ois.readObject();
+            Infos.println("Loading of node mappings");
+            s.nodeMapping = (HashMap<Integer,Integer>)ois.readObject();
+            Infos.println("Loading of PPStats");
             s.parsedProbas = (PProbasSorted)ois.readObject();
             if (loadHash) {
                 Infos.println("Loading Hash");

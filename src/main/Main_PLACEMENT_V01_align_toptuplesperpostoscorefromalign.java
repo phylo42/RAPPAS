@@ -41,7 +41,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import tree.NewickReader;
 import tree.NewickWriter;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  * Algo in this version:
@@ -174,7 +174,7 @@ public class Main_PLACEMENT_V01_align_toptuplesperpostoscorefromalign {
             
             //LOAD TREES////////////////////////////////////////////////////////
             NewickReader np=new NewickReader();
-            Tree tree = session.tree;
+            PhyloTree tree = session.tree;
             NewickWriter nw=new NewickWriter(new File("null"));
             Infos.println("# nodes in the tree: "+tree.getNodeCount());
             Infos.println("# leaves in the tree: "+tree.getLeavesCount());

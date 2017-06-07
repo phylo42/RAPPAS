@@ -41,7 +41,7 @@ import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
 import tree.NewickReader;
 import tree.NewickWriter;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  * Algo in this version:
@@ -161,7 +161,7 @@ public class Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved {
             
             //LOAD TREES////////////////////////////////////////////////////////
             NewickReader np=new NewickReader();
-            Tree tree = session.tree;
+            PhyloTree tree = session.tree;
             NewickWriter nw=new NewickWriter(new File("null"));
             Infos.println("# nodes in the tree: "+tree.getNodeCount());
             Infos.println("# leaves in the tree: "+tree.getLeavesCount());

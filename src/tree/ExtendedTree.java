@@ -17,7 +17,7 @@ import javax.swing.tree.TreeModel;
  * builds a tree from a PhyloTree with added fake nodes
  * @author ben
  */
-public class ExtendedTree extends PhyloTree implements Tree {
+public class ExtendedTree extends PhyloTree {
     
     private static final long serialVersionUID = 2100L;
     
@@ -88,7 +88,7 @@ public class ExtendedTree extends PhyloTree implements Tree {
      * @param branchbreackThreshold branch length below which no nodes are added on the branch
      * @param N number of fake nodes to add
      */
-    public ExtendedTree(Tree tree,float branchbreackThreshold,int N) {
+    public ExtendedTree(PhyloTree tree,float branchbreackThreshold,int N) {
         setModel(tree.getModel());
         this.branchingMode=BRANCHING_ON_BRANCH;
         this.N=N;
@@ -124,7 +124,7 @@ public class ExtendedTree extends PhyloTree implements Tree {
      * @param branchbreakThreshold 
      * @param 
      */
-    private void initRelaxedTree(Tree tree,float branchbreakThreshold,int N) {
+    private void initRelaxedTree(PhyloTree tree,float branchbreakThreshold,int N) {
         this.fakeNodeCounter=tree.getNodeCount();
         this.lastOriginalId=fakeNodeCounter;
         this.branchbreakThreshold=branchbreakThreshold;

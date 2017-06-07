@@ -155,7 +155,7 @@ public class Main_DBBUILD {
             String ARPath=workDir+File.separator+"AR"+File.separator;
             
             
-            //build of extended tree/////////////////////////////////////////////
+            //build of extended originalTree/////////////////////////////////////////////
             float minBranchLength=0.001f;
             String baseMLBinaries=pamlPath.getAbsolutePath();
             //String baseMLBinaries="/media/ben/STOCK/SOFTWARE/paml4.9b_hacked/bin/baseml";
@@ -183,9 +183,9 @@ public class Main_DBBUILD {
 
             
             //debug/////////////////////////////////////////////////////////////
-            //skip extended tree reconstruction
+            //skip extended originalTree reconstruction
             boolean buildRelaxedTree=true;
-            //skip paml marginal ancestral reconstruction (made on extended tree)
+            //skip paml marginal ancestral reconstruction (made on extended originalTree)
             boolean launchAR=false;
             
             
@@ -225,7 +225,7 @@ public class Main_DBBUILD {
             BufferedReader br=new BufferedReader(new FileReader(t));
             String treeString=null;
             while((treeString=br.readLine())!=null) {}
-            PhyloTree tree = NewickReader.parseNewickTree2(treeString);
+            PhyloTree originalTree = NewickReader.parseNewickTree2(treeString);
             
             /////////////////////
             //BUILD RELAXED TREE
@@ -239,7 +239,7 @@ public class Main_DBBUILD {
             if (buildRelaxedTree) {
                 try {
                     System.out.println("Injecting fake nodes...");
-                    extendedTreeOnBranches=new ExtendedTree(tree,minBranchLength,branchPerLengthAmount);                    
+                    extendedTreeOnBranches=new ExtendedTree(NewickReader.parseNewickTree2(treeString),minBranchLength,branchPerLengthAmount);                    
                     extendedTreeOnBranches.initIndexes(); // don't forget to reinit indexes !!!
                     ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTreeOnBranches.getFakeLeaves();
                     Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getLeavesCount()+ " leaves");
@@ -251,7 +251,7 @@ public class Main_DBBUILD {
                         Arrays.fill(gapSeq, '-');
                         align.addSequence(node.getLabel(), gapSeq);
                     }
-                    //write alignment and tree for BrB
+                    //write alignment and originalTree for BrB
                     Infos.println("Write extended alignment (fasta): "+fileRelaxedAlignmentFasta.getAbsolutePath());
                     align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
                     Infos.println("Write extended alignment (phylip): "+fileRelaxedAlignmentPhylip.getAbsolutePath());
@@ -321,7 +321,7 @@ public class Main_DBBUILD {
                 fw.append(sb);
                 fw.close();
                 
-                //launch paml externally to build the posterior probas on the extended tree
+                //launch paml externally to build the posterior probas on the extended originalTree
                 List<String> com=new ArrayList<>();
                 com.add(baseMLBinaries);
                 com.add(ARPath+"baseml.ctl");
@@ -375,6 +375,7 @@ public class Main_DBBUILD {
             ARProcessResults im=new ARProcessResults(
                                                     null,
                                                     align,
+                                                    originalTree,
                                                     extendedTreeOnBranches,
                                                     s,
                                                     new File(ARPath));

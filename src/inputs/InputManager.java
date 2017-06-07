@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.NewickReader;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  * class allowing to switch between software inputs that are a priori used\n
@@ -39,7 +38,7 @@ public class InputManager {
     //the parsed data
     private States s=null;
     private Alignment align=null;
-    private Tree tree=null;
+    private PhyloTree tree=null;
     private PProbas probas=null;
     
     
@@ -92,7 +91,7 @@ public class InputManager {
         return probas;
     }
     
-    public Tree getTree() {
+    public PhyloTree getTree() {
         return tree;
     }
     

@@ -9,19 +9,15 @@ import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
 import etc.Infos;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import main_v2.ARProcessLauncher;
 import tree.ExtendedTree;
-import tree.NewickReader;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  * class allowing to switch between software inputs that are used for AR ; the
@@ -36,13 +32,22 @@ public class ARProcessResults {
     
     //the parsed data
     private States s=null;
+    //original extended alignment
     private Alignment extendedAlign=null;
-    private ExtendedTree extendedTree=null;
-    private PhyloTree ARExtendedTree=null;
-    private PProbasSorted probas=null;
+    //AR work dir
     File ARWorkDir=null;
-    
-    ARProcessLauncher arpl=null;
+    //original tree (before Extension)
+    private PhyloTree originalTree=null;
+    //original extended tree (before AR)
+    private ExtendedTree extendedTree=null;
+    //extended tree, after AR. Labels modified by AR software
+    private PhyloTree ARTree=null;
+    //posterior probas associated to AR
+    private PProbasSorted probas=null;
+    //mapping of the node id before and after AR. map(ExtendedTree NodeID)=ARTree NodeID
+    private HashMap<Integer, Integer> beforeAfterARNodeMapping = null;
+    //Launcher used to perfomr the AR
+    private ARProcessLauncher arpl=null;
     
     /**
      * non-associated manager, needs to be associated to sources through @associate()
@@ -56,17 +61,22 @@ public class ARProcessResults {
      * @param Tree
      * @param probas
      */
-    public ARProcessResults(ARProcessLauncher arpl, Alignment extendedAlign, ExtendedTree extendedTree, States s, File ARWorkDir) {
+    public ARProcessResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s, File ARWorkDir) {
         this.arpl=arpl;
         this.s=s;
         this.extendedAlign=extendedAlign;
+        this.originalTree=originalTree;
         this.extendedTree=extendedTree;
         this.ARWorkDir=ARWorkDir;
+        //step 1: parse AR results
         try {
             parseResults();
         } catch (IOException ex) {
             Logger.getLogger(ARProcessResults.class.getName()).log(Level.SEVERE, null, ex);
         }
+        //step 2: Matches ARTree node labels and
+        //takes into account if the AR software unrooter/rooted things
+        beforeAfterARNodeMapping = ARTree.mapNodes(extendedTree);
     }
     
     
@@ -78,9 +88,31 @@ public class ARProcessResults {
         return probas;
     }
     
-    public PhyloTree getARExtendedTree() {
-        return ARExtendedTree;
+    public PhyloTree getOriginalTree() {
+        return originalTree;
     }
+    
+    public ExtendedTree getExtendedTree() {
+        return extendedTree;
+    }
+    
+    public PhyloTree getARTree() {
+        return ARTree;
+    }
+
+    /**
+     * map(ExtendedTreeNodeID)=ARExtendedTreeNodeID
+     * @return 
+     */
+    public HashMap<Integer,Integer> getTreeMapping() {
+        return beforeAfterARNodeMapping;
+    }
+    
+    
+    public int getOriginalExtendedTreeNodeId(int ARExtencedTreeNodeId) {
+        return beforeAfterARNodeMapping.get(ARExtencedTreeNodeId);
+    }
+    
     
     private void parseResults() throws IOException {
 
@@ -89,7 +121,7 @@ public class ARProcessResults {
             File rst = new File(ARWorkDir.getAbsolutePath()+File.separator+"rst");
             long startTime = System.currentTimeMillis();
             PAMLWrapper pw=new PAMLWrapper(extendedAlign,s);
-            this.ARExtendedTree=pw.parseTree(new FileInputStream(rst));
+            this.ARTree=pw.parseTree(new FileInputStream(rst));
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PAML modified tree used " + (endTime - startTime) + " ms");
             //probas
@@ -102,7 +134,7 @@ public class ARProcessResults {
             File tree = new File(ARWorkDir.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_tree.txt");
             long startTime = System.currentTimeMillis();
             PHYMLWrapper pw=new PHYMLWrapper(extendedAlign,s);
-            this.ARExtendedTree=pw.parseTree(new FileInputStream(tree));
+            this.ARTree=pw.parseTree(new FileInputStream(tree));
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");
             //probas
@@ -111,6 +143,7 @@ public class ARProcessResults {
             this.probas = pw.parseSortedProbas(new FileInputStream(align),Float.MIN_VALUE,true,Integer.MAX_VALUE);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML Postrerior Probas used " + (endTime - startTime) + " ms");
+            
         } else if (this.arpl.currentProg==ARProcessLauncher.AR_FASTML) {
             //probas
             long startTime = System.currentTimeMillis();

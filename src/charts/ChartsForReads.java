@@ -28,7 +28,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  *
@@ -36,7 +35,7 @@ import tree.Tree;
  */
 public class ChartsForReads {
     
-    public static JPanel buildDiagScoreGraph(Tree tree, XYDataset dataset, String read) {
+    public static JPanel buildDiagScoreGraph(PhyloTree tree, XYDataset dataset, String read) {
         JFreeChart chart = ChartFactory.createXYLineChart(
             "Placement score for "+read,      // chart title
             "Reference",                      // x axis label

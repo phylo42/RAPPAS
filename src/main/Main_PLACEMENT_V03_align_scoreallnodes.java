@@ -47,7 +47,7 @@ import org.json.simple.JSONObject;
 import tree.ExtendedTree;
 import tree.NewickReader;
 import tree.NewickWriter;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  * Algo in this version:
@@ -173,7 +173,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             
             //LOAD TREES////////////////////////////////////////////////////////
             NewickReader np=new NewickReader();
-            Tree tree = session.tree;
+            PhyloTree tree = session.tree;
             NewickWriter nw=new NewickWriter(new File("null"));
             Infos.println("# nodes in the tree: "+tree.getNodeCount());
             Infos.println("# leaves in the tree: "+tree.getLeavesCount());

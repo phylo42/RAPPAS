@@ -19,7 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  *
@@ -36,7 +36,7 @@ public class SessionNext {
     
     States states=null;
     Alignment align=null;
-    Tree tree=null;
+    PhyloTree tree=null;
     PProbasSorted parsedProbas=null;    
     SimpleHash hash=null;
     
@@ -54,7 +54,7 @@ public class SessionNext {
     }
     
     public void associateInputs(ARProcessResults im) {
-        this.tree=im.getARExtendedTree();
+        this.tree=im.getARTree();
         this.align=im.getExtendedAlignment();
         this.parsedProbas=im.getPProbas();
     }
@@ -112,7 +112,7 @@ public class SessionNext {
             Infos.println("Loading Alignment");
             s.align = (Alignment)ois.readObject();
             Infos.println("Loading Tree");
-            s.tree = (Tree)ois.readObject();
+            s.tree = (PhyloTree)ois.readObject();
             Infos.println("Loading PPStats");
             s.parsedProbas = (PProbasSorted)ois.readObject();
             if (loadHash) {

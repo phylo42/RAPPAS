@@ -30,7 +30,10 @@ public class NewickWriter {
     
     private boolean branchLength=true;
     private boolean internalNodeNames=true;
-    private boolean jplaceBranchLabels=false;
+    // if true, a {X} labelling edge is added to each node, this represents the
+    // edge linking the node to its parent. Same ID (integer) is used for the
+    //node and this parent edge.
+    private boolean jplaceBranchLabels=false; 
     
     private NumberFormat format=null;
     
@@ -73,7 +76,7 @@ public class NewickWriter {
      * @param withBranchLength 
      * @throws java.io.IOException 
      */
-    public void writeNewickTree(Tree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
+    public void writeNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
@@ -98,7 +101,7 @@ public class NewickWriter {
      * @param withBranchLength 
      * @throws java.io.IOException 
      */
-    public String getNewickTree(Tree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
+    public String getNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;

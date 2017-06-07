@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  *
@@ -178,7 +177,7 @@ public class WordExplorer {
             //input = new FileInputStream(new File(pp));
             input = new FileInputStream(new File(rst));
             //input = new FileInputStream(new File(ARPath+"rst"));
-            Tree tree= pw.parseTree(input);
+            PhyloTree tree= pw.parseTree(input);
             Infos.println("Parsing posterior probas..");
             input = new FileInputStream(new File(rst));
             PProbasSorted pprobas = pw.parseSortedProbas(input,sitePPThreshold,true,Integer.MAX_VALUE); //parse less nodes for debug

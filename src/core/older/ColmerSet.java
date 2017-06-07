@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import javax.swing.tree.TreeNode;
 import tree.PhyloNode;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  *
@@ -50,7 +49,7 @@ public class ColmerSet implements Serializable {
     private States states=null;
     private ConcurrentHashMap<Word,ConcurrentHashMap<Integer,Locality>> register=null; //map(word)=(map(nodeId)=Locality,i.e colmerId,PP*))
     private Alignment align=null;
-    private Tree tree=null;
+    private PhyloTree tree=null;
     ArrayList<Colmer> allColmers=null;
     
     //for the mer sampling
@@ -74,7 +73,7 @@ public class ColmerSet implements Serializable {
      * @param k
      * @param samplingMode
      */
-    public ColmerSet(Alignment align, Tree tree, States states, int k, int minK, int samplingMode) {
+    public ColmerSet(Alignment align, PhyloTree tree, States states, int k, int minK, int samplingMode) {
         this.k=k;
         this.align=align;
         this.tree=tree;

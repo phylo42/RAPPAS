@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  * In this second hash version, the Nodes composing the buckets contain a table
@@ -262,7 +262,7 @@ public class SimpleHash_v2 implements Serializable{
             //input = new FileInputStream(new File(pp));
             input = new FileInputStream(new File(rst));
             //input = new FileInputStream(new File(ARPath+"rst"));
-            Tree tree= pw.parseTree(input);
+            PhyloTree tree= pw.parseTree(input);
             Infos.println("Parsing posterior probas..");
             input = new FileInputStream(new File(rst));
             PProbasSorted pprobas = pw.parseSortedProbas(input, sitePPThreshold, true,Integer.MAX_VALUE);  //DEBUG: LIMITED NODE NUMBER

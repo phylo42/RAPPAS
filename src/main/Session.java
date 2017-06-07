@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import tree.PhyloNode;
 import tree.PhyloTree;
 import tree.ExtendedTree;
-import tree.Tree;
 
 /**
  *
@@ -54,7 +53,7 @@ public class Session {
     
     States states=null;
     Alignment align=null;
-    Tree tree=null;
+    PhyloTree tree=null;
     PProbas parsedProbas=null;
     ExtendedTree relaxedTree=null; //optinnal, checked through a boolean flag
     

@@ -39,9 +39,10 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
+import tree.ExtendedTree;
 import tree.NewickReader;
 import tree.NewickWriter;
-import tree.Tree;
+import tree.PhyloTree;
 
 /**
  * Algo in this version:
@@ -68,17 +69,11 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
     public static int MEMORY_LOW=1;
     public static int MEMORY_LARGE=2;
     
-    public static void main(String[] args) {
-        
-        
-        
-    }
     
     public static int Main_PLACEMENT_V05_align_scoreallnodes(File q, File db, File workDir) {
 
         try {
-            
-            
+                        
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             //PARAMETERS
@@ -159,13 +154,19 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             Infos.println(align.describeAlignment(false));
             
             //LOAD TREES////////////////////////////////////////////////////////
-            NewickReader np=new NewickReader();
-            Tree tree = session.tree;
-            NewickWriter nw=new NewickWriter(new File("null"));
-            Infos.println("# nodes in the tree: "+tree.getNodeCount());
-            Infos.println("# leaves in the tree: "+tree.getLeavesCount());
-            Infos.println("# internal nodes in the tree: "+tree.getInternalNodesByDFS().size());
-            String relaxedTreeForJplace=nw.getNewickTree(tree, true, true, true);
+            PhyloTree originalTree=session.originalTree;
+            //write a newick version of original tree, setting the nodeId
+            //as internal node labels 
+            NewickWriter nw=new NewickWriter(new File(logPath+"tree_with_edge_labels.nwk"));
+            nw.writeNewickTree(originalTree, true, true, true);
+            PhyloTree ARtree = session.ARTree;
+            ExtendedTree extendedtree = session.extendedTree;
+
+            
+            Infos.println("# nodes in the tree: "+ARtree.getNodeCount());
+            Infos.println("# leaves in the tree: "+ARtree.getLeavesCount());
+            Infos.println("# internal nodes in the tree: "+ARtree.getInternalNodesByDFS().size());
+            String relaxedTreeForJplace=nw.getNewickTree(originalTree, true, true, true);
             //Infos.println(relaxedTreeForJplace);
             nw.close();
             
@@ -204,7 +205,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             ////////////////////////////////////////////////////////////////////
             int bufferSize=2097152; // buffer of 2mo
             BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements.tsv")),bufferSize);
-            StringBuffer sb=new StringBuffer("Query\tNodeId\tExtNodeId\tOriginalNodeId\tPP*\n");
+            StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tExtendedTree_NodeId\tOriginal_Edge\tPP*\n");
             
             
             /////////////////////
@@ -217,15 +218,15 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             
             
             ///////////////////////////////////////////////////////            
-            // VECTOR USED TO ALIGN AND SCORE NODES
+            // VECTORS USED TO ALIGN AND SCORE NODES
             
             //list of variable size, reset at each read
             HashMap<Integer,Boolean> selectedNodes=new HashMap<>(); 
             //instanciated once
-            int[] nodeOccurences=new int[tree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
-            float[] nodeScores=new float[tree.getNodeCount()]; // tab[score] --> index=nodeId
-            Arrays.fill(nodeOccurences, 0);
-            Arrays.fill(nodeScores, 0.0f);     
+            int[] nodeOccurences=new int[ARtree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
+            float[] nodeScores=new float[ARtree.getNodeCount()]; // tab[score] --> index=nodeId
+            //Arrays.fill(nodeOccurences, 0);
+            //Arrays.fill(nodeScores, 0.0f);     
             
             
             ///////////////////////////////////////////////////////            
@@ -433,9 +434,14 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 
                 //write result in file
                 long startWritingTime=System.currentTimeMillis();
-                sb.append(fasta.getHeader()+"\t");
-                sb.append(String.valueOf(bestNode)+"\t");
-                sb.append(String.valueOf(tree.getById(bestNode).getExternalId())+"\t");
+                sb.append(fasta.getHeader().split(" ")[0]+"\t");
+                sb.append(String.valueOf(bestNode)+"\t"); //ARTree nodeID
+                int extendedTreeId=session.nodeMapping.get(bestNode);
+                sb.append(String.valueOf(extendedTreeId)+"\t"); //extended Tree nodeID
+                //check if this was a fake node or not
+                Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);//will return null if this nodeId was not a Fake node
+                if (originalNodeId==null) {originalNodeId=extendedTreeId;}
+                sb.append(String.valueOf(originalNodeId)+"\t"); //edge of original tree
                 sb.append(String.valueOf(nodeScores[bestNode])+"\n");
                 //push the stringbuffer to the bufferedwriter every 10000 sequences
                 if ((queryCounter%10000)==0) {
@@ -463,19 +469,21 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 
                 queryCounter++;
             }
-            
+            //just for coherent output, close the percentage
+            System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
+            //write last buffer
+            fwPlacement.append(sb);
             fwPlacement.close();
             fp.closePointer();
             
-            
-            
+  
 
             long endTotalTime=System.currentTimeMillis();
             System.out.println("Alignments took on average: "+(totalAlignTime/queryCounter)+" ms");
             System.out.println("Scoring took on average: "+(totalScoringTime/queryCounter)+" ms");
-            System.out.println("Writing took on average: "+(totalWritingTime/queryCounter)+" ms");
+            System.out.println("Writing CSV took on average: "+(totalWritingTime/queryCounter)+" ms");
             System.out.println("Reset took on average: "+(totalResetTime/queryCounter)+" ms");
-            System.out.println("Process (whithout DB load) took: "+(endTotalTime-startTotalTime)+" ms");
+            System.out.println("Process (without DB load) took: "+(endTotalTime-startTotalTime)+" ms");
             Infos.println("#######################################################################");
             Infos.println("### DONE, placement execution took (excluding DB load): "+(endTotalTime-startTotalTime)+" ms");
             Infos.println("#######################################################################");
@@ -483,9 +491,9 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             Infos.println("#######################################################################");
             
             
-//            for (int i = 0; i < tree.getNodeIdsByDFS().size(); i++) {
-//                System.out.println("nodeId: "+tree.getNodeIdsByDFS().get(i)+
-//                        "  -->  FakeToOriginal: "+((ExtendedTree)tree).getFakeToOriginalId(tree.getNodeIdsByDFS().get(i)));
+//            for (int i = 0; i < ARTree.getNodeIdsByDFS().size(); i++) {
+//                System.out.println("nodeId: "+ARTree.getNodeIdsByDFS().get(i)+
+//                        "  -->  FakeToOriginal: "+((ExtendedTree)ARTree).getFakeToOriginalId(ARTree.getNodeIdsByDFS().get(i)));
 //                
 //            }
 //            

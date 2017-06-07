@@ -26,14 +26,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import tree.NewickReader;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  * PAML has a strange way to give number to the leaves and internal nodes.
  * It requires to 1 st parse the original tree (#1st tree in rst file),
  * then to parse a second tree (3rd tree in rst file ) in the same way
- * (we will use DFS pre-order) to make the correspondance between
- * original tree nodes and the node ids of PAML.
+ * (we will use DFS pre-order) to make the match between
+ * original tree nodes and the node ids modified by PAML.
  * @author ben
  */
 public class PAMLWrapper implements DataWrapper {
@@ -42,8 +41,14 @@ public class PAMLWrapper implements DataWrapper {
     PhyloTree tree=null;
     States states=null;
     
-    //to accelerate parsing, will use this regexp
-    //careful, in paml outputscientic number with negative, but also positive('+' symbol present!) powers.
+    //intermediat tree loaded during parsing (PAML output modified trees)
+    PhyloTree firstTree=null;
+    PhyloTree thirdTree=null;
+    Pattern pNodeMatch= Pattern.compile("^([0-9]+)(_.*$)?"); //used to match PAML 1rst and 3rd tree
+    
+    
+    //to accelerate posterior probas parsing (rst file), we use this regexp
+    //careful, in paml cientic number have negative, but also positive powers.('+' symbol present!)
     //ex: T(1.000000E+00) C(1.050222E-12) A(2.261192E-13) G(1.568578E-13)
     String pattern="^\\s+([0-9]+)\\s+[0-9]+\\s+[^:]+:\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+";
     Pattern p=Pattern.compile(pattern);
@@ -88,54 +93,54 @@ public class PAMLWrapper implements DataWrapper {
             }
             if (startOriginal) {
                 originalTreeString=line.replaceAll(" ", "");
-                Infos.println("Original tree found: "+originalTreeString);
+                Infos.println("1st PAML tree found: "+originalTreeString);
                 startOriginal=false;
             }
             if (start3rdTree) {
                 thirdTreeString=line.replaceAll(" ", "");
-                Infos.println("PAML node numbering found: "+thirdTreeString);
+                Infos.println("3rd PAML tree found: "+thirdTreeString);
                 start3rdTree=false;
                 break; //to not parse the whole file
             }        
         }
         br.close();
-        //System.out.println(originalTreeString);
-        //System.out.println(thirdTreeString);
         
         //the tree parsing will be done in 2 phases, the 1st tree in the rst file
         //(has branch length), then the 3rd tree in the rst file (has node ids
         //from PAML, necessary to associate posterior probas).
         
-        //the 1st tree is the original input tree, with branch length
+        //the 1st tree is the original input tree, with branch length but 
+        //no internal nodes and renaming of the tips
         if (originalTreeString!=null) {
-            this.tree=NewickReader.parseNewickTree2(originalTreeString);; //keep a reference, which will be used by parseProbas()
+            this.firstTree=NewickReader.parseNewickTree2(originalTreeString);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //now we parse the second tree
-        PhyloTree thirdTree=null;
-        if (originalTreeString!=null) {
-            this.tree=NewickReader.parseNewickTree2(originalTreeString);; //keep a reference, which will be used by parseProbas()
+        if (thirdTreeString!=null) {
+            this.thirdTree=NewickReader.parseNewickTree2(thirdTreeString);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //do do the same DFS pre-order in both trees to associate PAML
         //3rd tree node ids to original tree.
-        Infos.println("Nodes, original Tree: "+this.tree.getLabelsByDFS());
-        Infos.println("Nodes, PAML numbering: "+thirdTree.getLabelsByDFS());
+        Infos.println("Nodes, first tree: "+firstTree.getLabelsByDFS());
+        Infos.println("Nodes, third tree: "+thirdTree.getLabelsByDFS());
         
-        Pattern p= Pattern.compile("^([0-9]+)(_.*$)?");
-        for (int i=0;i<tree.getNodeIdsByDFS().size();i++) {
-            Integer nodeId = tree.getNodeIdsByDFS().get(i);
+
+        for (int i=0;i<firstTree.getNodeIdsByDFS().size();i++) {
+            Integer nodeId = firstTree.getNodeIdsByDFS().get(i);
             String PAMLString=thirdTree.getLabelsByDFS().get(i);
-            Matcher m=p.matcher(PAMLString);
+            Matcher m=pNodeMatch.matcher(PAMLString);
             if (m.matches()) {
-                this.tree.getById(nodeId).setExternalId(Integer.parseInt(m.group(1)));
+                this.firstTree.getById(nodeId).setExternalId(Integer.parseInt(m.group(1)));
                 if (m.group(2)==null)
-                    this.tree.getById(nodeId).setLabel(m.group(1));
+                    this.firstTree.getById(nodeId).setLabel(m.group(1));
             }
             //m.group(2), not used but would be '_label'
         }
         //we changed the tree ids, rebuild the indexes !
-        this.tree.initIndexes();
+        this.firstTree.initIndexes();
+        //we set the modified 1st tree as the tree supported by this wrapper
+        this.tree=firstTree;
                 
         return this.tree;
     }

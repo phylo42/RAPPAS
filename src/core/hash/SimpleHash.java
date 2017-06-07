@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import tree.NewickWriter;
 import tree.PhyloTree;
-import tree.Tree;
 
 /**
  *
@@ -184,7 +183,7 @@ public class SimpleHash implements Serializable{
             //input = new FileInputStream(new File(pp));
             input = new FileInputStream(new File(rst));
             //input = new FileInputStream(new File(ARPath+"rst"));
-            Tree tree= pw.parseTree(input);
+            PhyloTree tree= pw.parseTree(input);
             Infos.println("Parsing posterior probas..");
             input = new FileInputStream(new File(rst));
             PProbas pprobas = pw.parseProbas(input,sitePPThreshold,false);

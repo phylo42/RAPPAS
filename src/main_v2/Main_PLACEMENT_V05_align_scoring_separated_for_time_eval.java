@@ -205,7 +205,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             ////////////////////////////////////////////////////////////////////
             int bufferSize=2097152; // buffer of 2mo
             BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements.tsv")),bufferSize);
-            StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tExtendedTree_NodeId\tOriginal_Edge\tPP*\n");
+            StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tARTree_NodeName\tPP*\n");
             
             
             /////////////////////
@@ -415,7 +415,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                         bestNode=nodeId;
                     }
                 }
-                
+                Infos.println("Best node is : "+bestNode);
                 
                 
                 long endScoringTime=System.currentTimeMillis();
@@ -432,17 +432,25 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
 //                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
                 
                 
-                //write result in file
-                long startWritingTime=System.currentTimeMillis();
-                sb.append(fasta.getHeader().split(" ")[0]+"\t");
-                sb.append(String.valueOf(bestNode)+"\t"); //ARTree nodeID
-                int extendedTreeId=session.nodeMapping.get(bestNode);
-                sb.append(String.valueOf(extendedTreeId)+"\t"); //extended Tree nodeID
-                //check if this was a fake node or not
-                Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);//will return null if this nodeId was not a Fake node
-                if (originalNodeId==null) {originalNodeId=extendedTreeId;}
-                sb.append(String.valueOf(originalNodeId)+"\t"); //edge of original tree
-                sb.append(String.valueOf(nodeScores[bestNode])+"\n");
+                //write result in file if a node was hit
+                if (bestNode>-1) {
+                    long startWritingTime=System.currentTimeMillis();
+                    sb.append(fasta.getHeader().split(" ")[0]+"\t");
+                    sb.append(String.valueOf(bestNode)+"\t"); //ARTree nodeID
+                    sb.append(String.valueOf(session.ARTree.getById(bestNode).getLabel())+"\t"); //ARTree nodeName
+                    int extendedTreeId=session.nodeMapping.get(bestNode);
+                    sb.append(String.valueOf(extendedTreeId)+"\t"); //extended Tree nodeID
+                    sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())+"\t"); //extended Tree nodeName
+                    //check if this was a fake node or not
+                    Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);//will return null if this nodeId was not a Fake node
+                    if (originalNodeId==null) {originalNodeId=extendedTreeId;}
+                    sb.append(String.valueOf(originalNodeId)+"\t"); //edge of original tree (original nodeId)
+                    sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())+"\t"); //edge of original tree (original nodeName
+                    sb.append(String.valueOf(nodeScores[bestNode])+"\n");
+                    long endWritingTime=System.currentTimeMillis();
+                    totalWritingTime+=endWritingTime-startWritingTime;
+                }
+                
                 //push the stringbuffer to the bufferedwriter every 10000 sequences
                 if ((queryCounter%10000)==0) {
                     int size=sb.length();
@@ -450,10 +458,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                     fwPlacement.flush();
                     sb=null;
                     sb=new StringBuffer(size);
-                }
-                long endWritingTime=System.currentTimeMillis();
-                totalWritingTime+=endWritingTime-startWritingTime;
-                
+                }                
                 
 
                 //reset the scoring vectors

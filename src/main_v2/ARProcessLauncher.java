@@ -100,7 +100,7 @@ public class ARProcessLauncher {
             com.add(executable.getAbsolutePath());
             com.add("--ancestral"); //marginal reconstruct
             com.add("-i"); //align
-            System.out.println(alignPath.getAbsolutePath());
+            //System.out.println(alignPath.getAbsolutePath());
             com.add(alignPath.getAbsolutePath());
             com.add("-u"); //tree
             com.add(treePath.getAbsolutePath());
@@ -215,7 +215,7 @@ public class ARProcessLauncher {
             //launch paml externally to build the posterior probas on the extended tree
             List<String> com=new ArrayList<>();
             com.add(executable.getAbsolutePath());
-            com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
+            //com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
             Infos.println("Ancestral reconstruct command: "+com);
             
             //execution
@@ -242,6 +242,7 @@ public class ARProcessLauncher {
         //pb.environment().entrySet().stream().forEach((e) ->{ System.out.println(e.getKey()+"="+e.getValue()); });
         //env.put("VAR1", "myValue"); env.remove("OTHERVAR");
         pb.directory(ARPath);
+        Infos.println("Current directory:"+pb.directory().getAbsolutePath());
         pb.redirectErrorStream(false);
         pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
         pb.redirectInput(ProcessBuilder.Redirect.PIPE);
@@ -263,7 +264,9 @@ public class ARProcessLauncher {
         } catch (InterruptedException ex) {
             Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        System.out.flush();
+        STDOUTOutputStream.flush();
+        STDERROutputStream.flush();
         STDOUTOutputStream.close();
         STDERROutputStream.close();
         System.out.println(""); //this line ensures line return after the external process output

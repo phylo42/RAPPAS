@@ -103,10 +103,11 @@ public class Main_v2 {
                             + "-v 1"
                             ;            
             
+            //force args
+//            args=arguments.split(" ");
             
             
-          
-            args=arguments.split(" ");
+            
             
             //System.out.println(Arrays.toString(args));
             

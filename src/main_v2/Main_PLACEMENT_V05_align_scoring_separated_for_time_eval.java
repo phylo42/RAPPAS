@@ -29,16 +29,23 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import jonelo.jacksum.JacksumAPI;
+import jonelo.jacksum.algorithm.AbstractChecksum;
 import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import tree.ExtendedTree;
 import tree.NewickReader;
 import tree.NewickWriter;
@@ -205,7 +212,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             ////////////////////////////////////////////////////////////////////
             int bufferSize=2097152; // buffer of 2mo
             BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements.tsv")),bufferSize);
-            StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tARTree_NodeName\tPP*\n");
+            StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
             
             
             /////////////////////
@@ -229,27 +236,101 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             //Arrays.fill(nodeScores, 0.0f);     
             
             
-            ///////////////////////////////////////////////////////            
-            // BUFFERS FOR FILE WRITERS
+            ///////////////////////////////////////////////////////////////////       
+            // PREPARE BUFFER FOR CSV FILE WRITER
+            
+            ///////////////////////////////////////////////////////////////////       
+            // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
+            AbstractChecksum checksumGenerator=null;
+            try {
+                checksumGenerator = JacksumAPI.getChecksumInstance("sha256");
+                checksumGenerator.setEncoding(AbstractChecksum.HEX);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            HashMap<String,ArrayList<String>> identicalSeqsRegistry=new HashMap<>();
+            
+            ////////////////////////////////////////////////////////////////////
+            //PREPARE STRUCTURE (JSON OBJECT) FOR JPLACE OUTPUT 
+            //this need to be done outside the alignment/scoring loop
+            //because identical sequences (same score) will be in the same 
+            //json "placement" (p) object
+            //with library json.simple
+            
+            //map to associate checksums to JSONObject
+            HashMap<String,JSONObject> checksumToJSONObject=new HashMap<>();
+            
+            //top level of the json tree
+            JSONObject top=new JSONObject(); 
+            LinkedHashMap topMap=new LinkedHashMap();
+            //object tree (mandatory)
+            topMap.put("tree",relaxedTreeForJplace);  
+            //we do an array of placement object
+            //all identical reads with be injected in the same object
+            JSONArray placements=new JSONArray();
             
             
-            
+            ////////////////////////////////////////////////////////////////////
+            // MAIN ALGORITHM BELOW !!!
+            ////////////////////////////////////////////////////////////////////
             
             int queryCounter=0;
             long totalAlignTime=0;
             long totalScoringTime=0;
             long totalWritingTime=0;
             long totalResetTime=0;
+            long totalChecksumTime=0;
             
             Fasta fasta=null;
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                
-                
+                //debug
                 if (queryCounter>=queryLimit)
                     break;
+                //console display to follow the process
                 if ((queryCounter%10000)==0) {
                     System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
                 }
+                //checksum built, if already present do not compute placement
+                //again. this might need compression if fasta sequences headers
+                //are too heavy in memory
+                long startChecksumTime=System.currentTimeMillis();
+                checksumGenerator.reset(); //make it ready before next checksum computation
+                checksumGenerator.update(fasta.getSequence().getBytes());
+                String checksum = checksumGenerator.getFormattedValue();
+                int cutIndex=fasta.getHeader().indexOf(" ");
+                if (cutIndex<0) //basically, space not found
+                    cutIndex=fasta.getHeader().length();
+                String subHeader=fasta.getHeader().substring(0,cutIndex);
+                if (identicalSeqsRegistry.containsKey(checksum)) {
+                    identicalSeqsRegistry.get(checksum).add(subHeader);
+                    Infos.println("! SKIPPED BECAUSE DUPLICATE: "+fasta.getHeader());
+                    queryCounter++;
+                    //before skipping, update the outputs
+                    //for now, only jplace is done here...
+                    //note that detailed comments about the jplace are
+                    //in the jplace block on the bottom of the loop
+                    //get back the placement out from the JSONObject
+                    JSONObject placement = checksumToJSONObject.get(checksum);
+                    //the "p" object values are the same, no changes
+                    JSONArray pMetadata=(JSONArray)placement.get("p");
+                    //the "nm" object has to be extended with the identifier
+                    //and multiplicity of this read
+                    JSONArray allIdentifiers=(JSONArray)placement.get("nm");
+                    JSONArray readMultiplicity=new JSONArray();
+                    readMultiplicity.add(fasta.getHeader());
+                    readMultiplicity.add(1);
+                    allIdentifiers.add(readMultiplicity);                    
+                    
+                    continue;
+                } else {
+                    ArrayList<String> a=new ArrayList<>();
+                    a.add(subHeader);
+                    identicalSeqsRegistry.put(checksum,a);
+                }
+                long endChecksumTime=System.currentTimeMillis();
+                totalChecksumTime+=endChecksumTime-startChecksumTime;
+                
                 
                 Infos.println("#######################################################################");
                 Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
@@ -438,6 +519,8 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                     sb.append(fasta.getHeader().split(" ")[0]+"\t");
                     sb.append(String.valueOf(bestNode)+"\t"); //ARTree nodeID
                     sb.append(String.valueOf(session.ARTree.getById(bestNode).getLabel())+"\t"); //ARTree nodeName
+                    if (session.nodeMapping.get(bestNode)==null)
+                        System.out.println("bestNode not found: "+bestNode+" "+String.valueOf(session.ARTree.getById(bestNode).getLabel()));
                     int extendedTreeId=session.nodeMapping.get(bestNode);
                     sb.append(String.valueOf(extendedTreeId)+"\t"); //extended Tree nodeID
                     sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())+"\t"); //extended Tree nodeName
@@ -461,6 +544,62 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 }                
                 
 
+                //fill the JSON placement object
+                //2 possibilities:
+                //-either do a new placement object and add ot to the list
+                // of placements (block above, at checksum test)
+                //-or add it to previous placement object if this is a duplicate
+                // sequence
+                
+                //write result in file if a node was hit
+                if (bestNode>-1) {
+                    //object representing placements (mandatory), it contains 2 key/value couples
+                    JSONObject placement=new JSONObject();
+                    //first we build the "p" array, containing the position/scores of all reads
+                    JSONArray pMetadata=new JSONArray();
+                    //in pplacer/EPA several placements can be associated to a query
+                    //we input only the best one, but that can be changed in the future
+                    JSONArray placeColumns=new JSONArray();
+
+                    //fake fields for compatibility with current tools (guppy, archeopteryx)
+                    //should be provided as an option
+                    placeColumns.add(0.1);
+                    placeColumns.add(0.1);
+                    placeColumns.add(0.1);
+
+
+                    //placeColumns.add(session.ARTree.getById(bestNode).getLabel()); // 1. ARTree nodeName
+                    int extendedTreeId=session.nodeMapping.get(bestNode);
+                    //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
+                    //check if this was a fake node or not
+                    Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);//will return null if this nodeId was not a Fake node
+                    if (originalNodeId==null) {originalNodeId=extendedTreeId;}
+                    placeColumns.add(originalNodeId); // 3. edge of original tree (original nodeId=edgeID)
+                    //placeColumns.add(session.originalTree.getById(originalNodeId).getLabel()); // 4. edge of original tree (original nodeName)
+                    placeColumns.add(nodeScores[bestNode]); // 4. PP*
+                    pMetadata.add(placeColumns);
+
+                    placement.put("p", pMetadata);
+
+                    //second we build the "nm" array, containing the reads identifiers
+                    //And their read multiplicity
+                    JSONArray allIdentifiers=new JSONArray();
+                    //these are simply all the identical sequences
+                    JSONArray readMultiplicity=new JSONArray();
+                    readMultiplicity.add(fasta.getHeader());
+                    readMultiplicity.add(1);
+                    allIdentifiers.add(readMultiplicity);
+                    placement.put("nm", allIdentifiers);
+
+                    //store the placement in the list of placements
+                    placements.add(placement);
+                    //JSON for this read DONE, if duplicates are found later,
+                    //will be added to the corresponding "p" and "nm" array
+                    //using the checksumToJSONObject map
+                    //for now, just register the reference
+                    checksumToJSONObject.put(checksum, placement);                
+                }
+
                 //reset the scoring vectors
                 long startResetTime=System.currentTimeMillis();
                 for (Iterator<Integer> iterator = selectedNodes.keySet().iterator(); iterator.hasNext();) {
@@ -474,21 +613,74 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 
                 queryCounter++;
             }
+            
             //just for coherent output, close the percentage
             System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
-            //write last buffer
+            
+            //flush to disk the last CSV buffer
             fwPlacement.append(sb);
             fwPlacement.close();
             fp.closePointer();
             
+            //FINISH the json strucutre and output it to a file
+            //associate the list of placements to the top level
+            top.put("placements",placements);
+            //object version (mandatory
+            top.put("version",3);
+            //object metadata (mandatory): sub-objet "version is mandatory"
+            JSONObject invoc=new JSONObject();
+            invoc.put("invocation", "viromeplacer xxxxxxxxxxxxxxx");
+            top.put("metadata", invoc);
+            //object fields
+            //for info:
+            //- in pplacer: "distal_length", "edge_num", "like_weight_ratio", "likelihood", "pendant_length"
+            //- in EPA: "edge_num", "likelihood", "like_weight_ratio", "distal_length", "pendant_length"
+            JSONArray fList=new JSONArray();
+            //add fake fields to be compatible with current visualisation tools
+            fList.add("distal_length");
+            fList.add("like_weight_ratio");
+            fList.add("pendant_length");
+            
+            //fList.add("ARTree_nodeName");
+            //fList.add("ExtendedTree_nodeName");
+            fList.add("edge_num"); //i.e equal to the id of the son node
+            //fList.add("edge_label"); //i.e equal to the id of the son node
+            fList.add("likelihood"); //rename to likelihood even if it is not, but for compatibility with other programs
+            top.put("fields", fList);
+            
+            //put all the elements in the top JSON object
+            top.putAll(topMap);
+            String out=top.toJSONString();
+
+            out=out.replaceAll("\\},\\{", "\n\\},\\{\n\t"); //},{
+            out=out.replaceAll("\\],\"","\\],\n\t\"");   //],"
+            out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
+            //out=out.replace("]},", "]},"); //]}
+            
+            FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements.jplace"));
+            fwJSON.append(out);
+            fwJSON.close();
+            
+            
+            
   
 
             long endTotalTime=System.currentTimeMillis();
+            System.out.println("############################################################");
+            System.out.println("Checksum registry took in total: "+totalChecksumTime+" ms");
+            System.out.println("Alignments took in total: "+totalAlignTime+" ms");
+            System.out.println("Scoring took in total: "+totalScoringTime+" ms");
+            System.out.println("Writing CSV took in total: "+totalWritingTime+" ms");
+            System.out.println("Reset took in total: "+totalResetTime+" ms");
+            System.out.println("------------------------------------------------------------");
+            System.out.println("Checksum registry took on average: "+(totalChecksumTime/queryCounter)+" ms");
             System.out.println("Alignments took on average: "+(totalAlignTime/queryCounter)+" ms");
             System.out.println("Scoring took on average: "+(totalScoringTime/queryCounter)+" ms");
             System.out.println("Writing CSV took on average: "+(totalWritingTime/queryCounter)+" ms");
             System.out.println("Reset took on average: "+(totalResetTime/queryCounter)+" ms");
+            System.out.println("------------------------------------------------------------");
             System.out.println("Process (without DB load) took: "+(endTotalTime-startTotalTime)+" ms");
+            System.out.println("############################################################");
             Infos.println("#######################################################################");
             Infos.println("### DONE, placement execution took (excluding DB load): "+(endTotalTime-startTotalTime)+" ms");
             Infos.println("#######################################################################");
@@ -503,7 +695,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
 //            }
 //            
             
-            
+
 
 
             
@@ -517,6 +709,8 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             
             //System.exit(0);
             return queryCounter;
+            
+            
             
         } catch (IOException ex) {
             Logger.getLogger(Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.class.getName()).log(Level.SEVERE, null, ex);

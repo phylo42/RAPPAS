@@ -282,8 +282,16 @@ public class Main_DBBUILD_2 {
             
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
-
+            //for now, configure AR software based executable name
             ARProcessLauncher arpl=null;
+            if (ARExecutablePath.getName().contains("phyml")) {
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARExecutablePath,verboseAR);
+            } else if (ARExecutablePath.getName().contains("baseml")){
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PAML,ARExecutablePath,verboseAR);
+            } else {
+                System.out.println("AR binary could not be associated to know AR configuration...");
+                System.exit(1);
+            }          
             if (launchAR) {
                 System.out.println("Launching ancestral reconstruction...");
                 File alignmentFile=null;
@@ -296,16 +304,9 @@ public class Main_DBBUILD_2 {
                     alignmentFile=a;
                     treeFile=t;
                 }
-                //for now, configure AR software based executable name
-                if (ARExecutablePath.getName().contains("phyml")) {
-                    arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARExecutablePath,verboseAR);
-                } else if (ARExecutablePath.getName().contains("baseml")){
-                    arpl=new ARProcessLauncher(ARProcessLauncher.AR_PAML,ARExecutablePath,verboseAR);
-                } else {
-                    System.out.println("AR binary could not be associated to know AR configuration...");
-                    System.exit(1);
-                }
                 arpl.launchAR(new File(ARPath),alignmentFile, treeFile);
+            } else {
+                System.out.println("AR will be loaded from already existing files...");
             }
 
             

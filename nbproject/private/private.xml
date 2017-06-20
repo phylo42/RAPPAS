@@ -3,13 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/ARProcessResults.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_v2.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/SessionNext_v2.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main/Main_DBBUILD.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/tree/ExtendedTree.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/ARProcessLauncher.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/inputs/ARProcessResults.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_v2.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_PLACEMENT_V03_align_scoreallnodes.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_DBBUILD_2.java</file>
         </group>
     </open-files>
 </project-private>

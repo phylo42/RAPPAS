@@ -3,6 +3,7 @@
 /WD/AR/rst
 /rst/*
 /dist/*
-/build/*
-/nbproject/*
-/nbproject/private/*
+/build
+/build/classes
+/nbproject
+/nbproject/private

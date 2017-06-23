@@ -53,7 +53,7 @@ public class PhyloTree extends JTree implements Serializable {
     public PhyloTree() {}
     
 
-    protected PhyloTree(TreeModel newModel, boolean rooted) {
+    public PhyloTree(TreeModel newModel, boolean rooted) {
         super(newModel);
         this.isRooted=rooted;
         
@@ -266,7 +266,7 @@ public class PhyloTree extends JTree implements Serializable {
      * @return 
      */
     public HashMap<Integer,Integer> mapNodes(PhyloTree otherTree) {
-        DFSforMapping(this.getRoot(),otherTree);
+        mapNodesByDFS(this.getRoot(),otherTree);
         //finally, if both tree rooted on same edge, associate the root ids
         //both trees rooted ?
         if (this.isRooted() && otherTree.isRooted) {
@@ -297,13 +297,13 @@ public class PhyloTree extends JTree implements Serializable {
      * do a depth first transversal to go to all nodes, starts from a bait node 
      * @param node the bait node
      */
-    private void DFSforMapping(PhyloNode node,PhyloTree otherTree) {
+    private void mapNodesByDFS(PhyloNode node,PhyloTree otherTree) {
         
         //go down recursively is some children
         Enumeration e=node.children();        
         while (e.hasMoreElements()) {
             PhyloNode n=(PhyloNode)e.nextElement();
-            DFSforMapping(n,otherTree);
+            mapNodesByDFS(n,otherTree);
         }
         //if root, no parent to associate
         if (node.isRoot()) {
@@ -340,6 +340,39 @@ public class PhyloTree extends JTree implements Serializable {
         }
         
         //System.out.println(nodeMapping);
+    }
+    
+
+    /**
+     * return a copy of this tree as a completely independant deep copy;
+     * the tree is copied node per node through a preorder traversal,
+     * not keeping any reference to the current tree.
+     * This is useful for doing tree backups before pruning
+     * experiments.
+     * @param tree
+     * @return 
+     */
+    public PhyloTree copyPhyloTree(PhyloTree tree) {
+        
+        PhyloNode root = tree.getRoot();
+        
+        
+        return null;
+    }
+    
+    private PhyloNode copyNode(PhyloNode originalNode) {
+        if (originalNode==null) {
+            return null;
+        }
+        //copy node, using constructor copy 
+        PhyloNode copiedNode=new PhyloNode();
+        Enumeration<PhyloNode> children = originalNode.children();
+        while (children.hasMoreElements()) {
+            PhyloNode nextElement = children.nextElement();
+            copiedNode.add(copyNode(nextElement));
+        }
+        return copiedNode;
+        
     }
     
     
@@ -590,7 +623,7 @@ public class PhyloTree extends JTree implements Serializable {
      * @param b
      * @return 
      */
-    public List<PhyloNode> shortestPath(PhyloNode root, PhyloNode a, PhyloNode b) {
+    public Path shortestPath(PhyloNode root, PhyloNode a, PhyloNode b) {
 
         assert null!=root;
         assert null!=a;
@@ -607,46 +640,76 @@ public class PhyloTree extends JTree implements Serializable {
         int shortestPathLength=pathAToRoot.length;
         if (pathBToRoot.length<shortestPathLength)
             shortestPathLength=pathBToRoot.length;
-        if (shortestPathLength==1) { //when node compared to itsel
-            l.add(a);
-            LCAIndex=0;
-        } else {
-            for (int i = 0; i < shortestPathLength; i++) {
-                if (pathAToRoot[i]!=pathBToRoot[i]) {  //[[10]added_root:0.000, [7]Z:0.300, [9]F:0.200]
-                    LCA=(PhyloNode)pathAToRoot[i-1];   //[[10]added_root:0.000, [0]W:0.100, [1]A:0.100]
-                    LCAIndex=i-1;
-                    System.out.println("Diff at: "+i);
-                    break;
-                }
-            }
-            //if we reach the end of the shortest path 
-            if (LCAIndex==-1) {
-                LCA=(PhyloNode)pathAToRoot[shortestPathLength-1];  //[[10]added_root:0.000, [7]Z:0.300, [9]F:0.200]
-                LCAIndex=shortestPathLength-1;                     //[[10]added_root:0.000, [7]Z:0.300]
+
+        for (int i = 0; i < shortestPathLength; i++) {
+            if (pathAToRoot[i]!=pathBToRoot[i]) {  //[[10]added_root:0.000, [7]Z:0.300, [9]F:0.200]
+                LCA=(PhyloNode)pathAToRoot[i-1];   //[[10]added_root:0.000, [0]W:0.100, [1]A:0.100]
+                LCAIndex=i-1;
+                //System.out.println("Diff at: "+i);
+                break;
             }
         }
+        //if we reach the end of the shortest path 
+        if (LCAIndex==-1) {
+            LCA=(PhyloNode)pathAToRoot[shortestPathLength-1];  //[[10]added_root:0.000, [7]Z:0.300, [9]F:0.200]
+            LCAIndex=shortestPathLength-1;                     //[[10]added_root:0.000, [7]Z:0.300]
+        }
         
-        System.out.println("A_to_root:"+Arrays.toString(pathAToRoot));        
-        System.out.println("B_to_root:"+Arrays.toString(pathBToRoot));
-        System.out.println("LCA      :"+LCA);
-        System.out.println("LCA_index:"+LCAIndex);
+        
+        //System.out.println("A_to_root:"+Arrays.toString(pathAToRoot));        
+        //System.out.println("B_to_root:"+Arrays.toString(pathBToRoot));
+        //System.out.println("LCA      :"+LCA);
+        //System.out.println("LCA_index:"+LCAIndex);
         
         //now merge both list, from LCAIndex to end of list, with inversion of A list
-        System.out.println(pathAToRoot.length);
+        float branchDist=0.0f;
+        int nodeDist=0;
         for (int i = pathAToRoot.length-1; i>LCAIndex; i--) {
-            System.out.println("add "+pathAToRoot[i]);
+            //System.out.println("i:"+i);
+            //System.out.println("add rl "+pathAToRoot[i]);
             l.add((PhyloNode)pathAToRoot[i]);
+            branchDist+=((PhyloNode)pathAToRoot[i]).getBranchLengthToAncestor();
+            if (i>LCAIndex && (i!=pathAToRoot.length-1)) {
+                nodeDist++;
+                //System.out.println("nodeDist ++  "+i);
+            }
         }
         for (int i = LCAIndex; i<pathBToRoot.length; i++) {
-            System.out.println("add "+pathBToRoot[i]);
+            //System.out.println("add lr "+pathBToRoot[i]);
             l.add((PhyloNode)pathBToRoot[i]);
-        }        
+            if (i>LCAIndex)
+                branchDist+=((PhyloNode)pathBToRoot[i]).getBranchLengthToAncestor();
+            if (i>LCAIndex && i!=pathBToRoot.length-1) { 
+                nodeDist++;
+                //System.out.println("nodeDist ++  "+i);
+            }
+        } 
+        //if this path >2 (not neighboors are same nodes)
+        //then add +1 to node count, because LCA node was not counted above
+        if (l.size()>2)
+            nodeDist++;
         
-        System.out.println(l);
+        //System.out.println("path:"+l);
+        //System.out.println("branchDist:"+branchDist);
+        //System.out.println("nodeDist:"+nodeDist);
         
-        return l;
+        Path p=new Path(l,nodeDist,branchDist);
+        
+        return p;
         
         
+    }
+    
+    public class Path {
+        public float branchDistance=-1.0f;
+        public int nodeDistance=-1;
+        public List<PhyloNode> path=null;
+
+        public Path(List<PhyloNode> p, int nd, float bd) {
+            this.branchDistance=bd;
+            this.nodeDistance=nd;
+            this.path=p;
+        }  
     }
     
     

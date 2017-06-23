@@ -85,7 +85,7 @@ public class Main_test_relaxedTree {
             
             
             //very basic test of extension
-            PhyloTree tree = NewickReader.parseNewickTree2(t_used);
+            PhyloTree tree = NewickReader.parseNewickTree2(t_used, false);
             
             for (int i:tree.getNodeIdsByDFS()) {
                 System.out.println(tree.getById(i));

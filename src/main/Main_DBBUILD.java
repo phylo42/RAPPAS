@@ -225,7 +225,7 @@ public class Main_DBBUILD {
             BufferedReader br=new BufferedReader(new FileReader(t));
             String treeString=null;
             while((treeString=br.readLine())!=null) {}
-            PhyloTree originalTree = NewickReader.parseNewickTree2(treeString);
+            PhyloTree originalTree = NewickReader.parseNewickTree2(treeString, false);
             
             /////////////////////
             //BUILD RELAXED TREE
@@ -239,7 +239,7 @@ public class Main_DBBUILD {
             if (buildRelaxedTree) {
                 try {
                     System.out.println("Injecting fake nodes...");
-                    extendedTreeOnBranches=new ExtendedTree(NewickReader.parseNewickTree2(treeString),minBranchLength,branchPerLengthAmount);                    
+                    extendedTreeOnBranches=new ExtendedTree(NewickReader.parseNewickTree2(treeString, false),minBranchLength,branchPerLengthAmount);                    
                     extendedTreeOnBranches.initIndexes(); // don't forget to reinit indexes !!!
                     ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTreeOnBranches.getFakeLeaves();
                     Infos.println("RelaxedTree contains "+extendedTreeOnBranches.getLeavesCount()+ " leaves");

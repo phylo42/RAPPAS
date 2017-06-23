@@ -17,7 +17,16 @@ import javax.swing.JFrame;
  */
 public class NewickReader {
     
-    public static PhyloTree parseNewickTree2(String s) {
+    /**
+     * build a phylotree from a newick dtring
+     * @param s
+     * @param forceRooting is the newick describes an unrooted tree (3 sons at
+     * top level), then force the return of a rooted tree; not that the root
+     * will always be placed as follows: 
+     * (son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
+     * @return 
+     */
+    public static PhyloTree parseNewickTree2(String s, boolean forceRooting) {
         
         //counter to build internal nodeIds
         //(different from labels read in the newick)
@@ -167,8 +176,36 @@ public class NewickReader {
         }
         
         
-        //last bufferedNode should be the root
-        PhyloTree tree=new PhyloTree(new PhyloTreeModel(bufferedNode),rooted);
+        //root this unrooted tree if asked by the user
+        PhyloTree tree=null;
+        if (!rooted && forceRooting) {
+            //rooting will be done on the edge linking the newick root 
+            //and the 3 son: 
+            //(son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
+            PhyloNode newick_root=bufferedNode;
+            PhyloNode son1=bufferedNode.getChildAt(0);
+            PhyloNode son2=bufferedNode.getChildAt(1);
+            PhyloNode son3=bufferedNode.getChildAt(2);
+            PhyloNode added_root=new PhyloNode(++currentNodeIndex, "added_root", 0.0f);
+            //unlink sons3
+            float son3_bl=son3.getBranchLengthToAncestor();
+            son3.removeFromParent();
+            //set new branch lengths
+            son3.setBranchLengthToAncestor(son3_bl/2);
+            newick_root.setBranchLengthToAncestor(son3_bl/2);
+            //link son3 and newick_root to added_root
+            added_root.add(newick_root);
+            added_root.add(son3);
+            //build tree
+            tree=new PhyloTree(new PhyloTreeModel(added_root),true);
+        } else {
+            //last bufferedNode is the root, i.e. ([sons])bufferedNode; in the newick
+            tree=new PhyloTree(new PhyloTreeModel(bufferedNode),rooted);
+        }
+        
+        
+        
+        
         //init indexes related to internal/leaves stats
         tree.initIndexes();
         return tree;
@@ -219,14 +256,14 @@ public class NewickReader {
         System.out.println(t_basic_rZL5);
         System.out.println(t_basic_rZX);
         
-        PhyloTree tree1 = NewickReader.parseNewickTree2(t_basic_rZX_inv);
+        PhyloTree tree1 = NewickReader.parseNewickTree2(t_basic_rZX_inv, false);
         System.out.println("t_basic parsed!");
         tree1.displayTree();
         System.out.println("isRooted:"+tree1.isRooted());
         System.out.println("Struct root:"+tree1.getRoot());
         
         System.out.println("START");
-        PhyloTree tree2 = NewickReader.parseNewickTree2(t_basic_rZX);
+        PhyloTree tree2 = NewickReader.parseNewickTree2(t_basic_rZX, false);
         System.out.println("t_basic_unrooted parsed!");
         tree2.displayTree();
         System.out.println("isRooted:"+tree2.isRooted());
@@ -247,7 +284,7 @@ public class NewickReader {
         
         //test parsing
         long startTime = System.currentTimeMillis();
-        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML);
+        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML, false);
         long endTime = System.currentTimeMillis();
         System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
         

@@ -225,7 +225,7 @@ public class Main_DBBUILD_2 {
             BufferedReader br=new BufferedReader(new FileReader(t));
             while ((line=br.readLine())!=null) {tline=line;}
             br.close();
-            PhyloTree originalTree = NewickReader.parseNewickTree2(tline);
+            PhyloTree originalTree = NewickReader.parseNewickTree2(tline, false);
             
             /////////////////////
             //BUILD RELAXED TREE
@@ -244,7 +244,7 @@ public class Main_DBBUILD_2 {
                     //note, we read again the tree to build a new PhyloTree object
                     //this is necessary as its TreeModel is directly modified
                     //at instanciation of ExtendedTree
-                    extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline),minBranchLength,branchPerLengthAmount);                    
+                    extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline, false),minBranchLength,branchPerLengthAmount);                    
                     extendedTree.initIndexes(); // don't forget to reinit indexes !!!
                     ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTree.getFakeLeaves();
                     Infos.println("RelaxedTree contains "+extendedTree.getLeavesCount()+ " leaves");

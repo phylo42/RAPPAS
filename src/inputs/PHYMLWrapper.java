@@ -71,7 +71,7 @@ public class PHYMLWrapper implements DataWrapper {
             if (line.trim().length()<1) {continue;}
             originalTreeString=line;
         }
-        this.tree=NewickReader.parseNewickTree2(originalTreeString);
+        this.tree=NewickReader.parseNewickTree2(originalTreeString, false);
         return this.tree;
     }
     

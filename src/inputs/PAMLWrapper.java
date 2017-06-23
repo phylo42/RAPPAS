@@ -112,12 +112,12 @@ public class PAMLWrapper implements DataWrapper {
         //the 1st tree is the original input tree, with branch length but 
         //no internal nodes and renaming of the tips
         if (originalTreeString!=null) {
-            this.firstTree=NewickReader.parseNewickTree2(originalTreeString);; //keep a reference, which will be used by parseProbas()
+            this.firstTree=NewickReader.parseNewickTree2(originalTreeString, false);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //now we parse the second tree
         if (thirdTreeString!=null) {
-            this.thirdTree=NewickReader.parseNewickTree2(thirdTreeString);; //keep a reference, which will be used by parseProbas()
+            this.thirdTree=NewickReader.parseNewickTree2(thirdTreeString, false);; //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //do do the same DFS pre-order in both trees to associate PAML

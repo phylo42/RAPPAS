@@ -39,6 +39,10 @@ public class Fasta {
         this.sequence = sequence;
     }
     
+    /**
+     * returns >header\nsequence
+     * @return 
+     */
     public String getFormatedFasta() {
         return ">"+header+"\n"+sequence;
     }

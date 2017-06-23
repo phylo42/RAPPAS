@@ -111,6 +111,69 @@ public class Alignment implements Serializable {
         rowLabels=newRowLabels;
     }
     
+    /**
+     * use with parsimony, this reinstanciates the arrays
+     * @param label 
+     */
+    public void removeSequence(String label) {
+        boolean found=false;
+        //copy table, remove only the concerned sequence
+        char[][] newMatrix=new char[charMatrix.length-1][charMatrix[0].length];
+        String[] newLabels=new String[rowLabels.length-1];
+        int shift=0;//line index shift
+                
+        for (int i = 0; i < rowLabels.length; i++) {
+            String rowLabel = rowLabels[i];
+            if (rowLabel.equals(label)) {
+                found=true;
+                shift++;
+                continue;
+            }
+            //copy data
+            newLabels[i-shift]=rowLabels[i];
+            for (int k = 0; k < charMatrix[i].length; k++) {
+                newMatrix[i-shift][k]=charMatrix[i][k];
+            }
+        }
+        //update this object
+        rowLabels=null;
+        charMatrix=null;
+        rowLabels=newLabels;
+        charMatrix=newMatrix;
+        
+        
+        assert found==true;
+    }
+    
+    /**
+     * return a particular sequence as a fasta (keeping gaps)
+     * @param label
+     * @return 
+     */
+    public Fasta getFasta(String label, boolean withGaps) {
+        Fasta f=null;
+        for (int i = 0; i < rowLabels.length; i++) {
+            if (rowLabels[i].equals(label)) {
+                String seq=new String(charMatrix[i]);
+                if (withGaps) {seq.replaceAll("-", "");}
+                f=new Fasta(label, seq);
+                break;
+            }
+            
+        }
+        return f;
+    }
+    
+    public List<Fasta> getAllFasta(boolean withGaps) {
+        List<Fasta> l=new ArrayList<>(rowLabels.length);
+        for (int i = 0; i < rowLabels.length; i++) {
+            String seq=new String(charMatrix[i]);
+            if (withGaps) {seq.replaceAll("-", "");}
+            l.add(new Fasta(rowLabels[i], seq));  
+        }
+        return l;
+    }
+    
     
     public char[][] getCharMatrix() {
         return charMatrix;

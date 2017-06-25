@@ -5,6 +5,10 @@
         <group>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/NewickReader.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloTree.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_v2.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/PProbasSorted.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_DBBUILD_2.java</file>
+            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/alignement/Alignment.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloNode.java</file>
         </group>
     </open-files>

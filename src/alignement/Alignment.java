@@ -42,6 +42,14 @@ public class Alignment implements Serializable {
         this.charMatrix=charMatrix;
         this.rowLabels=rowLabels;
     }
+    
+    /**
+     * constructor copy 
+     * @return 
+     */
+    public Alignment copy(){
+        return new Alignment(charMatrix, rowLabels);
+    }
 
     /**
      * build an alignment from a list of fasta objects,\n

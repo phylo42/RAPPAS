@@ -1,9 +1,7 @@
-/WD
-/WD/AR/finished/rst
-/WD/AR/rst
-/rst/*
-/dist/*
-/build
-/build/classes
-/nbproject
-/nbproject/private
+WD/
+WD/AR/finished/rst
+WD/AR/rst
+rst/*
+dist/*
+build/*
+nbproject/

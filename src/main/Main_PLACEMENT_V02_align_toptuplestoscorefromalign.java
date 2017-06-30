@@ -605,7 +605,7 @@ public class Main_PLACEMENT_V02_align_toptuplestoscorefromalign {
                     for (Iterator<Integer> iterator1 = placementsPerQuery.get(fastaSlave).keySet().iterator(); iterator1.hasNext();) {
                         Integer nextNode = iterator1.next();
                         data[1]=String.valueOf(nextNode);
-                        data[2]=String.valueOf(tree.getById(nextNode).getExternalId());
+                        data[2]=String.valueOf("none");//tree.getById(nextNode).getExternalId());
                         for (Iterator<ArrayList<Object>> iterator2 = placementsPerQuery.get(fastaSlave).get(nextNode).iterator(); iterator2.hasNext();) {
                             ArrayList<Object> nextPosition = iterator2.next();
                             data[3]=String.valueOf((Integer)nextPosition.get(0));

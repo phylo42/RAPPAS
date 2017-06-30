@@ -20,7 +20,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.4";
+    private final static String consoleVersion="0.5";
 
     public static void main (String[] args) {
         try {
@@ -37,7 +37,19 @@ public class Main_v2 {
             ///////////////////////////////////////////////////////////////////
             //TEST ZONE, forces arguments
             String HOME = System.getenv("HOME");
-
+            
+            //DATASET 4BRANCHES TESTS UNROOTED(!) --PAML--
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark/viromeplacer_unrooted";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark";
+//            String a=inputsPath+File.separator+"basic.aln";
+//            String t=inputsPath+File.separator+"RAxML_bestTree.basic_tree";
+            
+            //DATASET 4BRANCHES TESTS FORCE ROOTING(!) --PAML--
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark/viromeplacer_force_rooting";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark";
+//            String a=inputsPath+File.separator+"basic.aln";
+//            String t=inputsPath+File.separator+"RAxML_bestTree.basic_tree";
+            
             //DATASET BASIC RAPID TESTS  --PAML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD2";
 //            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
@@ -50,7 +62,7 @@ public class Main_v2 {
             String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
             String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
 
-
+            //--------------------------------
 
             //DATASET BASIC RAPID TESTS --PHYML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
@@ -68,6 +80,11 @@ public class Main_v2 {
 
             //QUERIES::
             
+            //DATASET 4BRANCHES TESTS
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark/queries.fasta";
+            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.full";
+            
+            
             //DATASET BASIC RAPID TESTS:
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/alphaTest1";
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
@@ -76,32 +93,32 @@ public class Main_v2 {
 //            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
+//            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
 
 
 
             //db build launch
-//            String arguments=
-//                              "-m B "
-//                            + "-w "+workDir+" "
-//                            + "-i "+a+" "
-//                            + "-t "+t+" "
-//                            + "-k "+String.valueOf(8)+" "
-//                            + "-a "+String.valueOf(1.5)+" "
-//                            + "-v 1"
-//                            ;
-            
-            // placement launch
             String arguments=
-                              "-m p "
+                              "-m B "
                             + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-s full "
-                            + "-v 0"
-                            ;            
+                            + "-i "+a+" "
+                            + "-t "+t+" "
+                            + "-k "+String.valueOf(5)+" "
+                            + "-a "+String.valueOf(1.0)+" "
+                            + "-v 1"
+                            ;
+            
+//            // placement launch
+//            String arguments=
+//                              "-m p "
+//                            + "-w "+workDir+" "
+//                            + "-q "+q+" "
+//                            + "-d "+db+" "
+//                            + "-s full "
+//                            + "-v 1"
+//                            ;            
             
             //force args
             //args=arguments.split(" ");
@@ -147,11 +164,18 @@ public class Main_v2 {
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
                 System.out.println("Starting placement pipeline...");
-                int placed=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.Main_PLACEMENT_V05_align_scoreallnodes(
+//                int placed=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.Main_PLACEMENT_V05_align_scoreallnodes(
+//                                            argsParser.queriesFile,
+//                                            argsParser.databaseFile,
+//                                            argsParser.workingDir
+//                                            );
+                int placed=Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.doPlacements(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
-                                            argsParser.workingDir
+                                            argsParser.workingDir,
+                                            argsParser.callString
                                             );
+                
                 System.out.println("# query reads placed: "+placed);
             }
             

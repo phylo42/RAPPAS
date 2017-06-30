@@ -45,7 +45,7 @@ public class ARProcessResults {
     //posterior probas associated to AR
     private PProbasSorted probas=null;
     //mapping of the node id before and after AR. map(ExtendedTree NodeID)=ARTree NodeID
-    private HashMap<Integer, Integer> beforeAfterARNodeMapping = null;
+    private HashMap<Integer, Integer> ARTreeToExtendedTreeNodeMapping = null;
     //Launcher used to perfomr the AR
     private ARProcessLauncher arpl=null;
     
@@ -75,8 +75,8 @@ public class ARProcessResults {
             Logger.getLogger(ARProcessResults.class.getName()).log(Level.SEVERE, null, ex);
         }
         //step 2: Matches ARTree node labels and
-        //takes into account if the AR software unrooter/rooted things
-        beforeAfterARNodeMapping = ARTree.mapNodes(extendedTree);
+        //takes into account if the AR software unrooted/rooted things
+        ARTreeToExtendedTreeNodeMapping = ARTree.mapNodes(extendedTree);
     }
     
     
@@ -101,16 +101,16 @@ public class ARProcessResults {
     }
 
     /**
-     * map(ExtendedTreeNodeID)=ARExtendedTreeNodeID
+     * map(ARTreeNodeID)=ExtendedTreeNodeID
      * @return 
      */
     public HashMap<Integer,Integer> getTreeMapping() {
-        return beforeAfterARNodeMapping;
+        return ARTreeToExtendedTreeNodeMapping;
     }
     
     
     public int getOriginalExtendedTreeNodeId(int ARExtencedTreeNodeId) {
-        return beforeAfterARNodeMapping.get(ARExtencedTreeNodeId);
+        return ARTreeToExtendedTreeNodeMapping.get(ARExtencedTreeNodeId);
     }
     
     

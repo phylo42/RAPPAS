@@ -454,7 +454,7 @@ public class Main_PLACEMENT_V04_align_scoreallnodes_diagsumeltsremoved {
                for (Iterator<Score> iterator1= placementCompleteScore.get(fasta.getHeader()).iterator(); iterator1.hasNext();) {
                    Score nextNodePlacement = iterator1.next();
                    data[1]=String.valueOf(nextNodePlacement.getNodeId());
-                   data[2]=String.valueOf(tree.getById(nextNodePlacement.getNodeId()).getExternalId());
+                   data[2]=String.valueOf("none");//tree.getById(nextNode).getExternalId());
                    data[3]=String.valueOf(nextNodePlacement.getPPStar());
                    fwPlacement.writeNext(data);
                    n++;

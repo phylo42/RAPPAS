@@ -154,8 +154,8 @@ public class Main_DBBUILD_2 {
             String ARPath=workDir+File.separator+"AR"+File.separator;
             
             
-            //build of extended ARExtendedTree/////////////////////////////////////////////
-            float minBranchLength=0.001f;
+            //build of extended ARTree/////////////////////////////////////////////
+            float minBranchLength=-1.0f;
             
             //build of AR///////////////////////////////////////////////////////
             boolean verboseAR=true;
@@ -178,14 +178,15 @@ public class Main_DBBUILD_2 {
 
             
             //debug/////////////////////////////////////////////////////////////
-            //skip extended ARExtendedTree reconstruction
+            //skip extended ARTree reconstruction
             boolean buildRelaxedTree=true;
-            //skip paml marginal ancestral reconstruction (made on extended ARExtendedTree)
+            //skip paml marginal ancestral reconstruction (made on extended ARTree)
             boolean launchAR=true;
             
             boolean histogramNumberPositionsPerNode=true;
             boolean hitsogramNumberNodesPerFirstPosition=true;
-            
+            //if input tree is unrooted, make it rooted
+            boolean forceRooting=false;
             
             
             
@@ -225,7 +226,7 @@ public class Main_DBBUILD_2 {
             BufferedReader br=new BufferedReader(new FileReader(t));
             while ((line=br.readLine())!=null) {tline=line;}
             br.close();
-            PhyloTree originalTree = NewickReader.parseNewickTree2(tline, false);
+            PhyloTree originalTree = NewickReader.parseNewickTree2(tline, forceRooting);
             
             /////////////////////
             //BUILD RELAXED TREE
@@ -244,7 +245,7 @@ public class Main_DBBUILD_2 {
                     //note, we read again the tree to build a new PhyloTree object
                     //this is necessary as its TreeModel is directly modified
                     //at instanciation of ExtendedTree
-                    extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline, false),minBranchLength,branchPerLengthAmount);                    
+                    extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline, forceRooting),minBranchLength,branchPerLengthAmount);                    
                     extendedTree.initIndexes(); // don't forget to reinit indexes !!!
                     ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTree.getFakeLeaves();
                     Infos.println("RelaxedTree contains "+extendedTree.getLeavesCount()+ " leaves");
@@ -256,7 +257,7 @@ public class Main_DBBUILD_2 {
                         Arrays.fill(gapSeq, '-');
                         align.addSequence(node.getLabel(), gapSeq);
                     }
-                    //write alignment and ARExtendedTree for BrB
+                    //write alignment and ARTree for BrB
                     Infos.println("Write extended alignment (fasta): "+fileRelaxedAlignmentFasta.getAbsolutePath());
                     align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
                     Infos.println("Write extended alignment (phylip): "+fileRelaxedAlignmentPhylip.getAbsolutePath());
@@ -325,8 +326,8 @@ public class Main_DBBUILD_2 {
             ARProcessResults arpr=null;
             //the ARProcessResults object will take in charge 2 operations:
             //1. the call of the wrapper used to parse the AR results
-            //   these will return ARExtendedTree and Posterior Probas
-            //2. the correspondance between the original ARExtendedTree node names
+            //   these will return ARTree and Posterior Probas
+            //2. the correspondance between the original ARTree node names
             //   and the modification operated by the AR software (which
             //   renames internal nodes/labels in its own way...)
             arpr=new ARProcessResults(    arpl,
@@ -339,15 +340,32 @@ public class Main_DBBUILD_2 {
             session.associateStates(s);
             session.associateInputs(arpr);
             
-            Infos.println("#########STARTING SERIES OF TEST TO CONFIRM AR PARSING WAS FINE########");
-            //to raidly check that AR ARExtendedTree was read correctly
-            PhyloTree ARExtendedTree=arpr.getARTree();
-            Infos.println("ARExtendedTree # nodes: "+ARExtendedTree.getNodeCount());
-            Infos.println("ARExtendedTree leaves: "+ARExtendedTree.getLeavesByDFS());
-            Infos.println("ARExtendedTree internal nodes: "+ARExtendedTree.getInternalNodesByDFS());
-            Infos.println("ARExtendedTree nodes by DFS:      "+ARExtendedTree.getNodeIdsByDFS());
-            Infos.println("ARExtendedTree node names by DFS: "+ARExtendedTree.getLabelsByDFS());
-            Infos.println("Node mapping with original ExtendedTree: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
+            Infos.println("#########STARTING SERIES OF RAPID TEST TO CONFIRM ANCESTRAL RECONSTRUCTION AND PARSING WAS FINE########");
+            //to compare node mapping , output state of the original tree and extended tree
+            Infos.println("OriginalTree rooted: "+originalTree.isRooted());
+            Infos.println("OriginalTree # nodes: "+originalTree.getNodeCount());
+            Infos.println("OriginalTree leaves: "+originalTree.getLeavesByDFS());
+            Infos.println("OriginalTree internal nodes: "+originalTree.getInternalNodesByDFS());
+            Infos.println("OriginalTree nodes by DFS:      "+originalTree.getNodeIdsByDFS());
+            Infos.println("OriginalTree node names by DFS: "+originalTree.getLabelsByDFS());
+            Infos.println("ExtendedTree rooted: "+extendedTree.isRooted());
+            Infos.println("ExtendedTree # nodes: "+extendedTree.getNodeCount());
+            Infos.println("ExtendedTree leaves: "+extendedTree.getLeavesByDFS());
+            Infos.println("ExtendedTree internal nodes: "+extendedTree.getInternalNodesByDFS());
+            Infos.println("ExtendedTree new Fake leaves: "+Arrays.toString(extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray()));
+            Infos.println("ExtendedTree new Fake internal nodes: "+Arrays.toString(extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray()));
+            Infos.println("ExtendedTree nodes by DFS:      "+extendedTree.getNodeIdsByDFS());
+            Infos.println("ExtendedTree node names by DFS: "+extendedTree.getLabelsByDFS());
+            Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) "+extendedTree.getFakeNodeMapping());
+            //to raidly check that AR ARTree was read correctly
+            PhyloTree ARTree=arpr.getARTree();
+            Infos.println("ARTree rooted: "+ARTree.isRooted());
+            Infos.println("ARTree # nodes: "+ARTree.getNodeCount());
+            Infos.println("ARTree leaves: "+ARTree.getLeavesByDFS());
+            Infos.println("ARTree internal nodes: "+ARTree.getInternalNodesByDFS());
+            Infos.println("ARTree nodes by DFS:      "+ARTree.getNodeIdsByDFS());
+            Infos.println("ARTree node names by DFS: "+ARTree.getLabelsByDFS());
+            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 3 first PP:"+Arrays.deepToString(arpr.getPProbas().getPPSet(0, 0, 3)));
             Infos.println("NodeId=0, 3 first states:"+ Arrays.deepToString(arpr.getPProbas().getStateSet(0, 0, 3)));
@@ -355,28 +373,22 @@ public class Main_DBBUILD_2 {
             Infos.println("#######################################################################");
             
             
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            // GENERATION OF ANCESTRAL WORDS
+            
             //positions for which word are built
             SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
             int[] refPositions=knife.getMerOrder();     
             
-            
-            
-            
-
-            
-            
-            ////////////////////////////////////////////////////////////////////
-            ////////////////////////////////////////////////////////////////////
-            ////////////////////////////////////////////////////////////////////
-            
-            
-            //prepare simplified hash
+            //prepare hash
+            System.out.println("Prepare hash...");
+            Infos.println("Word generator threshold will be:"+thresholdAsLog);
             SimpleHash_v2 hash=new SimpleHash_v2();
             
-            System.out.println("Building hash...");
-            Infos.println("Word generator threshold will be:"+thresholdAsLog);
+            //Word Explorer used to build ancestral words
             Infos.println("Building all words probas...");
-            //Word Explorer
             int totalTuplesInHash=0;
             int nodeCounter=0;
             double[] wordsPerNode=new double[session.ARTree.getInternalNodesByDFS().size()];
@@ -431,7 +443,7 @@ public class Main_DBBUILD_2 {
                 //register all words in the hash
                 Infos.println("Tuples in this node:"+totaTuplesInNode);
                 double endMerScanTime=System.currentTimeMillis();
-                Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
+                //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 nodeCounter++;
                 
@@ -477,12 +489,11 @@ public class Main_DBBUILD_2 {
             Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
             Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
             Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
-
-
+            System.out.println("Database saved.");
             
             ////////////////////////////
             //output some stats:
-            if (histogramNumberPositionsPerNode) {
+            if (histogramNumberPositionsPerNode && hash.keySet().size()>0) {
                 Infos.println("Building #positions_per_word histogram...");
                 double[] values=new double[hash.keySet().size()];
                 int i=0;
@@ -543,7 +554,7 @@ public class Main_DBBUILD_2 {
             }
             
             
-            Infos.println("FINISHED.");
+            System.out.println("FINISHED.");
             
             
             

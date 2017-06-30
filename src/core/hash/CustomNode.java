@@ -44,6 +44,10 @@ public class CustomNode implements Serializable {
         }
     }
 
+    /**
+     * ref alignment positions associated to this node, order by underlying max(PP*)
+     * @return 
+     */
     public int[] getPositions() {
         return positionsPointers.stream().mapToInt(pp->pp.refPosition).toArray();
     }

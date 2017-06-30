@@ -5,8 +5,6 @@
  */
 package tree;
 
-import etc.Infos;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,7 +13,6 @@ import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.swing.JFrame;
 
 /**

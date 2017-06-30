@@ -652,7 +652,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
                     for (Iterator<Score> iterator1= placementCompleteScore.get(fastaSlave).iterator(); iterator1.hasNext();) {
                         Score nextNodePlacement = iterator1.next();
                         data[1]=String.valueOf(nextNodePlacement.getNodeId());
-                        data[2]=String.valueOf(tree.getById(nextNodePlacement.getNodeId()).getExternalId());
+                        data[2]=String.valueOf("none");//tree.getById(nextNode).getExternalId());
                         data[3]=String.valueOf(nextNodePlacement.getPPStar());
                         fwPlacement.writeNext(data);
                     }
@@ -688,7 +688,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
                     for (Iterator<Integer> iterator1 = placementsThroughDiagsums.get(fastaSlave).keySet().iterator(); iterator1.hasNext();) {
                         Integer nextNode = iterator1.next();
                         data2[1]=String.valueOf(nextNode);
-                        data2[2]=String.valueOf(tree.getById(nextNode).getExternalId());
+                        data2[2]=String.valueOf("none");//tree.getById(nextNode).getExternalId());
                         for (Iterator<ArrayList<Object>> iterator2 = placementsThroughDiagsums.get(fastaSlave).get(nextNode).iterator(); iterator2.hasNext();) {
                             ArrayList<Object> nextPosition = iterator2.next();
                             data2[3]=String.valueOf((Integer)nextPosition.get(0));
@@ -726,7 +726,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
                     Score score = iterator1.next();
                     JSONArray placeColumns=new JSONArray();
                     placeColumns.add(score.getNodeId());  //nodeId
-                    placeColumns.add(tree.getById(score.getNodeId()).getExternalId()); //external nodeId
+                    placeColumns.add("none");//tree.getById(score.getNodeId()).getExternalId()); //external nodeId
                     placeColumns.add(score.getPPStar()); //PP*
                     allPlaces.add(placeColumns);
 

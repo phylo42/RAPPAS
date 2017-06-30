@@ -131,7 +131,7 @@ public class PAMLWrapper implements DataWrapper {
             String PAMLString=thirdTree.getLabelsByDFS().get(i);
             Matcher m=pNodeMatch.matcher(PAMLString);
             if (m.matches()) {
-                this.firstTree.getById(nodeId).setExternalId(Integer.parseInt(m.group(1)));
+                //this.firstTree.getById(nodeId).setExternalId(Integer.parseInt(m.group(1)));
                 if (m.group(2)==null)
                     this.firstTree.getById(nodeId).setLabel(m.group(1));
             }

@@ -31,9 +31,6 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     //label internal to our program, used when outputing trees (used by algorithms)
     private String label=null;
     
-    //to memorize the id that the node had eventually been given by the AR program
-    //(ex: PAML discards the labels of internal nodes and uses its own ids).
-    private int externalId=-1;
     //actual branch length in the current tree
     private float branchLengthToAncestor=-1.0f;
     //below are branch length related to the original tree (before addition of fake nodes)
@@ -89,7 +86,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
      * @param branchLengthToOriginalAncestor
      * @param branchLengthToOriginalSon 
      */
-    private PhyloNode(  int id, int externalId,
+    private PhyloNode(  int id,
                         String label,
                         float branchLengthToAncestor,
                         float branchLengthToOriginalAncestor,
@@ -99,7 +96,6 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         nf.setMaximumFractionDigits(6);
         this.branchLengthToAncestor=branchLengthToAncestor;
         this.id=id;
-        this.externalId=externalId;
         this.branchLengthToOriginalAncestor=branchLengthToOriginalAncestor;
         this.branchLengthToOriginalSon=branchLengthToOriginalSon;
         this.label=label;
@@ -121,7 +117,6 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
 
         }
         return new PhyloNode(   id,
-                                externalId,
                                 label,
                                 branchLengthToAncestor,
                                 branchLengthToOriginalAncestor,
@@ -132,14 +127,6 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
 
     public int getId() {
         return id;
-    }
-    
-    public void setExternalId(int externalId) {
-        this.externalId=externalId;
-    }
-    
-    public int getExternalId() {
-        return this.externalId;
     }
     
     public String getLabel() {
@@ -182,8 +169,6 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         StringBuilder sb=new StringBuilder();
 
         sb.append("["+id);
-        if (externalId>-1.0f)
-            sb.append(":"+externalId);
         sb.append("]");
         sb.append(label+":"+nf.format(branchLengthToAncestor));
         if (branchLengthToOriginalAncestor>-1.0f)

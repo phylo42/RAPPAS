@@ -6,7 +6,6 @@
 package main_v2;
 
 import alignement.Alignment;
-import au.com.bytecode.opencsv.CSVWriter;
 import charts.ChartsForNodes;
 import core.AAStates;
 import core.DNAStates;
@@ -27,8 +26,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,8 +44,8 @@ import org.jfree.ui.RefineryUtilities;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import tree.ExtendedTree;
-import tree.NewickReader;
 import tree.NewickWriter;
+import tree.PhyloNode;
 import tree.PhyloTree;
 
 /**
@@ -67,7 +64,7 @@ import tree.PhyloTree;
  * 
  * @author ben
  */
-public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
+public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed {
     
     //sequence type
     public static int TYPE_DNA=1;
@@ -77,7 +74,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
     public static int MEMORY_LARGE=2;
     
     
-    public static int Main_PLACEMENT_V05_align_scoreallnodes(File q, File db, File workDir) {
+    public static int doPlacements(File q, File db, File workDir, String callString) {
 
         try {
                         
@@ -114,8 +111,6 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             //LOAD SESSION//////////////////////////////////////////////////////
             //logs
             String logPath=workDir+File.separator+"logs"+File.separator;
-            //trees
-            String relaxedTreePath=workDir+File.separator+"relaxed_trees"+File.separator;
             //ancestral reconstruciton
             String ARPath=workDir+File.separator+"AR"+File.separator;
             //session itself
@@ -128,9 +123,9 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             int analysisType=-1;
             //States: DNA or AA
             if (s instanceof DNAStates)
-                analysisType=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.TYPE_DNA;
+                analysisType=Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.TYPE_DNA;
             else if (s instanceof AAStates)
-                analysisType=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.TYPE_PROTEIN;
+                analysisType=Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.TYPE_PROTEIN;
             
             //posterior probas parameters///////////////////////////////////////
             //mers size
@@ -152,7 +147,6 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             //PREPARE DIRECTORIES///////////////////////////////////////////////
             if (!workDir.exists()) {workDir.mkdir();}
             if (!new File(logPath).exists()) {new File(logPath).mkdir();}
-            if (!new File(relaxedTreePath).exists()) {new File(relaxedTreePath).mkdir();}
             if (!new File(ARPath).exists()) {new File(ARPath).mkdir();}
             
             
@@ -227,7 +221,8 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             ///////////////////////////////////////////////////////            
             // VECTORS USED TO ALIGN AND SCORE NODES
             
-            //list of variable size, reset at each read
+            //list of nodes encountered during word matches search in the hash
+            //variable size, reset at each read
             HashMap<Integer,Boolean> selectedNodes=new HashMap<>(); 
             //instanciated once
             int[] nodeOccurences=new int[ARtree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
@@ -246,7 +241,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 checksumGenerator = JacksumAPI.getChecksumInstance("sha256");
                 checksumGenerator.setEncoding(AbstractChecksum.HEX);
             } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger(Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
             }
             HashMap<String,ArrayList<String>> identicalSeqsRegistry=new HashMap<>();
             
@@ -380,41 +375,55 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 //////////////////////////////////////////
                 
                 //[query_position]=reference_position
-                int[] alignmentMatrix=new int[queryLength-k+1];
+                //int[] alignmentMatrix=new int[queryLength-k+1];
                 //filled with -1 ; a -1 val means the word was not found in hash
-                Arrays.fill(alignmentMatrix,-1);
+                //Arrays.fill(alignmentMatrix,-1);
                 
                 
-                // BUILD THE ALIGNMENT
-                ///////////////////////////////////////////////////////
-
+                // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
+                ////////////////////////////////////////////////////////////////
+                Infos.println("Launching scoring on candidate nodes...");
+                //loop on words
                 while ((qw=sk.getNextWord())!=null) {
-                    //Infos.println("Query mer: "+qw.toString());
-
-                    //get top Pair associated to this word
-                    Pair topPair = hash.getTopPair(qw);
+                    Infos.println("Query mer: "+qw.toString());
+                    queryWordCounter++;
+                    //position of this word
+                    int[] positions=hash.getPositions(qw);
                     //if this word is not registered in the hash
-                    if (topPair==null) {
+                    if (positions==null) {
                         queryWordCounter++;
                         continue;
                     }
-                    //word is in the hash
-                    queryWordCounter++;
                     queryWordFoundCounter++;
-                    //top position of this word
-                    int topPosition=hash.getPositions(qw)[0];
+                    //position associated to highest probability
+                    int topPosition=positions[0];
+                    //get Pairs associated to this word
+                    List<Pair> allPairs = hash.getPairsOfTopPosition(qw);
+                    for (int i = 0; i < allPairs.size(); i++) {
+                        Pair p = allPairs.get(i);
+                        //we will score only encountered nodes, node registered
+                        //at 1st encouter
+                        if (nodeOccurences[p.getNodeId()]==0) {
+                            selectedNodes.put(p.getNodeId(), true);
+                        }
+                        //count # times node encountered
+                        nodeOccurences[p.getNodeId()]+=1;
+                        //score associated to node x for current read
+                        nodeScores[p.getNodeId()]+=p.getPPStar();
+                        //register the alignment itself
+                        //alignmentMatrix[qw.getOriginalPosition()]=topPosition;
+                    }
+                        System.out.println("  nodeOccurences:"+Arrays.toString(nodeOccurences));
+                        System.out.println("  nodeScores:"+Arrays.toString(nodeScores));
+
                     //graph of alignment, if asked
                     if(graphAlignment) {
                         int topDiagSumPos=topPosition-qw.getOriginalPosition()+(queryLength-minOverlap);
                         if (topDiagSumPos>-1 && topDiagSumPos<bestPPStarsDiagsum.getSize()) {
-                                graphDataForTopTuples[2][queryWordCounter*xSize+topPosition]= topPair.getPPStar();                        
+                                graphDataForTopTuples[2][queryWordCounter*xSize+topPosition]= allPairs.get(0).getPPStar();                        
                         }
                     }
-                    //register the alignment itself
-                    alignmentMatrix[qw.getOriginalPosition()]=topPosition;
-                    //register nodes that were hit during alignment (only those will be scored)
-                    selectedNodes.put(topPair.getNodeId(), true);
-                    
+
                     //DEBUG
                     //if (queryWordCounter>1000)
                     //        break;
@@ -422,11 +431,6 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                     
                 }
                 
-                //check alignment vs diagsum stats
-//                for (int i = 0; i < alignmentMatrix.length; i++) {
-//                    System.out.println("alignment i="+i+": "+alignmentMatrix[i]);
-//                }
-
                 //display alignment result of requested
                 if (graphAlignment) {
                     //graph for topTuplePerPos
@@ -447,56 +451,124 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
                 long endAlignTime=System.currentTimeMillis();
                 totalAlignTime+=(endAlignTime-startAlignTime);
-                Infos.println("Alignment ("+selectedNodes.keySet().size()+" candidate nodes registered) took "+(endAlignTime-startAlignTime)+" ms");
-           
+                Infos.println("Candidate nodes: ("+selectedNodes.keySet().size()+") "+selectedNodes.keySet());      
+
                 
 
-                // ALIGNMENT DONE, NOW SCORING SELECTED NODES
+                // NOW CORRECTING SCORING BY UNMATCHED WORDS
                 ///////////////////////////////////////////////////////
-
                 long startScoringTime=System.currentTimeMillis();
-                //to register which node is assined to which line of preplacementAllDiagsum
-                Infos.println("Launching scoring on candidate nodes...");
-                Infos.println("Candidate nodes: ("+selectedNodes.keySet().size()+") "+selectedNodes.keySet());
-                //V3, pickup PP* associated to position defined by the alignment
-                //and only for the nodes encountered in the alignment phase
-                for (int queryPos = 0; queryPos < alignmentMatrix.length; queryPos++) {
-                    //if this position was indeed aligned
-                    int refPos;
-                    if ((refPos=alignmentMatrix[queryPos])>-1) {
-                        QueryWord word=sk.getWordAt(queryPos);
-                        //pairs of (nodeId,PP*)
-                        List<Pair> allPairs = hash.getPairs(word, refPos);
-                        for (int i = 0; i < allPairs.size(); i++) {
-                            Pair p = allPairs.get(i);
-                            //score only encountered nodes
-                            if (selectedNodes.get(p.getNodeId())!=null) {
-                                nodeOccurences[p.getNodeId()]+=1;
-                                nodeScores[p.getNodeId()]+=p.getPPStar();
-                            }
-                        }
-                    //position not aligned, 
-                    } else {
-                        
-                    }
-                
-                }            
+ 
                 
                 //now add the score corresponding to the words not found,
                 // i.e. threshold*#_words_not_scored (because no in hash)
                 int maxWords=sk.getMaxWordCount();
-
                 float bestScore=Float.NEGATIVE_INFINITY;
                 int bestNode=-1;
                 for (Iterator<Integer> iterator = selectedNodes.keySet().iterator(); iterator.hasNext();) {
                     Integer nodeId = iterator.next();
+                    System.out.println("Scoring node:"+nodeId);
+                    System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
+                    int extendedTreeId=session.nodeMapping.get(nodeId);
+                    System.out.println("extendedTreeId:"+extendedTreeId);
+                    Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);
+                    System.out.println("originalNodeId:"+originalNodeId);
+                    System.out.println("  scoring node: ARTree="+session.ARTree.getById(nodeId)+" "+session.extendedTree.getById(extendedTreeId)+" "+session.originalTree.getById(originalNodeId));
                     nodeScores[nodeId]+=thresholdAsLog*(maxWords-nodeOccurences[nodeId]);
+                    System.out.println("  nodeScores[nodeId]="+nodeScores[nodeId]);
                     if(nodeScores[nodeId]>bestScore) {
                         bestScore=nodeScores[nodeId];
                         bestNode=nodeId;
                     }
                 }
-                Infos.println("Best node (ARTree) is : "+bestNode+" (score="+bestScore+")");                
+                Infos.println("Best node (ARTree) is : "+bestNode+" (score="+bestScore+")");
+                
+                //if bestNode==-1 (no node could be associated)
+                //for instance when no query words could be found in the hash
+                if (bestNode<0) {
+                    Infos.println("Read cannot be placed.");
+                    continue;
+                }
+                
+                
+                //simple debug test
+                if (session.nodeMapping.get(bestNode)==null) { //simple test
+                    System.out.println("bestNode not found: "+bestNode+" "+String.valueOf(session.ARTree.getById(bestNode).getLabel()));
+                    System.exit(1);
+                }
+                //check if this was a fake node or not
+                //to do that, retromapping from ARTree to extended tree 
+                int extendedTreeId=session.nodeMapping.get(bestNode);
+                //retromapping from extendedTree to original tree
+                Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);
+                //will return null if this nodeId was an original node (not fake)
+                //if this is an original node, select adjacent branch 
+                //holding the fake nodes with highest PP* (2 nodes X1 and X0
+                //are compared on each branch, so 6 comparisons).
+                //the block below was written very rapidly... can be improved
+                if (originalNodeId==extendedTreeId) {
+                    Infos.println("Best node is an Original node...");
+                    int bestNeighboorFakeNode=-1;
+                    float bestNeighboorPPStar=Float.NEGATIVE_INFINITY;
+                    //work on ARTree
+                    PhyloNode node = session.ARTree.getById(bestNode);
+                    //X1/X0 on parent edge
+                    PhyloNode X0= (PhyloNode)node.getParent();
+                    PhyloNode X1= X0.getChildAt(0);
+                    if (X1==X0)
+                        X1= X0.getChildAt(1);
+                    if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                        bestNeighboorPPStar=nodeScores[X1.getId()];
+                        bestNeighboorFakeNode=X1.getId();
+                    }
+                    if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
+                        bestNeighboorPPStar=nodeScores[X0.getId()];
+                        bestNeighboorFakeNode=X0.getId();
+                    }
+                    //X1/X0 on left son
+                    X0= (PhyloNode)node.getChildAt(0);
+                    X1= X0.getChildAt(0);
+                    if (X1==X0)
+                        X1= X0.getChildAt(1);
+                    if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                        bestNeighboorPPStar=nodeScores[X1.getId()];
+                        bestNeighboorFakeNode=X1.getId();
+                    }
+                    if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
+                        bestNeighboorPPStar=nodeScores[X0.getId()];
+                        bestNeighboorFakeNode=X0.getId();
+                    }
+                    //X1/X0 on right son
+                    X0= (PhyloNode)node.getChildAt(1);
+                    X1= X0.getChildAt(0);
+                    if (X1==X0)
+                        X1= X0.getChildAt(1);
+                    if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                        bestNeighboorPPStar=nodeScores[X1.getId()];
+                        bestNeighboorFakeNode=X1.getId();
+                    }
+                    if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
+                        bestNeighboorPPStar=nodeScores[X0.getId()];
+                        bestNeighboorFakeNode=X0.getId();
+                    }
+                    Infos.println("Best neighboor (X0/X1; ARTree) is : "+bestNeighboorFakeNode+" (score="+bestNeighboorPPStar+")");
+                    //now let's remap
+                    //retromapping from ARTree to extended tree 
+                    extendedTreeId=session.nodeMapping.get(bestNeighboorFakeNode);
+                    //retromapping from extendedTree to original tree
+                    originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);
+                    if (extendedTreeId==originalNodeId) {
+                        System.out.println("Something went wrong with neighboor search (bestNode!=fakeNode)");
+                        System.exit(1);
+                    }
+                    bestScore=bestNeighboorPPStar;
+                } 
+                
+                //basic normalization, divide score by number of words present
+                //in the query
+                float normalizedScore=bestScore/maxWords;
+                Infos.println("Normalized score: "+normalizedScore);
+                
                 
                 long endScoringTime=System.currentTimeMillis();
                 totalScoringTime+=endScoringTime-startScoringTime;
@@ -513,91 +585,84 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 
                 
                 //write result in file if a node was hit
-                if (bestNode>-1) {
-                    long startWritingTime=System.currentTimeMillis();
-                    sb.append(fasta.getHeader().split(" ")[0]+"\t");
-                    sb.append(String.valueOf(bestNode)+"\t"); //ARTree nodeID
-                    sb.append(String.valueOf(session.ARTree.getById(bestNode).getLabel())+"\t"); //ARTree nodeName
-                    if (session.nodeMapping.get(bestNode)==null)
-                        System.out.println("bestNode not found: "+bestNode+" "+String.valueOf(session.ARTree.getById(bestNode).getLabel()));
-                    int extendedTreeId=session.nodeMapping.get(bestNode);
-                    sb.append(String.valueOf(extendedTreeId)+"\t"); //extended Tree nodeID
-                    sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())+"\t"); //extended Tree nodeName
-                    //check if this was a fake node or not
-                    Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);//will return null if this nodeId was not a Fake node
-                    if (originalNodeId==null) {originalNodeId=extendedTreeId;}
-                    sb.append(String.valueOf(originalNodeId)+"\t"); //edge of original tree (original nodeId)
-                    sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())+"\t"); //edge of original tree (original nodeName
-                    sb.append(String.valueOf(nodeScores[bestNode])+"\n");
-                    long endWritingTime=System.currentTimeMillis();
-                    totalWritingTime+=endWritingTime-startWritingTime;
-                }
+                    
+                //OUTPUT n°1: the CSV report of placement
+                //allow in particular to check that nodes were correclty
+                //mappes at every step (original tree, extended tree,
+                //AR modified tree)
+                long startWritingTime=System.currentTimeMillis();
+                sb.append(fasta.getHeader().split(" ")[0]+"\t");
+                sb.append(String.valueOf(bestNode)+"\t"); //ARTree nodeID
+                sb.append(String.valueOf(session.ARTree.getById(bestNode).getLabel())+"\t"); //ARTree nodeName
+                sb.append(String.valueOf(extendedTreeId)+"\t"); //extended Tree nodeID
+                sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())+"\t"); //extended Tree nodeName
+                sb.append(String.valueOf(originalNodeId)+"\t"); //edge of original tree (original nodeId)
+                sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())+"\t"); //edge of original tree (original nodeName
+                sb.append(String.valueOf(normalizedScore)+"\n");
+
+                //OUTPUT n°2: the JSON placement object (jplace file)
+                //2 possibilities:
+                //-either do a new placement object and add ot to the list
+                // of placements (block below is executed)
+                //-or a previous placement object corresponding to an
+                //identical sequence exists, then we don't the block below
+                //as all the alignmnet/placement algo was skipped.
+
+                //object representing placements (mandatory), it contains 2 key/value couples
+                JSONObject placement=new JSONObject();
+                //first we build the "p" array, containing the position/scores of all reads
+                JSONArray pMetadata=new JSONArray();
+                //in pplacer/EPA several placements can be associated to a query
+                //we input only the best one, but that can be changed in the future
+                JSONArray placeColumns=new JSONArray();
+
+                //fake fields for compatibility with current tools (guppy, archeopteryx)
+                //should be provided as an option
+                placeColumns.add(0.1);
+                placeColumns.add(0.1);
+                placeColumns.add(0.1);
+
+                //placeColumns.add(session.ARTree.getById(bestNode).getLabel()); // 1. ARTree nodeName
+                //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
+                //check if this was a fake node or not
+                if (originalNodeId==null) {originalNodeId=extendedTreeId;}
+                placeColumns.add(originalNodeId); // 3. edge of original tree (original nodeId=edgeID)
+                //placeColumns.add(session.originalTree.getById(originalNodeId).getLabel()); // 4. edge of original tree (original nodeName)
+                placeColumns.add(normalizedScore); // 4. PP*
+                pMetadata.add(placeColumns);
+
+                placement.put("p", pMetadata);
+
+                //second we build the "nm" array, containing the reads identifiers
+                //And their read multiplicity
+                JSONArray allIdentifiers=new JSONArray();
+                //these are simply all the identical sequences
+                JSONArray readMultiplicity=new JSONArray();
+                readMultiplicity.add(fasta.getHeader());
+                readMultiplicity.add(1);
+                allIdentifiers.add(readMultiplicity);
+                placement.put("nm", allIdentifiers);
+
+                //store the placement in the list of placements
+                placements.add(placement);
+                //JSON for this read DONE, if duplicates are found later,
+                //will be added to the corresponding "p" and "nm" array
+                //using the checksumToJSONObject map
+                //for now, just register the reference
+                checksumToJSONObject.put(checksum, placement); 
+
+                long endWritingTime=System.currentTimeMillis();
+                totalWritingTime+=endWritingTime-startWritingTime;
+
                 
-                //push the stringbuffer to the bufferedwriter every 10000 sequences
+                //push the stringbuffer to the CSV bufferedwriter every 10000 sequences
                 if ((queryCounter%10000)==0) {
                     int size=sb.length();
                     fwPlacement.append(sb);
                     fwPlacement.flush();
                     sb=null;
                     sb=new StringBuffer(size);
-                }                
-                
-
-                //fill the JSON placement object
-                //2 possibilities:
-                //-either do a new placement object and add ot to the list
-                // of placements (block above, at checksum test)
-                //-or add it to previous placement object if this is a duplicate
-                // sequence
-                
-                //write result in file if a node was hit
-                if (bestNode>-1) {
-                    //object representing placements (mandatory), it contains 2 key/value couples
-                    JSONObject placement=new JSONObject();
-                    //first we build the "p" array, containing the position/scores of all reads
-                    JSONArray pMetadata=new JSONArray();
-                    //in pplacer/EPA several placements can be associated to a query
-                    //we input only the best one, but that can be changed in the future
-                    JSONArray placeColumns=new JSONArray();
-
-                    //fake fields for compatibility with current tools (guppy, archeopteryx)
-                    //should be provided as an option
-                    placeColumns.add(0.1);
-                    placeColumns.add(0.1);
-                    placeColumns.add(0.1);
-
-
-                    //placeColumns.add(session.ARTree.getById(bestNode).getLabel()); // 1. ARTree nodeName
-                    int extendedTreeId=session.nodeMapping.get(bestNode);
-                    //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
-                    //check if this was a fake node or not
-                    Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);//will return null if this nodeId was not a Fake node
-                    if (originalNodeId==null) {originalNodeId=extendedTreeId;}
-                    placeColumns.add(originalNodeId); // 3. edge of original tree (original nodeId=edgeID)
-                    //placeColumns.add(session.originalTree.getById(originalNodeId).getLabel()); // 4. edge of original tree (original nodeName)
-                    placeColumns.add(nodeScores[bestNode]); // 4. PP*
-                    pMetadata.add(placeColumns);
-
-                    placement.put("p", pMetadata);
-
-                    //second we build the "nm" array, containing the reads identifiers
-                    //And their read multiplicity
-                    JSONArray allIdentifiers=new JSONArray();
-                    //these are simply all the identical sequences
-                    JSONArray readMultiplicity=new JSONArray();
-                    readMultiplicity.add(fasta.getHeader());
-                    readMultiplicity.add(1);
-                    allIdentifiers.add(readMultiplicity);
-                    placement.put("nm", allIdentifiers);
-
-                    //store the placement in the list of placements
-                    placements.add(placement);
-                    //JSON for this read DONE, if duplicates are found later,
-                    //will be added to the corresponding "p" and "nm" array
-                    //using the checksumToJSONObject map
-                    //for now, just register the reference
-                    checksumToJSONObject.put(checksum, placement);                
-                }
+                }   
 
                 //reset the scoring vectors
                 long startResetTime=System.currentTimeMillis();
@@ -628,7 +693,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             top.put("version",3);
             //object metadata (mandatory): sub-objet "version is mandatory"
             JSONObject invoc=new JSONObject();
-            invoc.put("invocation", "viromeplacer xxxxxxxxxxxxxxx");
+            invoc.put("invocation", "viromeplacer"+callString);
             top.put("metadata", invoc);
             //object fields
             //for info:
@@ -639,7 +704,6 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             fList.add("distal_length");
             fList.add("like_weight_ratio");
             fList.add("pendant_length");
-            
             //fList.add("ARTree_nodeName");
             //fList.add("ExtendedTree_nodeName");
             fList.add("edge_num"); //i.e equal to the id of the son node
@@ -651,6 +715,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             top.putAll(topMap);
             String out=top.toJSONString();
 
+            //just some basic formatting
             out=out.replaceAll("\\},\\{", "\n\\},\\{\n\t"); //},{
             out=out.replaceAll("\\],\"","\\],\n\t\"");   //],"
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
@@ -667,16 +732,16 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             long endTotalTime=System.currentTimeMillis();
             System.out.println("############################################################");
             System.out.println("Checksum registry took in total: "+totalChecksumTime+" ms");
-            System.out.println("Alignments took in total: "+totalAlignTime+" ms");
+            System.out.println("Alignments and pre-scoring took in total: "+totalAlignTime+" ms");
             System.out.println("Scoring took in total: "+totalScoringTime+" ms");
-            System.out.println("Writing CSV took in total: "+totalWritingTime+" ms");
+            System.out.println("Writing .csv and .jplace took in total: "+totalWritingTime+" ms");
             System.out.println("Reset took in total: "+totalResetTime+" ms");
             System.out.println("------------------------------------------------------------");
-            System.out.println("Checksum registry took on average: "+(totalChecksumTime/queryCounter)+" ms");
-            System.out.println("Alignments took on average: "+(totalAlignTime/queryCounter)+" ms");
-            System.out.println("Scoring took on average: "+(totalScoringTime/queryCounter)+" ms");
-            System.out.println("Writing CSV took on average: "+(totalWritingTime/queryCounter)+" ms");
-            System.out.println("Reset took on average: "+(totalResetTime/queryCounter)+" ms");
+            System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/queryCounter)+" ms");
+            System.out.println("Alignments and pre-scoring took on average: "+((0.0+totalAlignTime)/queryCounter)+" ms");
+            System.out.println("Scoring took on average: "+((0.0+totalScoringTime)/queryCounter)+" ms");
+            System.out.println("Writing .csv and .jplace took on average: "+((0.0+totalWritingTime)/queryCounter)+" ms");
+            System.out.println("Reset took on average: "+((0.0+totalResetTime)/queryCounter)+" ms");
             System.out.println("------------------------------------------------------------");
             System.out.println("Process (without DB load) took: "+(endTotalTime-startTotalTime)+" ms");
             System.out.println("############################################################");
@@ -712,7 +777,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             
             
         } catch (IOException ex) {
-            Logger.getLogger(Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
         }
         

@@ -46,14 +46,21 @@ public class ArgumentsParser_v2 {
     public File databaseFile=null;
     public int dbsize=DB_FULL;
     
+    //call string
+    public String callString=null;
+    
     public ArgumentsParser_v2(String[] args) {
         argsMap=new HashMap<Integer,String>();
+        StringBuilder sb=new StringBuilder();
         //args with priority
         for (int i=0;i<args.length;i++) {
             if (args[i].equals("--help") || args[i].equals("-h"))
                 showHelpAndExit();
+            sb.append(" "+args[i]);
             argsMap.put(i, args[i]);
         }
+        callString=sb.toString();
+        sb=null;
         
         //if no mode, bad
         if ((!argsMap.containsValue("-m")) && (!argsMap.containsValue("--mode")) ) {

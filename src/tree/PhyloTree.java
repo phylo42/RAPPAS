@@ -33,7 +33,7 @@ public class PhyloTree extends JTree implements Serializable {
     
     private static final long serialVersionUID = 2000L;
     
-    private boolean isRooted=false;
+    protected boolean isRooted=false;
     private int nodeCount=0;
     private int leavesCount=0;
     //simple map of pointers to directly access the nodes by name/id
@@ -261,37 +261,46 @@ public class PhyloTree extends JTree implements Serializable {
     HashMap<Integer,Integer> nodeMapping=new HashMap<>();
     
     /**
-     * map(this.tree nodeId)=otherTree nodeID
+     * map(this.tree nodeId)=otherTree nodeID;
+     * not that compared PhyloTree need to be both rooted or both unrooted
      * @param otherTree
      * @return 
      */
     public HashMap<Integer,Integer> mapNodes(PhyloTree otherTree) {
         mapNodesByDFS(this.getRoot(),otherTree);
-        //finally, if both tree rooted on same edge, associate the root ids
-        //both trees rooted ?
-        if (this.isRooted() && otherTree.isRooted) {
-            System.out.println("both trees are rooted");
-            //rooted on same edge ? if yes roots can be mapped between
-            //both trees, if not no mapping is done for the root
-            PhyloNode root=this.getRoot();
-            Enumeration e=root.children();
-            boolean sameChildren=true;
-            while (e.hasMoreElements()) {
-                PhyloNode child=(PhyloNode)e.nextElement();
-                int idInOtherTree=nodeMapping.get(child.getId());
-//                System.out.println("test "+child.getId()+" "+idInOtherTree);
-//                System.out.println("A:"+otherTree.getById(idInOtherTree).getParent());
-//                System.out.println("B:"+otherTree.getRoot());
-                if (otherTree.getById(idInOtherTree).getParent() != otherTree.getRoot()) {
-                    sameChildren=false;
-                }
-            }
-            if (sameChildren)
+        //both rotted or both unrooted
+        if ( (this.isRooted && otherTree.isRooted) || (!this.isRooted && !otherTree.isRooted)) {
+//            System.out.println("nodeMapping: both trees are rooted");
+//            //test if rooted on same edges ? 
+//            PhyloNode root=this.getRoot();
+//            Enumeration e=root.children();
+//            boolean sameChildren=true;
+//            while (e.hasMoreElements()) {
+//                PhyloNode child=(PhyloNode)e.nextElement();
+//                int idInOtherTree=nodeMapping.get(child.getId());
+////                System.out.println("test "+child.getId()+" "+idInOtherTree);
+////                System.out.println("A:"+otherTree.getById(idInOtherTree).getParent());
+////                System.out.println("B:"+otherTree.getRoot());
+//                if (otherTree.getById(idInOtherTree).getParent() != otherTree.getRoot()) {
+//                    sameChildren=false;
+//                }
+//            }
+//            //if yes roots can be mapped between both trees
+//            if (sameChildren)
                 nodeMapping.put(this.getRoot().getId(), otherTree.getRoot().getId());
+            // if not, no mapping is done for the root, this is return as -1
+//            else
+//                nodeMapping.put(this.getRoot().getId(), -1);
+        } else {
+            System.out.println("Mapping of rooted to unrooted has no good solution... this case should not occur !");
+            System.exit(1);
         }
         
         return nodeMapping;
     }
+    
+
+    
     
     /**
      * do a depth first transversal to go to all nodes, starts from a bait node 
@@ -305,9 +314,10 @@ public class PhyloTree extends JTree implements Serializable {
             PhyloNode n=(PhyloNode)e.nextElement();
             mapNodesByDFS(n,otherTree);
         }
-        //if root, no parent to associate
+        //returning up, from the sons
+        //IF ROOT, we will associate parent only if both trees are rooted on same branch
         if (node.isRoot()) {
-            System.out.println("SKIP ROOT");
+            //System.out.println("SKIP ROOT");
             return;
         }
         //System.out.println("IN: "+node);
@@ -315,7 +325,7 @@ public class PhyloTree extends JTree implements Serializable {
         //returns up, time to associate associate nodes, 3 possible case:
         //1. node child of root, 
         //we will associate parent only if both trees are rooted on same branch
-        //this is verified after completing the mapping, in th mapnodes() method
+        //this is verified after completing the mapping, in the mapnodes() method
         if (((PhyloNode)node.getParent())==this.getRoot()) {
             if (node.isLeaf()) {
                 PhyloNode otherLeaf=otherTree.getByName(node.getLabel());
@@ -342,38 +352,6 @@ public class PhyloTree extends JTree implements Serializable {
         //System.out.println(nodeMapping);
     }
     
-
-    /**
-     * return a copy of this tree as a completely independant deep copy;
-     * the tree is copied node per node through a preorder traversal,
-     * not keeping any reference to the current tree.
-     * This is useful for doing tree backups before pruning
-     * experiments.
-     * @param tree
-     * @return 
-     */
-    public PhyloTree copyPhyloTree(PhyloTree tree) {
-        
-        PhyloNode root = tree.getRoot();
-        
-        
-        return null;
-    }
-    
-    private PhyloNode copyNode(PhyloNode originalNode) {
-        if (originalNode==null) {
-            return null;
-        }
-        //copy node, using constructor copy 
-        PhyloNode copiedNode=new PhyloNode();
-        Enumeration<PhyloNode> children = originalNode.children();
-        while (children.hasMoreElements()) {
-            PhyloNode nextElement = children.nextElement();
-            copiedNode.add(copyNode(nextElement));
-        }
-        return copiedNode;
-        
-    }
     
     
     //--------------------------------------------------------------------------
@@ -386,7 +364,10 @@ public class PhyloTree extends JTree implements Serializable {
     //this uses RMQ+LCA: as described in geeksforgeeks.org/find-lca-in-binary-tree-using-rmq/
     // it is O(n) for preprocessing, then O(log n) for finding LCA of 2 nodes
     
-    private class St_class {
+    private class St_class implements Serializable {
+        
+        private static final long serialVersionUID = 2001L;
+        
         int st;
         int stt[] = new int[10000];
     }
@@ -710,6 +691,14 @@ public class PhyloTree extends JTree implements Serializable {
             this.nodeDistance=nd;
             this.path=p;
         }  
+
+        @Override
+        public String toString() {
+            return "nd="+nodeDistance+" bd="+branchDistance+" "+path;
+        }
+        
+        
+        
     }
     
     

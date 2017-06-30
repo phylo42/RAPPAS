@@ -41,6 +41,9 @@ public class SessionNext_v2 {
     PhyloTree originalTree=null;
     ExtendedTree extendedTree=null;
     PhyloTree ARTree=null;
+    /**
+     * map(ARTree NodeID)= extended tree NodeID
+     */
     HashMap<Integer,Integer> nodeMapping=null;
     PProbasSorted parsedProbas=null;    
     SimpleHash_v2 hash=null;
@@ -94,7 +97,7 @@ public class SessionNext_v2 {
             oos.writeObject(extendedTree);
             Infos.println("Storing of AR Tree");
             oos.writeObject(ARTree);
-            Infos.println("Storing of node mappings");
+            Infos.println("Storing of AR node mappings");
             oos.writeObject(nodeMapping);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
@@ -141,7 +144,7 @@ public class SessionNext_v2 {
             oos.writeObject(extendedTree);
             Infos.println("Storing of AR Tree");
             oos.writeObject(ARTree);
-            Infos.println("Storing of node mappings");
+            Infos.println("Storing of AR node mappings");
             oos.writeObject(nodeMapping);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
@@ -188,7 +191,7 @@ public class SessionNext_v2 {
             oos.writeObject(extendedTree);
             Infos.println("Storing of AR Tree");
             oos.writeObject(ARTree);
-            Infos.println("Storing of node mappings");
+            Infos.println("Storing of AR node mappings");
             oos.writeObject(nodeMapping);
             Infos.println("Storing of PPStats");
             oos.writeObject(parsedProbas);
@@ -232,7 +235,7 @@ public class SessionNext_v2 {
             s.extendedTree = (ExtendedTree)ois.readObject();
             Infos.println("Loading AR Tree");
             s.ARTree = (PhyloTree)ois.readObject();
-            Infos.println("Loading of node mappings");
+            Infos.println("Loading of AR node mappings");
             s.nodeMapping = (HashMap<Integer,Integer>)ois.readObject();
             Infos.println("Loading of PPStats");
             s.parsedProbas = (PProbasSorted)ois.readObject();

@@ -28,6 +28,11 @@ public class NewickReader {
      */
     public static PhyloTree parseNewickTree2(String s, boolean forceRooting) {
         
+        if (s==null) {
+            System.out.println("Cannot read tree string, is null");
+            return null;
+        }
+        
         //counter to build internal nodeIds
         //(different from labels read in the newick)
         int currentNodeIndex=-1;
@@ -42,7 +47,7 @@ public class NewickReader {
         boolean descending=false;
         boolean ascending=false;
         PhyloNode bufferedNode=null;
-        //the newick is red from laft to rigth, parenthesis are used to 
+        //the newick is red from left to rigth, parenthesis are used to 
         //jump dig in and out at different depths
         for (int i = 0; i < s.length(); i++) {
 //            System.out.println("i:"+i);
@@ -182,17 +187,24 @@ public class NewickReader {
             //rooting will be done on the edge linking the newick root 
             //and the 3 son: 
             //(son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
+            //
+            //   newick_root                      added_root
+            //     / | \bl=1.5  ==>          bl=0/   \ bl=1.5
+            //    /  |  \               newick_root   \
+            // son1 son2 son3                /  \      son3
+            //                            son1  son2
+            //
             PhyloNode newick_root=bufferedNode;
-            PhyloNode son1=bufferedNode.getChildAt(0);
-            PhyloNode son2=bufferedNode.getChildAt(1);
+            //PhyloNode son1=bufferedNode.getChildAt(0);
+            //PhyloNode son2=bufferedNode.getChildAt(1);
             PhyloNode son3=bufferedNode.getChildAt(2);
             PhyloNode added_root=new PhyloNode(++currentNodeIndex, "added_root", 0.0f);
             //unlink sons3
             float son3_bl=son3.getBranchLengthToAncestor();
             son3.removeFromParent();
             //set new branch lengths
-            son3.setBranchLengthToAncestor(son3_bl/2);
-            newick_root.setBranchLengthToAncestor(son3_bl/2);
+            son3.setBranchLengthToAncestor(son3_bl);
+            newick_root.setBranchLengthToAncestor(0.0f);
             //link son3 and newick_root to added_root
             added_root.add(newick_root);
             added_root.add(son3);

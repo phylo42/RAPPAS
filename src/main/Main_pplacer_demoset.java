@@ -162,7 +162,7 @@ public class Main_pplacer_demoset {
                 /////////////////////////////////////////////////////////////
                 //generate SAMPLING_NON_OVERLAPPING mers from ReadKnife
                 System.out.println("################################################");
-                System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
+                System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence(false));
                 SequenceKnife knife=new SequenceKnife(fasta, k, S.minK, S.states,SequenceKnife.SAMPLING_NON_OVERLAPPING);
                 System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
 

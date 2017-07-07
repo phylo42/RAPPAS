@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -140,5 +142,12 @@ public class Environement {
         }    
     }
     
+    /**
+     * return the current working directory
+     * @return 
+     */
+    public static Path getCurrentDirectory() {
+        return Paths.get(".").toAbsolutePath().normalize();
+    }
     
 }

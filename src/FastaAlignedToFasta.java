@@ -36,7 +36,7 @@ public class FastaAlignedToFasta {
             Fasta fasta=null;
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                 fw.write(">"+fasta.getHeader()+"\n");
-                fw.write(fasta.getSequence()+"\n");
+                fw.write(fasta.getSequence(false)+"\n");
             }
             
             

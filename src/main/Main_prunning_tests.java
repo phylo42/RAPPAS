@@ -231,7 +231,7 @@ public class Main_prunning_tests {
 
 
             System.out.println("################################################");
-            System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence());
+            System.out.println("Fasta: "+fasta.getHeader()+";"+fasta.getSequence(false));
             SequenceKnife knife=new SequenceKnife(fasta, session.k, session.minK, session.states,SequenceKnife.SAMPLING_LINEAR);
             //System.out.println("merOrder: "+Arrays.toString(knife.getMerOrder()));
             long startTime=System.currentTimeMillis();

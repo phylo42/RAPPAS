@@ -27,8 +27,15 @@ public class Fasta {
         return header;
     }
 
-    public String getSequence() {
-        return sequence;
+    /**
+     * the sequence itself, without trailing characters
+     * @param removeGaps 
+     */
+    public String getSequence(boolean removeGaps) {
+        if (!removeGaps)
+            return sequence;
+        else 
+            return sequence.replaceAll("-", "");
     }
 
     public void setHeader(String header) {
@@ -59,7 +66,7 @@ public class Fasta {
         if (obj == this) return true;
         if (!(obj instanceof Fasta))return false;
         Fasta otherObj = (Fasta)obj;
-        return this.sequence.equals(otherObj.getSequence());
+        return this.sequence.equals(otherObj.getSequence(false));
     }
 
     /**
@@ -71,5 +78,12 @@ public class Fasta {
     public int hashCode() {
         return JenkinsHash.hash32(this.sequence.getBytes(), 1);
     }
+
+    @Override
+    public String toString() {
+        return header+"(l="+sequence.length()+")";
+    }
+    
+    
     
 }

@@ -16,11 +16,17 @@ import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.ARProcessResults;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -114,22 +120,26 @@ public class Main_DBBUILD_2 {
      * @param processLog null if not used
      * @param k
      * @param alpha 
-     * @param branchPerLengthAmount 
-     * @param s 
-     * @param a 
-     * @param t 
+     * @param branchPerLength 
+     * @param s states (DNA or Protein)
+     * @param a alignment
+     * @param t tree
      * @param workDir 
-     * @param ARExecutablePath 
+     * @param ARBinary binaries of external AR program
+     * @param ARDirToUse if not null, search AR result in this directory instead of launching AR
+     * @param exTreeDir if not null, serch extended tree and alignments in this directory instead of building them
      */
-    public static void DBGeneration(    FileWriter processLog, 
-                                        int k, 
-                                        float alpha, 
-                                        int branchPerLengthAmount, 
-                                        States s, 
-                                        File a, 
+    public static void DBGeneration(    FileWriter processLog,
+                                        int k,
+                                        float alpha,
+                                        int branchPerLength,
+                                        States s,
+                                        File a,
                                         File t,
                                         File workDir,
-                                        File ARExecutablePath
+                                        File ARBinary,
+                                        File ARDirToUse,
+                                        File exTreeDir
                                     ) {
         
         
@@ -233,49 +243,80 @@ public class Main_DBBUILD_2 {
             
             ExtendedTree extendedTree = null;
 
-            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+".fasta");
-            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+".phylip");
-            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_mbl"+minBranchLength+"_"+branchPerLengthAmount+"_withBL.tree");
-            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_mbl"+minBranchLength+"_pedge"+branchPerLengthAmount+"_withBL_withoutInterLabels.tree");;
+            File fileRelaxedAlignmentFasta=new File(extendedTreePath+"extended_align.fasta");
+            File fileRelaxedAlignmentPhylip=new File(extendedTreePath+"extended_align.phylip");
+            File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_withBL.tree");
+            File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_withBL_withoutInterLabels.tree");
+            File fileRelaxedTreeBinary=new File(extendedTreePath+"extended_tree.bin");
             //String extendedTreeForJplace=null;
             
             if (buildRelaxedTree) {
-                try {
-                    System.out.println("Injecting fake nodes...");
-                    //note, we read again the tree to build a new PhyloTree object
-                    //this is necessary as its TreeModel is directly modified
-                    //at instanciation of ExtendedTree
-                    extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline, forceRooting),minBranchLength,branchPerLengthAmount);                    
-                    extendedTree.initIndexes(); // don't forget to reinit indexes !!!
-                    ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTree.getFakeLeaves();
-                    Infos.println("RelaxedTree contains "+extendedTree.getLeavesCount()+ " leaves");
-                    Infos.println("RelaxedTree contains "+extendedTree.getFakeLeaves().size()+ " FAKE_X new leaves");
-                    //add new leaves to alignment
-                    for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
-                        PhyloNode node = listOfNewFakeLeaves.get(i);
+                if (exTreeDir!=null) {
+                    try {
+                        System.out.println("Injecting fake nodes...");
+                        //note, we read again the tree to build a new PhyloTree object
+                        //this is necessary as its TreeModel is directly modified
+                        //at instanciation of ExtendedTree
+                        extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline, forceRooting),minBranchLength,branchPerLength);                    
+                        extendedTree.initIndexes(); // don't forget to reinit indexes !!!
+                        ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTree.getFakeLeaves();
+                        Infos.println("RelaxedTree contains "+extendedTree.getLeavesCount()+ " leaves");
+                        Infos.println("RelaxedTree contains "+extendedTree.getFakeLeaves().size()+ " FAKE_X new leaves");
+                        //add new leaves to alignment
                         char[] gapSeq=new char[align.getLength()];
                         Arrays.fill(gapSeq, '-');
-                        align.addSequence(node.getLabel(), gapSeq);
+                        ArrayList<char[]> seqs=new ArrayList<>();
+                        String[] labels=new String[listOfNewFakeLeaves.size()];
+                        for (int i = 0; i < listOfNewFakeLeaves.size(); i++) {
+                            labels[i]=listOfNewFakeLeaves.get(i).getLabel();
+                            seqs.add(gapSeq);
+                        }
+                        align.addAllSequences(labels,seqs);
+                        //write alignment and ARTree for BrB
+                        Infos.println("Write extended alignment (fasta): "+fileRelaxedAlignmentFasta.getAbsolutePath());
+                        align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
+                        Infos.println("Write extended alignment (phylip): "+fileRelaxedAlignmentPhylip.getAbsolutePath());
+                        align.writeAlignmentAsPhylip(fileRelaxedAlignmentPhylip);
+                        //write extended trees
+                        Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
+                        NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
+                        nw.writeNewickTree(extendedTree, true, true, false);
+                        nw.close();
+                        //write version without internal nodes labels
+                        Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
+                        nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
+                        nw.writeNewickTree(extendedTree, true, false, false);
+                        //save this extendedTree as a binary
+                        FileOutputStream fos = new FileOutputStream(fileRelaxedTreeBinary);
+                        ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
+                        Infos.println("Storing binary version of Extended Tree.");
+                        oos.writeObject(extendedTree);
+                        oos.close();
+                        fos.close();
+                        //extendedTreeForJplace=nw.getNewickTree(extendedTree, true, true, true);
+                        nw.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        System.out.println("Error raised from extended tree reconstruciton!");
                     }
-                    //write alignment and ARTree for BrB
-                    Infos.println("Write extended alignment (fasta): "+fileRelaxedAlignmentFasta.getAbsolutePath());
-                    align.writeAlignmentAsFasta(fileRelaxedAlignmentFasta);
-                    Infos.println("Write extended alignment (phylip): "+fileRelaxedAlignmentPhylip.getAbsolutePath());
-                    align.writeAlignmentAsPhylip(fileRelaxedAlignmentPhylip);
-                    //write extended trees
-                    Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
-                    NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
-                    nw.writeNewickTree(extendedTree, true, true, false);
-                    nw.close();
-                    //write version without internal nodes labels
-                    Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
-                    nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
-                    nw.writeNewickTree(extendedTree, true, false, false);
-                    //extendedTreeForJplace=nw.getNewickTree(extendedTree, true, true, true);
-                    nw.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    System.out.println("Error raised from extended tree reconstruciton!");
+                } else {
+                    fileRelaxedAlignmentFasta=new File(exTreeDir.getAbsolutePath()+File.separator+"extended_align.fasta");
+                    fileRelaxedAlignmentPhylip=new File(exTreeDir.getAbsolutePath()+File.separator+"extended_align.phylip");
+                    fileRelaxedTreewithBL=new File(exTreeDir.getAbsolutePath()+File.separator+"extended_tree_withBL.tree");
+                    fileRelaxedTreewithBLNoInternalNodeLabels=new File(exTreeDir.getAbsolutePath()+File.separator+"extended_tree_withBL_withoutInterLabels.tree");
+                    fileRelaxedTreeBinary=new File(exTreeDir.getAbsolutePath()+File.separator+"extended_tree.bin");
+                    FileInputStream fis = new FileInputStream(fileRelaxedTreeBinary);
+                    ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(fis,4096));
+                    Infos.println("Loading Extended Tree from binary file.");
+                    extendedTree = (ExtendedTree)ois.readObject();
+                    ois.close();
+                    fis.close();
+                    //simple test
+                    if (extendedTree.getFakeInternalNodes().size()<1) {
+                        System.out.println("Something went wrong with load of ExtendedTree from "+fileRelaxedTreeBinary.getAbsolutePath());
+                        System.exit(1);
+                    }
+
                 }
             }
             
@@ -283,32 +324,38 @@ public class Main_DBBUILD_2 {
             
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
-            //for now, configure AR software based executable name
+            //for now, configure AR software based ARBinary name
             ARProcessLauncher arpl=null;
-            if (ARExecutablePath.getName().contains("phyml")) {
-                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARExecutablePath,verboseAR);
-            } else if (ARExecutablePath.getName().contains("baseml")){
-                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PAML,ARExecutablePath,verboseAR);
+            //basique recognition of AR software in use, through its ARBinary name
+            //Note: even if AR is skipped (option --ardir),
+            //ArgumentsParser.ARBinary has default value "phyml", which allows 
+            //instanciation here. It will just not be executed.
+            if (ARBinary.getName().contains("phyml")) {  
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARBinary,verboseAR);
+            } else if (ARBinary.getName().contains("baseml")){
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PAML,ARBinary,verboseAR);
             } else {
                 System.out.println("AR binary could not be associated to know AR configuration...");
                 System.exit(1);
             }          
             if (launchAR) {
-                System.out.println("Launching ancestral reconstruction...");
                 File alignmentFile=null;
                 File treeFile=null;
                 if (buildRelaxedTree) {
                     alignmentFile=fileRelaxedAlignmentPhylip;
                     treeFile=fileRelaxedTreewithBLNoInternalNodeLabels;
-
                 } else {
                     alignmentFile=a;
                     treeFile=t;
+                } 
+                if (ARDirToUse==null) {
+                    System.out.println("Launching ancestral reconstruction...");
+                    arpl.launchAR(new File(ARPath),alignmentFile, treeFile);
+                } else {
+                    System.out.println("Ancestral reconstruction loaded from directory set with --arpath.");
+                    arpl.loadExistingAR(ARDirToUse, alignmentFile, treeFile);
                 }
-                arpl.launchAR(new File(ARPath),alignmentFile, treeFile);
-            } else {
-                System.out.println("AR will be loaded from already existing files...");
-            }
+            } 
 
             
             ////////////////////////////////////////////////////////////////////

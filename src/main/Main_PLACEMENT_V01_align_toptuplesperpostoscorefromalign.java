@@ -246,7 +246,7 @@ public class Main_PLACEMENT_V01_align_toptuplesperpostoscorefromalign {
                 Infos.println("#######################################################################");
                 fw.append(fasta.getFormatedFasta()+"\n");
                 long startScanTime=System.currentTimeMillis();
-                int queryLength=fasta.getSequence().length();
+                int queryLength=fasta.getSequence(false).length();
                 Infos.println("Query length: "+queryLength);
                 
                 //check if another query didn't had exactly the same sequence

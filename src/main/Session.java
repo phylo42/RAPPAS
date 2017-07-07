@@ -216,8 +216,8 @@ public class Session {
             
             if (readCounter>limit) {break;}
             
-            System.out.println("Read: "+fasta.getHeader()+"\n"+fasta.getSequence());
-            SequenceKnife knife=new SequenceKnife(fasta.getSequence(),k , minK, new DNAStates(), SequenceKnife.SAMPLING_LINEAR);
+            System.out.println("Read: "+fasta.getHeader()+"\n"+fasta.getSequence(false));
+            SequenceKnife knife=new SequenceKnife(fasta.getSequence(false),k , minK, new DNAStates(), SequenceKnife.SAMPLING_LINEAR);
             System.out.println("Mer order"+Arrays.toString(knife.getMerOrder()));
             Word w=null;
             while (( w=knife.getNextWord())!=null) {

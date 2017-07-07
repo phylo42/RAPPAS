@@ -77,7 +77,7 @@ public class NewickWriter {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
-        if (treeCount>0) {w.append('\n');}
+        if (treeCount>1) {w.append('\n');}
         currentNodeIndex=0;
         level=0;
         PhyloNode root=(PhyloNode)tree.getModel().getRoot();

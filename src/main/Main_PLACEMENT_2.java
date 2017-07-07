@@ -256,7 +256,7 @@ public class Main_PLACEMENT_2 {
                 Infos.println("Number of internal nodes to scan: "+scannedNodes);
                 
                 //query length
-                int queryLength=fasta.getSequence().length();
+                int queryLength=fasta.getSequence(false).length();
                 Infos.println("Query length: "+queryLength);
                 //diagSums shift on the left
                 int diagsumShift=queryLength-minOverlap;

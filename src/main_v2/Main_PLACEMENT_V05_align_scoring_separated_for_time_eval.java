@@ -296,7 +296,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 //are too heavy in memory
                 long startChecksumTime=System.currentTimeMillis();
                 checksumGenerator.reset(); //make it ready before next checksum computation
-                checksumGenerator.update(fasta.getSequence().getBytes());
+                checksumGenerator.update(fasta.getSequence(false).getBytes());
                 String checksum = checksumGenerator.getFormattedValue();
                 int cutIndex=fasta.getHeader().indexOf(" ");
                 if (cutIndex<0) //basically, space not found
@@ -337,7 +337,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 Infos.println("#######################################################################");
                 //fw.append(fasta.getFormatedFasta()+"\n");
                 long startAlignTime=System.currentTimeMillis();
-                int queryLength=fasta.getSequence().length();
+                int queryLength=fasta.getSequence(false).length();
                 Infos.println("Query length: "+queryLength);
                 
                 

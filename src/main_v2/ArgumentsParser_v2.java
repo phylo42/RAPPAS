@@ -10,6 +10,8 @@ import etc.Environement;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * parse the arguments when command_line version is used
@@ -33,12 +35,15 @@ public class ArgumentsParser_v2 {
 
     
     //parameters for DB build
-    public int k=7; //default=5
+    public int k=8; //default=8
     public float alpha=1.5f; //default=1.5
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
-    public File ARExecutablePath=new File("phyml"); 
+    //eventual directories passed for debugging
+    public File ARBinary=new File("phyml"); //default = phyml command line
+    public File ARDirToUse=null;
+    public File exTreeDir=null;
     
     //parameters for placement
     public int minOverlap=100; //default =100
@@ -67,16 +72,23 @@ public class ArgumentsParser_v2 {
             System.out.println("Cannot find 'mode' (option -m). See help (-h) for details.");
             System.exit(1);
         }
-        //if arguments values are correct
-        loadParameters();
+        try {
+            //if arguments values are correct
+            loadParameters();
+        } catch (Exception ex) {
+            Logger.getLogger(ArgumentsParser_v2.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Unexpected parameters !");
+            System.out.println("Something went wrong with the given command line parameters... ");
+            System.exit(1);
+        }
 
     }
 
 
     /**
-     * check if arguments values are correct
+     * check if arguments assoiations and values are correct
      */
-    private void loadParameters() {
+    private void loadParameters() throws Exception {
 
         //general loop, must pass a 1st time on all arguments to set the mode for sure
         boolean wGiven=false;
@@ -121,8 +133,10 @@ public class ArgumentsParser_v2 {
         }
         
         if (!wGiven) {
-            this.workingDir=Environement.getExecutablePathWithoutFilename(this.getClass());
-            System.out.println("Default workDir="+this.workingDir.getAbsolutePath()+" will be used.");
+            //this.workingDir=Environement.getExecutablePathWithoutFilename(this.getClass());
+            this.workingDir=Environement.getCurrentDirectory().toFile();
+            System.out.println("Default working directory (current directory) will be used.");
+            System.out.println("workDir="+this.workingDir.getAbsolutePath());
         }
         
         
@@ -200,9 +214,48 @@ public class ArgumentsParser_v2 {
                         }
                         
                     }
-
                     
+                    //////////////////////////////////////
+                    //////////////////////////////////////
+                    //DEBUG OPTIONS
+                    
+                    //test --ardir parameter
+                    if (argsMap.get(index).equals("--ardir")) {
+                        File ARDir=new File(argsMap.get(index+1));
+                        System.out.println("Using AR provided by user: "+ARDir.getAbsolutePath());
+                        if (ARDir.isDirectory() && ARDir.canRead()) {
+                            this.ARDirToUse=ARDir;
+                        } else {
+                            System.out.println("Cannot open directory given through option --ardir: Not a directory or no read permission.");
+                            System.exit(1);
+                        }
+                    }
+                    
+                    //test --arbinary parameter
+                    if (argsMap.get(index).equals("--arbinary")) {
+                        File ARBinaryFile=new File(argsMap.get(index+1));
+                        System.out.println("Using AR binary provided by user: "+ARBinaryFile.getAbsolutePath());
+                        if (ARBinaryFile.isFile() && ARBinaryFile.canExecute()) {
+                            this.ARBinary=ARBinaryFile;
+                        } else {
+                            System.out.println("Cannot execute binary loaded through option --arbinary: Not a file or no execution permission.");
+                            System.exit(1);
+                        }
+                    }
+                    
+                    //test --extendedtree parameter
+                    if (argsMap.get(index).equals("--extree")) {
+                        File exTreeDir=new File(argsMap.get(index+1));
+                        System.out.println("Using extended trees provided by user: "+exTreeDir.getAbsolutePath());
+                        if (exTreeDir.isFile() && exTreeDir.canExecute()) {
+                            this.exTreeDir=exTreeDir;
+                        } else {
+                            System.out.println("Cannot open directory given through option --extree: Not a directory or no read permission.");
+                            System.exit(1);
+                        }
+                    }
                 }
+                
                 //use defaults if -k,-a,-f not set
                 if (!kGiven) {System.out.println("Default k="+this.k+" will be used.");}
                 if (!alphaGiven) {System.out.println("Default alpha="+this.alpha+" will be used.");}
@@ -212,6 +265,10 @@ public class ArgumentsParser_v2 {
                 
             //check if -q given when mode=p    
             case PLACEMENT_MODE:
+                
+                boolean dGiven=false;
+                boolean qGiven=false;
+                
                 for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
                     int index=it.next();
                     //test -q parameter
@@ -219,6 +276,7 @@ public class ArgumentsParser_v2 {
                         File queries=new File(argsMap.get(index+1));
                         if (queries.isFile() && queries.canRead()) {
                             this.queriesFile=queries;
+                            qGiven=true;
                         } else {
                             System.out.println(queries.getAbsolutePath());
                             System.out.println("Cannot open queries: Not a file or no read permission.");
@@ -230,6 +288,7 @@ public class ArgumentsParser_v2 {
                         File database=new File(argsMap.get(index+1));
                         if (database.isFile() && database.canRead()) {
                             this.databaseFile=database;
+                            dGiven=true;
                         } else {
                             System.out.println(database.getAbsolutePath());
                             System.out.println("Cannot open database: Not a file or no read permission.");
@@ -247,7 +306,12 @@ public class ArgumentsParser_v2 {
                         }
                     }
                 }
+                
+                //check if both -d and -q were set
+                if (!dGiven) {System.out.println("User did not provided a reference database (-d).");System.exit(1);}
+                if (!qGiven) {System.out.println("User did not provided a query (-q).");System.exit(1);}
                 break;
+                
             //mode was not set, we must exit
             default:
                 System.out.println("You should never arrive here. If yes, welcome to a world of ... don't know, probably another dimension.");
@@ -282,20 +346,27 @@ public class ArgumentsParser_v2 {
         "-k (--k)          Word length used for the DB build (B mode only).\n" +
         "-l (--minoverlap) Option not implemented yet.\n" +
         "-m (--mode)       One of 'B' for \"Build\" or 'P' for \"Place\"\n" +
-        "                   * b: DB of ancetral words and associated \n"+
-        "                        probabilites is generated. \n" +
-        "                   * p: Using a DB of ancestral words, queries are \n"+
-        "                        placed on the reference tree.\n" +
+        "                   * B: Build DB of ancestral words and associated \n"+
+        "                        probabilites. \n" +
+        "                   * P: Placement of query sequences, using a DB of\n"+
+        "                        ancestral words prevously built with mode B.\n" +
         "-s (--dbsize)     DB size to load for the placement (P mode only).\n" +    
         "                  One of [full|medium|small] \n" +    
         "-t (--tree)       Reference tree, in newick format. Used for ancestral \n"+
         "                  reconstruction and DB build (B mode only).\n" +
         "-q (--queries)    Sequences to place, in fasta format (P mode only)\n" +
         "-v (--verbose)    Verbosity level: 0=none ; 1=basic ; 2=full\n" +
-        "-w (--workdir)    Path of the working directory (default= current dir).\n\n"
-
-
-       );
+        "-w (--workdir)    Path of the working directory (default= current dir).\n\n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "Debug options: Use them only if you know what you are doing...    \n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "--ardir           Skip AR reconstruction, searching its results in the\n"+
+        "                  specified directory (B mode only).\n" +
+        "--arbinary        Binary used for AR, ex: phyml. (B mode only).\n" +
+        "--extree          Skip fake nodes injection, and use files present in\n"+
+        "                  the specified directory instead (B mode only).\n" +
+        "\n\n"
+        );
        System.exit(1);
     }  
 

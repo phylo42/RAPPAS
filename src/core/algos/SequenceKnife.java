@@ -62,7 +62,7 @@ public class SequenceKnife {
         this.k=k;
         this.minK=minK;
         this.s=s;
-        String seq = f.getSequence();
+        String seq = f.getSequence(false);
         initTables(seq, SAMPLING_LINEAR);
     }
    
@@ -107,7 +107,7 @@ public class SequenceKnife {
         this.k=k;
         this.minK=minK;
         this.s=s;
-        String seq = f.getSequence();
+        String seq = f.getSequence(false);
         initTables(seq, samplingMode);
     }
     

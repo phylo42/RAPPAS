@@ -8,9 +8,7 @@ package main_v2;
 import core.AAStates;
 import core.DNAStates;
 import core.States;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import static main.Main_DBBUILD.TYPE_DNA;
 
 
@@ -27,6 +25,7 @@ public class Main_v2 {
             long startTime=System.currentTimeMillis();
             System.out.println("#####################################");
             System.out.println("## Viromeplacer v"+consoleVersion);
+            System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France)");
             System.out.println("#####################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
@@ -81,8 +80,8 @@ public class Main_v2 {
             //QUERIES::
             
             //DATASET 4BRANCHES TESTS
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark/queries.fasta";
-            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.full";
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/4leaves_tree_benchmark/queries.fasta";
+//            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.full";
             
             
             //DATASET BASIC RAPID TESTS:
@@ -97,28 +96,30 @@ public class Main_v2 {
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
 //            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
 
-
+            workDir="/media/ben/STOCK/DATA/viromeplacer/accu_tests/error_raising_cases/test_A0_nx4_la_k5_a1";
+            String q="/media/ben/STOCK/DATA/viromeplacer/accu_tests/error_raising_cases/test_A0_nx4_la_k5_a1/R0_nx4_la_r150.fasta";
+            String db="/media/ben/STOCK/DATA/viromeplacer/accu_tests/error_raising_cases/test_A0_nx4_la_k5_a1/DB_session_k5_a1.0_t9.765625E-4.medium";
 
             //db build launch
-            String arguments=
-                              "-m B "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(5)+" "
-                            + "-a "+String.valueOf(1.0)+" "
-                            + "-v 1"
-                            ;
+//            String arguments=
+//                              "-m B "
+//                            + "-w "+workDir+" "
+//                            + "-i "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(5)+" "
+//                            + "-a "+String.valueOf(1.0)+" "
+//                            + "-v 1"
+//                            ;
             
 //            // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-s full "
-//                            + "-v 1"
-//                            ;            
+            String arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-s medium "
+                            + "-v 1"
+                            ;            
             
             //force args
             //args=arguments.split(" ");
@@ -144,8 +145,12 @@ public class Main_v2 {
             
             //parse program arguments
             ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
-            argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml");
-            //argsParser.ARExecutablePath=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
+            //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml");
+            //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
+            
+            //HACK FOR CURRENT DEBUGING, avoids check if it exists or not (done by ArgumentsParser)
+            argsParser.ARBinary=new File("baseml");
+            
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
@@ -159,7 +164,9 @@ public class Main_v2 {
                                             argsParser.alignmentFile,
                                             argsParser.treeFile,
                                             argsParser.workingDir,
-                                            argsParser.ARExecutablePath
+                                            argsParser.ARBinary,
+                                            argsParser.ARDirToUse,
+                                            argsParser.exTreeDir
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {

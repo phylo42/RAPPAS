@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import inputs.Fasta;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -61,13 +62,13 @@ public class Alignment implements Serializable {
             Fasta f = fastas.get(i);
             //init matrix 
             if (i==0) {
-                charMatrix=new char[fastas.size()][f.getSequence().length()];
-                colPartitionIds=new int[f.getSequence().length()];
+                charMatrix=new char[fastas.size()][f.getSequence(false).length()];
+                colPartitionIds=new int[f.getSequence(false).length()];
                 rowLabels=new String[fastas.size()];
             }
             
-            for (int j = 0; j < f.getSequence().length(); j++) {
-                charMatrix[i][j]=f.getSequence().charAt(j);
+            for (int j = 0; j < f.getSequence(false).length(); j++) {
+                charMatrix[i][j]=f.getSequence(false).charAt(j);
             }
             rowLabels[i]=f.getHeader();
         }
@@ -84,13 +85,13 @@ public class Alignment implements Serializable {
             
             //init matrix 
             if (i==0) {
-                charMatrix=new char[fastas.size()][f.getSequence().length()];
-                colPartitionIds=new int[f.getSequence().length()];
+                charMatrix=new char[fastas.size()][f.getSequence(false).length()];
+                colPartitionIds=new int[f.getSequence(false).length()];
                 rowLabels=new String[fastas.size()];
             }
             
-            for (int j = 0; j < f.getSequence().length(); j++) {
-                charMatrix[i][j]=f.getSequence().charAt(j);
+            for (int j = 0; j < f.getSequence(false).length(); j++) {
+                charMatrix[i][j]=f.getSequence(false).charAt(j);
             }
             rowLabels[i]=f.getHeader();
         }
@@ -118,6 +119,25 @@ public class Alignment implements Serializable {
         newRowLabels[rowLabels.length]=label;
         rowLabels=newRowLabels;
     }
+    
+    public void addAllSequences(String[] labels, ArrayList<char[]> seqs) {
+        //reinstantiate table with a new line
+        char[][] newCharMatrix=new char[charMatrix.length+labels.length][charMatrix[0].length];
+        for(int i=0; i<charMatrix.length; i++)
+            newCharMatrix[i]=charMatrix[i];
+        for(int i=0; i<seqs.size(); i++)
+            newCharMatrix[charMatrix.length+i]=seqs.get(i);
+        charMatrix=newCharMatrix;
+        //reinstantiate table with a new line
+        String[] newRowLabels=new String[rowLabels.length+labels.length];
+        for(int i=0; i<rowLabels.length; i++)
+            newRowLabels[i]=rowLabels[i];
+        for(int i=0; i<labels.length; i++)
+            newRowLabels[rowLabels.length+i]=labels[i];
+        rowLabels=newRowLabels;
+    }
+    
+    
     
     /**
      * use with parsimony, this reinstanciates the arrays
@@ -201,15 +221,15 @@ public class Alignment implements Serializable {
     
 
     public void writeAlignmentAsFasta(File f) throws IOException {
-        FileWriter fw=new FileWriter(f);
+        BufferedWriter br=new BufferedWriter(new FileWriter(f),4096);
         for (int i = 0; i < charMatrix.length; i++) {
-            fw.append(">");
-            fw.append(rowLabels[i]);
-            fw.append("\n");
-            fw.append(String.copyValueOf(charMatrix[i]));
-            fw.append("\n");
+            br.append(">");
+            br.append(rowLabels[i]);
+            br.append("\n");
+            br.append(String.copyValueOf(charMatrix[i]));
+            br.append("\n");
         }
-        fw.close();
+        br.close();
     }
     
     public void writeAlignmentAsPhylip(File f) throws IOException {
@@ -219,31 +239,31 @@ public class Alignment implements Serializable {
         int allowedLabelSize=50; //in fact(48 +2 spaces)
         int numColumns=2;
         
-        FileWriter fw=new FileWriter(f);
-        fw.append(String.valueOf(charMatrix.length)+" "+String.valueOf(charMatrix[0].length)+"\n");     
+        BufferedWriter br=new BufferedWriter(new FileWriter(f),4096);
+        br.append(String.valueOf(charMatrix.length)+" "+String.valueOf(charMatrix[0].length)+"\n");     
         for (int i = 0; i < charMatrix.length; i++) {
             //add label
             String label=rowLabels[i];
             if (label.length()>allowedLabelSize) {
                 label=label.substring(0, allowedLabelSize-2);
             }
-            fw.append(label);
+            br.append(label);
 
             for (int j = 0; j < (allowedLabelSize-label.length()); j++)  {
-                fw.write(' ');
+                br.write(' ');
             }
             //add sequence
             for (int j=0;j<charMatrix[0].length;j++) {
                 if (j!=0 && (j%allowedLabelSize)==0)
                     if (allowedLabelSize*numColumns==0)
-                        fw.write('\n');
+                        br.write('\n');
                     else
-                        fw.write(' ');
-                fw.write(charMatrix[i][j]);
+                        br.write(' ');
+                br.write(charMatrix[i][j]);
             }
-            fw.append("\n");
+            br.append("\n");
         }
-        fw.close();
+        br.close();
     }
     
     public String describeAlignment(boolean extended) {

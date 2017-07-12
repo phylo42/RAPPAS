@@ -137,7 +137,7 @@ public class InputManager {
             BufferedReader br=new BufferedReader(new FileReader(treeFile));
             String treeString=null;
             while((treeString=br.readLine())!=null) {}
-            this.tree = NewickReader.parseNewickTree2(treeString, false);
+            this.tree = NewickReader.parseNewickTree2(treeString, false, false);
             endTime = System.currentTimeMillis();
             Infos.println("Loading of tree used " + (endTime - startTime) + " ms");
             //probas

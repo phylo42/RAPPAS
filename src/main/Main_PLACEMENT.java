@@ -201,7 +201,7 @@ public class Main_PLACEMENT {
             BufferedReader br=new BufferedReader(new FileReader(t));
             String treeString=null;
             while((treeString=br.readLine())!=null) {}
-            PhyloTree tree = NewickReader.parseNewickTree2(treeString, false);
+            PhyloTree tree = NewickReader.parseNewickTree2(treeString, false, false);
             
             /////////////////////
             //BUILD RELAXED TREE

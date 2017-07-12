@@ -511,7 +511,7 @@ private static final int N = 1000;
                 ChartsForNodes demo=new ChartsForNodes();
                 demo.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 demo.setLayout(new GridLayout(1, 1));
-                demo.add(demo.buildPPHistogramForANode(new PhyloNode(0, "TestNode:N0",0.1f), test));
+                demo.add(demo.buildPPHistogramForANode(new PhyloNode(0, "TestNode:N0",0.1f, -1), test));
                 demo.pack();
                 RefineryUtilities.centerFrameOnScreen(demo);
                 demo.setVisible(true);

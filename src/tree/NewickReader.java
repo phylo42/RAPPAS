@@ -24,14 +24,24 @@ public class NewickReader {
      * top level), then force the return of a rooted tree; not that the root
      * will always be placed as follows: 
      * (son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
+     * @param considerJplaceEdgeLabels consider the {x} edge ids when this
+     * newick tree is a jplace style tree. If not activated the presence of this 
+     * labelling will explicitely throw an error. Example:
+     * NumberFormatException: For input string: "0.00000100000050002909{0}" ;
+     * if activated, before parsing branch length, a test is done and a map 
+     * of jplace edgeIds to PhyloTree nodeIds is build (edge assigned to son node) ;
+     * this mapping can be called with PhyloTree.getJPlaceMapping() 
      * @return 
      */
-    public static PhyloTree parseNewickTree2(String s, boolean forceRooting) {
+    
+    public static PhyloTree parseNewickTree2(String s, boolean forceRooting, boolean considerJplaceEdgeIds) {
         
         if (s==null) {
             System.out.println("Cannot read tree string, is null");
             return null;
         }
+        
+        
         
         //counter to build internal nodeIds
         //(different from labels read in the newick)
@@ -42,7 +52,7 @@ public class NewickReader {
         Stack<PhyloNode> stackedParents=new Stack<>();
         HashMap<Integer,ArrayList<PhyloNode>> nodesPerDepth=new HashMap<>();
         nodesPerDepth.put(depth, new ArrayList<>()); //init highest depth (=0)
-
+        
         StringBuilder sb=new StringBuilder();
         boolean descending=false;
         boolean ascending=false;
@@ -78,13 +88,24 @@ public class NewickReader {
                     //to fill node
                     String[] data=sb.toString().split(":");
                     String label=data[0];
-                    Float bl=-1.0f; 
-                    if (data.length>1) { bl=Float.parseFloat(data[1]); }
+                    Float bl=-1.0f;
+                    int jplaceEdgeId=-1;
+                    if (data.length>1) {
+                        //if jplace file, consider {x} as jplace nodeids
+                        if (considerJplaceEdgeIds) {
+                            int openBracketIndex=data[1].indexOf('{');
+                            jplaceEdgeId=Integer.valueOf(data[1].substring(openBracketIndex+1, data[1].indexOf('}')));
+                            bl=Float.parseFloat(data[1].substring(0, openBracketIndex));
+                        } else {
+                            bl=Float.parseFloat(data[1]);
+                        }
+                    }
                     if (!ascending)
-                        nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl));
+                        nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId));
                     else {
                         bufferedNode.setLabel(label);
                         bufferedNode.setBranchLengthToAncestor(bl);
+                        bufferedNode.setJPlaceEdgeId(jplaceEdgeId);
                     }
                 }
                 sb.delete(0, sb.length());
@@ -111,20 +132,31 @@ public class NewickReader {
                 //to fill node
                 String[] data=sb.toString().split(":");
                 String label=data[0];
-                Float bl=-1.0f; 
-                if (data.length>1) { bl=Float.parseFloat(data[1]); }
+                Float bl=-1.0f;
+                int jplaceEdgeId=-1;
+                if (data.length>1) {
+                    //if jplace file, consider {x} as jplace nodeids
+                    if (considerJplaceEdgeIds) {
+                        int openBracketIndex=data[1].indexOf('{');
+                        jplaceEdgeId=Integer.valueOf(data[1].substring(openBracketIndex+1, data[1].indexOf('}')));
+                        bl=Float.parseFloat(data[1].substring(0, openBracketIndex));
+                    } else {
+                        bl=Float.parseFloat(data[1]);
+                    }
+                }
                 //if comes from upper depth, start list of nodes for this depth
                 if (descending) {
-                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl));
+                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId));
                 //if ascending, come up from subtree, we use the unstacked node
                 } else if (ascending) {
                     bufferedNode.setLabel(label);
                     bufferedNode.setBranchLengthToAncestor(bl);
+                    bufferedNode.setJPlaceEdgeId(jplaceEdgeId);
                     //levelList.get(depth).add(bufferedNode);
                 //neither ascending or descending (case happening when unrooted
                 //tree, 1st level appears with 3 nodes, i.e. ((),(),());
                 } else {
-                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl));
+                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId));
                 }
                 sb.delete(0, sb.length());
                  
@@ -138,15 +170,22 @@ public class NewickReader {
                 String[] data=sb.toString().split(":");
                 String label=data[0];
                 Float bl=-1.0f; 
-                if (data.length>1) { bl=Float.parseFloat(data[1]); }
+                int jplaceEdgeId=-1;
+                if (data.length>1) {
+                    //if jplace file, consider {x} as jplace nodeids
+                    if (considerJplaceEdgeIds) {
+                        int openBracketIndex=data[1].indexOf('{');
+                        jplaceEdgeId=Integer.valueOf(data[1].substring(openBracketIndex+1, data[1].indexOf('}')));
+                        bl=Float.parseFloat(data[1].substring(0, openBracketIndex));
+                    } else {
+                        bl=Float.parseFloat(data[1]);
+                    }
+                }
+                
+                bufferedNode.setJPlaceEdgeId(jplaceEdgeId);
                 bufferedNode.setLabel(label);
                 bufferedNode.setBranchLengthToAncestor(bl);
-                        
-                        
-                        
-                        
-               
-            //simply fill the stringbuilder, 
+            //else, simply fill the stringbuilder, 
             //which content will be used when 
             //new nodes needs to be filled with
             //node name and branch length
@@ -198,7 +237,7 @@ public class NewickReader {
             //PhyloNode son1=bufferedNode.getChildAt(0);
             //PhyloNode son2=bufferedNode.getChildAt(1);
             PhyloNode son3=bufferedNode.getChildAt(2);
-            PhyloNode added_root=new PhyloNode(++currentNodeIndex, "added_root", 0.0f);
+            PhyloNode added_root=new PhyloNode(++currentNodeIndex, "added_root", 0.0f, -1);
             //unlink sons3
             float son3_bl=son3.getBranchLengthToAncestor();
             son3.removeFromParent();
@@ -209,10 +248,10 @@ public class NewickReader {
             added_root.add(newick_root);
             added_root.add(son3);
             //build tree
-            tree=new PhyloTree(new PhyloTreeModel(added_root),true);
+            tree=new PhyloTree(new PhyloTreeModel(added_root),true, considerJplaceEdgeIds);
         } else {
             //last bufferedNode is the root, i.e. ([sons])bufferedNode; in the newick
-            tree=new PhyloTree(new PhyloTreeModel(bufferedNode),rooted);
+            tree=new PhyloTree(new PhyloTreeModel(bufferedNode),rooted, considerJplaceEdgeIds);
         }
         
         
@@ -220,6 +259,8 @@ public class NewickReader {
         
         //init indexes related to internal/leaves stats
         tree.initIndexes();
+        
+        
         return tree;
         
     }
@@ -268,14 +309,14 @@ public class NewickReader {
         System.out.println(t_basic_rZL5);
         System.out.println(t_basic_rZX);
         
-        PhyloTree tree1 = NewickReader.parseNewickTree2(t_basic_rZX_inv, false);
+        PhyloTree tree1 = NewickReader.parseNewickTree2(t_basic_rZX_inv, false, false);
         System.out.println("t_basic parsed!");
         tree1.displayTree();
         System.out.println("isRooted:"+tree1.isRooted());
         System.out.println("Struct root:"+tree1.getRoot());
         
         System.out.println("START");
-        PhyloTree tree2 = NewickReader.parseNewickTree2(t_basic_rZX, false);
+        PhyloTree tree2 = NewickReader.parseNewickTree2(t_basic_rZX, false, false);
         System.out.println("t_basic_unrooted parsed!");
         tree2.displayTree();
         System.out.println("isRooted:"+tree2.isRooted());
@@ -296,7 +337,7 @@ public class NewickReader {
         
         //test parsing
         long startTime = System.currentTimeMillis();
-        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML, false);
+        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML, false, false);
         long endTime = System.currentTimeMillis();
         System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
         

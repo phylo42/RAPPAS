@@ -33,6 +33,11 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     
     //actual branch length in the current tree
     private float branchLengthToAncestor=-1.0f;
+    //if node of a jplac tree, following field represents the jplace id of 
+    //the branch
+    private int jplaceEdgeId=-1;
+    
+    
     //below are branch length related to the original tree (before addition of fake nodes)
     //note that these values should be set to something else than 0 only 
     //when the current PhyloNode represents a fake node (X0,X1,X2,X3).
@@ -69,32 +74,44 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         this.id=id;
     }
     
-    public PhyloNode(int id, String label, float branchLengthToAncestor) {
+    /**
+     *
+     * @param id the value of id
+     * @param label the value of label
+     * @param branchLengthToAncestor the value of branchLengthToAncestor
+     * @param jplaceEdgeId the value of jplaceEdgeId
+     */
+    public PhyloNode(int id, String label, float branchLengthToAncestor, int jplaceEdgeId) {
         nf.setMinimumFractionDigits(3);
         nf.setMaximumFractionDigits(6);
         this.branchLengthToAncestor=branchLengthToAncestor;
         this.id=id;
         this.label=label;
+        this.jplaceEdgeId=jplaceEdgeId;
     }
     
     /**
-     * this constructor should be used only for the copy() method
+     * this constructor should be used through the PhyloNode.copy() method
      * @param id
-     * @param externalId
      * @param label
      * @param branchLengthToAncestor
+     * @param jplaceEdgeId the value of jplaceEdgeId
      * @param branchLengthToOriginalAncestor
      * @param branchLengthToOriginalSon 
+     * @param children the value of children 
      */
     private PhyloNode(  int id,
                         String label,
                         float branchLengthToAncestor,
+                        int jplaceEdgeId,
                         float branchLengthToOriginalAncestor,
                         float branchLengthToOriginalSon,
-                        List<PhyloNode> children) {
+                        List<PhyloNode> children
+                    ) {
         nf.setMinimumFractionDigits(3);
         nf.setMaximumFractionDigits(6);
         this.branchLengthToAncestor=branchLengthToAncestor;
+        this.jplaceEdgeId=jplaceEdgeId;
         this.id=id;
         this.branchLengthToOriginalAncestor=branchLengthToOriginalAncestor;
         this.branchLengthToOriginalSon=branchLengthToOriginalSon;
@@ -118,7 +135,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         }
         return new PhyloNode(   id,
                                 label,
-                                branchLengthToAncestor,
+                                branchLengthToAncestor, -1,
                                 branchLengthToOriginalAncestor,
                                 branchLengthToOriginalSon,
                                 listSons
@@ -143,6 +160,14 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
 
     public void setBranchLengthToAncestor(float branchLengthToAncestor) {
         this.branchLengthToAncestor = branchLengthToAncestor;
+    }
+    
+    public void setJPlaceEdgeId(int id) {
+        this.jplaceEdgeId=id;
+    }
+
+    public int getJplaceEdgeId() {
+        return jplaceEdgeId;
     }
 
     public void setBranchLengthToOriginalAncestor(float branchLengthToOriginalAncestor) {
@@ -174,7 +199,9 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         if (branchLengthToOriginalAncestor>-1.0f)
             sb.append(":bla:"+nf.format(branchLengthToOriginalAncestor));
         if (branchLengthToOriginalSon>-1.0f)
-            sb.append(":bls:"+nf.format(branchLengthToOriginalSon));                    
+            sb.append(":bls:"+nf.format(branchLengthToOriginalSon));
+        if (jplaceEdgeId>-1)
+            sb.append("[jplace="+jplaceEdgeId+"]");
         return sb.toString();
     }
 

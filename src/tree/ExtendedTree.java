@@ -78,7 +78,7 @@ public class ExtendedTree extends PhyloTree {
      * @param branchingMode one of BRANCHING_ON_NODE, BRANCHING_ON_BRANCH
      */
     public ExtendedTree(PhyloTree tree, int branchingMode ) {
-        super(tree.getModel(),tree.isRooted());
+        super(tree.getModel(),tree.isRooted(), false);
         this.branchingMode=branchingMode;
         initRelaxedTree(tree,DEFAULT_BRANCHBREAK_LENGTH,DEFAULT_N);
     }
@@ -173,9 +173,9 @@ public class ExtendedTree extends PhyloTree {
         // "<lastOriginalId" verify that node is nt one of the new fake nodes
         if (!node.isLeaf() && node.getId()<lastOriginalId) {
             fakeNodeCounter+=3;
-            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0f);
-            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01f);
-            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01f);
+            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0f, -1);
+            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01f, -1);
+            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01f, -1);
             //add the 2 fakes to X
             X0.add(fakeX1);
             X0.add(fakeX2);
@@ -285,10 +285,10 @@ public class ExtendedTree extends PhyloTree {
 //                System.out.println("currentParent:"+currentParent);
                 //built subtree of the jth X0
                 fakeNodeCounter+=4;
-                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_X0", 0.01f);
-                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_X1", 0.01f);
-                PhyloNode X2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_X2", 0.01f);
-                PhyloNode X3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_X3", 0.01f);
+                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_X0", 0.01f, -1);
+                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_X1", 0.01f, -1);
+                PhyloNode X2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_X2", 0.01f, -1);
+                PhyloNode X3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_X3", 0.01f, -1);
                 X1.add(X2);
                 X1.add(X3);
                 X0.add(X1);

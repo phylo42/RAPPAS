@@ -9,6 +9,7 @@ import etc.Infos;
 import java.awt.Dimension;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -418,19 +419,23 @@ public class PhyloTree extends JTree implements Serializable {
         }
         
         
-        //System.out.println("A_to_root:"+Arrays.toString(pathAToRoot));        
-        //System.out.println("B_to_root:"+Arrays.toString(pathBToRoot));
-        //System.out.println("LCA      :"+LCA);
-        //System.out.println("LCA_index:"+LCAIndex);
+//        System.out.println("A_to_root:"+Arrays.toString(pathAToRoot));        
+//        System.out.println("B_to_root:"+Arrays.toString(pathBToRoot));
+//        System.out.println("LCA      :"+LCA);
+//        System.out.println("LCA_index:"+LCAIndex);
         
         //now merge both list, from LCAIndex to end of list, with inversion of A list
         float branchDist=0.0f;
         int nodeDist=0;
+        boolean added_root=false;
         for (int i = pathAToRoot.length-1; i>LCAIndex; i--) {
             //System.out.println("i:"+i);
             //System.out.println("add rl "+pathAToRoot[i]);
             l.add((PhyloNode)pathAToRoot[i]);
+            if (((PhyloNode)pathAToRoot[i]).getLabel().equals("added_root"))
+                added_root=true;
             branchDist+=((PhyloNode)pathAToRoot[i]).getBranchLengthToAncestor();
+            //System.out.println("branchDist:"+branchDist);
             if (i>LCAIndex && (i!=pathAToRoot.length-1)) {
                 nodeDist++;
                 //System.out.println("nodeDist ++  "+i);
@@ -439,23 +444,28 @@ public class PhyloTree extends JTree implements Serializable {
         for (int i = LCAIndex; i<pathBToRoot.length; i++) {
             //System.out.println("add lr "+pathBToRoot[i]);
             l.add((PhyloNode)pathBToRoot[i]);
-            if (i>LCAIndex)
+            if (((PhyloNode)pathBToRoot[i]).getLabel().equals("added_root"))
+                added_root=true;
+            if (i>LCAIndex) {
                 branchDist+=((PhyloNode)pathBToRoot[i]).getBranchLengthToAncestor();
+                //System.out.println("branchDist:"+branchDist);
+
+            }
             if (i>LCAIndex && i!=pathBToRoot.length-1) { 
                 nodeDist++;
                 //System.out.println("nodeDist ++  "+i);
             }
         } 
-        //if this path >2 (not neighboors are same nodes)
+        //if this path >1 (at least neighboors nodes)
         //then add +1 to node count, because LCA node was not counted above
-        if (l.size()>2)
+        if (l.size()>1)
             nodeDist++;
         
-        //System.out.println("path:"+l);
-        //System.out.println("branchDist:"+branchDist);
-        //System.out.println("nodeDist:"+nodeDist);
+//        System.out.println("path:"+l);
+//        System.out.println("branchDist:"+branchDist);
+//        System.out.println("nodeDist:"+nodeDist);
         
-        Path p=new Path(l,nodeDist,branchDist);
+        Path p=new Path(l,nodeDist,branchDist,added_root);
         
         return p;
         
@@ -466,20 +476,24 @@ public class PhyloTree extends JTree implements Serializable {
         public float branchDistance=-1.0f;
         public int nodeDistance=-1;
         public List<PhyloNode> path=null;
+        public boolean withAddedRoot=false;
 
-        public Path(List<PhyloNode> p, int nd, float bd) {
+        public Path(List<PhyloNode> p, int nd, float bd, boolean withAddedRoot) {
             this.branchDistance=bd;
             this.nodeDistance=nd;
             this.path=p;
-        }  
+            this.withAddedRoot=withAddedRoot;
+        }
 
+        public boolean isWithAddedRoot() {
+            return withAddedRoot;
+        }
+        
         @Override
         public String toString() {
             return "nd="+nodeDistance+" bd="+branchDistance+" "+path;
         }
-        
-        
-        
+ 
     }
     
     

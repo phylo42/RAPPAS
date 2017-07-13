@@ -247,7 +247,7 @@ public class ArgumentsParser_v2 {
                     if (argsMap.get(index).equals("--extree")) {
                         File exTreeDir=new File(argsMap.get(index+1));
                         System.out.println("Using extended trees provided by user: "+exTreeDir.getAbsolutePath());
-                        if (exTreeDir.isFile() && exTreeDir.canExecute()) {
+                        if (exTreeDir.isDirectory()&& exTreeDir.canRead()) {
                             this.exTreeDir=exTreeDir;
                         } else {
                             System.out.println("Cannot open directory given through option --extree: Not a directory or no read permission.");

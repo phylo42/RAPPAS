@@ -166,7 +166,8 @@ public class Main_v2 {
                                             argsParser.workingDir,
                                             argsParser.ARBinary,
                                             argsParser.ARDirToUse,
-                                            argsParser.exTreeDir
+                                            argsParser.exTreeDir,
+                                            argsParser.skipdbfull
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
@@ -189,6 +190,7 @@ public class Main_v2 {
             
             long endTime=System.currentTimeMillis();
             System.out.println("Total execution: "+(endTime-startTime)+" ms");
+            System.exit(0);
             
         } catch (Exception ex) {
             ex.printStackTrace();

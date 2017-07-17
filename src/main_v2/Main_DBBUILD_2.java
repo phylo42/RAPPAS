@@ -128,6 +128,7 @@ public class Main_DBBUILD_2 {
      * @param ARBinary binaries of external AR program
      * @param ARDirToUse if not null, search AR result in this directory instead of launching AR
      * @param exTreeDir if not null, serch extended tree and alignments in this directory instead of building them
+     * @param skipDBFull the value of skipDBFull
      */
     public static void DBGeneration(    FileWriter processLog,
                                         int k,
@@ -139,7 +140,8 @@ public class Main_DBBUILD_2 {
                                         File workDir,
                                         File ARBinary,
                                         File ARDirToUse,
-                                        File exTreeDir
+                                        File exTreeDir,
+                                        boolean skipDBFull
                                     ) {
         
         
@@ -441,7 +443,7 @@ public class Main_DBBUILD_2 {
             double[] wordsPerNode=new double[session.ARTree.getInternalNodesByDFS().size()];
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
-                Infos.println("Node: "+session.ARTree.getById(nodeId).toString() );
+                //Infos.println("Node: "+session.ARTree.getById(nodeId).toString() );
                     //DEBUG
                     //if(nodeId!=709)
                     //    continue;
@@ -488,7 +490,7 @@ public class Main_DBBUILD_2 {
                 
                 
                 //register all words in the hash
-                Infos.println("Tuples in this node:"+totaTuplesInNode);
+                //Infos.println("Tuples in this node:"+totaTuplesInNode);
                 double endMerScanTime=System.currentTimeMillis();
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
@@ -516,30 +518,9 @@ public class Main_DBBUILD_2 {
             //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
             //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
             
-            
-            ////////////////////////////////////////////////////////////////////
-            //SAVE THE HASH BY JAVA SERIALIZATION
-            System.out.println("Serialization of the database...");
-            session.associateHash(hash);
-            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+wordPPStarThreshold);
-            File dbfull=new File(db.getAbsoluteFile()+".full");
-            File dbmedium=new File(db.getAbsoluteFile()+".medium");
-            File dbsmall=new File(db.getAbsoluteFile()+".small");
-            session.storeFullHash(dbfull);
-            //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
-            //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
-            session.storeMediumHash(dbmedium);
-            session.storeSmallHash(dbsmall, 10);
-            arpr=null;
-            session=null;  
-            System.gc();
-            Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
-            Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
-            Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
-            System.out.println("Database saved.");
-            
+
             ////////////////////////////
-            //output some stats:
+            //output some stats as histograms:
             if (histogramNumberPositionsPerNode && hash.keySet().size()>0) {
                 Infos.println("Building #positions_per_word histogram...");
                 double[] values=new double[hash.keySet().size()];
@@ -599,6 +580,31 @@ public class Main_DBBUILD_2 {
                     ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
                 } catch (IOException e) {}
             }
+            
+            ////////////////////////////////////////////////////////////////////
+            //SAVE THE HASH BY JAVA SERIALIZATION
+            System.out.println("Serialization of the database...");
+            session.associateHash(hash);
+            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+wordPPStarThreshold);
+            File dbfull=new File(db.getAbsoluteFile()+".full");
+            File dbmedium=new File(db.getAbsoluteFile()+".medium");
+            File dbsmall=new File(db.getAbsoluteFile()+".small");
+            if (!skipDBFull)
+                session.storeFullHash(dbfull);
+            //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
+            //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
+            System.gc();
+            session.storeMediumHash(dbmedium);
+            System.gc();
+            session.storeSmallHash(dbsmall, 10);
+            arpr=null;
+            session=null;  
+            if (!skipDBFull)
+                Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
+            Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
+            Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
+            System.out.println("Database saved.");
+            
             
             
             System.out.println("FINISHED.");

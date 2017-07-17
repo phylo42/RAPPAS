@@ -40,6 +40,7 @@ public class ArgumentsParser_v2 {
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
+    public boolean skipdbfull=false; //default=false
     //eventual directories passed for debugging
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;
@@ -247,6 +248,8 @@ public class ArgumentsParser_v2 {
                     if (argsMap.get(index).equals("--extree")) {
                         File exTreeDir=new File(argsMap.get(index+1));
                         System.out.println("Using extended trees provided by user: "+exTreeDir.getAbsolutePath());
+                        System.out.println("exTreeDir:"+exTreeDir.isDirectory());
+                        System.out.println("exTreeDir:"+exTreeDir.canRead());
                         if (exTreeDir.isDirectory()&& exTreeDir.canRead()) {
                             this.exTreeDir=exTreeDir;
                         } else {
@@ -254,6 +257,16 @@ public class ArgumentsParser_v2 {
                             System.exit(1);
                         }
                     }
+                    
+                    //test --skipdbfull parameter
+                    if (argsMap.get(index).equals("--skipdbfull")) {
+                        this.skipdbfull=true;
+                    }
+                    //////////////////////////////////////
+                    //////////////////////////////////////
+                    //DEBUG OPTIONS END HERE
+                    
+                    
                 }
                 
                 //use defaults if -k,-a,-f not set
@@ -336,14 +349,14 @@ public class ArgumentsParser_v2 {
         "       ex: java -jar -Xms8000m -Xmx16000m viromplacer.jar [...] \n"+
         "       Xms -> memory allocated at start ; Xmx maximum memory allocated  \n"+
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"+
-        "-a (--alpha)      Alpha modificator levelling the score threshold. \n"+
-        "                  ancestral reconstruction and DB build (B mode only).\n" +
-        "-d (--database)   The database of ancestral words (P mode only). \n"+
-        "-f (--fakebranch) # of fake branches to add on each original branch. \n"+
+        "-a (--alpha)      [float] Alpha modifier levelling the proba threshold \n"+
+        "                  used in ancestral words filtering (B mode only).\n" +
+        "-d (--database)   [file] The database of ancestral words (P mode only). \n"+
+        "-f (--fakebranch) [int] # fake nodes to add along ref tree branches. \n"+
         "-i (--input)      Input sequences, in fasta format. When building the \n"+
         "                  database (-d mode), it is the multiple alignment from\n"+
         "                  which was inferred the phylogenetic tree. \n"+
-        "-k (--k)          Word length used for the DB build (B mode only).\n" +
+        "-k (--k)          [int] Word length used for the DB build (B mode only).\n" +
         "-l (--minoverlap) Option not implemented yet.\n" +
         "-m (--mode)       One of 'B' for \"Build\" or 'P' for \"Place\"\n" +
         "                   * B: Build DB of ancestral words and associated \n"+
@@ -352,19 +365,21 @@ public class ArgumentsParser_v2 {
         "                        ancestral words prevously built with mode B.\n" +
         "-s (--dbsize)     DB size to load for the placement (P mode only).\n" +    
         "                  One of [full|medium|small] \n" +    
-        "-t (--tree)       Reference tree, in newick format. Used for ancestral \n"+
+        "-t (--tree)       [file] Reference tree, in newick format.\n"+
         "                  reconstruction and DB build (B mode only).\n" +
-        "-q (--queries)    Sequences to place, in fasta format (P mode only)\n" +
+        "-q (--queries)    [file] Query reads to place on the reference tree,\n"+
+        "                  in fasta format (P mode only)\n" +
         "-v (--verbose)    Verbosity level: 0=none ; 1=basic ; 2=full\n" +
-        "-w (--workdir)    Path of the working directory (default= current dir).\n\n" +
+        "-w (--workdir)    [dir] Path of the working directory (default= ./).\n\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "Debug options: Use them only if you know what you are doing...    \n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
-        "--ardir           Skip AR reconstruction, searching its results in the\n"+
-        "                  specified directory (B mode only).\n" +
-        "--arbinary        Binary used for AR, ex: phyml. (B mode only).\n" +
-        "--extree          Skip fake nodes injection, and use files present in\n"+
+        "--ardir           [dir] Skip AR reconstruction, searching its results\n"+
+        "                  in the specified directory (B mode only).\n" +
+        "--arbinary        [file] Binary used for AR, ex: phyml. (B mode only).\n" +
+        "--extree          [dir] Skip fake nodes injection, and use files present in\n"+
         "                  the specified directory instead (B mode only).\n" +
+        "--skipdbfull      [] Build only medium and small db files (B mode only).\n" +        
         "\n\n"
         );
        System.exit(1);

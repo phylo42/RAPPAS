@@ -512,63 +512,71 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                     float bestNeighboorPPStar=Float.NEGATIVE_INFINITY;
                     //work on ARTree
                     PhyloNode node = session.ARTree.getById(bestNode);
-                    session.ARTree.displayTree();
-                    try {
-                        Thread.sleep(100000);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    //session.ARTree.displayTree();
+//                    try {
+//                        Thread.sleep(100000);
+//                    } catch (InterruptedException ex) {
+//                        Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
                     //X1/X0 on parent edge
                     PhyloNode X0= (PhyloNode)node.getParent();
-                    System.out.println("parentX0:"+X0);
+                    //System.out.println("parentX0:"+X0);
                     if (X0!=null) { //can happen if node is root, no parent X0
-                        System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                        PhyloNode X1= X0.getChildAt(0);//take left child of parent X0 as X1
-                        System.out.println("X1: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                        if (X1==X0) //if is node, then right child of parent X0 is X1
-                            X1= X0.getChildAt(1);
-                        if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
-                            bestNeighboorPPStar=nodeScores[X1.getId()];
-                            bestNeighboorFakeNode=X1.getId();
-                        }
-                        if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
-                            bestNeighboorPPStar=nodeScores[X0.getId()];
-                            bestNeighboorFakeNode=X0.getId();
+                        //System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
+                        if (!X0.isLeaf()) {
+                            PhyloNode X1= X0.getChildAt(0);//take left child of parent X0 as X1
+                            //System.out.println("X1: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
+                            if (X1==X0) //if is node, then right child of parent X0 is X1
+                                X1= X0.getChildAt(1);
+                            if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                                bestNeighboorPPStar=nodeScores[X1.getId()];
+                                bestNeighboorFakeNode=X1.getId();
+                            }
+                            if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
+                                bestNeighboorPPStar=nodeScores[X0.getId()];
+                                bestNeighboorFakeNode=X0.getId();
+                            }
                         }
                     }
                     //X1/X0 on left son
                     X0= (PhyloNode)node.getChildAt(0);
-                    System.out.println("leftX0:"+X0);
+                    //System.out.println("leftX0:"+X0);
                     if (X0!=null) { //will happen if node is leaf ? SHOULD NOT HAPPEN !
-                        System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                        PhyloNode X1= X0.getChildAt(0);
-                        System.out.println("X1: ARTree="+session.ARTree.getById(X1.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X1.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X1.getId()).getId()).getId()));
-                        if (X1==X0)
-                            X1= X0.getChildAt(1);
-                        if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
-                            bestNeighboorPPStar=nodeScores[X1.getId()];
-                            bestNeighboorFakeNode=X1.getId();
-                        }
-                        if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
-                            bestNeighboorPPStar=nodeScores[X0.getId()];
-                            bestNeighboorFakeNode=X0.getId();
+                        //System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
+                        if (!X0.isLeaf()) {
+                            PhyloNode X1= X0.getChildAt(0);
+                            //System.out.println("X1: ARTree="+session.ARTree.getById(X1.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X1.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X1.getId()).getId()).getId()));
+                            if (X1==X0)
+                                X1= X0.getChildAt(1);
+                            if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                                bestNeighboorPPStar=nodeScores[X1.getId()];
+                                bestNeighboorFakeNode=X1.getId();
+                            }
+                            if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
+                                bestNeighboorPPStar=nodeScores[X0.getId()];
+                                bestNeighboorFakeNode=X0.getId();
+                            }
                         }
                     }
                     //X1/X0 on right son
-                    X0= (PhyloNode)node.getChildAt(1);
-                    System.out.println("rightX0:"+X0);
-                    System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                    PhyloNode X1= X0.getChildAt(0);
-                    System.out.println("X1: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                    if (X1==X0)
-                        X1= X0.getChildAt(1);
-                    if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
-                        bestNeighboorPPStar=nodeScores[X1.getId()];
-                        bestNeighboorFakeNode=X1.getId();
-                    }
-                    if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
-                        bestNeighboorPPStar=nodeScores[X0.getId()];
-                        bestNeighboorFakeNode=X0.getId();
+                    if (X0!=null) {
+                        X0= (PhyloNode)node.getChildAt(1);
+                        //System.out.println("rightX0:"+X0);
+                        //System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
+                        if (!X0.isLeaf()) {
+                            PhyloNode X1= X0.getChildAt(0);
+                            //System.out.println("X1: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
+                            if (X1==X0)
+                                X1= X0.getChildAt(1);
+                            if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                                bestNeighboorPPStar=nodeScores[X1.getId()];
+                                bestNeighboorFakeNode=X1.getId();
+                            }
+                            if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
+                                bestNeighboorPPStar=nodeScores[X0.getId()];
+                                bestNeighboorFakeNode=X0.getId();
+                            }
+                        }
                     }
                     Infos.println("Best neighboor (X0/X1; ARTree) is : "+bestNeighboorFakeNode+" (score="+bestNeighboorPPStar+")");
                     //now let's remap

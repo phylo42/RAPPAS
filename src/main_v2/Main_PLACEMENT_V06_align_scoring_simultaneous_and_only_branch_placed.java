@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -56,8 +57,8 @@ import tree.PhyloTree;
     --> positions are used to define the alignment
  * 2. using the alignment, for all nodes stored in the previous list, 
  *    we search query words associated to the positions 
- *    --> we build diagsums for this node selection nodes (1 per node)
- *    --> we keep as peeks only diagsum position holding more than X words
+ *    --> we build diagsums for this originalNode selection nodes (1 per originalNode)
+    --> we keep as peeks only diagsum position holding more than X words
  *    --> the sum of these peeks define the final score and the placement
  * 
  * 
@@ -93,7 +94,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             
             //debug/////////////////////////////////////////////////////////////
             //max number of queries treated 
-            int queryLimit=100000;
+            int queryLimit=1000000;
             //which log to write, !!!
             //more logs= much slower placement because of disk access latency
 
@@ -156,12 +157,11 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             
             //LOAD TREES////////////////////////////////////////////////////////
             PhyloTree originalTree=session.originalTree;
-            //write a newick version of original tree, setting the nodeId
-            //as internal node labels 
+            //write a newick version of the loaded original tree for control
             NewickWriter nw=new NewickWriter(new File(logPath+"tree_with_edge_labels.nwk"));
             nw.writeNewickTree(originalTree, true, true, true);
             PhyloTree ARtree = session.ARTree;
-            ExtendedTree extendedtree = session.extendedTree;
+            ExtendedTree extendedTree = session.extendedTree;
 
             
             Infos.println("# nodes in the tree: "+ARtree.getNodeCount());
@@ -205,7 +205,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             //TO OUTPUT THE PLACEMENTS IN TSV FORMAT (completeScores)
             ////////////////////////////////////////////////////////////////////
             int bufferSize=2097152; // buffer of 2mo
-            BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements.tsv")),bufferSize);
+            BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements"+q.getName()+".tsv")),bufferSize);
             StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
             
             
@@ -401,14 +401,14 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                     List<Pair> allPairs = hash.getPairsOfTopPosition(qw);
                     for (int i = 0; i < allPairs.size(); i++) {
                         Pair p = allPairs.get(i);
-                        //we will score only encountered nodes, node registered
+                        //we will score only encountered nodes, originalNode registered
                         //at 1st encouter
                         if (nodeOccurences[p.getNodeId()]==0) {
                             selectedNodes.put(p.getNodeId(), true);
                         }
-                        //count # times node encountered
+                        //count # times originalNode encountered
                         nodeOccurences[p.getNodeId()]+=1;
-                        //score associated to node x for current read
+                        //score associated to originalNode x for current read
                         nodeScores[p.getNodeId()]+=p.getPPStar();
                         //register the alignment itself
                         //alignmentMatrix[qw.getOriginalPosition()]=topPosition;
@@ -451,7 +451,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                 Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
                 long endAlignTime=System.currentTimeMillis();
                 totalAlignTime+=(endAlignTime-startAlignTime);
-                Infos.println("Candidate nodes: ("+selectedNodes.keySet().size()+") "+selectedNodes.keySet());      
+                Infos.println("Candidate nodes: ("+selectedNodes.keySet().size()+") ");      
 
                 
 
@@ -467,13 +467,13 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                 int bestNode=-1;
                 for (Iterator<Integer> iterator = selectedNodes.keySet().iterator(); iterator.hasNext();) {
                     Integer nodeId = iterator.next();
-                    //System.out.println("Scoring node:"+nodeId);
+                    //System.out.println("Scoring originalNode:"+nodeId);
                     //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
                     int extendedTreeId=session.nodeMapping.get(nodeId);
                     //System.out.println("extendedTreeId:"+extendedTreeId);
-                    Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);
+                    Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
                     //System.out.println("originalNodeId:"+originalNodeId);
-                    //System.out.println("  scoring node: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
+                    //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
                     nodeScores[nodeId]+=thresholdAsLog*(maxWords-nodeOccurences[nodeId]);
                     //System.out.println("  nodeScores[nodeId]="+nodeScores[nodeId]);
                     if(nodeScores[nodeId]>bestScore) {
@@ -482,8 +482,9 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                     }
                 }
                 Infos.println("Best node (ARTree) is : "+bestNode+" (score="+bestScore+")");
-                Infos.println("mapping: ARTree="+session.ARTree.getById(bestNode)+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(bestNode).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(bestNode).getId()).getId()));
-                //if bestNode==-1 (no node could be associated)
+                Infos.println("mapping: ARTree="+session.ARTree.getById(bestNode)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNode))+" OriginalTree="+session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNode)));
+                Infos.println("mapping: ARTree="+session.ARTree.getById(bestNode)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNode))+" OriginalTree="+originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNode))));
+                //if bestNode==-1 (no originalNode could be associated)
                 //for instance when no query words could be found in the hash
                 if (bestNode<0) {
                     Infos.println("Read cannot be placed.");
@@ -496,100 +497,122 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                     System.out.println("bestNode not found: "+bestNode+" "+String.valueOf(session.ARTree.getById(bestNode).getLabel()));
                     System.exit(1);
                 }
-                //check if this was a fake node or not
+                
+                // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
+                ////////////////////////////////////////////////////////////////
+                //check if this was a fake originalNode or not
                 //to do that, retromapping from ARTree to extended tree 
                 int extendedTreeId=session.nodeMapping.get(bestNode);
+                PhyloNode nodeToTest = extendedTree.getById(extendedTreeId);
                 //retromapping from extendedTree to original tree
-                Integer originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);
-                //will return null if this nodeId was an original node (not fake)
-                //if this is an original node, select adjacent branch 
-                //holding the fake node with highest PP* (2 nodes X1 and X0
+                Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
+                
+                //will return null if this nodeId was an original originalNode (not fake)
+                //if this is an original originalNode, select adjacent branch 
+                //holding the fake originalNode with highest PP* (2 nodes X1 and parentX0
                 //areon each adjacent branch, so 6 comparisons).
                 //the block below was written very rapidly... can be improved
-                if (originalNodeId==extendedTreeId) {
-                    Infos.println("Best node is an Original node...");
+                if (!nodeToTest.isFakeNode()) {
+                    //System.out.println("############### change best node to neighboors !");                    
+                    Infos.println("Best node is an original node...");
+                    //System.out.println("Best node (ARTree) is : "+bestNode+" (score="+bestScore+")");
+                    //System.out.println("mapping: ARTree="+session.ARTree.getById(bestNode)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
                     int bestNeighboorFakeNode=-1;
                     float bestNeighboorPPStar=Float.NEGATIVE_INFINITY;
                     //work on ARTree
-                    PhyloNode node = session.ARTree.getById(bestNode);
+                    PhyloNode originalNode = session.ARTree.getById(bestNode);
                     //session.ARTree.displayTree();
 //                    try {
 //                        Thread.sleep(100000);
 //                    } catch (InterruptedException ex) {
 //                        Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
 //                    }
-                    //X1/X0 on parent edge
-                    PhyloNode X0= (PhyloNode)node.getParent();
-                    //System.out.println("parentX0:"+X0);
-                    if (X0!=null) { //can happen if node is root, no parent X0
-                        //System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                        if (!X0.isLeaf()) {
-                            PhyloNode X1= X0.getChildAt(0);//take left child of parent X0 as X1
-                            //System.out.println("X1: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                            if (X1==X0) //if is node, then right child of parent X0 is X1
-                                X1= X0.getChildAt(1);
-                            if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
-                                bestNeighboorPPStar=nodeScores[X1.getId()];
-                                bestNeighboorFakeNode=X1.getId();
+                    //System.out.println("");
+                    //search X1/X0 on parent edge
+                    PhyloNode parentX0= (PhyloNode)originalNode.getParent();
+                    //System.out.println("parentX0:"+parentX0+" ");
+                    if (parentX0!=null) { //can happen if originalNode is root, no parent parentX0
+                        //System.out.println("X0: ARTree="+session.ARTree.getById(parentX0.getId())+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(parentX0.getId())) );
+                        PhyloNode X1= parentX0.getChildAt(0);//take left child of parent parentX0 as X1
+                        //System.out.println("X1?: ARTree="+session.ARTree.getById(X1.getId())+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(X1.getId())) );
+                        if (X1==parentX0) //if is originalNode, then right child of parent parentX0 is X1
+                            X1= parentX0.getChildAt(1);
+                        //System.out.println("X1!: ARTree="+session.ARTree.getById(X1.getId())+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(X1.getId())) );
+                        //check its probability
+                        if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
+                            bestNeighboorPPStar=nodeScores[X1.getId()];
+                            bestNeighboorFakeNode=X1.getId();
+                        }
+                        if (nodeScores[parentX0.getId()]>bestNeighboorPPStar) {
+                            bestNeighboorPPStar=nodeScores[parentX0.getId()];
+                            bestNeighboorFakeNode=parentX0.getId();
+                        }
+                        
+                    }
+                    //System.out.println("Current best (parent): "+bestNeighboorFakeNode+" "+bestNeighboorPPStar);
+                    //children of this orignal originalNode have to be XO nodes
+                    Enumeration<PhyloNode> originalNodeChildren = (Enumeration<PhyloNode>)originalNode.children();
+                    while (originalNodeChildren.hasMoreElements()) {
+                        PhyloNode nextX0 = originalNodeChildren.nextElement();
+                        //test if this is, as expected, the equivalent of a 
+                        //fake node in extended tree
+                        int nextX0IdInExtendedTree=session.nodeMapping.get(nextX0.getId());
+                        if (!extendedTree.getById(nextX0IdInExtendedTree).isFakeNode()) {
+                            System.out.println("Something went wrong during neighboor fake nodes search!!!");
+                            System.out.println("tested node:"+originalNode);
+                            System.out.println("tested son (should be X0):"+nextX0+"   extendedTree equivalent: "+extendedTree.getById(nextX0IdInExtendedTree));
+                            System.exit(1);
+                        }
+                        //System.out.println("nextX0: ARTree="+session.ARTree.getById(nextX0.getId())+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(nextX0.getId())) );
+                        //System.out.println("score:"+nodeScores[nextX0.getId()]);
+                        //check parentX0 probability
+                        if (nodeScores[nextX0.getId()]>bestNeighboorPPStar) {
+                            bestNeighboorPPStar=nodeScores[nextX0.getId()];
+                            bestNeighboorFakeNode=nextX0.getId();
+                        }
+                        //System.out.println("Current best (X0 son): "+bestNeighboorFakeNode+" "+bestNeighboorPPStar);
+                        //now X1, on left or right of X0
+                        int X1count=0;
+                        Enumeration<PhyloNode> nextX0Children = (Enumeration<PhyloNode>)nextX0.children();
+                        while (nextX0Children.hasMoreElements()) {
+                            PhyloNode nextX0Child = nextX0Children.nextElement();
+                            int nextX0ChildIdInExtendedTree=session.nodeMapping.get(nextX0Child.getId());
+                            if (extendedTree.getById(nextX0ChildIdInExtendedTree).isFakeNode()) {
+                                //System.out.println("nextX0Child: ARTree="+session.ARTree.getById(nextX0Child.getId())+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(nextX0Child.getId())) );
+                                //System.out.println("score:"+nodeScores[nextX0Child.getId()]);
+                                //check parentX1 probability
+                                if (nodeScores[nextX0Child.getId()]>bestNeighboorPPStar) {
+                                    bestNeighboorPPStar=nodeScores[nextX0Child.getId()];
+                                    bestNeighboorFakeNode=nextX0Child.getId();
+                                }
+                                X1count++;
                             }
-                            if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
-                                bestNeighboorPPStar=nodeScores[X0.getId()];
-                                bestNeighboorFakeNode=X0.getId();
-                            }
+                            if (X1count>1) {
+                                System.out.println("Something went wrong during neighboor fake nodes search!!!");
+                                System.out.println("tested node:"+originalNode);
+                                System.out.println("tested son (should be X0):"+nextX0+"   extendedTree equivalent: "+extendedTree.getById(nextX0IdInExtendedTree));
+                                System.out.println("tested son-son (should be a X1 or leaf or riginal node):"+nextX0Child+"   "+extendedTree.getById(nextX0ChildIdInExtendedTree));
+                                System.exit(1);
+                            }      
+                            //System.out.println("Current best (X0-X1 son): "+bestNeighboorFakeNode+" "+bestNeighboorPPStar);
                         }
                     }
-                    //X1/X0 on left son
-                    X0= (PhyloNode)node.getChildAt(0);
-                    //System.out.println("leftX0:"+X0);
-                    if (X0!=null) { //will happen if node is leaf ? SHOULD NOT HAPPEN !
-                        //System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                        if (!X0.isLeaf()) {
-                            PhyloNode X1= X0.getChildAt(0);
-                            //System.out.println("X1: ARTree="+session.ARTree.getById(X1.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X1.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X1.getId()).getId()).getId()));
-                            if (X1==X0)
-                                X1= X0.getChildAt(1);
-                            if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
-                                bestNeighboorPPStar=nodeScores[X1.getId()];
-                                bestNeighboorFakeNode=X1.getId();
-                            }
-                            if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
-                                bestNeighboorPPStar=nodeScores[X0.getId()];
-                                bestNeighboorFakeNode=X0.getId();
-                            }
-                        }
-                    }
-                    //X1/X0 on right son
-                    if (X0!=null) {
-                        X0= (PhyloNode)node.getChildAt(1);
-                        //System.out.println("rightX0:"+X0);
-                        //System.out.println("X0: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                        if (!X0.isLeaf()) {
-                            PhyloNode X1= X0.getChildAt(0);
-                            //System.out.println("X1: ARTree="+session.ARTree.getById(X0.getId())+" ExtendedTree="+session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId())+" OriginalTree="+session.originalTree.getById(session.extendedTree.getById(session.ARTree.getById(X0.getId()).getId()).getId()));
-                            if (X1==X0)
-                                X1= X0.getChildAt(1);
-                            if (nodeScores[X1.getId()]>bestNeighboorPPStar) {
-                                bestNeighboorPPStar=nodeScores[X1.getId()];
-                                bestNeighboorFakeNode=X1.getId();
-                            }
-                            if (nodeScores[X0.getId()]>bestNeighboorPPStar) {
-                                bestNeighboorPPStar=nodeScores[X0.getId()];
-                                bestNeighboorFakeNode=X0.getId();
-                            }
-                        }
-                    }
+                    
                     Infos.println("Best neighboor (X0/X1; ARTree) is : "+bestNeighboorFakeNode+" (score="+bestNeighboorPPStar+")");
+                    Infos.println("mapping: ARTree="+session.ARTree.getById(bestNeighboorFakeNode)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNeighboorFakeNode))+" OriginalTree="+originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNeighboorFakeNode))));
                     //now let's remap
                     //retromapping from ARTree to extended tree 
                     extendedTreeId=session.nodeMapping.get(bestNeighboorFakeNode);
-                    //retromapping from extendedTree to original tree
-                    originalNodeId = extendedtree.getFakeToOriginalId(extendedTreeId);
-                    if (extendedTreeId==originalNodeId) {
+                    if (!extendedTree.getById(extendedTreeId).isFakeNode()) {
                         System.out.println("Something went wrong with neighboor search (bestNode!=fakeNode)");
                         System.exit(1);
                     }
                     bestScore=bestNeighboorPPStar;
+                    bestNode=bestNeighboorFakeNode;
+                    //System.out.println("FINAL best: "+bestNode+" "+bestScore);
+                    
                 } 
+
                 
                 //basic normalization, divide score by number of words present
                 //in the query
@@ -611,7 +634,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
 //                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
                 
                 
-                //write result in file if a node was hit
+                //write result in file if a originalNode was hit
                     
                 //OUTPUT n°1: the CSV report of placement
                 //allow in particular to check that nodes were correclty
@@ -651,8 +674,6 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
 
                 //placeColumns.add(session.ARTree.getById(bestNode).getLabel()); // 1. ARTree nodeName
                 //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
-                //check if this was a fake node or not
-                if (originalNodeId==null) {originalNodeId=extendedTreeId;}
                 placeColumns.add(originalNodeId); // 3. edge of original tree (original nodeId=edgeID)
                 //placeColumns.add(session.originalTree.getById(originalNodeId).getLabel()); // 4. edge of original tree (original nodeName)
                 placeColumns.add(normalizedScore); // 4. PP*
@@ -733,8 +754,8 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             fList.add("pendant_length");
             //fList.add("ARTree_nodeName");
             //fList.add("ExtendedTree_nodeName");
-            fList.add("edge_num"); //i.e equal to the id of the son node
-            //fList.add("edge_label"); //i.e equal to the id of the son node
+            fList.add("edge_num"); //i.e equal to the id of the son originalNode
+            //fList.add("edge_label"); //i.e equal to the id of the son originalNode
             fList.add("likelihood"); //rename to likelihood even if it is not, but for compatibility with other programs
             top.put("fields", fList);
             
@@ -748,7 +769,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
             //out=out.replace("]},", "]},"); //]}
             
-            FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements.jplace"));
+            FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements"+q.getName()+".jplace"));
             fwJSON.append(out);
             fwJSON.close();
             
@@ -764,6 +785,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             System.out.println("Writing .csv and .jplace took in total: "+totalWritingTime+" ms");
             System.out.println("Reset took in total: "+totalResetTime+" ms");
             System.out.println("------------------------------------------------------------");
+            System.out.println("(per read average)");
             System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/queryCounter)+" ms");
             System.out.println("Alignments and pre-scoring took on average: "+((0.0+totalAlignTime)/queryCounter)+" ms");
             System.out.println("Scoring took on average: "+((0.0+totalScoringTime)/queryCounter)+" ms");

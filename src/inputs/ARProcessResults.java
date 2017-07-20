@@ -34,8 +34,6 @@ public class ARProcessResults {
     private States s=null;
     //original extended alignment
     private Alignment extendedAlign=null;
-    //AR work dir
-    File ARWorkDir=null;
     //original tree (before Extension)
     private PhyloTree originalTree=null;
     //original extended tree (before AR)
@@ -61,13 +59,12 @@ public class ARProcessResults {
      * @param Tree
      * @param probas
      */
-    public ARProcessResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s, File ARWorkDir) {
+    public ARProcessResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s) {
         this.arpl=arpl;
         this.s=s;
         this.extendedAlign=extendedAlign;
         this.originalTree=originalTree;
         this.extendedTree=extendedTree;
-        this.ARWorkDir=ARWorkDir;
         //step 1: parse AR results
         try {
             parseResults();
@@ -118,7 +115,7 @@ public class ARProcessResults {
 
         if (this.arpl.currentProg==ARProcessLauncher.AR_PAML) {
             //with PAML both tree and probas are in the rst file
-            File rst = new File(ARWorkDir.getAbsolutePath()+File.separator+"rst");
+            File rst = new File(arpl.ARPath.getAbsolutePath()+File.separator+"rst");
             long startTime = System.currentTimeMillis();
             PAMLWrapper pw=new PAMLWrapper(extendedAlign,s);
             this.ARTree=pw.parseTree(new FileInputStream(rst));
@@ -131,14 +128,14 @@ public class ARProcessResults {
             Infos.println("Loading of PAML Posterior Probas used " + (endTime - startTime) + " ms");
         } else if (this.arpl.currentProg==ARProcessLauncher.AR_PHYML) {
             //with PHYML both tree and probas files are alignment name + extension
-            File tree = new File(ARWorkDir.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_tree.txt");
+            File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_tree.txt");
             long startTime = System.currentTimeMillis();
             PHYMLWrapper pw=new PHYMLWrapper(extendedAlign,s);
             this.ARTree=pw.parseTree(new FileInputStream(tree));
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");
             //probas
-            File align = new File(ARWorkDir.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_stats.txt");
+            File align = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_stats.txt");
             startTime = System.currentTimeMillis();
             this.probas = pw.parseSortedProbas(new FileInputStream(align),Float.MIN_VALUE,true,Integer.MAX_VALUE);
             endTime = System.currentTimeMillis();

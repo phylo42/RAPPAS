@@ -30,6 +30,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
@@ -43,6 +44,7 @@ import tree.NewickWriter;
 import tree.PhyloNode;
 import tree.PhyloTree;
 import tree.ExtendedTree;
+import tree.PhyloTreeModel;
 
 /**
  *
@@ -141,7 +143,8 @@ public class Main_DBBUILD_2 {
                                         File ARBinary,
                                         File ARDirToUse,
                                         File exTreeDir,
-                                        boolean skipDBFull
+                                        boolean skipDBFull,
+                                        boolean forceRooting
                                     ) {
         
         
@@ -197,14 +200,7 @@ public class Main_DBBUILD_2 {
             
             boolean histogramNumberPositionsPerNode=true;
             boolean hitsogramNumberNodesPerFirstPosition=true;
-            //if input tree is unrooted, make it rooted
-            boolean forceRooting=false;
-            
-            
-            
-            
-            
-            
+
             
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -239,7 +235,7 @@ public class Main_DBBUILD_2 {
             while ((line=br.readLine())!=null) {tline=line;}
             br.close();
             PhyloTree originalTree = NewickReader.parseNewickTree2(tline, forceRooting, false);
-            
+            Infos.println("Original tree read.");
             /////////////////////
             //BUILD RELAXED TREE
             
@@ -250,16 +246,20 @@ public class Main_DBBUILD_2 {
             File fileRelaxedTreewithBL=new File(extendedTreePath+"extended_tree_withBL.tree");
             File fileRelaxedTreewithBLNoInternalNodeLabels=new File(extendedTreePath+"extended_tree_withBL_withoutInterLabels.tree");
             File fileRelaxedTreeBinary=new File(extendedTreePath+"extended_tree.bin");
-            //String extendedTreeForJplace=null;
+            File idsMappings=new File(extendedTreePath+"extended_tree_node_mapping.tsv");
             
             if (buildRelaxedTree) {
-                if (exTreeDir!=null) {
+                if (exTreeDir==null) {
                     try {
                         System.out.println("Injecting fake nodes...");
                         //note, we read again the tree to build a new PhyloTree object
                         //this is necessary as its TreeModel is directly modified
                         //at instanciation of ExtendedTree
-                        extendedTree=new ExtendedTree(NewickReader.parseNewickTree2(tline, forceRooting, false),minBranchLength,branchPerLength);                    
+                        //do a tree copy, to not do the extended tree extension on the original tree
+                        PhyloNode rootCopy=originalTree.getRoot().copy();
+                        PhyloTree treeCopy=new PhyloTree(new PhyloTreeModel(rootCopy),originalTree.isRooted(), false);
+                        treeCopy.initIndexes();
+                        extendedTree=new ExtendedTree(treeCopy,minBranchLength,branchPerLength);                    
                         extendedTree.initIndexes(); // don't forget to reinit indexes !!!
                         ArrayList<PhyloNode> listOfNewFakeLeaves = extendedTree.getFakeLeaves();
                         Infos.println("RelaxedTree contains "+extendedTree.getLeavesCount()+ " leaves");
@@ -288,6 +288,7 @@ public class Main_DBBUILD_2 {
                         Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
                         nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
                         nw.writeNewickTree(extendedTree, true, false, false);
+                        nw.close();
                         //save this extendedTree as a binary
                         FileOutputStream fos = new FileOutputStream(fileRelaxedTreeBinary);
                         ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
@@ -295,8 +296,18 @@ public class Main_DBBUILD_2 {
                         oos.writeObject(extendedTree);
                         oos.close();
                         fos.close();
-                        //extendedTreeForJplace=nw.getNewickTree(extendedTree, true, true, true);
-                        nw.close();
+                        //finally, for debugging, output the ids mappings
+                        FileWriter fw=new FileWriter(idsMappings);
+                        fw.append("original_id\toriginal_name\textended_id\textended_name");
+                        LinkedHashMap<Integer, Integer> fakeNodeMapping = extendedTree.getFakeNodeMapping();
+                        for (Iterator<Integer> iterator = fakeNodeMapping.keySet().iterator(); iterator.hasNext();) {
+                            Integer next = iterator.next();
+                            fw.append("\n");
+                            fw.append(fakeNodeMapping.get(next)+"\t"+originalTree.getById(fakeNodeMapping.get(next)).getLabel()+"\t");
+                            fw.append(next+"\t"+extendedTree.getById(next).getLabel());
+                        }
+                        fw.close();                        
+                        
                     } catch (IOException ex) {
                         ex.printStackTrace();
                         System.out.println("Error raised from extended tree reconstruciton!");
@@ -356,6 +367,7 @@ public class Main_DBBUILD_2 {
                 } else {
                     System.out.println("Ancestral reconstruction loaded from directory set with --arpath.");
                     arpl.loadExistingAR(ARDirToUse, alignmentFile, treeFile);
+                    ARPath=ARDirToUse.getAbsolutePath();
                 }
             } 
 
@@ -383,11 +395,24 @@ public class Main_DBBUILD_2 {
                                         align,
                                         originalTree,
                                         extendedTree,
-                                        s,
-                                        new File(ARPath)
+                                        s
                                     );
             session.associateStates(s);
             session.associateInputs(arpr);
+            
+            //output in the AR directory the mapping of the nodes for debugging
+            File map=new File(arpl.ARPath.getAbsolutePath()+File.separator+"ARtree_id_mapping.tsv");
+            FileWriter fw=new FileWriter(map);
+            fw.append("extended_id\textended_label\tARTree_id\tARtree_label");
+            LinkedHashMap<Integer, Integer> map2 = session.ARTree.mapNodes(extendedTree);
+            for (Iterator<Integer> iterator = map2.keySet().iterator(); iterator.hasNext();) {
+                Integer ARTreeId = iterator.next();
+                fw.append("\n");
+                fw.append(map2.get(ARTreeId)+"\t"+session.extendedTree.getById(map2.get(ARTreeId)).getLabel()+"\t");
+                fw.append(ARTreeId+"\t"+session.ARTree.getById(ARTreeId).getLabel());
+            }
+            fw.close();    
+            
             
             Infos.println("#########STARTING SERIES OF RAPID TEST TO CONFIRM ANCESTRAL RECONSTRUCTION AND PARSING WAS FINE########");
             //to compare node mapping , output state of the original tree and extended tree

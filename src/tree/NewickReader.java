@@ -5,6 +5,7 @@
  */
 package tree;
 
+import etc.Infos;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -18,9 +19,9 @@ import javax.swing.JFrame;
 public class NewickReader {
     
     /**
-     * build a phylotree from a newick dtring
+     * build a phylotree from a newick string, and init its indexes
      * @param s
-     * @param forceRooting is the newick describes an unrooted tree (3 sons at
+     * @param forceRooting if the newick describes an unrooted tree (3 sons at
      * top level), then force the return of a rooted tree; not that the root
      * will always be placed as follows: 
      * (son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
@@ -101,7 +102,7 @@ public class NewickReader {
                         }
                     }
                     if (!ascending)
-                        nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId));
+                        nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId, false));
                     else {
                         bufferedNode.setLabel(label);
                         bufferedNode.setBranchLengthToAncestor(bl);
@@ -146,7 +147,7 @@ public class NewickReader {
                 }
                 //if comes from upper depth, start list of nodes for this depth
                 if (descending) {
-                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId));
+                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId, false));
                 //if ascending, come up from subtree, we use the unstacked node
                 } else if (ascending) {
                     bufferedNode.setLabel(label);
@@ -156,7 +157,7 @@ public class NewickReader {
                 //neither ascending or descending (case happening when unrooted
                 //tree, 1st level appears with 3 nodes, i.e. ((),(),());
                 } else {
-                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId));
+                    nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId, false));
                 }
                 sb.delete(0, sb.length());
                  
@@ -223,6 +224,7 @@ public class NewickReader {
         //root this unrooted tree if asked by the user
         PhyloTree tree=null;
         if (!rooted && forceRooting) {
+            Infos.println("Rooting of input unrooted Tree !");
             //rooting will be done on the edge linking the newick root 
             //and the 3 son: 
             //(son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
@@ -237,7 +239,7 @@ public class NewickReader {
             //PhyloNode son1=bufferedNode.getChildAt(0);
             //PhyloNode son2=bufferedNode.getChildAt(1);
             PhyloNode son3=bufferedNode.getChildAt(2);
-            PhyloNode added_root=new PhyloNode(++currentNodeIndex, "added_root", 0.0f, -1);
+            PhyloNode added_root=new PhyloNode(++currentNodeIndex, "added_root", 0.0f, -1, false);
             //unlink sons3
             float son3_bl=son3.getBranchLengthToAncestor();
             son3.removeFromParent();

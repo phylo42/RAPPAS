@@ -13,6 +13,7 @@ import core.States;
 import etc.Infos;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -93,12 +95,14 @@ public class PAMLWrapper implements DataWrapper {
             }
             if (startOriginal) {
                 originalTreeString=line.replaceAll(" ", "");
-                Infos.println("1st PAML tree found: "+originalTreeString);
+                //Infos.println("1st PAML tree found: "+originalTreeString);
+                Infos.println("1st PAML tree found");
                 startOriginal=false;
             }
             if (start3rdTree) {
                 thirdTreeString=line.replaceAll(" ", "");
-                Infos.println("3rd PAML tree found: "+thirdTreeString);
+                //Infos.println("3rd PAML tree found: "+thirdTreeString);
+                Infos.println("3rd PAML tree found");
                 start3rdTree=false;
                 break; //to not parse the whole file
             }        
@@ -112,18 +116,18 @@ public class PAMLWrapper implements DataWrapper {
         //the 1st tree is the original input tree, with branch length but 
         //no internal nodes and renaming of the tips
         if (originalTreeString!=null) {
-            this.firstTree=NewickReader.parseNewickTree2(originalTreeString, false, false);; //keep a reference, which will be used by parseProbas()
+            this.firstTree=NewickReader.parseNewickTree2(originalTreeString, false, false); //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //now we parse the second tree
         if (thirdTreeString!=null) {
-            this.thirdTree=NewickReader.parseNewickTree2(thirdTreeString, false, false);; //keep a reference, which will be used by parseProbas()
+            this.thirdTree=NewickReader.parseNewickTree2(thirdTreeString, false, false); //keep a reference, which will be used by parseProbas()
             //tree.displayTree();
         } 
         //do do the same DFS pre-order in both trees to associate PAML
         //3rd tree node ids to original tree.
-        Infos.println("Nodes, first tree: "+firstTree.getLabelsByDFS());
-        Infos.println("Nodes, third tree: "+thirdTree.getLabelsByDFS());
+        //Infos.println("Nodes, first tree: "+firstTree.getLabelsByDFS());
+        //Infos.println("Nodes, third tree: "+thirdTree.getLabelsByDFS());
         
 
         for (int i=0;i<firstTree.getNodeIdsByDFS().size();i++) {
@@ -138,10 +142,10 @@ public class PAMLWrapper implements DataWrapper {
             //m.group(2), not used but would be '_label'
         }
         //we changed the tree ids, rebuild the indexes !
-        this.firstTree.initIndexes();
+        this.firstTree.initIndexes();    
+        
         //we set the modified 1st tree as the tree supported by this wrapper
         this.tree=firstTree;
-                
         return this.tree;
     }
     

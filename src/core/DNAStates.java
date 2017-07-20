@@ -49,8 +49,8 @@ public class DNAStates extends AbstractStates implements States,Serializable {
         try {
             return bytes.get(c);
         } catch (NullPointerException ex) {
-            ex.printStackTrace();
-            System.out.println("One of the character of your sequence is an unregistered state. (char='"+String.valueOf(c)+"')");
+            //ex.printStackTrace();
+            System.out.println("Unexpected state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
         }
         return 'N';
     }

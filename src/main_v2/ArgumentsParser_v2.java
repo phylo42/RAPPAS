@@ -41,6 +41,7 @@ public class ArgumentsParser_v2 {
     public File alignmentFile=null;
     public File treeFile=null;
     public boolean skipdbfull=false; //default=false
+    public boolean forceRooting=false;
     //eventual directories passed for debugging
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;
@@ -262,6 +263,13 @@ public class ArgumentsParser_v2 {
                     if (argsMap.get(index).equals("--skipdbfull")) {
                         this.skipdbfull=true;
                     }
+                    
+                    //test --froot parameter
+                    if (argsMap.get(index).equals("--froot")) {
+                        this.forceRooting=true;
+                    }
+                    
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -379,7 +387,8 @@ public class ArgumentsParser_v2 {
         "--arbinary        [file] Binary used for AR, ex: phyml. (B mode only).\n" +
         "--extree          [dir] Skip fake nodes injection, and use files present in\n"+
         "                  the specified directory instead (B mode only).\n" +
-        "--skipdbfull      [] Build only medium and small db files (B mode only).\n" +        
+        "--skipdbfull      [] Build only medium and small db files (B mode only).\n" +      
+        "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +        
         "\n\n"
         );
        System.exit(1);

@@ -30,12 +30,13 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
     private int id=-1; 
     //label internal to our program, used when outputing trees (used by algorithms)
     private String label=null;
-    
     //actual branch length in the current tree
     private float branchLengthToAncestor=-1.0f;
     //if node of a jplac tree, following field represents the jplace id of 
     //the branch
     private int jplaceEdgeId=-1;
+    //if was a fake node generated for the AR
+    private boolean isFakeNode=false;
     
     
     //below are branch length related to the original tree (before addition of fake nodes)
@@ -80,14 +81,16 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
      * @param label the value of label
      * @param branchLengthToAncestor the value of branchLengthToAncestor
      * @param jplaceEdgeId the value of jplaceEdgeId
+     * @param isFakeNode the value of isFakeNode
      */
-    public PhyloNode(int id, String label, float branchLengthToAncestor, int jplaceEdgeId) {
+    public PhyloNode(int id, String label, float branchLengthToAncestor, int jplaceEdgeId, boolean isFakeNode) {
         nf.setMinimumFractionDigits(3);
         nf.setMaximumFractionDigits(6);
         this.branchLengthToAncestor=branchLengthToAncestor;
         this.id=id;
         this.label=label;
         this.jplaceEdgeId=jplaceEdgeId;
+        this.isFakeNode=isFakeNode;
     }
     
     /**
@@ -106,6 +109,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
                         int jplaceEdgeId,
                         float branchLengthToOriginalAncestor,
                         float branchLengthToOriginalSon,
+                        boolean isFakeNode,
                         List<PhyloNode> children
                     ) {
         nf.setMinimumFractionDigits(3);
@@ -116,6 +120,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         this.branchLengthToOriginalAncestor=branchLengthToOriginalAncestor;
         this.branchLengthToOriginalSon=branchLengthToOriginalSon;
         this.label=label;
+        this.isFakeNode=isFakeNode;
         children.forEach(c->{this.add(c);});
     }
     
@@ -131,13 +136,13 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
             PhyloNode n = (PhyloNode)childrenEnum.nextElement();
             PhyloNode newNode=n.copy();
             listSons.add(newNode);
-
         }
         return new PhyloNode(   id,
                                 label,
                                 branchLengthToAncestor, -1,
                                 branchLengthToOriginalAncestor,
                                 branchLengthToOriginalSon,
+                                isFakeNode,
                                 listSons
                             );
     }
@@ -186,6 +191,10 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
         return branchLengthToOriginalSon;
     }
     
+    public boolean isFakeNode() {
+        return isFakeNode;
+    }
+    
 
     @Override
     public String toString() {
@@ -202,6 +211,8 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
             sb.append(":bls:"+nf.format(branchLengthToOriginalSon));
         if (jplaceEdgeId>-1)
             sb.append("[jplace="+jplaceEdgeId+"]");
+        if (isFakeNode)
+            sb.append("[FAKE]");
         return sb.toString();
     }
 

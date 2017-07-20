@@ -377,8 +377,7 @@ public class Main_DBBUILD {
                                                     align,
                                                     originalTree,
                                                     extendedTreeOnBranches,
-                                                    s,
-                                                    new File(ARPath));
+                                                    s);
             session.associateStates(s);
             session.associateInputs(im);
             

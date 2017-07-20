@@ -47,7 +47,6 @@ public class ExtendedTree extends PhyloTree {
     
     //list of new terminal nodes (will be used to add gap-only fake sequences
     //to the extended alignment)
-    private int lastOriginalId=-1;
     private ArrayList<PhyloNode> newLeaves=null;
     private ArrayList<PhyloNode> newInternalNodes=null;
     
@@ -62,10 +61,10 @@ public class ExtendedTree extends PhyloTree {
     //so here, we associated nodeId of (fake nodes injected in the branch)
     //to nodeId of (son of the original branch before fake nodes injection)
     //map(fakeNode Id)=nodeId of original node, son of the branch
-    private HashMap<Integer,Integer> extendedNodesToOriginalNodes=null;
+    private LinkedHashMap<Integer,Integer> extendedNodesToOriginalNodes=null;
     // index=edgeId ; key=son,val=parent
     public LinkedHashMap<PhyloNode,PhyloNode> originalEdges=new LinkedHashMap<>();
-    // key=edgeId ; key=son,vals=parent
+    // index=edgeId ; key=son,vals=parent
     public LinkedHashMap<PhyloNode,PhyloNode> extendedEdges=new LinkedHashMap<>();
     
     
@@ -132,7 +131,7 @@ public class ExtendedTree extends PhyloTree {
      *  map(fakeNode Id)=nodeId of original node(son of the modified branch)
      * @return map of the mappings
      */
-    public HashMap<Integer,Integer> getFakeNodeMapping() {
+    public LinkedHashMap<Integer,Integer> getFakeNodeMapping() {
         return extendedNodesToOriginalNodes;
     }    
     /**
@@ -143,11 +142,10 @@ public class ExtendedTree extends PhyloTree {
      */
     private void initRelaxedTree(PhyloTree tree,float branchbreakThreshold,int N) {
         this.fakeNodeCounter=tree.getNodeCount();
-        this.lastOriginalId=fakeNodeCounter;
         this.branchbreakThreshold=branchbreakThreshold;
         this.newLeaves=new ArrayList<>();
         this.newInternalNodes=new ArrayList<>();
-        this.extendedNodesToOriginalNodes=new HashMap<>();
+        this.extendedNodesToOriginalNodes=new LinkedHashMap<>();
         Infos.println("# nodes in tree before extension: "+fakeNodeCounter);
         switch (branchingMode) {
             case BRANCHING_ON_NODE:
@@ -171,11 +169,11 @@ public class ExtendedTree extends PhyloTree {
     @Deprecated
     private void populateWithFakeBranchToNodes_DFS(PhyloNode node) {
         // "<lastOriginalId" verify that node is nt one of the new fake nodes
-        if (!node.isLeaf() && node.getId()<lastOriginalId) {
+        if (!node.isLeaf()) {
             fakeNodeCounter+=3;
-            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0f, -1);
-            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01f, -1);
-            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01f, -1);
+            PhyloNode X0 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_FakeX0", 0.0f, -1, true);
+            PhyloNode fakeX1 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_FakeX1", 0.01f, -1, true);
+            PhyloNode fakeX2 = new PhyloNode(fakeNodeCounter, (fakeNodeCounter)+"_FakeX2", 0.01f, -1, true);
             //add the 2 fakes to X
             X0.add(fakeX1);
             X0.add(fakeX2);
@@ -229,10 +227,8 @@ public class ExtendedTree extends PhyloTree {
      */
     private void populateWithFakeBranchToEdges_DFS(PhyloNode node) {
         
-//        System.out.println("### LAUNCH FROM "+node);
-//        System.out.println("lastOriginalId:"+lastOriginalId);
-//        System.out.println("node.getId()<lastOriginalId:"+(node.getId()<lastOriginalId));
-//        System.out.println("!(node.getBranchLengthToAncestor()<=branchbreakThreshold):"+(!(node.getBranchLengthToAncestor()<=branchbreakThreshold)));
+        //System.out.println("### LAUNCH FROM "+node);
+        //System.out.println("!(node.getBranchLengthToAncestor()<=branchbreakThreshold):"+(!(node.getBranchLengthToAncestor()<=branchbreakThreshold)));
         
 
         //memorize current parent and children
@@ -249,32 +245,33 @@ public class ExtendedTree extends PhyloTree {
             PhyloNode Bi= (PhyloNode) enumChildren.nextElement();
             initialChildren.add(Bi);  
         }
-//        System.out.println("### LIST of B children: "+initialChildren);
+        //System.out.println("### LIST of B children: "+initialChildren);
         for (int i = 0; i < initialChildren.size(); i++) {
             PhyloNode Bi = initialChildren.get(i);
-//            System.out.println("### DFS LAUNCHED on "+Bi);
+            //System.out.println("### DFS LAUNCHED on "+Bi);
             populateWithFakeBranchToEdges_DFS(Bi);
-//            System.out.println("### DFS RETURNS from "+Bi);  
+            //System.out.println("### DFS RETURNS from "+Bi);  
         }
-
-
+        
+        //the last recursive return bring us to A=null;B=root
+        //when this is the case, we don't inject nodes on (null-root)
         //before conditions below (branchbreakThreshold), register edges in original map
         if (!B.isRoot())
             originalEdges.put(B, A);
+        if ( (!B.isRoot()) && (!(B.getBranchLengthToAncestor()<branchbreakThreshold)) ) {
 
-        if ( (!B.isRoot()) &&
-             (((PhyloNode)B.getParent()).getId()<lastOriginalId) && 
-             (B.getId()<lastOriginalId) &&
-             (!(B.getBranchLengthToAncestor()<branchbreakThreshold)) ) {
-
+            //System.out.println("B.getid() in extendedNodesToOriginalNodes: "+extendedNodesToOriginalNodes.containsKey(B.getId()));
+            //if (extendedNodesToOriginalNodes.containsKey(B.getId()))
+                //System.out.println(" && != "+ (extendedNodesToOriginalNodes.get(B.getId())!=B.getId()));
+            
             //define l_init and l_b for the current edge
             float l_init=B.getBranchLengthToAncestor();
             float l_b=(0.0f+l_init)/(N+1);
-//                System.out.println("  l_init:"+l_init+" l_b:"+l_b);
+            //System.out.println("  l_init:"+l_init+" l_b:"+l_b);
 
             //cut parent A from children B
             A.remove(B);
-//            System.out.println("B:"+B+" cut from A:"+A);
+            //System.out.println("B:"+B+" cut from A:"+A);
             //add tehm in node mappings
             extendedNodesToOriginalNodes.put(A.getId(), A.getId());
             extendedNodesToOriginalNodes.put(B.getId(), B.getId());
@@ -282,13 +279,13 @@ public class ExtendedTree extends PhyloTree {
             //build and attach N fake nodes to parent and subsequent Xi
             PhyloNode currentParent=A;
             for (int j = 0; j < N; j++) {
-//                System.out.println("currentParent:"+currentParent);
+                //System.out.println("currentParent:"+currentParent);
                 //built subtree of the jth X0
                 fakeNodeCounter+=4;
-                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_X0", 0.01f, -1);
-                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_X1", 0.01f, -1);
-                PhyloNode X2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_X2", 0.01f, -1);
-                PhyloNode X3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_X3", 0.01f, -1);
+                PhyloNode X0 =new PhyloNode(fakeNodeCounter-3, (fakeNodeCounter-3)+"_X0", 0.01f, -1, true);
+                PhyloNode X1 =new PhyloNode(fakeNodeCounter-2, (fakeNodeCounter-2)+"_X1", 0.01f, -1, true);
+                PhyloNode X2 = new PhyloNode(fakeNodeCounter-1, (fakeNodeCounter-1)+"_X2", 0.01f, -1, true);
+                PhyloNode X3 = new PhyloNode(fakeNodeCounter, fakeNodeCounter+"_X3", 0.01f, -1, true);
                 X1.add(X2);
                 X1.add(X3);
                 X0.add(X1);
@@ -305,7 +302,7 @@ public class ExtendedTree extends PhyloTree {
 
                 //define length left from this X0 to B
                 float l_XO_B=l_init-l_b*(j+1);
-//                System.out.println("l_XO_B:"+l_XO_B);
+                //System.out.println("l_XO_B:"+l_XO_B);
                 //define X0-X1 branch length
                 float l_new=0.0f;
                 if (newBranchLengthMode==BL_FROM_SUBTREE_MINMAX) {
@@ -334,7 +331,7 @@ public class ExtendedTree extends PhyloTree {
                     }
 
                 }
-//                System.out.println("l_new:"+l_new);
+                //System.out.println("l_new:"+l_new);
                 //set branch lengths of X0 and X1
                 X1.setBranchLengthToAncestor(l_new);
                 X0.setBranchLengthToAncestor(l_b);

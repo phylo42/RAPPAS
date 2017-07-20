@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -58,12 +59,12 @@ public class PhyloTree extends JTree implements Serializable {
     /**
      *
      * @param newModel the value of newModel
-     * @param rooted the value of rooted
+     * @param isRooted the value of isRooted
      * @param isFromJPlace the value of isFromJPlace
      */
-    public PhyloTree(TreeModel newModel, boolean rooted, boolean isFromJPlace) {
+    public PhyloTree(TreeModel newModel, boolean isRooted, boolean isFromJPlace) {
         super(newModel);
-        this.isRooted=rooted;
+        this.isRooted=isRooted;
         this.isJplaceType=isFromJPlace;
     }
     
@@ -267,7 +268,7 @@ public class PhyloTree extends JTree implements Serializable {
     
     /**
      * used only if parsed tree is from jplace, i.e. edges are assigned to ids
-     * with the {x} annotation on the right of branch length.
+     * with the {x} annotation on the right of branch length. map(jplaceEdgeId)=nodeId
      * @param jplaceEdgeId 
      * @return the nodeId holding the equivalent edge
      */
@@ -285,7 +286,7 @@ public class PhyloTree extends JTree implements Serializable {
     //--------------------------------------------------------------------------
     //This block of methods is used to map the internal lables of a tree
     //of similar topology than this tree (rooted or unrooted) 
-    HashMap<Integer,Integer> nodeMapping=new HashMap<>();
+    LinkedHashMap<Integer,Integer> nodeMapping=new LinkedHashMap<>();
     
     /**
      * map(this.tree nodeId)=otherTree nodeID;
@@ -293,7 +294,7 @@ public class PhyloTree extends JTree implements Serializable {
      * @param otherTree
      * @return 
      */
-    public HashMap<Integer,Integer> mapNodes(PhyloTree otherTree) {
+    public LinkedHashMap<Integer,Integer> mapNodes(PhyloTree otherTree) {
         mapNodesByDFS(this.getRoot(),otherTree);
         //both rotted or both unrooted
         if ( (this.isRooted && otherTree.isRooted) || (!this.isRooted && !otherTree.isRooted)) {

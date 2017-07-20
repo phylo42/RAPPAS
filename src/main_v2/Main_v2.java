@@ -18,15 +18,16 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.5";
+    private final static String consoleVersion="0.6";
 
     public static void main (String[] args) {
         try {
             long startTime=System.currentTimeMillis();
-            System.out.println("#####################################");
-            System.out.println("## Viromeplacer v"+consoleVersion);
+            System.out.println("#############################################################");
+            System.out.println("## RApid Phylogenetic Placement via Ancestral Sequences");
+            System.out.println("## (RAPPAS) v"+consoleVersion);
             System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France)");
-            System.out.println("#####################################");
+            System.out.println("#############################################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
@@ -60,6 +61,8 @@ public class Main_v2 {
             String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
             String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
             String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
+            String arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/AR";
+            String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
 
             //--------------------------------
 
@@ -93,12 +96,12 @@ public class Main_v2 {
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
-//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-//            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
 
-            workDir="/media/ben/STOCK/DATA/viromeplacer/accu_tests/error_raising_cases/test_A0_nx4_la_k5_a1";
-            String q="/media/ben/STOCK/DATA/viromeplacer/accu_tests/error_raising_cases/test_A0_nx4_la_k5_a1/R0_nx4_la_r150.fasta";
-            String db="/media/ben/STOCK/DATA/viromeplacer/accu_tests/error_raising_cases/test_A0_nx4_la_k5_a1/DB_session_k5_a1.0_t9.765625E-4.medium";
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
+            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
+            
+//            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
+//            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
 
             //db build launch
 //            String arguments=
@@ -108,8 +111,11 @@ public class Main_v2 {
 //                            + "-t "+t+" "
 //                            + "-k "+String.valueOf(5)+" "
 //                            + "-a "+String.valueOf(1.0)+" "
-//                            + "-v 1"
-//                            ;
+//                            + "-v 1 "
+//                            + "--ardir "+arDir+" "
+//                            + "--extree "+exTree+" "
+//                            + "--skipdbfull "
+//                            + "--froot";
             
 //            // placement launch
             String arguments=
@@ -118,7 +124,7 @@ public class Main_v2 {
                             + "-q "+q+" "
                             + "-d "+db+" "
                             + "-s medium "
-                            + "-v 1"
+                            + "-v 0"
                             ;            
             
             //force args
@@ -167,7 +173,8 @@ public class Main_v2 {
                                             argsParser.ARBinary,
                                             argsParser.ARDirToUse,
                                             argsParser.exTreeDir,
-                                            argsParser.skipdbfull
+                                            argsParser.skipdbfull,
+                                            argsParser.forceRooting
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {

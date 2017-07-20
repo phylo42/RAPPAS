@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.NumberFormat;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -54,8 +55,9 @@ public class NewickWriter {
      */
     private void setupWriter(Writer w) {
         this.w=w;
-        //makes all branch length as a decimal number, no scientific number
-        format=NumberFormat.getNumberInstance();
+        //makes all branch length as a decimal number, no scientific number 
+        //and with . as fraction separator
+        format=NumberFormat.getNumberInstance(Locale.UK);
         format.setMaximumFractionDigits(12);
         format.setMinimumFractionDigits(12);
         format.setParseIntegerOnly(false);
@@ -118,15 +120,16 @@ public class NewickWriter {
      * @param withBranchLength
      */
     private StringBuilder writerDFS(PhyloNode node, StringBuilder sb) {
-        
+        //System.out.println("sb: "+sb);
         //start this level
         sb.append("(");
         int childrenLeft=node.getChildCount();
-        //System.out.println("   current node: "+node);
-        for (Enumeration e=node.children();e.hasMoreElements();) {
+        Enumeration e=node.children();
+        while (e.hasMoreElements()) {
             //System.out.println("   childrenLeft"+childrenLeft);
             childrenLeft-=1; 
             PhyloNode currentNode=(PhyloNode)e.nextElement();
+            //System.out.println("currentNode "+currentNode);
             if (currentNode.isLeaf()) {
                 sb.append(currentNode.getLabel());
                 if(branchLength) {
@@ -138,7 +141,6 @@ public class NewickWriter {
                     sb.append(currentNode.getId());
                     sb.append('}');
                 }
-                
             } else {
                 //System.out.println("LEVEL "+level+" TO "+(++level));
                 writerDFS(currentNode,sb);
@@ -160,9 +162,11 @@ public class NewickWriter {
                 }
                 if (jplaceBranchLabels) {
                     sb.append('{');
-                    sb.append(currentNode.getId());
+                    sb.append(node.getId());
                     sb.append('}');
-                }            }
+                }            
+            }
+
         }
         //close the string with a ';' after all root children were passed
         if (node.isRoot() && childrenLeft<1) {
@@ -212,15 +216,19 @@ public class NewickWriter {
         
         //test parsing
         long startTime = System.currentTimeMillis();
-        PhyloTree t=new NewickReader().parseNewickTree2(treeFASTML, false, false);
+        PhyloTree t=new NewickReader().parseNewickTree2(tree, false, false);
         long endTime = System.currentTimeMillis();
         System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
 
+        System.out.println(t.getById(0));
+        System.out.println(t.getById(10));
+        System.out.println(t.getById(8));
+        
         //test writing
         startTime = System.currentTimeMillis();
         try {
             NewickWriter nw=new NewickWriter(new File("test_fake.tree"));
-            nw.writeNewickTree(t,true,true,true);
+            //nw.writeNewickTree(t,true,true,true);
             System.out.println(nw.getNewickTree(t, true, true, true));
             nw.close();
             

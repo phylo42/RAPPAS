@@ -184,7 +184,7 @@ public class Main_v2 {
 //                                            argsParser.databaseFile,
 //                                            argsParser.workingDir
 //                                            );
-                int placed=Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.doPlacements(
+                int placed=Main_PLACEMENT_FIN.doPlacements(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
                                             argsParser.workingDir,

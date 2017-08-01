@@ -164,8 +164,9 @@ public class SessionNext_v2 {
     }
     
     /**
-     * should be called AFTER storeSmallHash
-     * @param f
+     * should be called AFTER storeMediumHash
+     * @param f destination file
+     * @param X # pairs retained at best position
      * @return 
      */
     public boolean storeSmallHash(File f, int X) {

@@ -65,7 +65,7 @@ import tree.PhyloTree;
  * 
  * @author ben
  */
-public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed {
+public class Main_PLACEMENT_FIN {
     
     //sequence type
     public static int TYPE_DNA=1;
@@ -124,9 +124,9 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             int analysisType=-1;
             //States: DNA or AA
             if (s instanceof DNAStates)
-                analysisType=Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.TYPE_DNA;
+                analysisType=Main_PLACEMENT_FIN.TYPE_DNA;
             else if (s instanceof AAStates)
-                analysisType=Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.TYPE_PROTEIN;
+                analysisType=Main_PLACEMENT_FIN.TYPE_PROTEIN;
             
             //posterior probas parameters///////////////////////////////////////
             //mers size
@@ -179,6 +179,8 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
             SimpleHash_v2 hash=session.hash;
+            String[] elts=db.getName().split("\\.");
+            String dbSize=elts[elts.length-1];
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
@@ -205,7 +207,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             //TO OUTPUT THE PLACEMENTS IN TSV FORMAT (completeScores)
             ////////////////////////////////////////////////////////////////////
             int bufferSize=2097152; // buffer of 2mo
-            BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements"+q.getName()+".tsv")),bufferSize);
+            BufferedWriter fwPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);
             StringBuffer sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
             
             
@@ -241,7 +243,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                 checksumGenerator = JacksumAPI.getChecksumInstance("sha256");
                 checksumGenerator.setEncoding(AbstractChecksum.HEX);
             } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main_PLACEMENT_FIN.class.getName()).log(Level.SEVERE, null, ex);
             }
             HashMap<String,ArrayList<String>> identicalSeqsRegistry=new HashMap<>();
             
@@ -471,7 +473,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
                     //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
                     int extendedTreeId=session.nodeMapping.get(nodeId);
                     //System.out.println("extendedTreeId:"+extendedTreeId);
-                    Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
+                    //Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
                     //System.out.println("originalNodeId:"+originalNodeId);
                     //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
                     nodeScores[nodeId]+=thresholdAsLog*(maxWords-nodeOccurences[nodeId]);
@@ -525,7 +527,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
 //                    try {
 //                        Thread.sleep(100000);
 //                    } catch (InterruptedException ex) {
-//                        Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
+//                        Logger.getLogger(Main_PLACEMENT_FIN.class.getName()).log(Level.SEVERE, null, ex);
 //                    }
                     //System.out.println("");
                     //search X1/X0 on parent edge
@@ -769,13 +771,9 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
             //out=out.replace("]},", "]},"); //]}
             
-            FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements"+q.getName()+".jplace"));
+            FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));
             fwJSON.append(out);
             fwJSON.close();
-            
-            
-            
-  
 
             long endTotalTime=System.currentTimeMillis();
             System.out.println("############################################################");
@@ -826,7 +824,7 @@ public class Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_place
             
             
         } catch (IOException ex) {
-            Logger.getLogger(Main_PLACEMENT_V06_align_scoring_simultaneous_and_only_branch_placed.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main_PLACEMENT_FIN.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
         }
         

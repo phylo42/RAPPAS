@@ -18,7 +18,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.6";
+    private final static String consoleVersion="0.7";
 
     public static void main (String[] args) {
         try {

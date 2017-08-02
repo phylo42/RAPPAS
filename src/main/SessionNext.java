@@ -10,7 +10,7 @@ import core.PProbasSorted;
 import core.hash.SimpleHash;
 import core.States;
 import etc.Infos;
-import inputs.ARProcessResults;
+import inputs.ARResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -53,7 +53,7 @@ public class SessionNext {
         this.states=s;
     }
     
-    public void associateInputs(ARProcessResults im) {
+    public void associateInputs(ARResults im) {
         this.tree=im.getARTree();
         this.align=im.getExtendedAlignment();
         this.parsedProbas=im.getPProbas();

@@ -43,14 +43,20 @@ public class SimpleHash_v2 implements Serializable{
     
     CustomHashMap<Word,CustomNode> hash=null;
 
+    /**
+     *
+     */
     public SimpleHash_v2() {
         hash=new CustomHashMap<>();
     }
     
-    
+    /**
+     *
+     * @param k
+     * @param s
+     */
     public SimpleHash_v2(int k,States s) {
         hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount()+1, k)).intValue(),1.0f);
-        System.out.println("INIT HASH("+(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue()+1)+",1.0)");
     }
     
     /**
@@ -96,10 +102,11 @@ public class SimpleHash_v2 implements Serializable{
      */
     public List<Pair> getPairsOfTopPosition(Word w) {
         CustomNode cn=null;
-        if ((cn=hash.get(w))!=null)
+        if ((cn=hash.get(w))!=null) {
             return cn.getPairList(cn.getBestPosition());
-        else
+        } else {
             return null;
+        }
     }  
     
     /**
@@ -109,11 +116,27 @@ public class SimpleHash_v2 implements Serializable{
      */
     public int[] getPositions(Word w) {
         CustomNode cn=null;
-        if ((cn=hash.get(w))!=null)
+        if ((cn=hash.get(w))!=null) {
             return cn.getPositions();
-        else
+        } else {
             return null;
+        }
     }
+    
+    /**
+     * reference alignment positions associated to a word
+     * @param w
+     * @return 
+     */
+    public int getTopPosition(Word w) {
+        CustomNode cn=null;
+        if ((cn=hash.get(w))!=null) {
+            return cn.getBestPosition();
+        } else {
+            return -1;
+        }
+    }
+    
     
     
     public void sortData() {
@@ -131,8 +154,9 @@ public class SimpleHash_v2 implements Serializable{
      */
     public List<Pair> getPairs(Word w) {
         ArrayList<Pair> l =new ArrayList();
-        for (int p: hash.get(w).getPositions())
+        for (int p: hash.get(w).getPositions()) {
             l.addAll(hash.get(w).getPairList(p));
+        }
         return l;
     }
     
@@ -161,22 +185,21 @@ public class SimpleHash_v2 implements Serializable{
      * empty all the positions which where not associated to the best PP*
      */
     public void reduceToMediumHash() {
-        for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
-            Word next = iterator.next();
+        hash.keySet().stream().forEach((next) -> {
             hash.get(next).clearPairsOfWorsePositions();
-        }
+        });
         
     }
 
     /**
      * empty all the positions which where not associated to the best PP*,
      * and retains only X pairs at the best position
+     * @param X
      */
     public void reducetoSmallHash(int X) {
-        for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
-            Word next = iterator.next();
+        hash.keySet().stream().forEach((next) -> {
             hash.get(next).clearPairsOfWorsePositionsAndLimitToXPairs(X);
-        }
+        });
     }
     
     
@@ -187,10 +210,12 @@ public class SimpleHash_v2 implements Serializable{
      */
     int DFSCount=0;
     private int bucketDFS(CustomHashMap.TreeNode root) {
-        if (root.getLeft()!=null)
+        if (root.getLeft()!=null) {
             bucketDFS(root.getLeft());
-        if (root.getRight()!=null)
+        }
+        if (root.getRight()!=null) {
             bucketDFS(root.getRight());
+        }
         return DFSCount++;
     }
     

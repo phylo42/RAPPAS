@@ -5,6 +5,7 @@
  */
 package main_v2;
 
+import outputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.States;
 import core.Word;
@@ -15,7 +16,7 @@ import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.ARProcessResults;
+import inputs.ARResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -181,13 +182,12 @@ public class Main_DBBUILD_2 {
             int min_k=k;
             
             float sitePPThreshold=Float.MIN_VALUE;
-            //float wordPPStarThreshold=(float)(alpha*Math.pow(0.25,k));
-            float wordPPStarThreshold=(float)Math.pow((alpha*0.25),k);
-            float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
+            float PPStarThreshold=(float)Math.pow((alpha*0.25),k);
+            float PPStarThresholdAsLog=(float)Math.log10(PPStarThreshold);
             Infos.println("k="+k);
             Infos.println("factor="+alpha);
-            Infos.println("wordPPStarThreshold="+wordPPStarThreshold);
-            Infos.println("wordPPStarThreshold(log10)="+thresholdAsLog);
+            Infos.println("PPStarThreshold="+PPStarThreshold);
+            Infos.println("log10(PPStarThreshold)="+PPStarThresholdAsLog);
             //site and word posterior probas thresholds
  
 
@@ -381,17 +381,17 @@ public class Main_DBBUILD_2 {
             ////////////////////////////////////////////////////////////////////
             //LOAD THE NEW POSTERIOR PROBAS AND PAML TREE MADE FROM THE AR
 
-            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
+            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
             
             Infos.println("Loading AR modified dataset (modified tree, modified alignment, Posterior Probas...)");
-            ARProcessResults arpr=null;
-            //the ARProcessResults object will take in charge 2 operations:
+            ARResults arpr=null;
+            //the ARResults object will take in charge 2 operations:
             //1. the call of the wrapper used to parse the AR results
             //   these will return ARTree and Posterior Probas
             //2. the correspondance between the original ARTree node names
             //   and the modification operated by the AR software (which
             //   renames internal nodes/labels in its own way...)
-            arpr=new ARProcessResults(    arpl,
+            arpr=new ARResults(    arpl,
                                         align,
                                         originalTree,
                                         extendedTree,
@@ -457,11 +457,12 @@ public class Main_DBBUILD_2 {
             int[] refPositions=knife.getMerOrder();     
             
             //prepare hash
-            System.out.println("Prepare hash...");
-            Infos.println("Word generator threshold will be:"+thresholdAsLog);
+            System.out.println("Building hash...");
+            Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
             SimpleHash_v2 hash=new SimpleHash_v2();
             
             //Word Explorer used to build ancestral words
+            //with a branch and bound approach
             Infos.println("Building all words probas...");
             int totalTuplesInHash=0;
             int nodeCounter=0;
@@ -474,7 +475,7 @@ public class Main_DBBUILD_2 {
                     //    continue;
                     //DEBUG                
                 
-                double startMerScanTime=System.currentTimeMillis();
+                //double startMerScanTime=System.currentTimeMillis();
                 WordExplorer wd =null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
@@ -491,7 +492,7 @@ public class Main_DBBUILD_2 {
                                             pos,
                                             nodeId,
                                             arpr.getPProbas(),
-                                            thresholdAsLog
+                                            PPStarThresholdAsLog
                                         );
                     
                     for (int j = 0; j < arpr.getPProbas().getStateCount(); j++) {
@@ -516,7 +517,7 @@ public class Main_DBBUILD_2 {
                 
                 //register all words in the hash
                 //Infos.println("Tuples in this node:"+totaTuplesInNode);
-                double endMerScanTime=System.currentTimeMillis();
+                //double endMerScanTime=System.currentTimeMillis();
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 nodeCounter++;
@@ -540,8 +541,8 @@ public class Main_DBBUILD_2 {
             //OUTPUT SOME STATS IN THE log directory
             
             //double[] vals=hash.keySet().stream().mapToDouble(w->hash.getPairs(w).size()).toArray();
-            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
-            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
+            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"),k,alpha);
+            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"), k, alpha);
             
 
             ////////////////////////////
@@ -610,7 +611,7 @@ public class Main_DBBUILD_2 {
             //SAVE THE HASH BY JAVA SERIALIZATION
             System.out.println("Serialization of the database...");
             session.associateHash(hash);
-            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+wordPPStarThreshold);
+            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+PPStarThreshold);
             File dbfull=new File(db.getAbsoluteFile()+".full");
             File dbmedium=new File(db.getAbsoluteFile()+".medium");
             File dbsmall=new File(db.getAbsoluteFile()+".small");

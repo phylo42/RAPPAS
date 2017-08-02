@@ -98,7 +98,8 @@ public class Main_v2 {
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 
             String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
+            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
+            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -109,13 +110,14 @@ public class Main_v2 {
 //                            + "-w "+workDir+" "
 //                            + "-i "+a+" "
 //                            + "-t "+t+" "
-//                            + "-k "+String.valueOf(5)+" "
-//                            + "-a "+String.valueOf(1.0)+" "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.5)+" "
 //                            + "-v 1 "
 //                            + "--ardir "+arDir+" "
-//                            + "--extree "+exTree+" "
+//                            //+ "--extree "+exTree+" "
 //                            + "--skipdbfull "
-//                            + "--froot";
+//                            //+ "--froot"
+//                            ;
             
 //            // placement launch
             String arguments=
@@ -124,11 +126,12 @@ public class Main_v2 {
                             + "-q "+q+" "
                             + "-d "+db+" "
                             + "-s medium "
-                            + "-v 0"
+                            + "-v 0 "
+                            //+ "--nsbound -2.0"
                             ;            
             
             //force args
-            //args=arguments.split(" ");
+            args=arguments.split(" ");
             
             
             
@@ -184,19 +187,19 @@ public class Main_v2 {
 //                                            argsParser.databaseFile,
 //                                            argsParser.workingDir
 //                                            );
-                int placed=Main_PLACEMENT_FIN.doPlacements(
+                int placed=Main_PLACEMENT_v07.doPlacements(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
                                             argsParser.workingDir,
-                                            argsParser.callString
+                                            argsParser.callString,
+                                            argsParser.nsBound
                                             );
                 
-                System.out.println("# query reads placed: "+placed);
             }
             
             
             long endTime=System.currentTimeMillis();
-            System.out.println("Total execution: "+(endTime-startTime)+" ms");
+            System.out.println("Total execution time: "+(endTime-startTime)+" ms");
             System.exit(0);
             
         } catch (Exception ex) {

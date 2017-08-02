@@ -76,5 +76,6 @@ public class DNAStates extends AbstractStates implements States,Serializable {
         return states.size()-ambigousStates;
     }
 
+
     
 }

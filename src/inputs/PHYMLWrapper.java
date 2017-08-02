@@ -36,7 +36,7 @@ import tree.PhyloTree;
  *
  * @author ben
  */
-public class PHYMLWrapper implements DataWrapper {
+public class PHYMLWrapper implements ARWrapper {
     
     Alignment align=null;
     PhyloTree tree=null;

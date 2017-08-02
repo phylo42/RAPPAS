@@ -17,6 +17,7 @@ public interface States {
      * @return 
      */
     public char byteToState(byte b);
+
     /**
      * from a character, return the corresponding byte
      * @param c

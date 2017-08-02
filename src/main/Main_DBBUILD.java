@@ -14,7 +14,7 @@ import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.ARProcessResults;
+import inputs.ARResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -372,7 +372,7 @@ public class Main_DBBUILD {
             SessionNext session=new SessionNext(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
             
             Infos.println("Loading final dataset (PAML tree and Posterior Probas ; alignment)...");
-            ARProcessResults im=new ARProcessResults(
+            ARResults im=new ARResults(
                                                     null,
                                                     align,
                                                     originalTree,

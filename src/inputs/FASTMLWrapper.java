@@ -20,7 +20,7 @@ import tree.PhyloTree;
  * 
  * @author ben
  */
-public class FASTMLWrapper implements DataWrapper {
+public class FASTMLWrapper implements ARWrapper {
 
     Alignment align=null;
     PhyloTree tree=null;

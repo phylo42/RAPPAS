@@ -381,7 +381,7 @@ public class PhyloTree extends JTree implements Serializable {
     
 
     /**
-     * return shortest path between non null nodes
+     * return shortest path between nodes A and B (non null nodes)
      * @param root
      * @param a
      * @param b

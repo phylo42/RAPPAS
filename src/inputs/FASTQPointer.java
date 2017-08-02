@@ -223,5 +223,15 @@ private StringBuffer sb=new StringBuffer();
     public void setPointerPosition(int fastaNumber) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public double getContentMean() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Fasta nextSequenceAsFastaObject() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }

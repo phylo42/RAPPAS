@@ -175,10 +175,18 @@ public class SequenceKnife {
     }
     
     /**
+     * number of mers that will be provided by this knife (sampling method dependant)
+     * @return 
+     */
+    public int getMerCount() {
+        return merOrder.length;
+    }
+    
+    /**
      * max number of words that can be built from this sequence (length-k+1)/s
      * @return 
      */
-    public int getMaxWordCount() {
+    public int getMaxMerCount() {
         return (this.sequence.length-this.k+1)/this.step;
     }
     

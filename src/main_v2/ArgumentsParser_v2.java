@@ -52,6 +52,7 @@ public class ArgumentsParser_v2 {
     public File queriesFile=null;
     public File databaseFile=null;
     public int dbsize=DB_FULL;
+    public Float nsBound=null;
     
     //call string
     public String callString=null;
@@ -269,7 +270,6 @@ public class ArgumentsParser_v2 {
                         this.forceRooting=true;
                     }
                     
-                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -326,6 +326,26 @@ public class ArgumentsParser_v2 {
                             this.dbsize=DB_SMALL;
                         }
                     }
+                    
+                    //////////////////////////////////////
+                    //////////////////////////////////////
+                    //DEBUG OPTIONS
+                    
+                    //test --nsbound parameter
+                    if (argsMap.get(index).equals("--nsbound")) {
+                        String nsBoundVal=argsMap.get(index+1);
+                        try {
+                            this.nsBound=Float.parseFloat(nsBoundVal);
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '--nsbound' as a float value.");
+                            System.exit(1);
+                        }
+                    }
+                    
+                    //////////////////////////////////////
+                    //////////////////////////////////////
+                    //DEBUG OPTIONS END HERE
+                    
                 }
                 
                 //check if both -d and -q were set
@@ -388,7 +408,8 @@ public class ArgumentsParser_v2 {
         "--extree          [dir] Skip fake nodes injection, and use files present in\n"+
         "                  the specified directory instead (B mode only).\n" +
         "--skipdbfull      [] Build only medium and small db files (B mode only).\n" +      
-        "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +        
+        "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +
+        "--nsbound         [float] Force normalized score bound (P mode only).\n" +        
         "\n\n"
         );
        System.exit(1);

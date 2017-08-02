@@ -37,7 +37,7 @@ import tree.PhyloTree;
  * original tree nodes and the node ids modified by PAML.
  * @author ben
  */
-public class PAMLWrapper implements DataWrapper {
+public class PAMLWrapper implements ARWrapper {
 
     Alignment align=null;
     PhyloTree tree=null;

@@ -8,7 +8,6 @@ package core.hash;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 
 
 /**
@@ -58,9 +57,11 @@ public class CustomNode implements Serializable {
      * @return 
      */
     public ArrayList<Pair> getPairList(int refPosition) {
-        for (int i=0;i<positionsPointers.size();i++) {
-            if (positionsPointers.get(i).getRefPosition()==refPosition)
-                return positionsPointers.get(i);
+        //return positionsPointers.stream().filter(p->p.getRefPosition()==refPosition).findFirst().orElse(null);
+        for (PositionPointer p:positionsPointers) {
+            if (p.getRefPosition()==refPosition) {
+                return p;
+            }
         }
         return null;
     }
@@ -77,18 +78,19 @@ public class CustomNode implements Serializable {
      * get best reference position.
      * @return 
      */
-    public Integer getBestPosition() {
+    public int getBestPosition() {
         return positionsPointers.get(0).getRefPosition();
     }
 
     public void sort() {
         //sort each list of Pair objects
-        for (Iterator<PositionPointer> iterator = positionsPointers.iterator(); iterator.hasNext();) {
-            PositionPointer ppl = iterator.next();
-            Collections.sort(ppl);
-        }
+        this.positionsPointers.stream().forEach(p->Collections.sort(p));
+//        for (Iterator<PositionPointer> iterator = positionsPointers.iterator(); iterator.hasNext();) {
+//            PositionPointer ppl = iterator.next();
+//            Collections.sort(ppl);
+//        }
         //then sort these list (= sort the position by the PP* at 1st 
-        //position of the list
+        //position of the list)
         Collections.sort(positionsPointers);            
     }  
 
@@ -100,18 +102,20 @@ public class CustomNode implements Serializable {
     public void clearPairsOfWorsePositions() {
         for (int i = 1; i < positionsPointers.size(); i++) {
             positionsPointers.get(i).clear();
+            positionsPointers.remove(i);
         }
     }
     
     /**
-     * from the "full" or "best position" hash, remove all (nodeId,PP*) 
+     * from the "full" or "medium" hash, remove all (nodeId,PP*) 
      * pairs associated to positions which are not the position holding
      * the best PP*, then keeps only X (nodeid,PP*) pairs
+     * @param X
      */
     public void clearPairsOfWorsePositionsAndLimitToXPairs(int X) {
         clearPairsOfWorsePositions();
         if (positionsPointers.get(0).size()>X) {
-            for (int i = X; i < positionsPointers.get(0).size(); i++) {
+            for (int i = positionsPointers.get(0).size()-1; i > X-1; i--) {
                 positionsPointers.get(0).remove(i);
             }
         }
@@ -143,14 +147,16 @@ public class CustomNode implements Serializable {
          * @param o
          * @return 
          */
+        @Override
         public int compareTo(PositionPointer o) {
-            if ((this.get(0).getPPStar()-o.get(0).getPPStar())<0.0) {
-                return 1;
-            } else if ((this.get(0).getPPStar()-o.get(0).getPPStar())>0.0){
-                return -1;
-            } else {
-                return 0;
-            }
+            return Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
+//            if ((this.get(0).getPPStar()-o.get(0).getPPStar())<0.0) {
+//                return 1;
+//            } else if ((this.get(0).getPPStar()-o.get(0).getPPStar())>0.0){
+//                return -1;
+//            } else {
+//                return 0;
+//            }
         }
 
 

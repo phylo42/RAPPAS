@@ -41,7 +41,7 @@ public class ARProcessLauncher {
      * @param AR_PROG one of ARProcessLauncher.AR_PAML,
      * ARProcessLauncher.AR_PHYML ...etc...
      */
-    public ARProcessLauncher(int AR_PROG, File ARBinary,boolean verboseAR) {
+    public ARProcessLauncher(int AR_PROG, File ARBinary, boolean verboseAR) {
         this.currentProg=AR_PROG;
         this.ARBinary=ARBinary;
         this.verboseAR=verboseAR;

@@ -19,11 +19,13 @@ public class CustomNode implements Serializable {
     
     private static final long serialVersionUID = 7200L;
 
-
     //small init capacity because if k around 8 to 12, few occurences are
     //expected in the ref alignment
     private ArrayList<PositionPointer> positionsPointers=new ArrayList<>(3);
 
+    /**
+     *
+     */
     public CustomNode() {}
 
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
@@ -35,6 +37,7 @@ public class CustomNode implements Serializable {
             }
         }
         if (!refPositionAlreadyRegistered) {
+            //create new position otherwise
             PositionPointer pl=new PositionPointer(refPosition);
             pl.add(new Pair(nodeId, PPStar));
             positionsPointers.add(pl);
@@ -48,7 +51,11 @@ public class CustomNode implements Serializable {
      * @return 
      */
     public int[] getPositions() {
-        return positionsPointers.stream().mapToInt(pp->pp.refPosition).toArray();
+        int[] pos=new int[positionsPointers.size()];
+        for (int i=0;i<positionsPointers.size();i++) {
+            pos[i]=positionsPointers.get(i).getRefPosition();
+        }
+        return pos;
     }
 
     /**
@@ -149,7 +156,7 @@ public class CustomNode implements Serializable {
          */
         @Override
         public int compareTo(PositionPointer o) {
-            return Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
+            return -Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
 //            if ((this.get(0).getPPStar()-o.get(0).getPPStar())<0.0) {
 //                return 1;
 //            } else if ((this.get(0).getPPStar()-o.get(0).getPPStar())>0.0){

@@ -5,33 +5,25 @@
  */
 package main_v2;
 
-import alignement.Alignment;
 import core.AAStates;
 import core.DNAStates;
-import core.PProbasSorted;
 import core.States;
 import core.algos.AlignScoringProcess;
-import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
-import core.hash.SimpleHash_v2;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
-import inputs.Fasta;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import tree.ExtendedTree;
 import tree.NewickWriter;
-import tree.PhyloTree;
 
 /**
  * Algo in this version:
@@ -51,18 +43,43 @@ import tree.PhyloTree;
  */
 public class Main_PLACEMENT_v07 {
     
-    //sequence type
-    public static int TYPE_DNA=1;
-    public static int TYPE_PROTEIN=2;
-    //memory mode
-    public static int MEMORY_LOW=1;
-    public static int MEMORY_LARGE=2;
+
+    
+    //related to debug operation --dbinram
+    SessionNext_v2 session=null;
+    boolean dbInRAM=false;
+    
+    /**
+     * call this constructor when using normal placement operation
+     */
+    public Main_PLACEMENT_v07() { }
+    
+
+    /**
+     * call this constructor when doing placement via debug operation --dbinram
+     * @param session 
+     * @param dbInRAM 
+     */
+    public Main_PLACEMENT_v07(SessionNext_v2 session, boolean dbInRAM) {
+        this.session=session;
+        this.dbInRAM=dbInRAM;
+        
+    }
+    
     
     
 
     
-    
-    public static int doPlacements(File q, File db, File workDir, String callString,Float nsBound) {
+    /**
+     * 
+     * @param q
+     * @param db if null, will attempt debug operation (--dbinram)
+     * @param workDir
+     * @param callString
+     * @param nsBound
+     * @return 
+     */
+    public int doPlacements(File q, File db, File workDir, String callString,Float nsBound) {
 
         try {
                         
@@ -78,11 +95,7 @@ public class Main_PLACEMENT_v07 {
             int queryWordSampling=SequenceKnife.SAMPLING_LINEAR;
 
             //debug 
-            int queryLimit=1000000;
-            int calibrationSampleSize=10000;
-            int q_quantile=1000;
-            int n_quantile=999;
-
+            int queryLimit=100000000;
             
 
             ////////////////////////////////////////////////////////////////////
@@ -99,8 +112,10 @@ public class Main_PLACEMENT_v07 {
             String ARPath=workDir+File.separator+"AR"+File.separator;
             //session itself
             boolean loadHash=true;
-            System.out.println("Loading ancestral words DB... ("+db.getName()+")");
-            SessionNext_v2 session= SessionNext_v2.load(db,loadHash);
+            if (!dbInRAM) {
+                System.out.println("Loading ancestral words DB... ("+db.getName()+")");
+                session= SessionNext_v2.load(db,loadHash);
+            } 
             //mers size
             Infos.println("k="+session.k);
             Infos.println("min_k="+session.minK);
@@ -111,15 +126,8 @@ public class Main_PLACEMENT_v07 {
             Infos.println("PPStarThreshold(log10)="+session.PPStarThresholdAsLog10);
             
             
-            //type of Analysis//////////////////////////////////////////////////
+            //type of Analysis AA or DNA////////////////////////////////////////
             States s=session.states; 
-            int analysisType=-1;
-            //States: DNA or AA
-            if (s instanceof DNAStates)
-                analysisType=Main_PLACEMENT_v07.TYPE_DNA;
-            else if (s instanceof AAStates)
-                analysisType=Main_PLACEMENT_v07.TYPE_PROTEIN;
-            
 
             //PREPARE DIRECTORIES///////////////////////////////////////////////
             if (!workDir.exists()) {workDir.mkdir();}
@@ -163,6 +171,8 @@ public class Main_PLACEMENT_v07 {
 
             ////////////////////////////////////////////////
             //LOADING THE QUERIES PROVIDED BY USER
+            
+            System.out.println("Analyzing query sequences...");
             FASTAPointer fp=new FASTAPointer(q, false);
             int totalQueries=fp.getContentSize();
             Infos.println("Input fasta contains "+totalQueries+" sequences");
@@ -175,8 +185,6 @@ public class Main_PLACEMENT_v07 {
             //PREPARE THE WRITER FOR OUTPUT IN TSV FORMAT
             ////////////////////////////////////////////////////////////////////
             int bufferSize=2097152; // buffer of 2mo
-            //calibration results
-            BufferedWriter bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_"+dbSize+".tsv")),bufferSize);
             //placement results
             BufferedWriter bwTSVPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);
             
@@ -202,25 +210,7 @@ public class Main_PLACEMENT_v07 {
             JSONArray placements=new JSONArray();
             
             
-            ////////////////////////////////////////////////////////////////////
-            //CALIBRATION
-            ////////////////////////////////////////////////////////////////////
-            //FIRST PLACE n RANDOM DNA SEQUENCES USNIG THE DATABASE GIVEN
-            //BY THE USER. THIS WILL BE USED TO CALCULTE THE QUANTILE INCLUDING
-            //95% OF THE SCORE.
-            //FOR NOW THIS QUANTILE WILL BE USED AS A THRESHOLD FOR THE SCORES
-            //THAT WILL BE WRITTEN IN THE OUTPUTS
-            AlignScoringProcess asp=null;
-            float calibrationNormScore =0.0f;
-            System.out.println("Score calibration on "+calibrationSampleSize+" random sequences...");
-            asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-            int meanQuerySize= new Double(fp.getContentMean()).intValue();
-            RandomSeqGenerator rs=new RandomSeqGenerator(session.states);
-            List<Fasta> generateSequence = rs.generateSequence(calibrationSampleSize, meanQuerySize);
-            calibrationNormScore = asp.processCalibration(generateSequence, bwTSVCalibration, queryWordSampling, minOverlap,q_quantile,n_quantile);
-            System.out.println("Score bound: "+calibrationNormScore);
-            //closes the calibration log            
-            bwTSVCalibration.close();
+
                         
             
             ////////////////////////////////////////////////////////////////////
@@ -229,10 +219,12 @@ public class Main_PLACEMENT_v07 {
             //NORMALIZED SCORE BELOW THE CALIBRATION RESULT WILL NOT BE OUTPUT
             //IN THE JPLACE OUPUT
             //TODO: HERE EXTEND WITH PARALLELISM
+            AlignScoringProcess asp=null;
             if (nsBound!=null) {  //norm score bound was set manually via command line
+                System.out.println("User provided nsBound !");
                 asp=new AlignScoringProcess(session,nsBound, queryLimit);
             } else {
-                asp=new AlignScoringProcess(session,calibrationNormScore, queryLimit);
+                asp=new AlignScoringProcess(session,session.calibrationNormScore, queryLimit);
             }
             int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,queryWordSampling,minOverlap);
             //close TSV logs
@@ -340,6 +332,7 @@ public class Main_PLACEMENT_v07 {
         }
         return result;
     }
+    
 
     
     

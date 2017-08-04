@@ -49,7 +49,7 @@ public class Pair implements Comparable<Pair>,Serializable {
      * @return 
      */
     public int compareTo(Pair o) {
-        return Float.compare(this.PPStar,o.getPPStar());
+        return -Float.compare(this.PPStar,o.getPPStar());
 //        if ((this.PPStar-o.getPPStar())<0.0) {
 //            return 1;
 //        } else if ((this.PPStar-o.getPPStar())>0.0){

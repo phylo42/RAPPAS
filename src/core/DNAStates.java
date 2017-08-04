@@ -13,10 +13,9 @@ import java.util.LinkedHashMap;
  * simple object describing the conversion between bytes and residues
  * @author ben
  */
-public class DNAStates extends AbstractStates implements States,Serializable {
+public class DNAStates extends AbstractStates implements Serializable {
     
     private static final long serialVersionUID = 6001L;
-    private int ambigousStates=2;
 
     public DNAStates() {
         
@@ -27,14 +26,14 @@ public class DNAStates extends AbstractStates implements States,Serializable {
         states.put((byte)1, 'T');
         states.put((byte)2, 'C');
         states.put((byte)3, 'G');
-        states.put((byte)4, 'N');
-        states.put((byte)5, '-');
         bytes.put('A',(byte)0);
         bytes.put('T',(byte)1);
         bytes.put('C',(byte)2);
         bytes.put('G',(byte)3);
         //ambigous states which are allowed
         ambigousStates=2;
+        states.put((byte)4, 'N');
+        states.put((byte)5, '-');
         bytes.put('N',(byte)4);
         bytes.put('-',(byte)5);
     }
@@ -76,6 +75,10 @@ public class DNAStates extends AbstractStates implements States,Serializable {
         return states.size()-ambigousStates;
     }
 
+    @Override
+    public int stateToInt(char c) {
+        return bytes.get(c).intValue();
+    }
 
-    
+
 }

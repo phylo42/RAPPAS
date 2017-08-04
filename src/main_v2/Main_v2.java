@@ -92,14 +92,14 @@ public class Main_v2 {
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
 
             //pplacer benchmark queries 
-//            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
+            //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
+            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
+            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -112,11 +112,15 @@ public class Main_v2 {
 //                            + "-t "+t+" "
 //                            + "-k "+String.valueOf(8)+" "
 //                            + "-a "+String.valueOf(1.5)+" "
-//                            + "-v 1 "
+//                            + "-v 0 "
 //                            + "--ardir "+arDir+" "
 //                            //+ "--extree "+exTree+" "
 //                            + "--skipdbfull "
 //                            //+ "--froot"
+//                    
+//                            + "--dbinram "
+//                            + "-q "+q+" "
+//                            //+ "--nsbound -4.0"
 //                            ;
             
 //            // placement launch
@@ -125,7 +129,6 @@ public class Main_v2 {
                             + "-w "+workDir+" "
                             + "-q "+q+" "
                             + "-d "+db+" "
-                            + "-s medium "
                             + "-v 0 "
                             //+ "--nsbound -2.0"
                             ;            
@@ -137,16 +140,7 @@ public class Main_v2 {
             
             
             //System.out.println(Arrays.toString(args));
-            
-           
-            //type of Analysis, currently not in command line parameters
-            States s=null; 
-            int analysisType=TYPE_DNA;
-            //States: DNA or AA
-            if (analysisType==TYPE_DNA)
-                s=new DNAStates();   
-            else if (analysisType==TYPE_DNA)
-                s=new AAStates();
+    
            
             //TEST ZONE//
 
@@ -157,9 +151,17 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml");
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
-            //HACK FOR CURRENT DEBUGING, avoids check if it exists or not (done by ArgumentsParser)
+            //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
             argsParser.ARBinary=new File("baseml");
             
+            
+            //type of Analysis, DNA or AA
+            States s=null; 
+            if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
+                s=new DNAStates();
+            } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+                s=new AAStates();
+            }
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
@@ -177,7 +179,11 @@ public class Main_v2 {
                                             argsParser.ARDirToUse,
                                             argsParser.exTreeDir,
                                             argsParser.skipdbfull,
-                                            argsParser.forceRooting
+                                            argsParser.forceRooting,
+                                            argsParser.dbInRAM,
+                                            argsParser.queriesFile,
+                                            argsParser.callString,
+                                            argsParser.nsBound
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
@@ -187,7 +193,9 @@ public class Main_v2 {
 //                                            argsParser.databaseFile,
 //                                            argsParser.workingDir
 //                                            );
-                int placed=Main_PLACEMENT_v07.doPlacements(
+                Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07();
+
+                int placed=placer.doPlacements(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
                                             argsParser.workingDir,

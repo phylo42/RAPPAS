@@ -15,24 +15,14 @@ import inputs.Fasta;
 import inputs.SequencePointer;
 import java.awt.GridLayout;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import jonelo.jacksum.JacksumAPI;
 import jonelo.jacksum.algorithm.AbstractChecksum;
@@ -83,7 +73,8 @@ public class AlignScoringProcess {
     
     /**
      * 
-     * @param seqs
+     * @param rs
+     * @param samplingAmount
      * @param bwTSV
      * @param queryWordSampling
      * @param minOverlap
@@ -92,10 +83,10 @@ public class AlignScoringProcess {
      * @return 
      * @throws java.io.IOException 
      */
-    public float processCalibration(List<Fasta> seqs, BufferedWriter bwTSV, int queryWordSampling, int minOverlap, int q_quantile, int n_quantile) throws IOException {
+    public float processCalibration(RandomSeqGenerator rs, int samplingAmount,BufferedWriter bwTSV, int queryWordSampling, int minOverlap, int q_quantile, int n_quantile) throws IOException {
 
         //list of normalizedScore
-        ArrayList<Float> normalizedScores=new ArrayList<>();
+        ArrayList<Float> normalizedScores=new ArrayList<>(samplingAmount);
 
         ///////////////////////////////////////////////////////            
         // PREPARE VECTORS USED TO ALIGN AND SCORE NODES
@@ -104,31 +95,21 @@ public class AlignScoringProcess {
         //variable size, expanded only at 1st encounter with the node
         //when nodeOccurences[nodeId]==0
         //,reset at each read
-        ArrayList<Integer> selectedNodes=new ArrayList<>();
+        ArrayList<Integer> selectedNodes=new ArrayList<>(session.ARTree.getNodeCount());
         //instanciated once
         int[] nodeOccurences=new int[session.ARTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
         float[] nodeScores=new float[session.ARTree.getNodeCount()]; // tab[score] --> index=nodeId
         //Arrays.fill(nodeOccurences, 0);
         //Arrays.fill(nodeScores, 0.0f);     
 
-
-        ///////////////////////////////////////////////////////////////////       
-        // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
-        AbstractChecksum checksumGenerator=null;
-        try {
-            checksumGenerator = JacksumAPI.getChecksumInstance("sha256");
-            checksumGenerator.setEncoding(AbstractChecksum.HEX);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Main_PLACEMENT_v07.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //map to associate seqeunce checksums to Fasta headers
-        //map(checksum)=List of headers corresponding to identical sequences
-        HashMap<String,ArrayList<String>> identicalSeqsRegistry=new HashMap<>();
-
+        
+        
         //////////////////////////////////////////////////////////////////
         // PREPARE TSV OUTPUT
         //header of CSV output
-        sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+        if (bwTSV!=null) {
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+        }
    
         
         ////////////////////////////////////////////////////////////////////
@@ -138,73 +119,46 @@ public class AlignScoringProcess {
         ////////////////////////////////////////////////////////////////////
 
         int queryCounter=0;
-        int totalQueries=seqs.size();
-        for (Fasta fasta:seqs) { //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
+        int totalQueries=samplingAmount;
+        for (int query = 0; query < samplingAmount; query++) { //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
 
             //debug
             if (queryCounter>=queryLimit)
                 break;
-            
+
+            //console display to follow the process
+            if ((queryCounter%200000)==0) {
+                System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
+            }
             
             ///////////////////////////////////
-            // CHECKSUM BUILD
-            //if already present do not compute placement
-            //again. this might need compression if fasta sequences headers
-            //are too heavy in memory
-            long startChecksumTime=System.currentTimeMillis();
-            checksumGenerator.reset(); //make it ready before next checksum computation
-            checksumGenerator.update(fasta.getSequence(false).getBytes());
-            String checksum = checksumGenerator.getFormattedValue();
-            int cutIndex=fasta.getHeader().indexOf(" ");
-            if (cutIndex<0) //basically, space not found
-                cutIndex=fasta.getHeader().length();
-            String subHeader=fasta.getHeader().substring(0,cutIndex);
-            //if this query sequence was already encountered
-            if (identicalSeqsRegistry.containsKey(checksum)) {
-                identicalSeqsRegistry.get(checksum).add(subHeader);
-                Infos.println("! SKIPPED BECAUSE DUPLICATE: "+fasta.getHeader());
-                queryCounter++;
-                //go to next query
-                continue;
-            } else {
-                ArrayList<String> a=new ArrayList<>();
-                a.add(subHeader);
-                identicalSeqsRegistry.put(checksum,a);
-            }
+            //GENERATE RANDOM SEQ
+            Fasta fasta=rs.generateSequence();
 
-
-            Infos.println("#######################################################################");
-            Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
-            Infos.println("#######################################################################");
+//            Infos.println("#######################################################################");
+//            Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
+//            Infos.println("#######################################################################");
             //fw.append(fasta.getFormatedFasta()+"\n");
-            long startAlignTime=System.currentTimeMillis();
-            int queryLength=fasta.getSequence(false).length();
-            Infos.println("Query length: "+queryLength);
-
 
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
             QueryWord qw=null;
             SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
-            int queryWordCounter=0;
-            int queryWordFoundCounter=0;
 
+            
             ////////////////////////////////////////////////////////////////
             // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
-            Infos.println("Launching scoring on candidate nodes...");
+//            Infos.println("Launching scoring on candidate nodes...");
             //loop on words
             while ((qw=sk.getNextWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
-                queryWordCounter++;
                 //position of this word
-                int[] positions=session.hash.getPositions(qw);
+                int position=session.hash.getTopPosition(qw);
                 //if this word is not registered in the hash
-                if (positions==null) {
-                    queryWordCounter++;
+                if (position<0) {
                     continue;
                 }
-                queryWordFoundCounter++;
                 //get Pairs associated to this word
                 List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
                 //System.out.println("Pairs: "+allPairs);
@@ -223,16 +177,10 @@ public class AlignScoringProcess {
                 //System.out.println("  nodeOccurences:"+Arrays.toString(nodeOccurences));
                 //System.out.println("  nodeScores:"+Arrays.toString(nodeScores));
 
-
-                //DEBUG
-                //if (queryWordCounter>1000)
-                //        break;
-                //DEBUG
-
             }
 
-            Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
-            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
+//            Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
+//            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
 
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
@@ -247,7 +195,7 @@ public class AlignScoringProcess {
             // NOW CORRECTING SCORING BY UNMATCHED WORDS
             ///////////////////////////////////////////////////////
             //now add the score corresponding to the words not found,
-            // i.e. threshold*#_words_not_scored (because no in hash)
+            // query.e. threshold*#_words_not_scored (because no in hash)
             int maxWords=sk.getMerCount();
             int bestNodeId=-1;
             float bestScore=Float.NEGATIVE_INFINITY;
@@ -273,8 +221,8 @@ public class AlignScoringProcess {
                 }
             }
 
-            Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
-            Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
+//            Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+//            Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
 
             //simple debug test
             if (session.nodeMapping.get(bestNodeId)==null) { //simple test
@@ -294,7 +242,7 @@ public class AlignScoringProcess {
             //for 3rd and so on...
             if (!nodeToTest.isFakeNode()) {
                 //System.out.println("############### change best node to neighboors !");                    
-                Infos.println("Current best node is an original node...");
+//                Infos.println("Current best node is an original node...");
                 //if there was no other scored nodes ? should not happen...
                 if (secondBest<0) {
                     System.out.println("Best node is original node and there are no other scored nodes??...");
@@ -332,7 +280,7 @@ public class AlignScoringProcess {
             //in the query
             float normalizedScore=bestScore/maxWords;
             normalizedScores.add(normalizedScore);
-            Infos.println("Normalized score: "+normalizedScore);
+//            Infos.println("Normalized score: "+normalizedScore);
 
 
 
@@ -348,39 +296,43 @@ public class AlignScoringProcess {
 
 
             //write result in file if a originalNode was hit
-
-            //OUTPUT n°1: the CSV report of placement
-            //allow in particular to check that nodes were correclty
-            //mappes at every step (original tree, extended tree,
-            //AR modified tree)
-            sb.append(fasta.getHeader().split(" ")[0]).append("\t");
-            sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
-            sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
-            sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
-            sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
-            sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
-            sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-            sb.append(String.valueOf(normalizedScore)).append("\n");
-
-
-            //push the stringbuffer to the CSV bufferedwriter every 10000 sequences
-            if ((queryCounter%10000)==0) {
-                int size=sb.length();
-                bwTSV.append(sb);
-                bwTSV.flush();
-                sb=null;
-                sb=new StringBuffer(size);
-            }   
-
+            if (bwTSV!=null) {
+                //OUTPUT n°1: the CSV report of placement
+                //allow in particular to check that nodes were correclty
+                //mappes at every step (original tree, extended tree,
+                //AR modified tree)
+                sb.append(fasta.getHeader().split(" ")[0]).append("\t");
+                sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
+                sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
+                sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
+                sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
+                sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
+                sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
+                sb.append(String.valueOf(normalizedScore)).append("\n");
+                
+                //push the stringbuffer to the CSV bufferedwriter every 10000 sequences
+                if ((queryCounter%10000)==0) {
+                    int size=sb.length();
+                    bwTSV.append(sb);
+                    bwTSV.flush();
+                    sb=null;
+                    sb=new StringBuffer(size);
+                }
+            }
             //reset the scoring vectors
-            selectedNodes.stream().forEach(nodeId->{nodeScores[nodeId]=0.0f; nodeOccurences[nodeId]=0;});
+            for(Integer nodeId:selectedNodes) {
+                nodeScores[nodeId]=0.0f;
+                nodeOccurences[nodeId]=0;
+            }
             selectedNodes.clear();
 
             queryCounter++;
         }
         
         //flush to disk the last CSV buffer
-        bwTSV.append(sb);
+        if (bwTSV!=null) {
+            bwTSV.append(sb);
+        }
         
         //use the normalized scores to define quantile
         return new Double(Quantiles.scale(q_quantile).index(n_quantile).compute(normalizedScores)).floatValue();        
@@ -442,7 +394,9 @@ public class AlignScoringProcess {
         //////////////////////////////////////////////////////////////////
         // PREPARE TSV OUTPUT
         //header of CSV output
-        sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+        if (bwTSV!=null) {
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+        }
    
         
         
@@ -566,7 +520,7 @@ public class AlignScoringProcess {
             }
 
             ////////////////////////////////////////////////////////////////
-            // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
+            // BUILD THE ALIGNMENT AND SCORE IN A SINGLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
             Infos.println("Launching scoring on candidate nodes...");
             //loop on words
@@ -650,7 +604,7 @@ public class AlignScoringProcess {
             ///////////////////////////////////////////////////////
             long startScoringTime=System.currentTimeMillis();
             //now add the score corresponding to the words not found,
-            // i.e. threshold*#_words_not_scored (because no in hash)
+            // query.e. threshold*#_words_not_scored (because no in hash)
             int maxWords=sk.getMerCount();
             int bestNodeId=-1;
             float bestScore=Float.NEGATIVE_INFINITY;
@@ -750,23 +704,25 @@ public class AlignScoringProcess {
 //                System.out.println("nodeOccurences:"+Arrays.toString(nodeOccurences));
 //                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
 
-
-            //write result in file if a originalNode was hit
-
-            //OUTPUT n°1: the CSV report of placement
-            //allow in particular to check that nodes were correclty
-            //mappes at every step (original tree, extended tree,
-            //AR modified tree)
             long startWritingTime=System.currentTimeMillis();
-            sb.append(fasta.getHeader().split(" ")[0]).append("\t");
-            sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
-            sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
-            sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
-            sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
-            sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
-            sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-            sb.append(String.valueOf(normalizedScore)).append("\n");
-
+            //write result in file if a originalNode was hit
+            if (bwTSV!=null) {
+                //only score passing --nsbound if this debug option is set
+                if (normalizedScore>=nsBound) {
+                    //OUTPUT n°1: the CSV report of placement
+                    //allow in particular to check that nodes were correclty
+                    //mappes at every step (original tree, extended tree,
+                    //AR modified tree)
+                    sb.append(fasta.getHeader().split(" ")[0]).append("\t");
+                    sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
+                    sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
+                    sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
+                    sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
+                    sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
+                    sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
+                    sb.append(String.valueOf(normalizedScore)).append("\n");
+                }
+            }
             //OUTPUT n°2: the JSON placement object (jplace file)
             //2 possibilities:
             //-either do a new placement object and add ot to the list
@@ -788,9 +744,9 @@ public class AlignScoringProcess {
 
                 //fake fields for compatibility with current tools (guppy, archeopteryx)
                 //should be provided as an option
-                placeColumns.add(0.1);
-                placeColumns.add(0.1);
-                placeColumns.add(0.1);
+                placeColumns.add(0.1); //distal_length
+                placeColumns.add(normalizedScore); //we put also PP* in the like_weight_ratio column to allow sorting in iTol
+                placeColumns.add(0.1); //pendant_length
 
                 //placeColumns.add(session.ARTree.getById(bestNodeId).getLabel()); // 1. ARTree nodeName
                 //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
@@ -824,13 +780,15 @@ public class AlignScoringProcess {
             totalWritingTime+=endWritingTime-startWritingTime;
 
 
-            //push the stringbuffer to the CSV bufferedwriter every 10000 sequences
-            if ((queryCounter%50000)==0) {
-                int size=sb.length();
-                bwTSV.append(sb);
-                sb=null;
-                sb=new StringBuffer(size);
-            }   
+            //push the stringbuffer to the CSV bufferedwriter every 50000 sequences
+            if (bwTSV!=null) {
+                if ((queryCounter%50000)==0) {
+                    int size=sb.length();
+                    bwTSV.append(sb);
+                    sb=null;
+                    sb=new StringBuffer(size);
+                }   
+            }
 
             //reset the scoring vectors
             long startResetTime=System.currentTimeMillis();

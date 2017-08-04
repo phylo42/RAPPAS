@@ -42,7 +42,7 @@ public class SimpleHash_v2 implements Serializable{
     private static final long serialVersionUID = 7000L;
     
     CustomHashMap<Word,CustomNode> hash=null;
-
+    
     /**
      *
      */
@@ -55,7 +55,7 @@ public class SimpleHash_v2 implements Serializable{
      * @param k
      * @param s
      */
-    public SimpleHash_v2(int k,States s) {
+    public SimpleHash_v2(int k, States s) {
         hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount()+1, k)).intValue(),1.0f);
     }
     
@@ -126,7 +126,7 @@ public class SimpleHash_v2 implements Serializable{
     /**
      * reference alignment positions associated to a word
      * @param w
-     * @return 
+     * @return -1 if word not in hash
      */
     public int getTopPosition(Word w) {
         CustomNode cn=null;

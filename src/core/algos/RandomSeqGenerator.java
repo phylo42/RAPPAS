@@ -20,33 +20,48 @@ public class RandomSeqGenerator {
     
     States s=null;
     //pseudorandom generator
-    Random rand = new Random();
+    Long seed=new Long(1);
+    Random rand = new Random(seed);
+    int sequenceLength=0;
     //standard dev arounf the mean read length
-    int Rsd=5;
+    double Rsd=5;
+    Double v_length = 0.0;
     
-    public RandomSeqGenerator(States s) {
+    //variables used for Fasta creation
+    StringBuffer sb=null;
+    StringBuffer header=null;
+    Fasta fasta=null;
+    
+    //int counter
+    int counter=-1;
+    
+    public RandomSeqGenerator(States s,int sequenceLength) {
         this.s=s;
+        this.sb= new StringBuffer(sequenceLength+new Double(4*Rsd).intValue());
+        this.header=new StringBuffer(4+String.valueOf(sequenceLength).length());
+        this.sequenceLength=sequenceLength;
+        this.Rsd=sequenceLength*0.1;
     }
     
-    public List<Fasta> generateSequence(int amount, int sequenceLength) {
-        ArrayList<Fasta> list=new ArrayList<>(amount);
-        for (int i = 0; i < amount; i++) {
-            //select normally distibuted read length v_length
-            //centered around R and with standard dev of value Rsd
-            double Rsd=sequenceLength*0.1;
-            int v_length = new Double(0.0+sequenceLength+rand.nextGaussian()*Rsd).intValue();
-            StringBuilder sb = new StringBuilder();
-            rand.ints(v_length, 0, s.getNonAmbiguousStatesCount()).boxed().map(intVal->s.byteToState(intVal.byteValue())).forEachOrdered(sb::appendCodePoint);
-            list.add(new Fasta("rand"+i, sb.toString()));
-            //System.out.println(f.getFormatedFasta());
+    public Fasta generateSequence() {
+        sb.delete(0, sb.length());
+        //select normally distibuted read length v_length
+        //centered around R and with standard dev of value Rsd
+        v_length = 0.0+sequenceLength+rand.nextGaussian()*Rsd;
+        for (int i = 0; i < v_length; i++) {
+            sb.appendCodePoint(s.byteToState((byte)(rand.nextInt(s.getNonAmbiguousStatesCount()))));            
         }
-        return list;
+        counter++;
+        return new Fasta("rand"+counter, sb.toString());         
     }
     
     
     public static void main(String[] args) {
-        RandomSeqGenerator rs=new RandomSeqGenerator(new DNAStates());
-        rs.generateSequence(10, 100);
+        RandomSeqGenerator rs=new RandomSeqGenerator(new DNAStates(),20);
+        for (int i = 0; i < 10; i++) {
+            Fasta f=rs.generateSequence();
+            System.out.println(f.getFormatedFasta());
+        }
     }
     
 }

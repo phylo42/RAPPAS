@@ -113,12 +113,10 @@ public class SequenceKnife {
     
     private void initTables(String seq, int samplingMode) {
         sequence=new byte[seq.length()];
-        merOrder=new int[seq.length()];
         for (int i = 0; i < seq.length(); i++) {
             sequence[i]=s.stateToByte(seq.charAt(i));
         }
         //Infos.println("Binary seq: "+Arrays.toString(sequence));
-        Arrays.fill(merOrder, 0);
         switch (samplingMode) {
             case SAMPLING_LINEAR:
                 merOrder=new int[seq.length()];
@@ -157,6 +155,7 @@ public class SequenceKnife {
      * @param queryPosition
      * @return 
      */
+    @Deprecated
     public QueryWord getWordAt(int queryPosition) {
         assert queryPosition>-1;
         assert queryPosition<(sequence.length-k+1);

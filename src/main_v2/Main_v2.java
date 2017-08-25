@@ -9,6 +9,7 @@ import core.AAStates;
 import core.DNAStates;
 import core.States;
 import java.io.File;
+import javax.swing.UIManager;
 import static main.Main_DBBUILD.TYPE_DNA;
 
 
@@ -31,6 +32,14 @@ public class Main_v2 {
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
+            //hack related to Problems under MAC OS implementation of
+            //the Aqua (mac Look and feel)
+            //for some reason, the use of Jtree prompts the virtual achine to 
+            //use the class com.apple.laf.AquaTreeUI
+            //which is not Serializable and causes crashes when Jtree is serialized
+            
+            // Set cross-platform Java L&F (also called "Metal")
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             
             
             
@@ -134,7 +143,7 @@ public class Main_v2 {
                             ;            
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             
             
             
@@ -152,7 +161,7 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            argsParser.ARBinary=new File("baseml");
+            //argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA

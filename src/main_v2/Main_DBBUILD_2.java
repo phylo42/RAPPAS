@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -116,11 +117,11 @@ public class Main_DBBUILD_2 {
             ////////////////////////////////////////////////////////////////////
             
             //logs
-            String logPath=workDir+File.separator+"logs"+File.separator;
+            String logPath=workDir.getAbsolutePath()+File.separator+"logs"+File.separator;
             //trees
-            String extendedTreePath=workDir+File.separator+"extended_trees"+File.separator;
+            String extendedTreePath=workDir.getAbsolutePath()+File.separator+"extended_trees"+File.separator;
             //ancestral reconstruciton
-            String ARPath=workDir+File.separator+"AR"+File.separator;
+            String ARPath=workDir.getAbsolutePath()+File.separator+"AR"+File.separator;
             
             
             //build of extended ARTree/////////////////////////////////////////////
@@ -194,6 +195,21 @@ public class Main_DBBUILD_2 {
             br.close();
             PhyloTree originalTree = NewickReader.parseNewickTree2(tline, forceRooting, false);
             Infos.println("Original tree read.");
+            
+            //test if alignment/tree labels are matching.
+            //if not, exit before raising more errors later in the algo...
+            List<String> alignLabels = Arrays.asList(align.getRowLabels());
+            int notFoundCount=0;
+            for (Iterator<String> iterator = alignLabels.iterator(); iterator.hasNext();) {
+                String next = iterator.next();
+                if (!originalTree.getLabelsByDFS().contains(next)) {
+                    System.out.println("Alignment label \""+next+"\" not found in given tree labels.");
+                    notFoundCount++;
+                }
+            }
+            if (notFoundCount>0) {System.exit(1);}
+            alignLabels=null;
+            
             /////////////////////
             //BUILD RELAXED TREE
             
@@ -424,13 +440,16 @@ public class Main_DBBUILD_2 {
             
             //Word Explorer used to build ancestral words
             //with a branch and bound approach
-            Infos.println("Building all words probas...");
+            Infos.println("Building all PP* probas...");
             int totalTuplesInHash=0;
             int nodeCounter=0;
             double[] wordsPerNode=new double[session.ARTree.getInternalNodesByDFS().size()];
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
-                //Infos.println("Node: "+session.ARTree.getById(nodeId).toString() );
+                if (nodeCounter%10==0) {
+                    Infos.println("Node: "+session.ARTree.getById(nodeId).toString() +" ("+(0.0+nodeCounter)/ARTree.getNodeCount()+"%)" );
+                    Infos.println("Current memory use:"+Environement.getMemoryUsage());
+                }
                     //DEBUG
                     //if(nodeId!=709)
                     //    continue;

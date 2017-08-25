@@ -235,8 +235,10 @@ public class Alignment implements Serializable {
     public void writeAlignmentAsPhylip(File f) throws IOException {
         
         
-        //here choose 50 because PAML don't allow more !
-        int allowedLabelSize=50; //in fact(48 +2 spaces)
+        //here choose 50 because PAML don't allow more in original sources !
+        int allowedLabelSize=100; //in fact(98 +2 spaces)
+        //this can be changed in paml source, rising #define LSPNAME value
+        //changed in baseml.c then recompiled
         int numColumns=2;
         
         BufferedWriter br=new BufferedWriter(new FileWriter(f),4096);

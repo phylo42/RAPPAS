@@ -5,6 +5,7 @@
  */
 package core;
 
+import etc.Infos;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,7 +50,7 @@ public class DNAStates extends AbstractStates implements Serializable {
             return bytes.get(c);
         } catch (NullPointerException ex) {
             //ex.printStackTrace();
-            System.out.println("Unexpected state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
+            Infos.println("Unexpected state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
         }
         return 'N';
     }

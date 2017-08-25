@@ -226,7 +226,7 @@ public class ARProcessLauncher {
             }   StringBuilder sb=new StringBuilder();
             sb.append("seqfile = "+alignPath.getAbsolutePath()+"\n");
             sb.append("treefile = "+treePath.getAbsolutePath()+"\n");
-            sb.append("outfile = "+ARPath+File.separator+"paml_output"+"\n");
+            sb.append("outfile = "+ARPath.getAbsolutePath()+File.separator+"paml_output"+"\n");
             sb.append("noisy = 3   * 0,1,2,3: how much rubbish on the screen\n");
             sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
             sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
@@ -450,7 +450,7 @@ public class ARProcessLauncher {
         inputStreamToOutputStream(p.getInputStream(), STDOUTOutputStream);
         inputStreamToOutputStream(p.getErrorStream(), STDERROutputStream);
         Infos.println("External process operating reconstruction is logged in: "+new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt").getAbsolutePath());
-        Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
+        Infos.println("Launching ancestral reconstruction (go and take a coffee, it might take hours!) ...");
         try {
             p.waitFor();
             Thread.sleep(1000);

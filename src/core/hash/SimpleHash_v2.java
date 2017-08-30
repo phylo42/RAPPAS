@@ -8,6 +8,7 @@ package core.hash;
 import alignement.Alignment;
 import core.DNAStates;
 import core.PProbasSorted;
+import core.QueryWord;
 import core.SimpleWord;
 import core.States;
 import core.Word;
@@ -24,11 +25,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import tree.PhyloTree;
 
 /**
@@ -67,10 +70,18 @@ public class SimpleHash_v2 implements Serializable{
      * @param refPos 
      */
     public void addTuple(Word w, float PPStar,int nodeId,int refPos) {
+//        CustomNode cn=null;
+//        if ((cn=hash.get(w))==null) {
+//            hash.put(w, cn=new CustomNode());
+//        }
+//        cn.registerTuple(nodeId, refPos, PPStar);
+       
         if (!hash.containsKey(w)) {
             hash.put(w, new CustomNode());
         }
         hash.get(w).registerTuple(nodeId, refPos, PPStar);
+        
+
     }
 
     /**
@@ -185,6 +196,7 @@ public class SimpleHash_v2 implements Serializable{
      * empty all the positions which where not associated to the best PP*
      */
     public void reduceToMediumHash() {
+        
         hash.keySet().stream().forEach((next) -> {
             hash.get(next).clearPairsOfWorsePositions();
         });
@@ -197,9 +209,13 @@ public class SimpleHash_v2 implements Serializable{
      * @param X
      */
     public void reducetoSmallHash(int X) {
-        hash.keySet().stream().forEach((next) -> {
-            hash.get(next).clearPairsOfWorsePositionsAndLimitToXPairs(X);
-        });
+        List<Word> collect = hash.keySet()  .stream() 
+                                            //.peek((w)->System.out.println("REDUCING:"+w))
+                                            .filter((w) -> hash.get(w).limitToXPairsPerPosition(X))
+                                            //.peek((w)->System.out.println("TRASHED!:"+w))
+                                            .collect(Collectors.toList());
+        collect.stream().forEach((w)-> {hash.remove(w);});
+        collect=null;
     }
     
     

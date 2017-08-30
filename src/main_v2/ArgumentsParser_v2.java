@@ -40,12 +40,13 @@ public class ArgumentsParser_v2 {
     
     //parameters for DB build
     public int k=8; //default=8
-    public float alpha=1.5f; //default=1.5
+    public float alpha=1.4f; //default=1.5
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
-    public boolean skipdbfull=false; //default=false
+    public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
     public boolean forceRooting=false;
+    public boolean noCalibration=false;
     //eventual directories passed for debugging
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;
@@ -56,7 +57,7 @@ public class ArgumentsParser_v2 {
     public int minOverlap=100; //default =100
     public File queriesFile=null;
     public File databaseFile=null;
-    public int dbsize=DB_FULL;
+    public int dbsize=DB_MEDIUM;
     public Float nsBound=null;
     
     //call string
@@ -281,9 +282,9 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     
-                    //test --skipdbfull parameter
-                    if (argsMap.get(index).equals("--skipdbfull")) {
-                        this.skipdbfull=true;
+                    //test --builddbfull parameter
+                    if (argsMap.get(index).equals("--dbfull")) {
+                        this.builddbfull=true;
                     }
                     
                     //test --froot parameter
@@ -317,6 +318,11 @@ public class ArgumentsParser_v2 {
                             System.out.println("Cannot parse '--nsbound' as a float value.");
                             System.exit(1);
                         }
+                    }
+                    
+                    //test --nocalib parameter
+                    if (argsMap.get(index).equals("--nocalib")) {
+                        this.noCalibration=true;
                     }
                     
                     //////////////////////////////////////
@@ -439,18 +445,19 @@ public class ArgumentsParser_v2 {
         "-v (--verbose)    Verbosity level: 0=none ; 1=basic ; 2=full\n" +
         "-w (--workdir)    [dir] Path of the working directory (default= ./).\n\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
-        "Debug options: Use them only if you know what you are doing...    \n" +
+        "Debug options: Use only if you know what you are doing...    \n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "--ardir           [dir] Skip AR reconstruction, searching its results\n"+
         "                  in the specified directory (B mode only).\n" +
         "--arbinary        [file] Binary used for AR, ex: phyml. (B mode only).\n" +
         "--extree          [dir] Skip fake nodes injection, and use files present in\n"+
         "                  the specified directory instead (B mode only).\n" +
-        "--skipdbfull      [] Build only medium and small db files (B mode only).\n" +      
+        "--dbfull          [] Save DB full; unused by current algo. (B mode only).\n" +      
         "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +
-        "--nsbound         [float] Force normalized score bound (P mode only).\n" +
+        "--nsbound         [-float] Force normalized score bound (P mode only).\n" +
         "--dbinram         [] Operate DB build, whitout saving DB to files.\n" +
         "                  Then, place queries (-q) using medium and large DBs.\n" +
+        "--nocalib         [] No calibration, use threshold formula. (B mode only).\n" +
         "\n\n"
         );
        System.exit(1);

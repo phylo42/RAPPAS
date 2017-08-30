@@ -114,36 +114,84 @@ public class Main_v2 {
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
 
             //db build launch
-//            String arguments=
-//                              "-m B "
-//                            + "-w "+workDir+" "
-//                            + "-i "+a+" "
-//                            + "-t "+t+" "
-//                            + "-k "+String.valueOf(8)+" "
-//                            + "-a "+String.valueOf(1.5)+" "
-//                            + "-v 0 "
-//                            + "--ardir "+arDir+" "
-//                            //+ "--extree "+exTree+" "
-//                            + "--skipdbfull "
-//                            //+ "--froot"
-//                    
-//                            + "--dbinram "
-//                            + "-q "+q+" "
-//                            //+ "--nsbound -4.0"
-//                            ;
+            String arguments=
+                              "-m B "
+                            + "-w "+workDir+" "
+                            + "-i "+a+" "
+                            + "-t "+t+" "
+                            + "-k "+String.valueOf(8)+" "
+                            + "-a "+String.valueOf(1.1)+" "
+                            + "-v 1 "
+                            + "--ardir "+arDir+" "
+                            //+ "--extree "+exTree+" "
+                            //+ "--dbfull "
+                            //+ "--froot"
+                            + "--dbinram "
+                            + "-q "+q+" "
+                            + "--nsbound -100000.0 "
+                            + "--nocalib"
+                            ;
+            
+            
+            ///-t /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Tx/T33_nx348_la.tree
+            //-i /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Ax/A33_nx348_la.align
+            //-w /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Dx/A33_nx348_la/k8_a1.1
+            //--ardir /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Dx/A33_nx348_la/k8_a1.1/AR
+            //-v 1
+            //--builddbfull
+            //--dbinram
+            //-q /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Rx/R33_nx348_la_r300.fasta
+            //--nsbound -100000.0
+            
+            
             
 //            // placement launch
-            String arguments=
-                              "-m p "
-                            + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-v 0 "
+//            String arguments=
+//                              "-m p "
+//                            + "-w "+workDir+" "
+//                            + "-q "+q+" "
+//                            + "-d "+db+" "
+//                            + "-v 0 "
                             //+ "--nsbound -2.0"
                             ;            
+                            
+                            
+/////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp            
+//            arguments=
+//                              "-m B "
+//                            + "-w /home/ben/Desktop/k8_a1.1 "
+//                            + "-i /home/ben/Desktop/k8_a1.1/A33_nx348_la.align "
+//                            + "-t /home/ben/Desktop/k8_a1.1/T33_nx348_la.tree "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.1)+" "
+//                            + "-v 1 "
+//                            + "--ardir /home/ben/Desktop/k8_a1.1/AR "
+//                            //+ "--extree "+exTree+" "
+//                            + "--builddbfull "
+//                            + "--froot"
+//                            + "--dbinram "
+//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib"
+//                            ;     
+//            arguments=
+//                              "-m p "
+//                            + "-w /home/ben/Desktop/k8_a1.1 "
+//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+//                            + "-d /home/ben/Desktop/k8_a1.1/DB_session_k8_a1.1_t3.2708576E-5.small "
+//                            + "-v 1 "
+//                            //+ "--nsbound -100000.0"
+//                            ;    
+/////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp              
+                            
+                            
+                            
+                            
+                            
+                            
             
             //force args
-            //args=arguments.split(" ");
+            args=arguments.split(" ");
             
             
             
@@ -161,7 +209,7 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            //argsParser.ARBinary=new File("baseml");
+            argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA
@@ -187,12 +235,13 @@ public class Main_v2 {
                                             argsParser.ARBinary,
                                             argsParser.ARDirToUse,
                                             argsParser.exTreeDir,
-                                            argsParser.skipdbfull,
+                                            argsParser.builddbfull,
                                             argsParser.forceRooting,
                                             argsParser.dbInRAM,
                                             argsParser.queriesFile,
                                             argsParser.callString,
-                                            argsParser.nsBound
+                                            argsParser.nsBound,
+                                            argsParser.noCalibration
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {

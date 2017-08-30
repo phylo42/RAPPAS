@@ -21,7 +21,7 @@ public class CustomNode implements Serializable {
 
     //small init capacity because if k around 8 to 12, few occurences are
     //expected in the ref alignment
-    private ArrayList<PositionPointer> positionsPointers=new ArrayList<>(3);
+    private ArrayList<PositionPointer> positionPointerList=new ArrayList<>(3);
 
     /**
      *
@@ -30,7 +30,7 @@ public class CustomNode implements Serializable {
 
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
         boolean refPositionAlreadyRegistered=false;
-        for (PositionPointer p:positionsPointers) {
+        for (PositionPointer p:positionPointerList) {
             if (p.getRefPosition()==refPosition) {
                 refPositionAlreadyRegistered=true;
                 break;
@@ -40,7 +40,7 @@ public class CustomNode implements Serializable {
             //create new position otherwise
             PositionPointer pl=new PositionPointer(refPosition);
             pl.add(new Pair(nodeId, PPStar));
-            positionsPointers.add(pl);
+            positionPointerList.add(pl);
         } else {
             getPairList(refPosition).add(new Pair(nodeId, PPStar));
         }
@@ -51,9 +51,9 @@ public class CustomNode implements Serializable {
      * @return 
      */
     public int[] getPositions() {
-        int[] pos=new int[positionsPointers.size()];
-        for (int i=0;i<positionsPointers.size();i++) {
-            pos[i]=positionsPointers.get(i).getRefPosition();
+        int[] pos=new int[positionPointerList.size()];
+        for (int i=0;i<positionPointerList.size();i++) {
+            pos[i]=positionPointerList.get(i).getRefPosition();
         }
         return pos;
     }
@@ -64,8 +64,8 @@ public class CustomNode implements Serializable {
      * @return 
      */
     public ArrayList<Pair> getPairList(int refPosition) {
-        //return positionsPointers.stream().filter(p->p.getRefPosition()==refPosition).findFirst().orElse(null);
-        for (PositionPointer p:positionsPointers) {
+        //return positionPointerList.stream().filter(p->p.getRefPosition()==refPosition).findFirst().orElse(null);
+        for (PositionPointer p:positionPointerList) {
             if (p.getRefPosition()==refPosition) {
                 return p;
             }
@@ -78,7 +78,7 @@ public class CustomNode implements Serializable {
      * @return 
      */
     public Pair getBestPair() {
-        return positionsPointers.get(0).get(0);
+        return positionPointerList.get(0).get(0);
     }
 
     /**
@@ -86,19 +86,19 @@ public class CustomNode implements Serializable {
      * @return 
      */
     public int getBestPosition() {
-        return positionsPointers.get(0).getRefPosition();
+        return positionPointerList.get(0).getRefPosition();
     }
 
     public void sort() {
         //sort each list of Pair objects
-        this.positionsPointers.stream().forEach(p->Collections.sort(p));
-//        for (Iterator<PositionPointer> iterator = positionsPointers.iterator(); iterator.hasNext();) {
+        this.positionPointerList.stream().forEach(p->Collections.sort(p));
+//        for (Iterator<PositionPointer> iterator = positionPointerList.iterator(); iterator.hasNext();) {
 //            PositionPointer ppl = iterator.next();
 //            Collections.sort(ppl);
 //        }
         //then sort these list (= sort the position by the PP* at 1st 
         //position of the list)
-        Collections.sort(positionsPointers);            
+        Collections.sort(positionPointerList);            
     }  
 
     
@@ -107,9 +107,10 @@ public class CustomNode implements Serializable {
      * which are not the position holding the best PP* --> "best position" hash
      */
     public void clearPairsOfWorsePositions() {
-        for (int i = 1; i < positionsPointers.size(); i++) {
-            positionsPointers.get(i).clear();
-            positionsPointers.remove(i);
+        
+        for (int i = positionPointerList.size()-1;i>0; i--) {
+            positionPointerList.get(i).clear();
+            positionPointerList.remove(i);
         }
     }
     
@@ -118,14 +119,43 @@ public class CustomNode implements Serializable {
      * pairs associated to positions which are not the position holding
      * the best PP*, then keeps only X (nodeid,PP*) pairs
      * @param X
+     * @return boolean that if true, notifies that this position should be deleted
+     * because biased after the pair trimming
      */
-    public void clearPairsOfWorsePositionsAndLimitToXPairs(int X) {
-        clearPairsOfWorsePositions();
-        if (positionsPointers.get(0).size()>X) {
-            for (int i = positionsPointers.get(0).size()-1; i > X-1; i--) {
-                positionsPointers.get(0).remove(i);
+    public boolean limitToXPairsPerPosition(int X) {
+        if (positionPointerList.get(0).size()>X) {
+            //do not forget X is shifted by -1 for array coordinates (idx9==10th elt)
+            //remove nth to (X+2)th Pair
+            for (int i = positionPointerList.get(0).size()-1; i > X; i--) {
+                positionPointerList.get(0).remove(i);
+            }
+            //now check the state of the [1st to (X+1)] pairs
+            //(from right to left) memorize the index of the last PP* change
+            // X.PP*==(X+1).PP*? T-> reachIndex0(no change)?  T->remove ALL
+            //                                                F->remove [index;X+1]
+            //                   F->remove [X+1;X+1]
+            if (positionPointerList.get(0).get(X-1).getPPStar()
+                !=positionPointerList.get(0).get(X).getPPStar()) {
+                //no need to go further, the X Pairs are kept
+                //just remove the X+1 pair
+                positionPointerList.get(0).remove(X);
+                return false;
+            } else {
+                for (int i = X-2; i > -1; i--) { 
+                    //test value change between i and i+1, with i in [0,X-1]
+                    if ((positionPointerList.get(0).get(i).getPPStar()-positionPointerList.get(0).get(i+1).getPPStar())!=0.0f) {
+                        //rightmost change found, remove [rightmostchangeIndex;X+1]
+                        for (int j = X; j > i; j--) {
+                            positionPointerList.get(0).remove(j);
+                        }
+                        return false;
+                    }
+                }
+                //no change found ! removes everything, this kmer is biased
+                return true;
             }
         }
+        return false;
     }
         
     
@@ -140,6 +170,7 @@ public class CustomNode implements Serializable {
         private int refPosition=-1;
 
         public PositionPointer(int refPosition) {
+            super(1);
             this.refPosition=refPosition;
         }
 
@@ -157,14 +188,17 @@ public class CustomNode implements Serializable {
         @Override
         public int compareTo(PositionPointer o) {
             return -Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
-//            if ((this.get(0).getPPStar()-o.get(0).getPPStar())<0.0) {
-//                return 1;
-//            } else if ((this.get(0).getPPStar()-o.get(0).getPPStar())>0.0){
-//                return -1;
-//            } else {
-//                return 0;
-//            }
         }
+
+        @Override
+        public boolean add(Pair e) {
+            boolean ok= super.add(e);
+            this.trimToSize(); //force arrylist capacity to preserve a max 
+            //of memory
+            return ok;
+        }
+        
+        
 
 
     }

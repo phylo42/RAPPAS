@@ -8,6 +8,7 @@ package main_v2;
 import outputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.ProbabilisticWord;
+import core.QueryWord;
 import core.States;
 import core.Word;
 import core.algos.AlignScoringProcess;
@@ -26,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -37,9 +39,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -76,7 +75,7 @@ public class Main_DBBUILD_2 {
      * @param ARBinary binaries of external AR program
      * @param ARDirToUse if not null, search AR result in this directory instead of launching AR
      * @param exTreeDir if not null, serch extended tree and alignments in this directory instead of building them
-     * @param skipDBFull the value of skipDBFull
+     * @param buildDBFull the value of buildDBFull
      * @param forceRooting
      * @param dbInRAM
      * @param queries
@@ -94,19 +93,19 @@ public class Main_DBBUILD_2 {
                                         File ARBinary,
                                         File ARDirToUse,
                                         File exTreeDir,
-                                        boolean skipDBFull,
+                                        boolean buildDBFull,
                                         boolean forceRooting,
                                         boolean dbInRAM,
                                         File queries,
                                         String callString,
-                                        Float nsBound
-                                    ) {
+                                        Float nsBound,
+                                        boolean noCalibration
+                                    ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
         
 
         
         
-        try {
             
 
 
@@ -226,7 +225,7 @@ public class Main_DBBUILD_2 {
                 if (exTreeDir==null) {
                     try {
                         System.out.println("Injecting fake nodes...");
-                        //note, we read again the tree to build a new PhyloTree object
+                        //note, we read again the tree to buildDBFull a new PhyloTree object
                         //this is necessary as its TreeModel is directly modified
                         //at instanciation of ExtendedTree
                         //do a tree copy, to not do the extended tree extension on the original tree
@@ -395,28 +394,30 @@ public class Main_DBBUILD_2 {
             //to compare node mapping , output state of the original tree and extended tree
             Infos.println("OriginalTree rooted: "+originalTree.isRooted());
             Infos.println("OriginalTree # nodes: "+originalTree.getNodeCount());
-            Infos.println("OriginalTree leaves: "+originalTree.getLeavesByDFS());
-            Infos.println("OriginalTree internal nodes: "+originalTree.getInternalNodesByDFS());
-            Infos.println("OriginalTree nodes by DFS:      "+originalTree.getNodeIdsByDFS());
-            Infos.println("OriginalTree node names by DFS: "+originalTree.getLabelsByDFS());
+            Infos.println("OriginalTree leaves: "+originalTree.getLeavesByDFS().size());
+            Infos.println("OriginalTree internal nodes: "+originalTree.getInternalNodesByDFS().size());
+            Infos.println("OriginalTree nodes by DFS:      "+originalTree.getNodeIdsByDFS().size());
+            Infos.println("OriginalTree node names by DFS: "+originalTree.getLabelsByDFS().size());
             Infos.println("ExtendedTree rooted: "+extendedTree.isRooted());
             Infos.println("ExtendedTree # nodes: "+extendedTree.getNodeCount());
-            Infos.println("ExtendedTree leaves: "+extendedTree.getLeavesByDFS());
-            Infos.println("ExtendedTree internal nodes: "+extendedTree.getInternalNodesByDFS());
-            Infos.println("ExtendedTree new Fake leaves: "+Arrays.toString(extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray()));
-            Infos.println("ExtendedTree new Fake internal nodes: "+Arrays.toString(extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray()));
-            Infos.println("ExtendedTree nodes by DFS:      "+extendedTree.getNodeIdsByDFS());
-            Infos.println("ExtendedTree node names by DFS: "+extendedTree.getLabelsByDFS());
-            Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) "+extendedTree.getFakeNodeMapping());
+            Infos.println("ExtendedTree leaves: "+extendedTree.getLeavesByDFS().size());
+            Infos.println("ExtendedTree internal nodes: "+extendedTree.getInternalNodesByDFS().size());
+            Infos.println("ExtendedTree new Fake leaves: "+extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray().length);
+            Infos.println("ExtendedTree new Fake internal nodes: "+extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray().length);
+            Infos.println("ExtendedTree nodes by DFS:      "+extendedTree.getNodeIdsByDFS().size());
+            Infos.println("ExtendedTree node names by DFS: "+extendedTree.getLabelsByDFS().size());
+            //Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) "+extendedTree.getFakeNodeMapping());
+            Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) ");
             //to raidly check that AR ARTree was read correctly
             PhyloTree ARTree=arpr.getARTree();
             Infos.println("ARTree rooted: "+ARTree.isRooted());
             Infos.println("ARTree # nodes: "+ARTree.getNodeCount());
-            Infos.println("ARTree leaves: "+ARTree.getLeavesByDFS());
-            Infos.println("ARTree internal nodes: "+ARTree.getInternalNodesByDFS());
-            Infos.println("ARTree nodes by DFS:      "+ARTree.getNodeIdsByDFS());
-            Infos.println("ARTree node names by DFS: "+ARTree.getLabelsByDFS());
-            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
+            Infos.println("ARTree leaves: "+ARTree.getLeavesByDFS().size());
+            Infos.println("ARTree internal nodes: "+ARTree.getInternalNodesByDFS().size());
+            Infos.println("ARTree nodes by DFS:      "+ARTree.getNodeIdsByDFS().size());
+            Infos.println("ARTree node names by DFS: "+ARTree.getLabelsByDFS().size());
+            //Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
+            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) ");
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 3 first PP:"+Arrays.deepToString(arpr.getPProbas().getPPSet(0, 0, 3)));
             Infos.println("NodeId=0, 3 first states:"+ Arrays.deepToString(arpr.getPProbas().getStateSet(0, 0, 3)));
@@ -438,16 +439,18 @@ public class Main_DBBUILD_2 {
             Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
             session.hash=new SimpleHash_v2(k, s);
             
-            //Word Explorer used to build ancestral words
+            //Word Explorer used to buildDBFull ancestral words
             //with a branch and bound approach
             Infos.println("Building all PP* probas...");
             int totalTuplesInHash=0;
             int nodeCounter=0;
+            int nodeTested=ARTree.getInternalNodesByDFS().size();
+            int nodeBucketSize=nodeTested/10;
             double[] wordsPerNode=new double[session.ARTree.getInternalNodesByDFS().size()];
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
-                if (nodeCounter%10==0) {
-                    Infos.println("Node: "+session.ARTree.getById(nodeId).toString() +" ("+(0.0+nodeCounter)/ARTree.getNodeCount()+"%)" );
+                if (nodeCounter%nodeBucketSize==0) {
+                    Infos.println("Node: "+nodeId +" ("+((0.0+nodeCounter)/nodeTested)*100.0+"%)" );
                     Infos.println("Current memory use:"+Environement.getMemoryUsage());
                 }
                     //DEBUG
@@ -515,9 +518,6 @@ public class Main_DBBUILD_2 {
             System.out.println("Words in the hash: "+session.hash.keySet().size());
             System.out.println("Tuples in the hash:"+totalTuplesInHash);
 
-            
-
-            
                        
             ////////////////////////////////////////////////////////////////////
             //OUTPUT SOME STATS IN THE WORKDIR
@@ -675,31 +675,52 @@ public class Main_DBBUILD_2 {
             AlignScoringProcess asp=null;
             RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
             
-            if (!skipDBFull) {
-                
+            if (buildDBFull) {
                 //calibration
-                int bufferSize=2097152; // buffer of 2mo
-                BufferedWriter bwTSVCalibration=null;
-                if (writeTSVCalibrationLog) {
-                    bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
+                if (!noCalibration) {
+                    int bufferSize=2097152; // buffer of 2mo
+                    BufferedWriter bwTSVCalibration=null;
+                    if (writeTSVCalibrationLog) {
+                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
+                    }
+                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
+                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    //do the placement and calculate score quantiles
+                    float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                    System.out.println("Score bound: "+calibrationNormScoreLarge);
+                    //closes the calibration log  
+                    if (writeTSVCalibrationLog){
+                        bwTSVCalibration.close();
+                    }
+                    //associate calibration
+                    session.associateCalibrationScore(calibrationNormScoreLarge);
+                } else {
+                    session.associateCalibrationScore(Float.NEGATIVE_INFINITY);
                 }
-                System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
-                asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                //do the placement and calculate score quantiles
-                float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                System.out.println("Score bound: "+calibrationNormScoreLarge);
-                //closes the calibration log  
-                if (writeTSVCalibrationLog){
-                    bwTSVCalibration.close();
-                }
-                //associate calibration
-                session.associateCalibrationScore(calibrationNormScoreLarge);
                 //store the DB
                 System.out.println("Serialization of the database (full)...");
                 session.storeHash(dbfull);
             }
             //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
             //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
+            
+            /////////////////////////////////////////////////:
+            //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+            //
+            byte[] word={1,3,0,2,1,1,3,0};
+            Infos.println("###########################################");
+            Infos.println("#TEST DB FULL");
+            Infos.println("Word: "+Arrays.toString(word));
+            QueryWord queryWord = new QueryWord(word, 0);
+            int[] positions=session.hash.getPositions(queryWord);
+            Infos.println("Positions: "+Arrays.toString(positions));
+            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+            for (int i=1;i<positions.length;i++) {
+                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+            }
+            Infos.println("###########################################");
+            
             
             
             ////////////////////////////////////////////////////////////////////
@@ -716,19 +737,22 @@ public class Main_DBBUILD_2 {
             session.hash.reduceToMediumHash();
             System.gc();
             //calibration
-            int bufferSize=2097152; // buffer of 2mo
+            float calibrationNormScoreMedium=Float.NEGATIVE_INFINITY;
             BufferedWriter bwTSVCalibration=null;
-            if (writeTSVCalibrationLog) {
-                bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
-            }
-            System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
-            asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-            //do the placement and calculate score quantiles
-            float calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-            System.out.println("Score bound: "+calibrationNormScoreMedium);
-            //closes the calibration log  
-            if (writeTSVCalibrationLog){
-                bwTSVCalibration.close();
+            int bufferSize=2097152; // buffer of 2mo
+            if (!noCalibration) {
+                if (writeTSVCalibrationLog) {
+                    bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+                }
+                System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
+                asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                //do the placement and calculate score quantiles
+                calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                System.out.println("Score bound: "+calibrationNormScoreMedium);
+                //closes the calibration log  
+                if (writeTSVCalibrationLog){
+                    bwTSVCalibration.close();
+                }
             }
             
             
@@ -739,6 +763,24 @@ public class Main_DBBUILD_2 {
             //store in DB
             System.out.println("Serialization of the database (medium)...");
             session.storeHash(dbmedium);
+            
+            
+            /////////////////////////////////////////////////:
+            //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+            //
+            Infos.println("###########################################");
+            Infos.println("#TEST DB MEDIUM");
+            Infos.println("Word: "+Arrays.toString(word));
+            queryWord = new QueryWord(word, 0);
+            positions=session.hash.getPositions(queryWord);
+            Infos.println("Positions: "+Arrays.toString(positions));
+            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+            for (int i=1;i<positions.length;i++) {
+                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+            }
+            Infos.println("###########################################");
+
             
             
             ////////////////////////////////////////////////////////////////////
@@ -754,19 +796,26 @@ public class Main_DBBUILD_2 {
             //reduction 
             session.hash.reducetoSmallHash(10);
             System.gc();
-            //calibration log
-            if (writeTSVCalibrationLog) {
-                bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+            //calibration
+            float calibrationNormScoreSmall=Float.NEGATIVE_INFINITY;
+            if (!noCalibration) {
+                if (writeTSVCalibrationLog) {
+                    bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+                }
+                System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
+                //do the placement and calculate score quantiles
+                asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                System.out.println("Score bound: "+calibrationNormScoreSmall);
+                //closes the calibration log  
+                if (writeTSVCalibrationLog){
+                    bwTSVCalibration.close();
+                }
             }
-            System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
-            //do the placement and calculate score quantiles
-            asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-            float calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-            System.out.println("Score bound: "+calibrationNormScoreSmall);
-            //closes the calibration log  
-            if (writeTSVCalibrationLog){
-                bwTSVCalibration.close();
-            }
+            
+
+
+            
             
             ////////////////////////////////////////////////////////////////////
             //SAVE THE SMALL HASH BY JAVA SERIALIZATION
@@ -775,11 +824,29 @@ public class Main_DBBUILD_2 {
             //store in DB
             System.out.println("Serialization of the database (small)...");
             session.storeHash(dbsmall);
+
+            
+            /////////////////////////////////////////////////:
+            //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+            //
+            Infos.println("###########################################");
+            Infos.println("Word: "+Arrays.toString(word));
+            Infos.println("#TEST DB SMALL");
+            queryWord = new QueryWord(word, 0);
+            positions=session.hash.getPositions(queryWord);
+            Infos.println("Positions: "+Arrays.toString(positions));
+            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+            for (int i=1;i<positions.length;i++) {
+                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+            }
+            Infos.println("###########################################");
+            
             
 
             arpr=null;
             session=null;  
-            if (!skipDBFull)
+            if (buildDBFull)
                 Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
             Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
             Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
@@ -789,13 +856,7 @@ public class Main_DBBUILD_2 {
             
             System.out.println(" DBTOFILE FINISHED.");
             
-            
-            
-            
-            
-        } catch (Exception ex) {
-            Logger.getLogger(WordExplorer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
         
         
     }

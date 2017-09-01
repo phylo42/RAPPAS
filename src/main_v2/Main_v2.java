@@ -114,23 +114,23 @@ public class Main_v2 {
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
 
             //db build launch
-            String arguments=
-                              "-m B "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.1)+" "
-                            + "-v 1 "
-                            + "--ardir "+arDir+" "
-                            //+ "--extree "+exTree+" "
-                            //+ "--dbfull "
-                            //+ "--froot"
-                            + "--dbinram "
-                            + "-q "+q+" "
-                            + "--nsbound -100000.0 "
-                            + "--nocalib"
-                            ;
+//            String arguments=
+//                              "-m B "
+//                            + "-w "+workDir+" "
+//                            + "-i "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.1)+" "
+//                            + "-v 1 "
+//                            + "--ardir "+arDir+" "
+//                            //+ "--extree "+exTree+" "
+//                            //+ "--dbfull "
+//                            //+ "--froot"
+//                            + "--dbinram "
+//                            + "-q "+q+" "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib"
+//                            ;
             
             
             ///-t /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Tx/T33_nx348_la.tree
@@ -146,13 +146,13 @@ public class Main_v2 {
             
             
 //            // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0 "
-                            //+ "--nsbound -2.0"
+            String arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 1 "
+                            + "--nsbound -1000.0"
                             ;            
                             
                             

@@ -707,19 +707,19 @@ public class Main_DBBUILD_2 {
             /////////////////////////////////////////////////:
             //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
             //
-            byte[] word={1,3,0,2,1,1,3,0};
-            Infos.println("###########################################");
-            Infos.println("#TEST DB FULL");
-            Infos.println("Word: "+Arrays.toString(word));
-            QueryWord queryWord = new QueryWord(word, 0);
-            int[] positions=session.hash.getPositions(queryWord);
-            Infos.println("Positions: "+Arrays.toString(positions));
-            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
-            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
-            for (int i=1;i<positions.length;i++) {
-                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
-            }
-            Infos.println("###########################################");
+//            byte[] word={1,3,0,2,1,1,3,0};
+//            Infos.println("###########################################");
+//            Infos.println("#TEST DB FULL");
+//            Infos.println("Word: "+Arrays.toString(word));
+//            QueryWord queryWord = new QueryWord(word, 0);
+//            int[] positions=session.hash.getPositions(queryWord);
+//            Infos.println("Positions: "+Arrays.toString(positions));
+//            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//            for (int i=1;i<positions.length;i++) {
+//                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//            }
+//            Infos.println("###########################################");
             
             
             
@@ -768,18 +768,18 @@ public class Main_DBBUILD_2 {
             /////////////////////////////////////////////////:
             //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
             //
-            Infos.println("###########################################");
-            Infos.println("#TEST DB MEDIUM");
-            Infos.println("Word: "+Arrays.toString(word));
-            queryWord = new QueryWord(word, 0);
-            positions=session.hash.getPositions(queryWord);
-            Infos.println("Positions: "+Arrays.toString(positions));
-            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
-            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
-            for (int i=1;i<positions.length;i++) {
-                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
-            }
-            Infos.println("###########################################");
+//            Infos.println("###########################################");
+//            Infos.println("#TEST DB MEDIUM");
+//            Infos.println("Word: "+Arrays.toString(word));
+//            queryWord = new QueryWord(word, 0);
+//            positions=session.hash.getPositions(queryWord);
+//            Infos.println("Positions: "+Arrays.toString(positions));
+//            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//            for (int i=1;i<positions.length;i++) {
+//                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//            }
+//            Infos.println("###########################################");
 
             
             
@@ -829,18 +829,18 @@ public class Main_DBBUILD_2 {
             /////////////////////////////////////////////////:
             //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
             //
-            Infos.println("###########################################");
-            Infos.println("Word: "+Arrays.toString(word));
-            Infos.println("#TEST DB SMALL");
-            queryWord = new QueryWord(word, 0);
-            positions=session.hash.getPositions(queryWord);
-            Infos.println("Positions: "+Arrays.toString(positions));
-            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
-            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
-            for (int i=1;i<positions.length;i++) {
-                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
-            }
-            Infos.println("###########################################");
+//            Infos.println("###########################################");
+//            Infos.println("Word: "+Arrays.toString(word));
+//            Infos.println("#TEST DB SMALL");
+//            queryWord = new QueryWord(word, 0);
+//            positions=session.hash.getPositions(queryWord);
+//            Infos.println("Positions: "+Arrays.toString(positions));
+//            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//            for (int i=1;i<positions.length;i++) {
+//                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//            }
+//            Infos.println("###########################################");
             
             
 

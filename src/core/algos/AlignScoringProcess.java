@@ -18,7 +18,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -395,7 +394,7 @@ public class AlignScoringProcess {
         // PREPARE TSV OUTPUT
         //header of CSV output
         if (bwTSV!=null) {
-            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tExtendedTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
         }
    
         
@@ -531,7 +530,6 @@ public class AlignScoringProcess {
                 int topPosition=session.hash.getTopPosition(qw);
                 //if this word is not registered in the hash
                 if (topPosition<0) {
-                    queryWordCounter++;
                     continue;
                 }
                 queryWordFoundCounter++;
@@ -647,8 +645,7 @@ public class AlignScoringProcess {
             int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
             PhyloNode nodeToTest = session.extendedTree.getById(extendedTreeId);
             //if this is an original originalNode, select adjacent branch 
-            //leading to 2nd best PP*, if 2nd best PP* is original, do the same
-            //for 3rd and so on...
+            //leading to 2nd best PP*
             if (!nodeToTest.isFakeNode()) {
                 //System.out.println("############### change best node to neighboors !");                    
                 Infos.println("Current best node is an original node...");

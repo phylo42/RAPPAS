@@ -191,6 +191,7 @@ public class ARProcessLauncher {
         com.add("-a"); //gamma shape param
         com.add("0.5");
         com.add("--quiet"); //no interactive questions
+        com.add("--no_memory_check"); //no interactive questions for mem usage
 
         Infos.println("Ancestral reconstruct command: "+com);
 
@@ -257,6 +258,9 @@ public class ARProcessLauncher {
             List<String> com=new ArrayList<>();
             com.add(ARBinary.getAbsolutePath());
             com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
+            //Note: PAML is doing something weird with the stdout buffer at the very beginning of its C code. 
+            //to avoid this and restore default behaviour of printf, we use the --stdout-no-buf hidden option
+            com.add("--stdout-no-buf"); 
             Infos.println("Ancestral reconstruct command: "+com);
             //execution
             sb2=new StringBuilder(com.get(0));

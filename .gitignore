@@ -4,4 +4,4 @@ WD/AR/rst
 rst/*
 dist/*
 build/*
-nbproject/
+nbproject/private/profiler/*

@@ -9,6 +9,7 @@ import core.AAStates;
 import core.DNAStates;
 import core.States;
 import java.io.File;
+import javax.swing.UIManager;
 import static main.Main_DBBUILD.TYPE_DNA;
 
 
@@ -18,7 +19,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.6";
+    private final static String consoleVersion="0.7";
 
     public static void main (String[] args) {
         try {
@@ -31,6 +32,14 @@ public class Main_v2 {
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
+            //hack related to Problems under MAC OS implementation of
+            //the Aqua (mac Look and feel)
+            //for some reason, the use of Jtree prompts the virtual achine to 
+            //use the class com.apple.laf.AquaTreeUI
+            //which is not Serializable and causes crashes when Jtree is serialized
+            
+            // Set cross-platform Java L&F (also called "Metal")
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             
             
             
@@ -92,13 +101,14 @@ public class Main_v2 {
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
 
             //pplacer benchmark queries 
-//            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.full";
+            //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
+            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
+            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -109,13 +119,31 @@ public class Main_v2 {
 //                            + "-w "+workDir+" "
 //                            + "-i "+a+" "
 //                            + "-t "+t+" "
-//                            + "-k "+String.valueOf(5)+" "
-//                            + "-a "+String.valueOf(1.0)+" "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.1)+" "
 //                            + "-v 1 "
 //                            + "--ardir "+arDir+" "
-//                            + "--extree "+exTree+" "
-//                            + "--skipdbfull "
-//                            + "--froot";
+//                            //+ "--extree "+exTree+" "
+//                            //+ "--dbfull "
+//                            //+ "--froot"
+//                            + "--dbinram "
+//                            + "-q "+q+" "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib"
+//                            ;
+            
+            
+            ///-t /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Tx/T33_nx348_la.tree
+            //-i /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Ax/A33_nx348_la.align
+            //-w /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Dx/A33_nx348_la/k8_a1.1
+            //--ardir /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Dx/A33_nx348_la/k8_a1.1/AR
+            //-v 1
+            //--builddbfull
+            //--dbinram
+            //-q /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Rx/R33_nx348_la_r300.fasta
+            //--nsbound -100000.0
+            
+            
             
 //            // placement launch
             String arguments=
@@ -123,9 +151,44 @@ public class Main_v2 {
                             + "-w "+workDir+" "
                             + "-q "+q+" "
                             + "-d "+db+" "
-                            + "-s medium "
-                            + "-v 0"
+                            + "-v 0 "
+                            + "--nsbound -1000.0"
                             ;            
+                            
+                            
+/////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp            
+//            arguments=
+//                              "-m B "
+//                            + "-w /home/ben/Desktop/k8_a1.1 "
+//                            + "-i /home/ben/Desktop/k8_a1.1/A33_nx348_la.align "
+//                            + "-t /home/ben/Desktop/k8_a1.1/T33_nx348_la.tree "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.1)+" "
+//                            + "-v 1 "
+//                            + "--ardir /home/ben/Desktop/k8_a1.1/AR "
+//                            //+ "--extree "+exTree+" "
+//                            + "--builddbfull "
+//                            + "--froot"
+//                            + "--dbinram "
+//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib"
+//                            ;     
+//            arguments=
+//                              "-m p "
+//                            + "-w /home/ben/Desktop/k8_a1.1 "
+//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+//                            + "-d /home/ben/Desktop/k8_a1.1/DB_session_k8_a1.1_t3.2708576E-5.small "
+//                            + "-v 1 "
+//                            //+ "--nsbound -100000.0"
+//                            ;    
+/////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp              
+                            
+                            
+                            
+                            
+                            
+                            
             
             //force args
             //args=arguments.split(" ");
@@ -134,16 +197,7 @@ public class Main_v2 {
             
             
             //System.out.println(Arrays.toString(args));
-            
-           
-            //type of Analysis, currently not in command line parameters
-            States s=null; 
-            int analysisType=TYPE_DNA;
-            //States: DNA or AA
-            if (analysisType==TYPE_DNA)
-                s=new DNAStates();   
-            else if (analysisType==TYPE_DNA)
-                s=new AAStates();
+    
            
             //TEST ZONE//
 
@@ -154,9 +208,17 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml");
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
-            //HACK FOR CURRENT DEBUGING, avoids check if it exists or not (done by ArgumentsParser)
-            argsParser.ARBinary=new File("baseml");
+            //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
+            //argsParser.ARBinary=new File("baseml");
             
+            
+            //type of Analysis, DNA or AA
+            States s=null; 
+            if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
+                s=new DNAStates();
+            } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+                s=new AAStates();
+            }
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
@@ -173,8 +235,13 @@ public class Main_v2 {
                                             argsParser.ARBinary,
                                             argsParser.ARDirToUse,
                                             argsParser.exTreeDir,
-                                            argsParser.skipdbfull,
-                                            argsParser.forceRooting
+                                            argsParser.builddbfull,
+                                            argsParser.forceRooting,
+                                            argsParser.dbInRAM,
+                                            argsParser.queriesFile,
+                                            argsParser.callString,
+                                            argsParser.nsBound,
+                                            argsParser.noCalibration
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
@@ -184,19 +251,21 @@ public class Main_v2 {
 //                                            argsParser.databaseFile,
 //                                            argsParser.workingDir
 //                                            );
-                int placed=Main_PLACEMENT_FIN.doPlacements(
+                Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07();
+
+                int placed=placer.doPlacements(
                                             argsParser.queriesFile,
                                             argsParser.databaseFile,
                                             argsParser.workingDir,
-                                            argsParser.callString
+                                            argsParser.callString,
+                                            argsParser.nsBound
                                             );
                 
-                System.out.println("# query reads placed: "+placed);
             }
             
             
             long endTime=System.currentTimeMillis();
-            System.out.println("Total execution: "+(endTime-startTime)+" ms");
+            System.out.println("Total execution time: "+(endTime-startTime)+" ms");
             System.exit(0);
             
         } catch (Exception ex) {

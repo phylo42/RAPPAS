@@ -17,6 +17,7 @@ public interface States {
      * @return 
      */
     public char byteToState(byte b);
+
     /**
      * from a character, return the corresponding byte
      * @param c
@@ -30,7 +31,6 @@ public interface States {
      */
     public int stateToInt(char c); //simply convert the byte to unsigned int
     public String getSequence(byte[] bytes);
-    public byte[] getBytes(char[] sequence);
     public int getStateCount();
     public int getNonAmbiguousStatesCount();
     

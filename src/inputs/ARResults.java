@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import main_v2.ARProcessLauncher;
+import outputs.ARProcessLauncher;
 import tree.ExtendedTree;
 import tree.PhyloTree;
 
@@ -28,7 +28,7 @@ import tree.PhyloTree;
  * the correspondence between original PhyloTree and ExtendedTree.
  * @author ben
  */
-public class ARProcessResults {
+public class ARResults {
     
     //the parsed data
     private States s=null;
@@ -50,7 +50,7 @@ public class ARProcessResults {
     /**
      * non-associated manager, needs to be associated to sources through @associate()
      */
-    public ARProcessResults() {}
+    public ARResults() {}
     
     /**
      * determines the source registered to this manager at instantiation
@@ -59,7 +59,7 @@ public class ARProcessResults {
      * @param Tree
      * @param probas
      */
-    public ARProcessResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s) {
+    public ARResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s) {
         this.arpl=arpl;
         this.s=s;
         this.extendedAlign=extendedAlign;
@@ -69,7 +69,7 @@ public class ARProcessResults {
         try {
             parseResults();
         } catch (IOException ex) {
-            Logger.getLogger(ARProcessResults.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ARResults.class.getName()).log(Level.SEVERE, null, ex);
         }
         //step 2: Matches ARTree node labels and
         //takes into account if the AR software unrooted/rooted things

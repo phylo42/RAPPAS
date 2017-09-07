@@ -18,8 +18,8 @@ public class Pair implements Comparable<Pair>,Serializable {
     private static final long serialVersionUID = 7100L;
 
     
-    int nodeId=-1;
-    float PPStar=-1.0f;
+    private int nodeId=-1;
+    private float PPStar=-1.0f;
 
     public Pair(int nodeId, float PPStar) {
         this.nodeId=nodeId;
@@ -49,13 +49,14 @@ public class Pair implements Comparable<Pair>,Serializable {
      * @return 
      */
     public int compareTo(Pair o) {
-        if ((this.PPStar-o.getPPStar())<0.0) {
-            return 1;
-        } else if ((this.PPStar-o.getPPStar())>0.0){
-            return -1;
-        } else {
-            return 0;
-        }
+        return -Float.compare(this.PPStar,o.getPPStar());
+//        if ((this.PPStar-o.getPPStar())<0.0) {
+//            return 1;
+//        } else if ((this.PPStar-o.getPPStar())>0.0){
+//            return -1;
+//        } else {
+//            return 0;
+//        }
     }
 
     @Override

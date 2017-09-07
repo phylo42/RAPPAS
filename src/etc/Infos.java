@@ -5,8 +5,6 @@
 
 package etc;
 
-import sun.reflect.Reflection;
-
 /**
  * provides customized outputs if debug mode enabled
  * @author linard

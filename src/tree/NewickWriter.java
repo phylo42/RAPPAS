@@ -38,7 +38,7 @@ public class NewickWriter {
     private Writer w=null;
 
     public NewickWriter() {
-        setupWriter(w);
+        setupWriter(null);
     }
 
     public NewickWriter(Writer w) {
@@ -182,8 +182,10 @@ public class NewickWriter {
      * @throws IOException 
      */
     public void close() throws IOException {
-        w.flush();
-        w.close();
+        if (w!=null) {
+            w.flush();
+            w.close();
+        }
     }
     
     

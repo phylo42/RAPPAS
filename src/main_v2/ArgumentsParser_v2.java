@@ -26,32 +26,39 @@ public class ArgumentsParser_v2 {
     public static final int DB_MEDIUM=0;
     public static final int DB_SMALL=0;
     
+    public static int TYPE_DNA=1;
+    public static int TYPE_PROTEIN=2;
+
+    
     private HashMap<Integer,String> argsMap=null;
     
     //general parameters
     public int mode=DBBUILD_MODE;
     public File workingDir=null;//current directory by default, see below
     int verbose=0; //default, no verbosity
-
+    int analysisType=TYPE_DNA;
     
     //parameters for DB build
     public int k=8; //default=8
-    public float alpha=1.5f; //default=1.5
+    public float alpha=1.4f; //default=1.5
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
-    public boolean skipdbfull=false; //default=false
+    public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
     public boolean forceRooting=false;
+    public boolean noCalibration=false;
     //eventual directories passed for debugging
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;
     public File exTreeDir=null;
+    public boolean dbInRAM=false;
     
     //parameters for placement
     public int minOverlap=100; //default =100
     public File queriesFile=null;
     public File databaseFile=null;
-    public int dbsize=DB_FULL;
+    public int dbsize=DB_MEDIUM;
+    public Float nsBound=null;
     
     //call string
     public String callString=null;
@@ -74,6 +81,9 @@ public class ArgumentsParser_v2 {
             System.out.println("Cannot find 'mode' (option -m). See help (-h) for details.");
             System.exit(1);
         }
+        
+        
+        
         try {
             //if arguments values are correct
             loadParameters();
@@ -126,7 +136,20 @@ public class ArgumentsParser_v2 {
                         System.out.println("Cannot read from / write to this directory: "+wd.getAbsolutePath());
                         System.exit(1);
                     }
-            }            
+            }        
+            //test -s parameter
+            if (argsMap.get(index).equals("--states") || argsMap.get(index).equals("-s")) {
+                if (argsMap.get(index+1).equalsIgnoreCase("nucl")) {
+                    this.analysisType=TYPE_DNA;
+                } else if (argsMap.get(index+1).equalsIgnoreCase("prot")) {
+                    this.analysisType=TYPE_PROTEIN;
+                } else {
+                    System.out.println("Unexpected -s (--states) value, must be one of [nucl|prot].");
+                    System.exit(1);
+                }
+            }
+            
+            
             
         }
         if ( !(mode==DBBUILD_MODE) && !(mode==PLACEMENT_MODE) ) {
@@ -259,9 +282,9 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     
-                    //test --skipdbfull parameter
-                    if (argsMap.get(index).equals("--skipdbfull")) {
-                        this.skipdbfull=true;
+                    //test --builddbfull parameter
+                    if (argsMap.get(index).equals("--dbfull")) {
+                        this.builddbfull=true;
                     }
                     
                     //test --froot parameter
@@ -269,6 +292,38 @@ public class ArgumentsParser_v2 {
                         this.forceRooting=true;
                     }
                     
+                    //test --dbinram parameter
+                    if (argsMap.get(index).equals("--dbinram")) {
+                        this.dbInRAM=true;
+                    }
+                    
+                    //test -q parameter (to use with --dbinram)
+                    if (argsMap.get(index).equals("--queries") || argsMap.get(index).equals("-q")) {
+                        File queries=new File(argsMap.get(index+1));
+                        if (queries.isFile() && queries.canRead()) {
+                            this.queriesFile=queries;
+                        } else {
+                            System.out.println(queries.getAbsolutePath());
+                            System.out.println("Cannot open queries: Not a file or no read permission.");
+                            System.exit(1);
+                        }
+                    }                  
+                    
+                    //test --nsbound parameter (to use with --dbinram)
+                    if (argsMap.get(index).equals("--nsbound")) {
+                        String nsBoundVal=argsMap.get(index+1);
+                        try {
+                            this.nsBound=Float.parseFloat(nsBoundVal);
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '--nsbound' as a float value.");
+                            System.exit(1);
+                        }
+                    }
+                    
+                    //test --nocalib parameter
+                    if (argsMap.get(index).equals("--nocalib")) {
+                        this.noCalibration=true;
+                    }
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
@@ -316,16 +371,27 @@ public class ArgumentsParser_v2 {
                             System.exit(1);
                         }
                     }
-                    //test -s parameter
-                    if (argsMap.get(index).equals("--dbsize") || argsMap.get(index).equals("-s")) {
-                        if (argsMap.get(index+1).equalsIgnoreCase("full")) {
-                            this.dbsize=DB_FULL;
-                        } else if (argsMap.get(index+1).equalsIgnoreCase("medium")) {
-                            this.dbsize=DB_MEDIUM;
-                        } else if (argsMap.get(index+1).equalsIgnoreCase("small")) {
-                            this.dbsize=DB_SMALL;
+
+                    
+                    //////////////////////////////////////
+                    //////////////////////////////////////
+                    //DEBUG OPTIONS
+                    
+                    //test --nsbound parameter
+                    if (argsMap.get(index).equals("--nsbound")) {
+                        String nsBoundVal=argsMap.get(index+1);
+                        try {
+                            this.nsBound=Float.parseFloat(nsBoundVal);
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '--nsbound' as a float value.");
+                            System.exit(1);
                         }
                     }
+                    
+                    //////////////////////////////////////
+                    //////////////////////////////////////
+                    //DEBUG OPTIONS END HERE
+                    
                 }
                 
                 //check if both -d and -q were set
@@ -371,8 +437,7 @@ public class ArgumentsParser_v2 {
         "                        probabilites. \n" +
         "                   * P: Placement of query sequences, using a DB of\n"+
         "                        ancestral words prevously built with mode B.\n" +
-        "-s (--dbsize)     DB size to load for the placement (P mode only).\n" +    
-        "                  One of [full|medium|small] \n" +    
+        "-s (--states)     [nucl|prot] States used in analysis (B mode). \n" +    
         "-t (--tree)       [file] Reference tree, in newick format.\n"+
         "                  reconstruction and DB build (B mode only).\n" +
         "-q (--queries)    [file] Query reads to place on the reference tree,\n"+
@@ -380,15 +445,19 @@ public class ArgumentsParser_v2 {
         "-v (--verbose)    Verbosity level: 0=none ; 1=basic ; 2=full\n" +
         "-w (--workdir)    [dir] Path of the working directory (default= ./).\n\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
-        "Debug options: Use them only if you know what you are doing...    \n" +
+        "Debug options: Use only if you know what you are doing...    \n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "--ardir           [dir] Skip AR reconstruction, searching its results\n"+
         "                  in the specified directory (B mode only).\n" +
         "--arbinary        [file] Binary used for AR, ex: phyml. (B mode only).\n" +
         "--extree          [dir] Skip fake nodes injection, and use files present in\n"+
         "                  the specified directory instead (B mode only).\n" +
-        "--skipdbfull      [] Build only medium and small db files (B mode only).\n" +      
-        "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +        
+        "--dbfull          [] Save DB full; unused by current algo. (B mode only).\n" +      
+        "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +
+        "--nsbound         [-float] Force normalized score bound (P mode only).\n" +
+        "--dbinram         [] Operate DB build, whitout saving DB to files.\n" +
+        "                  Then, place queries (-q) using medium and large DBs.\n" +
+        "--nocalib         [] No calibration, use threshold formula. (B mode only).\n" +
         "\n\n"
         );
        System.exit(1);

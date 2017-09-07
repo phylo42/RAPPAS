@@ -140,8 +140,8 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             Infos.println("min_k="+min_k);
             //site and word posterior probas thresholds
             float sitePPThreshold=session.stateThreshold;
-            float wordPPStarThreshold=session.wordThreshold;
-            float factor=session.factor;
+            float wordPPStarThreshold=session.PPStarThreshold;
+            float factor=session.alpha;
             float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
 
             Infos.println("factor="+factor);
@@ -484,7 +484,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 
                 //now add the score corresponding to the words not found,
                 // i.e. threshold*#_words_not_scored (because no in hash)
-                int maxWords=sk.getMaxWordCount();
+                int maxWords=sk.getMaxMerCount();
 
                 float bestScore=Float.NEGATIVE_INFINITY;
                 int bestNode=-1;
@@ -506,7 +506,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
 //                System.out.println(fasta.getHeader());
 //                System.out.print("bestNode:"+bestNode);
 //                System.out.print("\t\tbestScore:"+bestScore);
-//                System.out.println("\t\tbestSCore (normalized by #mers):"+(bestScore/sk.getMaxWordCount()));
+//                System.out.println("\t\tbestSCore (normalized by #mers):"+(bestScore/sk.getMaxMerCount()));
 //                System.out.println("nodeScores:"+Arrays.toString(nodeScores));
 //                System.out.println("nodeOccurences:"+Arrays.toString(nodeOccurences));
 //                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());

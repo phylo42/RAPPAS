@@ -10,7 +10,7 @@ import core.PProbasSorted;
 import core.States;
 import core.hash.SimpleHash_v2;
 import etc.Infos;
-import inputs.ARProcessResults;
+import inputs.ARResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -29,39 +29,53 @@ import tree.PhyloTree;
  */
 public class SessionNext_v2 {
     
-    int k=-1;
-    int minK=-1;
-    float stateThreshold=Float.MIN_VALUE;
-    float wordThreshold=Float.MIN_VALUE;
-    float factor=1.0f;
+    private final static int bufferSize=2097152; // buffer of 2mo
     
     
-    States states=null;
-    Alignment align=null;
-    PhyloTree originalTree=null;
-    ExtendedTree extendedTree=null;
-    PhyloTree ARTree=null;
+    public int k=-1;
+    public int minK=-1;
+    public float stateThreshold=Float.MIN_VALUE;
+    public float PPStarThreshold=Float.MIN_VALUE;
+    public float PPStarThresholdAsLog10=Float.NEGATIVE_INFINITY;
+    public float alpha=1.0f;
+    
+    
+    public States states=null;
+    public Alignment align=null;
+    public PhyloTree originalTree=null;
+    public ExtendedTree extendedTree=null;
+    public PhyloTree ARTree=null;
     /**
      * map(ARTree NodeID)= extended tree NodeID
      */
-    HashMap<Integer,Integer> nodeMapping=null;
-    PProbasSorted parsedProbas=null;    
-    SimpleHash_v2 hash=null;
+    public HashMap<Integer,Integer> nodeMapping=null;
+    public PProbasSorted parsedProbas=null;    
+    public SimpleHash_v2 hash=null;
+    public Float calibrationNormScore=null;
     
-    
-    public SessionNext_v2(int k, int mink, float factor, float stateThreshold, float wordThreshold) {
+    /**
+     *
+     * @param k the value of k
+     * @param mink the value of mink
+     * @param alpha the value of alpha
+     * @param stateThreshold the value of stateThreshold
+     * @param PPStarThreshold the value of PPStarThreshold
+     * @param PPStarThresholdAsLog10 the value of PPStarThresholdAsLog10
+     */
+    public SessionNext_v2(int k, int mink, float alpha, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
         this.k=k;
         this.minK=mink;
-        this.factor=factor;
+        this.alpha=alpha;
         this.stateThreshold=stateThreshold;
-        this.wordThreshold=wordThreshold;
+        this.PPStarThreshold=PPStarThreshold;
+        this.PPStarThresholdAsLog10=PPStarThresholdAsLog10;
     }
     
     public void associateStates(States s) {
         this.states=s;
     }
     
-    public void associateInputs(ARProcessResults arpl) {
+    public void associateInputs(ARResults arpl) {
         this.originalTree=arpl.getOriginalTree();
         this.extendedTree=arpl.getExtendedTree();
         this.ARTree=arpl.getARTree();
@@ -74,19 +88,23 @@ public class SessionNext_v2 {
         this.hash=hash;
     }
     
-    
-    public boolean storeFullHash(File f) {
+    public void associateCalibrationScore(float score) {
+        this.calibrationNormScore=score;
+    }
+
+    public boolean storeHash(File f) {
         try {
             long startTime = System.currentTimeMillis();
             
-            Infos.println("Storing of \"FULL\" hash");
+            Infos.println("Storing of hash");
             FileOutputStream fos = new FileOutputStream(f);
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,bufferSize));
             oos.writeInt(k);
             oos.writeInt(minK);
-            oos.writeFloat(factor);
+            oos.writeFloat(alpha);
             oos.writeFloat(stateThreshold);
-            oos.writeFloat(wordThreshold);
+            oos.writeFloat(PPStarThreshold);
+            oos.writeFloat(PPStarThresholdAsLog10);
             Infos.println("Storing of States");
             oos.writeObject(states);
             Infos.println("Storing of Alignment");
@@ -99,10 +117,12 @@ public class SessionNext_v2 {
             oos.writeObject(ARTree);
             Infos.println("Storing of AR node mappings");
             oos.writeObject(nodeMapping);
-            Infos.println("Storing of PPStats");
-            oos.writeObject(parsedProbas);
+//            Infos.println("Storing of PPStats");
+//            oos.writeObject(parsedProbas);
+            Infos.println("Storing of Calibration");
+            oos.writeFloat(calibrationNormScore); 
             Infos.println("Storing of Hash");
-            oos.writeObject(hash);
+            oos.writeObject(hash);           
             oos.close();
             fos.close();
             
@@ -115,103 +135,6 @@ public class SessionNext_v2 {
         }
         return true;
     }
-    
-    /**
-     * should be called AFTER storeFullHash
-     * @param f
-     * @return 
-     */
-    public boolean storeMediumHash(File f) {
-        try {
-            long startTime = System.currentTimeMillis();
-            
-            Infos.println("Storing of \"MEDIUM\" hash");
-            hash.reduceToMediumHash();
-            FileOutputStream fos = new FileOutputStream(f);
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
-            oos.writeInt(k);
-            oos.writeInt(minK);
-            oos.writeFloat(factor);
-            oos.writeFloat(stateThreshold);
-            oos.writeFloat(wordThreshold);
-            Infos.println("Storing of States");
-            oos.writeObject(states);
-            Infos.println("Storing of Alignment");
-            oos.writeObject(align);
-            Infos.println("Storing of Original Tree");
-            oos.writeObject(originalTree);
-            Infos.println("Storing of Extended Tree");
-            oos.writeObject(extendedTree);
-            Infos.println("Storing of AR Tree");
-            oos.writeObject(ARTree);
-            Infos.println("Storing of AR node mappings");
-            oos.writeObject(nodeMapping);
-            Infos.println("Storing of PPStats");
-            oos.writeObject(parsedProbas);
-            Infos.println("Storing of Hash");
-            oos.writeObject(hash);
-            oos.close();
-            fos.close();
-            
-            long endTime = System.currentTimeMillis();
-            Infos.println("Complete session storage " + (endTime - startTime) + " ms");
-            Infos.println("Session stored in : "+f.getAbsolutePath());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-    
-    /**
-     * should be called AFTER storeMediumHash
-     * @param f destination file
-     * @param X # pairs retained at best position
-     * @return 
-     */
-    public boolean storeSmallHash(File f, int X) {
-        try {
-            long startTime = System.currentTimeMillis();
-            
-            Infos.println("Storing of \"SMALL\" hash");
-            hash.reducetoSmallHash(X);
-            FileOutputStream fos = new FileOutputStream(f);
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,4096));
-            oos.writeInt(k);
-            oos.writeInt(minK);
-            oos.writeFloat(factor);
-            oos.writeFloat(stateThreshold);
-            oos.writeFloat(wordThreshold);
-            Infos.println("Storing of States");
-            oos.writeObject(states);
-            Infos.println("Storing of Alignment");
-            oos.writeObject(align);
-            Infos.println("Storing of Original Tree");
-            oos.writeObject(originalTree);
-            Infos.println("Storing of Extended Tree");
-            oos.writeObject(extendedTree);
-            Infos.println("Storing of AR Tree");
-            oos.writeObject(ARTree);
-            Infos.println("Storing of AR node mappings");
-            oos.writeObject(nodeMapping);
-            Infos.println("Storing of PPStats");
-            oos.writeObject(parsedProbas);
-            Infos.println("Storing of Hash");
-            oos.writeObject(hash);
-            oos.close();
-            fos.close();
-            
-            long endTime = System.currentTimeMillis();
-            Infos.println("Complete session storage " + (endTime - startTime) + " ms");
-            Infos.println("Session stored in : "+f.getAbsolutePath());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-    
-    
     
     
     
@@ -219,13 +142,14 @@ public class SessionNext_v2 {
         try {
             long startTime = System.currentTimeMillis();
             FileInputStream fis = new FileInputStream(f);
-            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(fis,4096));
+            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(fis,bufferSize));
             int k=ois.readInt();
             int minK=ois.readInt();
-            float factor=ois.readFloat();
+            float alpha=ois.readFloat();
             float stateThreshold=ois.readFloat();
-            float wordThreshold=ois.readFloat();
-            SessionNext_v2 s=new SessionNext_v2(k, minK, factor, stateThreshold, wordThreshold);
+            float PPStarThreshold=ois.readFloat();
+            float PPStarThresholdAsLog10=ois.readFloat();
+            SessionNext_v2 s=new SessionNext_v2(k, minK, alpha, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
             Infos.println("Loading States");
             s.states = (States)ois.readObject();
             Infos.println("Loading Alignment");
@@ -238,12 +162,15 @@ public class SessionNext_v2 {
             s.ARTree = (PhyloTree)ois.readObject();
             Infos.println("Loading of AR node mappings");
             s.nodeMapping = (HashMap<Integer,Integer>)ois.readObject();
-            Infos.println("Loading of PPStats");
-            s.parsedProbas = (PProbasSorted)ois.readObject();
+//            Infos.println("Loading of PPStats");
+//            s.parsedProbas = (PProbasSorted)ois.readObject();
+            Infos.println("Loading of calibration");
+            s.calibrationNormScore=ois.readFloat();
             if (loadHash) {
                 Infos.println("Loading Hash");
                 s.hash = (SimpleHash_v2)ois.readObject();
             }
+
             ois.close();
             fis.close();
             long endTime = System.currentTimeMillis();

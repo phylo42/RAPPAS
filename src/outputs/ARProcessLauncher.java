@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main_v2;
+package outputs;
 
 import etc.Infos;
 import java.io.BufferedInputStream;
@@ -41,7 +41,7 @@ public class ARProcessLauncher {
      * @param AR_PROG one of ARProcessLauncher.AR_PAML,
      * ARProcessLauncher.AR_PHYML ...etc...
      */
-    public ARProcessLauncher(int AR_PROG, File ARBinary,boolean verboseAR) {
+    public ARProcessLauncher(int AR_PROG, File ARBinary, boolean verboseAR) {
         this.currentProg=AR_PROG;
         this.ARBinary=ARBinary;
         this.verboseAR=verboseAR;
@@ -191,6 +191,7 @@ public class ARProcessLauncher {
         com.add("-a"); //gamma shape param
         com.add("0.5");
         com.add("--quiet"); //no interactive questions
+        com.add("--no_memory_check"); //no interactive questions for mem usage
 
         Infos.println("Ancestral reconstruct command: "+com);
 
@@ -226,7 +227,7 @@ public class ARProcessLauncher {
             }   StringBuilder sb=new StringBuilder();
             sb.append("seqfile = "+alignPath.getAbsolutePath()+"\n");
             sb.append("treefile = "+treePath.getAbsolutePath()+"\n");
-            sb.append("outfile = "+ARPath+File.separator+"paml_output"+"\n");
+            sb.append("outfile = "+ARPath.getAbsolutePath()+File.separator+"paml_output"+"\n");
             sb.append("noisy = 3   * 0,1,2,3: how much rubbish on the screen\n");
             sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
             sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
@@ -257,6 +258,9 @@ public class ARProcessLauncher {
             List<String> com=new ArrayList<>();
             com.add(ARBinary.getAbsolutePath());
             com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
+            //Note: PAML is doing something weird with the stdout buffer at the very beginning of its C code. 
+            //to avoid this and restore default behaviour of printf, we use the --stdout-no-buf hidden option
+            com.add("--stdout-no-buf"); 
             Infos.println("Ancestral reconstruct command: "+com);
             //execution
             sb2=new StringBuilder(com.get(0));
@@ -450,7 +454,7 @@ public class ARProcessLauncher {
         inputStreamToOutputStream(p.getInputStream(), STDOUTOutputStream);
         inputStreamToOutputStream(p.getErrorStream(), STDERROutputStream);
         Infos.println("External process operating reconstruction is logged in: "+new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt").getAbsolutePath());
-        Infos.println("Launching ancestral reconstruction (go and take a coffee, it mights take hours!) ...");
+        Infos.println("Launching ancestral reconstruction (go and take a coffee, it might take hours!) ...");
         try {
             p.waitFor();
             Thread.sleep(1000);

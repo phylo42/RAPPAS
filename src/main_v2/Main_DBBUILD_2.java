@@ -5,9 +5,14 @@
  */
 package main_v2;
 
+import outputs.ARProcessLauncher;
 import alignement.Alignment;
+import core.ProbabilisticWord;
+import core.QueryWord;
 import core.States;
 import core.Word;
+import core.algos.AlignScoringProcess;
+import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
 import core.hash.SimpleHash_v2;
@@ -15,12 +20,14 @@ import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.ARProcessResults;
+import inputs.ARResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -31,8 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -56,67 +62,6 @@ public class Main_DBBUILD_2 {
     public static final int TYPE_PROT=1;
     
     
-    public static void main(String[] args) {
-        
-        FileWriter fw=null;
-        try {
-            System.setProperty("debug.verbose", "1");
-            File logProcess=new File("/media/ben/STOCK/DATA/viromeplacer/WD/log_process.csv");
-            fw = new FileWriter(logProcess);
-            fw.write("factor\tk\tmemory_gb\ttime_s\twords\ttuples_in_buckets\tDBsize_gb\n");
-            fw.flush();
-            
-            int k=7;
-            int maxK=7;
-            int kIncrement=1;
-            
-            double factor=1.5;
-            double maxFactor=1.5;
-            double factorIncrement=0.1;
-            
-            for (int i = k; i < maxK+kIncrement; i+=kIncrement) {
-                for (double j = factor; j < maxFactor+factorIncrement; j+=factorIncrement) {
-                    Infos.println("#############################################");
-                    Infos.println("#############################################");
-                    Infos.println("#############################################");
-                    Infos.println("#############################################");
-                    Infos.println("# NEW LAUNCH; Config: k="+i+" factor="+j);
-                    Infos.println("#############################################");
-                    Infos.println("#############################################");
-
-                    //DBGeneration(fw,i,(float)j);
-                    fw.flush();
-                    System.gc();
-
-                }
-                
-            }
-            
-            
-            fw.flush();
-            
-            
-            fw.close();
-            
-            
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Main_DBBUILD_2.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                fw.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Main_DBBUILD_2.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-                
-        
-        
-        
-        
-    }
-    
-    
     /**
      * 
      * @param processLog null if not used
@@ -130,7 +75,12 @@ public class Main_DBBUILD_2 {
      * @param ARBinary binaries of external AR program
      * @param ARDirToUse if not null, search AR result in this directory instead of launching AR
      * @param exTreeDir if not null, serch extended tree and alignments in this directory instead of building them
-     * @param skipDBFull the value of skipDBFull
+     * @param buildDBFull the value of buildDBFull
+     * @param forceRooting
+     * @param dbInRAM
+     * @param queries
+     * @param callString
+     * @param nsBound
      */
     public static void DBGeneration(    FileWriter processLog,
                                         int k,
@@ -143,15 +93,19 @@ public class Main_DBBUILD_2 {
                                         File ARBinary,
                                         File ARDirToUse,
                                         File exTreeDir,
-                                        boolean skipDBFull,
-                                        boolean forceRooting
-                                    ) {
+                                        boolean buildDBFull,
+                                        boolean forceRooting,
+                                        boolean dbInRAM,
+                                        File queries,
+                                        String callString,
+                                        Float nsBound,
+                                        boolean noCalibration
+                                    ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
         
 
         
         
-        try {
             
 
 
@@ -162,11 +116,11 @@ public class Main_DBBUILD_2 {
             ////////////////////////////////////////////////////////////////////
             
             //logs
-            String logPath=workDir+File.separator+"logs"+File.separator;
+            String logPath=workDir.getAbsolutePath()+File.separator+"logs"+File.separator;
             //trees
-            String extendedTreePath=workDir+File.separator+"extended_trees"+File.separator;
+            String extendedTreePath=workDir.getAbsolutePath()+File.separator+"extended_trees"+File.separator;
             //ancestral reconstruciton
-            String ARPath=workDir+File.separator+"AR"+File.separator;
+            String ARPath=workDir.getAbsolutePath()+File.separator+"AR"+File.separator;
             
             
             //build of extended ARTree/////////////////////////////////////////////
@@ -181,17 +135,21 @@ public class Main_DBBUILD_2 {
             int min_k=k;
             
             float sitePPThreshold=Float.MIN_VALUE;
-            //float wordPPStarThreshold=(float)(alpha*Math.pow(0.25,k));
-            float wordPPStarThreshold=(float)Math.pow((alpha*0.25),k);
-            float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
+            float PPStarThreshold=(float)Math.pow((alpha*0.25),k);
+            float PPStarThresholdAsLog=(float)Math.log10(PPStarThreshold);
             Infos.println("k="+k);
             Infos.println("factor="+alpha);
-            Infos.println("wordPPStarThreshold="+wordPPStarThreshold);
-            Infos.println("wordPPStarThreshold(log10)="+thresholdAsLog);
+            Infos.println("PPStarThreshold="+PPStarThreshold);
+            Infos.println("log10(PPStarThreshold)="+PPStarThresholdAsLog);
             //site and word posterior probas thresholds
  
-
-            
+            //score calibration/////////////////////////////////////////////////
+            int meanCalibrationSequenceSize=150;
+            int calibrationSampleSize=1000000;
+            int q_quantile=1000000;
+            int n_quantile=999999;
+            boolean writeTSVCalibrationLog=false;
+                    
             //debug/////////////////////////////////////////////////////////////
             //skip extended ARTree reconstruction
             boolean buildRelaxedTree=true;
@@ -236,6 +194,21 @@ public class Main_DBBUILD_2 {
             br.close();
             PhyloTree originalTree = NewickReader.parseNewickTree2(tline, forceRooting, false);
             Infos.println("Original tree read.");
+            
+            //test if alignment/tree labels are matching.
+            //if not, exit before raising more errors later in the algo...
+            List<String> alignLabels = Arrays.asList(align.getRowLabels());
+            int notFoundCount=0;
+            for (Iterator<String> iterator = alignLabels.iterator(); iterator.hasNext();) {
+                String next = iterator.next();
+                if (!originalTree.getLabelsByDFS().contains(next)) {
+                    System.out.println("Alignment label \""+next+"\" not found in given tree labels.");
+                    notFoundCount++;
+                }
+            }
+            if (notFoundCount>0) {System.exit(1);}
+            alignLabels=null;
+            
             /////////////////////
             //BUILD RELAXED TREE
             
@@ -252,7 +225,7 @@ public class Main_DBBUILD_2 {
                 if (exTreeDir==null) {
                     try {
                         System.out.println("Injecting fake nodes...");
-                        //note, we read again the tree to build a new PhyloTree object
+                        //note, we read again the tree to buildDBFull a new PhyloTree object
                         //this is necessary as its TreeModel is directly modified
                         //at instanciation of ExtendedTree
                         //do a tree copy, to not do the extended tree extension on the original tree
@@ -381,17 +354,18 @@ public class Main_DBBUILD_2 {
             ////////////////////////////////////////////////////////////////////
             //LOAD THE NEW POSTERIOR PROBAS AND PAML TREE MADE FROM THE AR
 
-            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, sitePPThreshold, wordPPStarThreshold/alpha);
+            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
             
             Infos.println("Loading AR modified dataset (modified tree, modified alignment, Posterior Probas...)");
-            ARProcessResults arpr=null;
-            //the ARProcessResults object will take in charge 2 operations:
+            ARResults arpr=null;
+            //the ARResults object will take in charge 2 operations:
             //1. the call of the wrapper used to parse the AR results
             //   these will return ARTree and Posterior Probas
             //2. the correspondance between the original ARTree node names
             //   and the modification operated by the AR software (which
             //   renames internal nodes/labels in its own way...)
-            arpr=new ARProcessResults(    arpl,
+            System.out.println("Parsing Ancestral reconstruction results...");
+            arpr=new ARResults(    arpl,
                                         align,
                                         originalTree,
                                         extendedTree,
@@ -414,32 +388,36 @@ public class Main_DBBUILD_2 {
             fw.close();    
             
             
-            Infos.println("#########STARTING SERIES OF RAPID TEST TO CONFIRM ANCESTRAL RECONSTRUCTION AND PARSING WAS FINE########");
+            
+            
+            Infos.println("#########STARTING SERIES OF RAPID TEST TO CONFIRM ANCESTRAL RECONSTRUCTION AND PARSING WENT FINE########");
             //to compare node mapping , output state of the original tree and extended tree
             Infos.println("OriginalTree rooted: "+originalTree.isRooted());
             Infos.println("OriginalTree # nodes: "+originalTree.getNodeCount());
-            Infos.println("OriginalTree leaves: "+originalTree.getLeavesByDFS());
-            Infos.println("OriginalTree internal nodes: "+originalTree.getInternalNodesByDFS());
-            Infos.println("OriginalTree nodes by DFS:      "+originalTree.getNodeIdsByDFS());
-            Infos.println("OriginalTree node names by DFS: "+originalTree.getLabelsByDFS());
+            Infos.println("OriginalTree leaves: "+originalTree.getLeavesByDFS().size());
+            Infos.println("OriginalTree internal nodes: "+originalTree.getInternalNodesByDFS().size());
+            Infos.println("OriginalTree nodes by DFS:      "+originalTree.getNodeIdsByDFS().size());
+            Infos.println("OriginalTree node names by DFS: "+originalTree.getLabelsByDFS().size());
             Infos.println("ExtendedTree rooted: "+extendedTree.isRooted());
             Infos.println("ExtendedTree # nodes: "+extendedTree.getNodeCount());
-            Infos.println("ExtendedTree leaves: "+extendedTree.getLeavesByDFS());
-            Infos.println("ExtendedTree internal nodes: "+extendedTree.getInternalNodesByDFS());
-            Infos.println("ExtendedTree new Fake leaves: "+Arrays.toString(extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray()));
-            Infos.println("ExtendedTree new Fake internal nodes: "+Arrays.toString(extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray()));
-            Infos.println("ExtendedTree nodes by DFS:      "+extendedTree.getNodeIdsByDFS());
-            Infos.println("ExtendedTree node names by DFS: "+extendedTree.getLabelsByDFS());
-            Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) "+extendedTree.getFakeNodeMapping());
+            Infos.println("ExtendedTree leaves: "+extendedTree.getLeavesByDFS().size());
+            Infos.println("ExtendedTree internal nodes: "+extendedTree.getInternalNodesByDFS().size());
+            Infos.println("ExtendedTree new Fake leaves: "+extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray().length);
+            Infos.println("ExtendedTree new Fake internal nodes: "+extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray().length);
+            Infos.println("ExtendedTree nodes by DFS:      "+extendedTree.getNodeIdsByDFS().size());
+            Infos.println("ExtendedTree node names by DFS: "+extendedTree.getLabelsByDFS().size());
+            //Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) "+extendedTree.getFakeNodeMapping());
+            Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) ");
             //to raidly check that AR ARTree was read correctly
             PhyloTree ARTree=arpr.getARTree();
             Infos.println("ARTree rooted: "+ARTree.isRooted());
             Infos.println("ARTree # nodes: "+ARTree.getNodeCount());
-            Infos.println("ARTree leaves: "+ARTree.getLeavesByDFS());
-            Infos.println("ARTree internal nodes: "+ARTree.getInternalNodesByDFS());
-            Infos.println("ARTree nodes by DFS:      "+ARTree.getNodeIdsByDFS());
-            Infos.println("ARTree node names by DFS: "+ARTree.getLabelsByDFS());
-            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
+            Infos.println("ARTree leaves: "+ARTree.getLeavesByDFS().size());
+            Infos.println("ARTree internal nodes: "+ARTree.getInternalNodesByDFS().size());
+            Infos.println("ARTree nodes by DFS:      "+ARTree.getNodeIdsByDFS().size());
+            Infos.println("ARTree node names by DFS: "+ARTree.getLabelsByDFS().size());
+            //Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
+            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) ");
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 3 first PP:"+Arrays.deepToString(arpr.getPProbas().getPPSet(0, 0, 3)));
             Infos.println("NodeId=0, 3 first states:"+ Arrays.deepToString(arpr.getPProbas().getStateSet(0, 0, 3)));
@@ -457,24 +435,30 @@ public class Main_DBBUILD_2 {
             int[] refPositions=knife.getMerOrder();     
             
             //prepare hash
-            System.out.println("Prepare hash...");
-            Infos.println("Word generator threshold will be:"+thresholdAsLog);
-            SimpleHash_v2 hash=new SimpleHash_v2();
+            System.out.println("Building hash...");
+            Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
+            session.hash=new SimpleHash_v2(k, s);
             
-            //Word Explorer used to build ancestral words
-            Infos.println("Building all words probas...");
+            //Word Explorer used to buildDBFull ancestral words
+            //with a branch and bound approach
+            Infos.println("Building all PP* probas...");
             int totalTuplesInHash=0;
             int nodeCounter=0;
+            int nodeTested=ARTree.getInternalNodesByDFS().size();
+            int nodeBucketSize=nodeTested/10;
             double[] wordsPerNode=new double[session.ARTree.getInternalNodesByDFS().size()];
             double startHashBuildTime=System.currentTimeMillis();
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
-                //Infos.println("Node: "+session.ARTree.getById(nodeId).toString() );
+                if (nodeCounter%nodeBucketSize==0) {
+                    Infos.println("Node: "+nodeId +" ("+((0.0+nodeCounter)/nodeTested)*100.0+"%)" );
+                    Infos.println("Current memory use:"+Environement.getMemoryUsage());
+                }
                     //DEBUG
                     //if(nodeId!=709)
                     //    continue;
                     //DEBUG                
                 
-                double startMerScanTime=System.currentTimeMillis();
+                //double startMerScanTime=System.currentTimeMillis();
                 WordExplorer wd =null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
@@ -491,7 +475,7 @@ public class Main_DBBUILD_2 {
                                             pos,
                                             nodeId,
                                             arpr.getPProbas(),
-                                            thresholdAsLog
+                                            PPStarThresholdAsLog
                                         );
                     
                     for (int j = 0; j < arpr.getPProbas().getStateCount(); j++) {
@@ -499,7 +483,9 @@ public class Main_DBBUILD_2 {
                     }
                     
                     //register the words in the hash
-                    wd.getRetainedWords().stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
+                    for (ProbabilisticWord w:wd.getRetainedWords()) {
+                        session.hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());
+                    }
                     totaTuplesInNode+=wd.getRetainedWords().size();
                     
                     //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
@@ -516,7 +502,7 @@ public class Main_DBBUILD_2 {
                 
                 //register all words in the hash
                 //Infos.println("Tuples in this node:"+totaTuplesInNode);
-                double endMerScanTime=System.currentTimeMillis();
+                //double endMerScanTime=System.currentTimeMillis();
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 nodeCounter++;
@@ -525,34 +511,29 @@ public class Main_DBBUILD_2 {
 
             
             Infos.println("Sorting hash components...");
-            hash.sortData();
+            session.hash.sortData();
             
             double endHashBuildTime=System.currentTimeMillis();
             System.out.println("Hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            System.out.println("Words in the hash: "+hash.keySet().size());
+            System.out.println("Words in the hash: "+session.hash.keySet().size());
             System.out.println("Tuples in the hash:"+totalTuplesInHash);
 
-            
-
-            
                        
             ////////////////////////////////////////////////////////////////////
-            //OUTPUT SOME STATS IN THE log directory
+            //OUTPUT SOME STATS IN THE WORKDIR
             
             //double[] vals=hash.keySet().stream().mapToDouble(w->hash.getPairs(w).size()).toArray();
-            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
-            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
+            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"),k,alpha);
+            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"), k, alpha);
             
-
-            ////////////////////////////
             //output some stats as histograms:
-            if (histogramNumberPositionsPerNode && hash.keySet().size()>0) {
+            if (histogramNumberPositionsPerNode && session.hash.keySet().size()>0) {
                 Infos.println("Building #positions_per_word histogram...");
-                double[] values=new double[hash.keySet().size()];
+                double[] values=new double[session.hash.keySet().size()];
                 int i=0;
-                for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
+                for (Iterator<Word> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
                     Word next = iterator.next();
-                    values[i]=new Double(hash.getPositions(next).length);
+                    values[i]=new Double(session.hash.getPositions(next).length);
                     i++;
                 }
                 //jfreechat histogram construction and output as image
@@ -578,11 +559,11 @@ public class Main_DBBUILD_2 {
                 
             if (hitsogramNumberNodesPerFirstPosition) {
                 Infos.println("Building #nodes_per_1stposition histogram...");
-                double[] values=new double[hash.keySet().size()];
+                double[] values=new double[session.hash.keySet().size()];
                 int i=0;
-                for (Iterator<Word> iterator = hash.keySet().iterator(); iterator.hasNext();) {
+                for (Iterator<Word> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
                     Word next = iterator.next();
-                    values[i]=new Double(hash.getPairsOfTopPosition(next).size());
+                    values[i]=new Double(session.hash.getPairsOfTopPosition(next).size());
                     i++;
                 }
                 //jfreechat histogram construction and output as image
@@ -606,25 +587,266 @@ public class Main_DBBUILD_2 {
                 } catch (IOException e) {}
             }
             
-            ////////////////////////////////////////////////////////////////////
-            //SAVE THE HASH BY JAVA SERIALIZATION
-            System.out.println("Serialization of the database...");
-            session.associateHash(hash);
-            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+wordPPStarThreshold);
+            //keep filenames here, used even in dbInRAM mode
+            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_t"+PPStarThreshold);
             File dbfull=new File(db.getAbsoluteFile()+".full");
             File dbmedium=new File(db.getAbsoluteFile()+".medium");
             File dbsmall=new File(db.getAbsoluteFile()+".small");
-            if (!skipDBFull)
-                session.storeFullHash(dbfull);
+            
+            
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            //OPTIONNAL: DO NOT SAVE DB TO FILES AND OPERATE DIRECTLY SOME
+            //PLACEMENTS
+            if (dbInRAM) {
+                System.out.println("#############################");
+                System.out.println("## dbInRAM mode !");
+                System.out.println("## DB kept in memory");
+                System.out.println("## queries: "+queries.getAbsolutePath());
+                System.out.println("#############################");
+                //reduction to medium DB
+                System.out.println("Reduction to medium DB...");
+                session.hash.reduceToMediumHash();
+                System.gc();
+                
+                Float calibrationNormScoreMedium =-1.0f;
+                if (nsBound==null) {
+                    //calibration to medium DB
+                    int bufferSize=2097152; // buffer of 2mo
+                    BufferedWriter bwTSVCalibration=null;
+                    if (writeTSVCalibrationLog) {
+                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+                    }
+                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
+                    //generate random sequences
+                    RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
+                    AlignScoringProcess asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    //do the placement and calculate score quantiles
+                    calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                    System.out.println("Score bound: "+calibrationNormScoreMedium);
+                    //closes the calibration log  
+                    if (writeTSVCalibrationLog){
+                        bwTSVCalibration.close();
+                    }
+                } else {
+                    System.out.println("Using nsbound: "+nsBound.toString());
+                    calibrationNormScoreMedium=nsBound;
+                }
+                //associate calibration
+                session.associateCalibrationScore(calibrationNormScoreMedium);
+                
+                
+                //now do placements on medium DB
+                System.out.println("Starting placement on medium DB...");
+                Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
+                placer.doPlacements(queries, dbmedium, workDir, callString, nsBound);
+                
+                //reduction to small DB
+                System.out.println("Reduction to small DB...");
+                session.hash.reducetoSmallHash(10);
+                System.gc();
+
+                //calibration to small DB
+                //NOTE: not done, we keep medium DB calibration as the basis.
+                
+                //now do placements on small DB
+                System.out.println("Starting placement on small DB...");
+                placer=new Main_PLACEMENT_v07(session,dbInRAM);
+                placer.doPlacements(queries, dbsmall, workDir, callString, nsBound);
+                
+                
+                
+                System.out.println("DBINRAM OPERATIONS FINISHED.");
+                return;
+            }
+            
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            //SAVE HASH BY JAVA SERIALIZATION
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            
+            ////////////////////////////////////////////////////////////////////
+            // CALIBRATION: LARGE
+            
+            //generate random sequences
+            AlignScoringProcess asp=null;
+            RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
+            
+            if (buildDBFull) {
+                //calibration
+                if (!noCalibration) {
+                    int bufferSize=2097152; // buffer of 2mo
+                    BufferedWriter bwTSVCalibration=null;
+                    if (writeTSVCalibrationLog) {
+                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
+                    }
+                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
+                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    //do the placement and calculate score quantiles
+                    float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                    System.out.println("Score bound: "+calibrationNormScoreLarge);
+                    //closes the calibration log  
+                    if (writeTSVCalibrationLog){
+                        bwTSVCalibration.close();
+                    }
+                    //associate calibration
+                    session.associateCalibrationScore(calibrationNormScoreLarge);
+                } else {
+                    session.associateCalibrationScore(Float.NEGATIVE_INFINITY);
+                }
+                //store the DB
+                System.out.println("Serialization of the database (full)...");
+                session.storeHash(dbfull);
+            }
             //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
             //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
+            
+            /////////////////////////////////////////////////:
+            //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+            //
+//            byte[] word={1,3,0,2,1,1,3,0};
+//            Infos.println("###########################################");
+//            Infos.println("#TEST DB FULL");
+//            Infos.println("Word: "+Arrays.toString(word));
+//            QueryWord queryWord = new QueryWord(word, 0);
+//            int[] positions=session.hash.getPositions(queryWord);
+//            Infos.println("Positions: "+Arrays.toString(positions));
+//            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//            for (int i=1;i<positions.length;i++) {
+//                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//            }
+//            Infos.println("###########################################");
+            
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            //REDUCTION AND CALIBRATION: MEDIUM
+            ////////////////////////////////////////////////////////////////////
+            //1. REDUCE HASH CONTENT TO ONLY BEST POSITION ASSOCIATED TO EACH
+            //KMER IN THE DATABASE
+            //2. DO  PLACEMENT of N RANDOM SEQUENCES ON THE CREATED DATABASE 
+            //THIS WILL BE USED TO CALCULTE QUANTILES and USE LAST QUANTILE
+            //AS THE SCORE BOUND UNDER WHICH PLACEMENTS WILL NOT BE REPORTED
+            //IN THE JPLACE OUPTUT.
+            
+            //reduction 
+            session.hash.reduceToMediumHash();
             System.gc();
-            session.storeMediumHash(dbmedium);
+            //calibration
+            float calibrationNormScoreMedium=Float.NEGATIVE_INFINITY;
+            BufferedWriter bwTSVCalibration=null;
+            int bufferSize=2097152; // buffer of 2mo
+            if (!noCalibration) {
+                if (writeTSVCalibrationLog) {
+                    bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+                }
+                System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
+                asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                //do the placement and calculate score quantiles
+                calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                System.out.println("Score bound: "+calibrationNormScoreMedium);
+                //closes the calibration log  
+                if (writeTSVCalibrationLog){
+                    bwTSVCalibration.close();
+                }
+            }
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            //SAVE THE MEDIUM HASH BY JAVA SERIALIZATION
+            //associate medium calibration
+            session.associateCalibrationScore(calibrationNormScoreMedium);
+            //store in DB
+            System.out.println("Serialization of the database (medium)...");
+            session.storeHash(dbmedium);
+            
+            
+            /////////////////////////////////////////////////:
+            //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+            //
+//            Infos.println("###########################################");
+//            Infos.println("#TEST DB MEDIUM");
+//            Infos.println("Word: "+Arrays.toString(word));
+//            queryWord = new QueryWord(word, 0);
+//            positions=session.hash.getPositions(queryWord);
+//            Infos.println("Positions: "+Arrays.toString(positions));
+//            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//            for (int i=1;i<positions.length;i++) {
+//                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//            }
+//            Infos.println("###########################################");
+
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            //REDUCTION AND CALIBRATION: SMALL
+            ////////////////////////////////////////////////////////////////////
+            //1. REDUCE HASH CONTENT TO ONLY BEST POSITION ASSOCIATED TO EACH
+            //KMER IN THE DATABASE AND 10 NODES AT EACH POSITION
+            //2. DO  PLACEMENT of N RANDOM SEQUENCES ON THE CREATED DATABASE 
+            //THIS WILL BE USED TO CALCULTE QUANTILES and USE LAST QUANTILE
+            //AS THE SCORE BOUND UNDER WHICH PLACEMENTS WILL NOT BE REPORTED
+            //IN THE JPLACE OUPTUT.
+            
+            //reduction 
+            session.hash.reducetoSmallHash(10);
             System.gc();
-            session.storeSmallHash(dbsmall, 10);
+            //calibration
+            float calibrationNormScoreSmall=Float.NEGATIVE_INFINITY;
+            if (!noCalibration) {
+                if (writeTSVCalibrationLog) {
+                    bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+                }
+                System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
+                //do the placement and calculate score quantiles
+                asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                System.out.println("Score bound: "+calibrationNormScoreSmall);
+                //closes the calibration log  
+                if (writeTSVCalibrationLog){
+                    bwTSVCalibration.close();
+                }
+            }
+            
+
+
+            
+            
+            ////////////////////////////////////////////////////////////////////
+            //SAVE THE SMALL HASH BY JAVA SERIALIZATION
+            //associate medium calibration
+            session.associateCalibrationScore(calibrationNormScoreSmall);
+            //store in DB
+            System.out.println("Serialization of the database (small)...");
+            session.storeHash(dbsmall);
+
+            
+            /////////////////////////////////////////////////:
+            //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+            //
+//            Infos.println("###########################################");
+//            Infos.println("Word: "+Arrays.toString(word));
+//            Infos.println("#TEST DB SMALL");
+//            queryWord = new QueryWord(word, 0);
+//            positions=session.hash.getPositions(queryWord);
+//            Infos.println("Positions: "+Arrays.toString(positions));
+//            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//            for (int i=1;i<positions.length;i++) {
+//                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//            }
+//            Infos.println("###########################################");
+            
+            
+
             arpr=null;
             session=null;  
-            if (!skipDBFull)
+            if (buildDBFull)
                 Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
             Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
             Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
@@ -632,15 +854,9 @@ public class Main_DBBUILD_2 {
             
             
             
-            System.out.println("FINISHED.");
+            System.out.println(" DBTOFILE FINISHED.");
             
-            
-            
-            
-            
-        } catch (Exception ex) {
-            Logger.getLogger(WordExplorer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
         
         
     }

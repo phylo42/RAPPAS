@@ -44,13 +44,15 @@ public class FASTAPointer implements SequencePointer {
 
     //nombre de fastas dans le fichier
     int size=0;
+    //mean size of sequences
+    double mean=-1.0;
 
     public FASTAPointer (File f,boolean gapsRemoved) {
         this.gapsRemoved=gapsRemoved;
         this.myFile=f;
         //ouverture du reader si pas déjà fait
         try {
-            size=checkSize();
+            checkSize(); //read # fasta and mean sequence length at opening
             lnr = new LineNumberReader(new FileReader(myFile));
         } catch (IOException ex) {
             Logger.getLogger(FASTAPointer.class.getName()).log(Level.SEVERE, null, ex);
@@ -176,8 +178,7 @@ public class FASTAPointer implements SequencePointer {
             markPositionned=false;
             lastHeader="";
             lnr.close();
-            lnr=null;
-            size = 0;
+            lnr=null;            
             first=true;
             last=false;
             lnr = new LineNumberReader(new FileReader(myFile));
@@ -194,6 +195,13 @@ public class FASTAPointer implements SequencePointer {
     public int getContentSize() {
         return this.size;
     }
+    /**
+     * return the mean sequence size of this fasta
+     * @return
+     */
+    public double getContentMean() {
+        return this.mean;
+    }
 
     /**
      * call it at the end of the parsing
@@ -209,21 +217,36 @@ public class FASTAPointer implements SequencePointer {
 
     }
 
-    private int checkSize() throws FileNotFoundException, IOException {
+    private void checkSize() throws FileNotFoundException, IOException {
+        //max number of seq reads for calculating mean sequence size
+        int max=10000;
+        //number of entries
         int n=0;
         String lineRead = "";
         BufferedReader buf=new BufferedReader(new FileReader(myFile));
+        //for calculating mean sequence size
+        int sumCharacters=0;
+        StringBuilder sb=new StringBuilder();
         while ((lineRead = buf.readLine()) != null) {
             if (lineRead.isEmpty()) {
                 continue;
             }
             if (lineRead.charAt(0)=='>') {
                 n++;
+            } else if (n<=max) {
+                sumCharacters+=lineRead.trim().length();
             }
         }
+        //mean
+        if(n<max) {
+            this.mean=sumCharacters/n;
+        } else {
+            this.mean=sumCharacters/max;
+        }
+        
         buf.close();
         buf=null;
-        return n;
+        this.size=n;
     }
 
     public void setPointerPosition(int fastaNumber) {

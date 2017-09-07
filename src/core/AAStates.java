@@ -5,6 +5,7 @@
  */
 package core;
 
+import etc.Infos;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -48,7 +49,6 @@ public class AAStates extends AbstractStates implements States,Serializable {
         states.put((byte)17, 'W');
         states.put((byte)18, 'Y');
         states.put((byte)19, 'V');
-        states.put((byte)20, '?');
         
         bytes.put('R',(byte)0);
         bytes.put('H',(byte)1);
@@ -70,7 +70,55 @@ public class AAStates extends AbstractStates implements States,Serializable {
         bytes.put('W',(byte)17);
         bytes.put('Y',(byte)18);
         bytes.put('V',(byte)19);
-        bytes.put('?',(byte)20);
+        //ambigous states which are allowed
+        ambigousStates=2;
+        states.put((byte)20, 'N');
+        states.put((byte)21, '-');
+        bytes.put('N',(byte)20);
+        bytes.put('-',(byte)21);
+        
     }
 
+    @Override
+    public char byteToState(byte b) {
+        return states.get(b);
+    }
+    
+    @Override
+    public byte stateToByte(char c) {
+        try {
+            return bytes.get(c);
+        } catch (NullPointerException ex) {
+            //ex.printStackTrace();
+            Infos.println("Unexpected state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
+        }
+        return 'N';
+    }
+    
+
+    @Override
+    public String getSequence(byte[] bytes) {
+        char[] c=new char[bytes.length];
+        for (int i = 0; i < c.length; i++) {
+            c[i]=states.get(bytes[i]);
+            
+        }
+        return new String(c);
+    }
+
+    @Override
+    public int getStateCount() {
+        return states.size();
+    }
+    
+    @Override
+    public int getNonAmbiguousStatesCount() {
+        return states.size()-ambigousStates;
+    }
+
+    @Override
+    public int stateToInt(char c) {
+        return bytes.get(c).intValue();
+    }
+    
 }

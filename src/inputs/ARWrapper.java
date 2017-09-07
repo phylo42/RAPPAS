@@ -17,7 +17,7 @@ import tree.PhyloNode;
  *
  * @author ben
  */
-public interface DataWrapper {
+public interface ARWrapper {
 
     /**
      * a wrapper load the posterior probas from the output of any ancestral state reconstruction software

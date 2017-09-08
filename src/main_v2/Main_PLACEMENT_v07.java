@@ -285,9 +285,10 @@ public class Main_PLACEMENT_v07 {
             Infos.println("### DONE, placement execution took (excluding DB load): "+(endTotalTime-startTotalTime)+" ms");
             Infos.println("#######################################################################");
             //just for coherent output, close the percentage
-            System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
+            System.out.println(queryCounter+"/"+totalQueries+" queries analyzed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             //just for coherent output, close the percentage
-            System.out.println(placements.size()+" significative placements reported in JPlace output ("+((0.0+placements.size()/totalQueries)*100)+"%)");            
+            System.out.println(placements.size()+" significative placements reported in JPlace output.");
+            System.out.println("(Note: "+(100-(((0.0+placements.size())/totalQueries)*100))+"% of the queries are duplicates)");            
             Infos.println("#######################################################################");
 
 

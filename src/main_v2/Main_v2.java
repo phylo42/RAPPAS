@@ -101,14 +101,15 @@ public class Main_v2 {
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
 
             //pplacer benchmark queries 
-            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+//            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
 
-            //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
-            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
+
+            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
+            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -120,28 +121,18 @@ public class Main_v2 {
 //                            + "-i "+a+" "
 //                            + "-t "+t+" "
 //                            + "-k "+String.valueOf(8)+" "
-//                            + "-a "+String.valueOf(1.1)+" "
+//                            + "-a "+String.valueOf(1.5)+" "
 //                            + "-v 1 "
 //                            + "--ardir "+arDir+" "
-//                            //+ "--extree "+exTree+" "
-//                            //+ "--dbfull "
-//                            //+ "--froot"
-//                            + "--dbinram "
+                            //+ "--extree "+exTree+" "
+                            //+ "--dbfull "
+                            //+ "--froot"
+                            //+ "--dbinram "
 //                            + "-q "+q+" "
 //                            + "--nsbound -100000.0 "
 //                            + "--nocalib"
-//                            ;
+                            ;
             
-            
-            ///-t /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Tx/T33_nx348_la.tree
-            //-i /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Ax/A33_nx348_la.align
-            //-w /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Dx/A33_nx348_la/k8_a1.1
-            //--ardir /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Dx/A33_nx348_la/k8_a1.1/AR
-            //-v 1
-            //--builddbfull
-            //--dbinram
-            //-q /ngs/linard/tests_accuracy/pplacer_16s_dbInRAM/Rx/R33_nx348_la_r300.fasta
-            //--nsbound -100000.0
             
             
             
@@ -152,7 +143,7 @@ public class Main_v2 {
                             + "-q "+q+" "
                             + "-d "+db+" "
                             + "-v 0 "
-                            + "--nsbound -1000.0"
+//                            + "--nsbound -1000.0"
                             ;            
                             
                             
@@ -191,7 +182,7 @@ public class Main_v2 {
                             
             
             //force args
-            //args=arguments.split(" ");
+            args=arguments.split(" ");
             
             
             
@@ -209,7 +200,7 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            //argsParser.ARBinary=new File("baseml");
+            argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA

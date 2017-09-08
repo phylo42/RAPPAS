@@ -204,10 +204,11 @@ public class SimpleHash_v2 implements Serializable{
     }
 
     /**
-     * empty all the positions which where not associated to the best PP*,
+     * in top position, empties all the positions which where not associated to the best PP*,
      * and retains only X pairs at the best position
      * @param X
      */
+    @Deprecated
     public void reducetoSmallHash(int X) {
         List<Word> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
@@ -218,6 +219,20 @@ public class SimpleHash_v2 implements Serializable{
         collect=null;
     }
     
+    /**
+     * discards all words where top positions is associated to more than X nodes
+     * @param X
+     */
+    public void reducetoSmallHash_v2(int X) {
+        assert X>0;
+        List<Word> collect = hash.keySet()  .stream() 
+                                            //.peek((w)->System.out.println("REDUCING:"+w))
+                                            .filter((w) -> hash.get(w).getNodeCountInTopPosition()>X)
+                                            //.peek((w)->System.out.println("TRASHED!:"+w))
+                                            .collect(Collectors.toList());
+        collect.stream().forEach((w)-> {hash.remove(w);});
+        collect=null;
+    }    
     
     
     /**

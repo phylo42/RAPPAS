@@ -794,7 +794,8 @@ public class Main_DBBUILD_2 {
             //IN THE JPLACE OUPTUT.
             
             //reduction 
-            session.hash.reducetoSmallHash(10);
+            //session.hash.reducetoSmallHash(10);
+            session.hash.reducetoSmallHash_v2(100);
             System.gc();
             //calibration
             float calibrationNormScoreSmall=Float.NEGATIVE_INFINITY;

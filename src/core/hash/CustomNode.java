@@ -72,6 +72,15 @@ public class CustomNode implements Serializable {
         }
         return null;
     }
+    
+    /**
+     * get number of nodes associated to best position
+     * @return 
+     */
+    public int getNodeCountInTopPosition() {
+        
+        return this.positionPointerList.get(0).size();
+    }
 
     /**
      * get best (nodeId;PP*).
@@ -122,6 +131,7 @@ public class CustomNode implements Serializable {
      * @return boolean that if true, notifies that this position should be deleted
      * because biased after the pair trimming
      */
+    @Deprecated
     public boolean limitToXPairsPerPosition(int X) {
         if (positionPointerList.get(0).size()>X) {
             //do not forget X is shifted by -1 for array coordinates (idx9==10th elt)

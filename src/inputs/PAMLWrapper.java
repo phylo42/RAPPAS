@@ -50,9 +50,11 @@ public class PAMLWrapper implements ARWrapper {
     
     
     //to accelerate posterior probas parsing (rst file), we use this regexp
-    //careful, in paml cientic number have negative, but also positive powers.('+' symbol present!)
-    //ex: T(1.000000E+00) C(1.050222E-12) A(2.261192E-13) G(1.568578E-13)
-    String pattern="^\\s+([0-9]+)\\s+[0-9]+\\s+[^:]+:\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+([A-Z])\\(([0-9E\\.+-]+)\\)\\s+";
+    //careful, in paml scientic number have negative, but also positive powers.('+' symbol present!)
+    //ex: '  1  2  dfd-g: T(1.000000E+00) C(1.050222E-12) A(2.261192E-13) G(1.568578E-13)'
+    //groups: 2=site 3=freq 4=state(char) 5=PP
+    //note: 4 and 5 null after 1st state
+    String pattern="(^\\s+([0-9]+)\\s+([0-9]+).*:\\s+)?([A-Z])\\(([0-9E\\.+-]+)\\)";
     Pattern p=Pattern.compile(pattern);
     
     /**
@@ -85,7 +87,7 @@ public class PAMLWrapper implements ARWrapper {
         boolean start3rdTree=false;
         while ((line=br.readLine())!=null) {
             if (line.trim().length()<1) {continue;}
-            if (line.startsWith("Ancestral reconstruction by BASEML")) {
+            if (line.startsWith("Ancestral reconstruction by")) {
                 startOriginal=true;
                 continue;
             }
@@ -282,19 +284,32 @@ public class PAMLWrapper implements ARWrapper {
                     }
                     
 
-                    //groups:
-                    //1: 1 (int of site)
-                    //2: T
-                    //3: 2.295358E-01
-                    //4: C
-                    //5: 3.009531E-01
-                    //6: A
-                    //7: 2.168515E-01
-                    //8: G
-                    //9: 2.526595E-01
+                    //groups: see Pattern declaration
                     Matcher matcher = p.matcher(line);
                     int site=-1;
+                    int stateIdx=0;
+                    while (matcher.find()) {
+                        if (matcher.group(2)!=null) {
+                            site=Integer.parseInt(matcher.group(2));
+                        }
+                        SiteProba sp=new SiteProba();
+                        sp.state=states.stateToByte(matcher.group(4).charAt(0));
+                        sp.proba=Float.parseFloat(matcher.group(5));  
+                        if (sp.proba<sitePPThreshold)
+                            sp.proba=sitePPThreshold;
+                        
+                        if (asLog10) {
+                            sp.proba=(float)Math.log10(sp.proba);
+                        }
 
+                        probasPerSite.set(stateIdx,sp);
+                        stateIdx++;
+                        
+                    }
+                    Collections.sort(probasPerSite);
+                    matrix.setStates(nodeId, site-1, probasPerSite);
+
+                    /*OLD VERSION FOR DNA ONLY
                     if(matcher.matches()) {
                         site=Integer.parseInt(matcher.group(1));
 
@@ -337,7 +352,7 @@ public class PAMLWrapper implements ARWrapper {
 
                         Collections.sort(probasPerSite);
                         matrix.setStates(nodeId, site-1, probasPerSite);
-                    }
+                    }*/
                         
                     currentPP++;
                 }

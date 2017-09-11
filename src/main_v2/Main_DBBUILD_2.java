@@ -64,7 +64,6 @@ public class Main_DBBUILD_2 {
     
     /**
      * 
-     * @param analysisType one of ArgumentsParser_v2.TYPE_*
      * @param processLog null if not used
      * @param k
      * @param alpha 
@@ -82,10 +81,8 @@ public class Main_DBBUILD_2 {
      * @param queries
      * @param callString
      * @param nsBound
-     * @param noCalibration 
      */
-    public static void DBGeneration(    int analysisType,
-                                        FileWriter processLog,
+    public static void DBGeneration(    FileWriter processLog,
                                         int k,
                                         float alpha,
                                         int branchPerLength,
@@ -313,12 +310,20 @@ public class Main_DBBUILD_2 {
             
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
-            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,analysisType);
-            //basique recognition of AR software is done through its ARBinary name
+            //for now, configure AR software based ARBinary name
+            ARProcessLauncher arpl=null;
+            //basique recognition of AR software in use, through its ARBinary name
             //Note: even if AR is skipped (option --ardir),
-            //ArgumentsParser.ARBinary value is used, which allows 
+            //ArgumentsParser.ARBinary has default value "phyml", which allows 
             //instanciation here. It will just not be executed.
-                 
+            if (ARBinary.getName().contains("phyml")) {  
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PHYML,ARBinary,verboseAR);
+            } else if (ARBinary.getName().contains("baseml")){
+                arpl=new ARProcessLauncher(ARProcessLauncher.AR_PAML,ARBinary,verboseAR);
+            } else {
+                System.out.println("AR binary could not be associated to know AR configuration...");
+                System.exit(1);
+            }          
             if (launchAR) {
                 File alignmentFile=null;
                 File treeFile=null;
@@ -847,7 +852,11 @@ public class Main_DBBUILD_2 {
             Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
             Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
             System.out.println("Database saved.");
-                        
+            
+            
+            
+            System.out.println(" DBTOFILE FINISHED.");
+            
 
         
         

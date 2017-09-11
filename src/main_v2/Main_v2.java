@@ -19,7 +19,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.8";
+    private final static String consoleVersion="0.7";
 
     public static void main (String[] args) {
         try {
@@ -27,18 +27,17 @@ public class Main_v2 {
             System.out.println("#############################################################");
             System.out.println("## RApid Phylogenetic Placement via Ancestral Sequences");
             System.out.println("## (RAPPAS) v"+consoleVersion);
-            System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France) + lamas");
+            System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France)");
             System.out.println("#############################################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
             //hack related to Problems under MAC OS implementation of
             //the Aqua (mac Look and feel)
-            //in some implementations, (Mac implementation if Java... not Oracle or open JDK)
-            //for unknown reason, the use of Jtree prompts the virtual machine to 
+            //for some reason, the use of Jtree prompts the virtual achine to 
             //use the class com.apple.laf.AquaTreeUI
             //which is not Serializable and causes crashes when Jtree is serialized
-            //(i.e. when the database is saved on the disk)
+            
             // Set cross-platform Java L&F (also called "Metal")
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             
@@ -116,15 +115,15 @@ public class Main_v2 {
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
 
             //db build launch
-            String arguments=
-                              "-m B "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.5)+" "
-                            + "-v 1 "
-                            + "--ardir "+arDir+" "
+//            String arguments=
+//                              "-m B "
+//                            + "-w "+workDir+" "
+//                            + "-i "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.5)+" "
+//                            + "-v 1 "
+//                            + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--dbfull "
                             //+ "--froot"
@@ -138,12 +137,12 @@ public class Main_v2 {
             
             
 //            // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0 "
+            String arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 0 "
 //                            + "--nsbound -1000.0"
                             ;            
                             
@@ -177,44 +176,7 @@ public class Main_v2 {
 /////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp              
                             
                             
-//  FOR PROTEIN ANALYSIS TESTS
-/////////////////////////////////
-
-            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML";
-            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml_prot";
-            a=inputsPath+File.separator+"cox1_euka_oma.mfa";
-            t=inputsPath+File.separator+"RAxML_bestTree.test";
-            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
-            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
-
-
-            //db build launch
-            arguments=
-                              "-m B "
-                            + "-s prot "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(5)+" "
-                            + "-a "+String.valueOf(1.5)+" "
-                            + "-v 1 "
-                            + "--arbinary /home/benclaff/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
-                            + "--ardir "+arDir+" "
-                            //+ "--extree "+exTree+" "
-                            //+ "--dbfull "
-                            //+ "--froot"
-                            //+ "--dbinram "
-//                            + "-q "+q+" "
-//                            + "--nsbound -100000.0 "
-//                            + "--nocalib"
-                            ;
-
-
-
-
-
-//////////////////////////////////
-
+                            
                             
                             
                             
@@ -238,25 +200,22 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            //argsParser.ARBinary=new File("baseml");
+            argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA
             States s=null; 
             if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
                 s=new DNAStates();
-                System.out.println("Set analysis for DNA");
             } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
                 s=new AAStates();
-                System.out.println("Set analysis for PROTEIN");
             }
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
 
                 
-                Main_DBBUILD_2.DBGeneration(argsParser.analysisType,
-                                            null,
+                Main_DBBUILD_2.DBGeneration(null,
                                             argsParser.k,
                                             argsParser.alpha,
                                             argsParser.fakeBranchAmount,

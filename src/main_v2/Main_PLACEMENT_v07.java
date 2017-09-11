@@ -264,10 +264,13 @@ public class Main_PLACEMENT_v07 {
             top.putAll(topMap);
             String out=top.toJSONString();
 
-            //just some basic formatting
+            //just some basic formatting of the jplace file
+            //to make it a bit more human-readable, we input some \n
+            //at key places
             out=out.replaceAll("\\},\\{", "\n\\},\\{\n\t"); //},{
             out=out.replaceAll("\\],\"","\\],\n\t\"");   //],"
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
+            out=out.replaceAll(",\"placements\":\\[\\{\"p\"", ",\n\"placements\":\n[\n{\n\t\"p\"");
             //out=out.replace("]},", "]},"); //]}
             
             FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));

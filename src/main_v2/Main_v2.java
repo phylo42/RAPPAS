@@ -19,7 +19,7 @@ import static main.Main_DBBUILD.TYPE_DNA;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.7";
+    private final static String consoleVersion="0.8";
 
     public static void main (String[] args) {
         try {
@@ -176,7 +176,54 @@ public class Main_v2 {
 /////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp              
                             
                             
-                            
+//  FOR PROTEIN ANALYSIS TESTS
+/////////////////////////////////
+
+            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML";
+            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml_prot";
+            a=inputsPath+File.separator+"cox1_euka_oma.mfa";
+            t=inputsPath+File.separator+"RAxML_bestTree.test";
+            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
+            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+
+            q=inputsPath+File.separator+"queries.fasta";
+            db=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/DB_session_k4_a1.0_t0.00390625.medium";
+            
+            //db build launch
+            arguments=
+                              "-m B "
+                            + "-s prot "
+                            + "-w "+workDir+" "
+                            + "-i "+a+" "
+                            + "-t "+t+" "
+                            + "-k "+String.valueOf(4)+" "
+                            + "-a "+String.valueOf(1.0)+" "
+                            + "-v 1 "
+                            + "--arbinary /home/benclaff/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
+                            + "--ardir "+arDir+" "
+                            //+ "--extree "+exTree+" "
+                            //+ "--dbfull "
+                            //+ "--froot"
+                            //+ "--dbinram "
+//                            + "-q "+q+" "
+//                            + "--nsbound -100000.0 "
+                            + "--nocalib"
+                            ;
+
+
+//            // placement launch
+            arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 0 "
+                            + "--nsbound -1000.0"
+                            ;   
+
+
+//////////////////////////////////
+
                             
                             
                             

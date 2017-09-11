@@ -18,6 +18,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -118,11 +119,12 @@ public class AlignScoringProcess {
         ////////////////////////////////////////////////////////////////////
 
         int queryCounter=0;
+        int queryPlacedCounter=0;
         int totalQueries=samplingAmount;
         for (int query = 0; query < samplingAmount; query++) { //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
 
             //debug
-            if (queryCounter>=queryLimit)
+            if (queryCounter>queryLimit)
                 break;
 
             //console display to follow the process
@@ -137,7 +139,8 @@ public class AlignScoringProcess {
 //            Infos.println("#######################################################################");
 //            Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
 //            Infos.println("#######################################################################");
-            //fw.append(fasta.getFormatedFasta()+"\n");
+//            fw.append(fasta.getFormatedFasta()+"\n");
+//            Infos.println(fasta.getFormatedFasta());
 
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
@@ -149,8 +152,11 @@ public class AlignScoringProcess {
             // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
 //            Infos.println("Launching scoring on candidate nodes...");
+            int queryWordFoundCounter=0;
+            int queryWordCounter=0;
             //loop on words
             while ((qw=sk.getNextWord())!=null) {
+                queryWordCounter++;
                 //Infos.println("Query mer: "+qw.toString());
                 //position of this word
                 int position=session.hash.getTopPosition(qw);
@@ -158,6 +164,7 @@ public class AlignScoringProcess {
                 if (position<0) {
                     continue;
                 }
+                queryWordFoundCounter++;
                 //get Pairs associated to this word
                 List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
                 //System.out.println("Pairs: "+allPairs);
@@ -173,24 +180,25 @@ public class AlignScoringProcess {
                     //score associated to originalNode x for current read
                     nodeScores[p.getNodeId()]+=p.getPPStar();
                 }
-                //System.out.println("  nodeOccurences:"+Arrays.toString(nodeOccurences));
-                //System.out.println("  nodeScores:"+Arrays.toString(nodeScores));
+//                System.out.println("  nodeOccurences:"+Arrays.toString(nodeOccurences));
+//                System.out.println("  nodeScores:"+Arrays.toString(nodeScores));
 
             }
 
 //            Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
-//            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
+//            Infos.println("Candidate nodes: ("+selectedNodes+") ");      
 
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
             if (selectedNodes.size()<1) {
-                Infos.println("Read cannot be placed.");
+                //Infos.println("Read cannot be placed.");
                 //TODO: currently this query will not be in output csv 
                 //and jplace... put them in special output ?
                 continue; //to next query
             }
 
-
+            queryPlacedCounter++;
+            
             // NOW CORRECTING SCORING BY UNMATCHED WORDS
             ///////////////////////////////////////////////////////
             //now add the score corresponding to the words not found,
@@ -201,14 +209,14 @@ public class AlignScoringProcess {
             int secondBest=-1;
             float secondScore=Float.NEGATIVE_INFINITY;
             for (Integer nodeId:selectedNodes) {
-                //System.out.println("Scoring originalNode:"+nodeId);
-                //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
-                //int extendedTreeId=session.nodeMapping.get(nodeId);
-                //System.out.println("extendedTreeId:"+extendedTreeId);
-                //Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
-                //System.out.println("originalNodeId:"+originalNodeId);
-                //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
-                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
+//                System.out.println("Scoring originalNode:"+nodeId);
+//                System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
+//                int extendedTreeId=session.nodeMapping.get(nodeId);
+//                System.out.println("extendedTreeId:"+extendedTreeId);
+//                Integer originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
+//                System.out.println("originalNodeId:"+originalNodeId);
+//                System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
+//                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
                 if (nodeScores[nodeId]>bestScore) {
                     secondBest=bestNodeId;
                     secondScore=bestScore;
@@ -221,6 +229,7 @@ public class AlignScoringProcess {
             }
 
 //            Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+//            Infos.println("Second node (ARTree) is : "+secondBest+" (score="+secondScore+")");
 //            Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
 
             //simple debug test
@@ -242,14 +251,20 @@ public class AlignScoringProcess {
             if (!nodeToTest.isFakeNode()) {
                 //System.out.println("############### change best node to neighboors !");                    
 //                Infos.println("Current best node is an original node...");
-                //if there was no other scored nodes ? should not happen...
+                PhyloNode firstNode = null;
+                PhyloNode secondNode = null;
+                //if there was no other scored nodes ? this case happened when a single query mer was found in the DB
                 if (secondBest<0) {
-                    System.out.println("Best node is original node and there are no other scored nodes??...");
-                    System.exit(1);
+                    //System.out.println("Best node is original node and there are no other scored nodes??...");
+                    //arbitrary choice, take FAKE node which is left son.
+                    firstNode = session.ARTree.getById(bestNodeId);
+                    secondNode = firstNode.getChildAt(0);
+                    bestNodeId =secondNode.getId();
+                    //System.exit(1);
                 } else {
-                    PhyloNode firstNode = session.ARTree.getById(bestNodeId);
+                    firstNode = session.ARTree.getById(bestNodeId);
                     //select node of 2nd best score
-                    PhyloNode secondNode = session.ARTree.getById(secondBest);
+                    secondNode= session.ARTree.getById(secondBest);
                     //get path from this node to bestNodeId
                     //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
                     PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
@@ -259,11 +274,11 @@ public class AlignScoringProcess {
                     //or nodeToTest-secondNode(X0) if immediate neighboor
                     //in all case the 2nd elt of the path is the X0 chosen 
                     //for the placement
-                    bestNodeId=shortestPath.path.get(1).getId();
-                    extendedTreeId=session.nodeMapping.get(bestNodeId);
-                    originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);                           
+                    bestNodeId=shortestPath.path.get(1).getId();                        
                 }
-
+                extendedTreeId=session.nodeMapping.get(bestNodeId);
+                originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);   
+                    
                 //System.out.println("NEW Selected node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
                 //System.out.println("mapping: ARTree="+ARTree.getById(bestNodeId)+" ExtendedTree="+extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
 
@@ -332,6 +347,8 @@ public class AlignScoringProcess {
         if (bwTSV!=null) {
             bwTSV.append(sb);
         }
+        
+        System.out.println("Queries actually placed:"+queryPlacedCounter);
         
         //use the normalized scores to define quantile
         return new Double(Quantiles.scale(q_quantile).index(n_quantile).compute(normalizedScores)).floatValue();        

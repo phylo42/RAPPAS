@@ -24,7 +24,7 @@ public class RandomSeqGenerator {
     Random rand = new Random(seed);
     int sequenceLength=0;
     //standard dev arounf the mean read length
-    double Rsd=5;
+    double Rsd=3;
     Double v_length = 0.0;
     
     //variables used for Fasta creation

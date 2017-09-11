@@ -7,6 +7,8 @@ package main_v2;
 
 import outputs.ARProcessLauncher;
 import alignement.Alignment;
+import core.AAStates;
+import core.DNAStates;
 import core.ProbabilisticWord;
 import core.QueryWord;
 import core.States;
@@ -149,6 +151,10 @@ public class Main_DBBUILD_2 {
             //score calibration/////////////////////////////////////////////////
             int meanCalibrationSequenceSize=150;
             int calibrationSampleSize=1000000;
+            if (s instanceof AAStates) {
+                meanCalibrationSequenceSize=meanCalibrationSequenceSize/3;
+                calibrationSampleSize=calibrationSampleSize*10;
+            }
             int q_quantile=1000000;
             int n_quantile=999999;
             boolean writeTSVCalibrationLog=false;

@@ -3,20 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/inputs/PAMLWrapper.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/NewickReader.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/AbstractStates.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloNode.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/outputs/ARProcessLauncher.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/inputs/ARResults.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_DBBUILD.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloTree.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_v2.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/ArgumentsParser_v2.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/SessionNext_v2.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/DNAStates.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_DBBUILD_2.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/alignement/Alignment.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_v2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/outputs/ARProcessLauncher.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/hash/SimpleHash_v2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/algos/AlignScoringProcess.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/PAMLWrapper.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/InputManager.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_DBBUILD_2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_PLACEMENT_v07.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/ArgumentsParser_v2.java</file>
         </group>
     </open-files>
 </project-private>

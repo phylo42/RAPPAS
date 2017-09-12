@@ -287,7 +287,7 @@ public class Main_PLACEMENT_v07 {
             //just for coherent output, close the percentage
             System.out.println(queryCounter+"/"+totalQueries+" queries analyzed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             //just for coherent output, close the percentage
-            System.out.println(placements.size()+" significative placements reported in JPlace output.");
+            System.out.println(placements.size()+" significant placements reported in JPlace output.");
             System.out.println("(Note: "+(100-(((0.0+placements.size())/totalQueries)*100))+"% of the queries are duplicates)");            
             Infos.println("#######################################################################");
 

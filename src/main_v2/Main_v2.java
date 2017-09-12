@@ -186,9 +186,7 @@ public class Main_v2 {
             arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
             //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
 
-            q=inputsPath+File.separator+"queries.fasta";
-            db=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/DB_session_k4_a1.0_t0.00390625.medium";
-            
+
             //db build launch
             arguments=
                               "-m B "
@@ -196,8 +194,8 @@ public class Main_v2 {
                             + "-w "+workDir+" "
                             + "-i "+a+" "
                             + "-t "+t+" "
-                            + "-k "+String.valueOf(4)+" "
-                            + "-a "+String.valueOf(1.0)+" "
+                            + "-k "+String.valueOf(5)+" "
+                            + "-a "+String.valueOf(1.5)+" "
                             + "-v 1 "
                             + "--arbinary /home/benclaff/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
                             + "--ardir "+arDir+" "
@@ -207,19 +205,11 @@ public class Main_v2 {
                             //+ "--dbinram "
 //                            + "-q "+q+" "
 //                            + "--nsbound -100000.0 "
-                            + "--nocalib"
+//                            + "--nocalib"
                             ;
 
 
-//            // placement launch
-            arguments=
-                              "-m p "
-                            + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-v 0 "
-                            + "--nsbound -1000.0"
-                            ;   
+
 
 
 //////////////////////////////////

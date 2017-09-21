@@ -15,7 +15,9 @@ import inputs.Fasta;
 import inputs.SequencePointer;
 import java.awt.GridLayout;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,10 +45,12 @@ public class AlignScoringProcess {
     
     //debug/////////////////////////////////////////////////////////////
     //max number of queries treated 
-    int queryLimit=10000;
-
+    int queryLimit=1;
     //graph of words alignment
-    boolean graphAlignment=false;
+    boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
+    boolean merStats=false;
+    //debug/////////////////////////////////////////////////////////////
+    
     
     //parameters asked when program launched
     SessionNext_v2 session=null;
@@ -159,15 +163,14 @@ public class AlignScoringProcess {
             while ((qw=sk.getNextWord())!=null) {
                 queryWordCounter++;
                 //Infos.println("Query mer: "+qw.toString());
-                //position of this word
-                int position=session.hash.getTopPosition(qw);
+                
+                //get Pairs associated to this word
+                List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
                 //if this word is not registered in the hash
-                if (position<0) {
+                if (allPairs==null) {
                     continue;
                 }
                 queryWordFoundCounter++;
-                //get Pairs associated to this word
-                List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
                 //System.out.println("Pairs: "+allPairs);
                 for (int i = 0; i < allPairs.size(); i++) {
                     Pair p = allPairs.get(i);
@@ -371,7 +374,7 @@ public class AlignScoringProcess {
      * @return the number of queries effectively placed (kmers were found in DB)
      * @throws java.io.IOException
      */
-    public int processQueries(SequencePointer fp, JSONArray placements, BufferedWriter bwTSV, int queryWordSampling, int minOverlap) throws IOException {
+    public int processQueries(SequencePointer fp, JSONArray placements, BufferedWriter bwTSV, int queryWordSampling, int minOverlap, File logDir) throws IOException {
         
         ///////////////////////////////////////////////////////            
         // PREPARE VECTORS USED TO ALIGN AND SCORE NODES
@@ -411,8 +414,13 @@ public class AlignScoringProcess {
         if (bwTSV!=null) {
             sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tExtendedTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
         }
-   
-        
+        //debug file of mers stats
+        BufferedWriter bwMerStats =null;
+        if (merStats) {
+            File fileMerStats=new File(logDir+File.separator+"merStats.csv");
+            bwMerStats = Files.newBufferedWriter(fileMerStats.toPath());
+            bwMerStats.append("Query;ARNodeId;ARNodeName;ExtendedNodeId;ExtendedNodeName;OriginalNodeId;OriginalNodeName;MerPos;PPStar;Hash\n");
+        }
         
 
 
@@ -517,11 +525,8 @@ public class AlignScoringProcess {
             double[][] graphDataForTopTuples =null;
             int xSize=-1;
             if (graphAlignment) {
-                //a diagsum based only on a the single top best PP* associated to a query word.
-                //accumulating all nodes, just taing higher PP* and corresponding positions
-                bestPPStarsDiagsum=new DiagSum(queryLength, session.align.getLength(), minOverlap, session.k, sk.getStep());
                 //preparing preplacement graph data :
-                xSize=bestPPStarsDiagsum.getSize();
+                xSize=session.align.getLength();
                 int ySize=queryLength;
                 graphDataForTopTuples =new double[3][xSize*ySize];
                 //init the Z axis (PP*) to very small values for all possible (X,Y)
@@ -539,19 +544,19 @@ public class AlignScoringProcess {
             // BUILD THE ALIGNMENT AND SCORE IN A SINGLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
             Infos.println("Launching scoring on candidate nodes...");
+            boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
             while ((qw=sk.getNextWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
-                queryWordCounter++;
-                //position of this word
-                int topPosition=session.hash.getTopPosition(qw);
-                //if this word is not registered in the hash
-                if (topPosition<0) {
+
+                //get Pairs associated to this word
+                List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
+                if (allPairs==null) {
+                    queryWordCounter++;
                     continue;
                 }
                 queryWordFoundCounter++;
-                //get Pairs associated to this word
-                List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
+                
                 //System.out.println("Pairs: "+allPairs);
                 for (int i = 0; i < allPairs.size(); i++) {
                     Pair p = allPairs.get(i);
@@ -564,24 +569,59 @@ public class AlignScoringProcess {
                     nodeOccurences[p.getNodeId()]+=1;
                     //score associated to originalNode x for current read
                     nodeScores[p.getNodeId()]+=p.getPPStar();
-                }
-                //System.out.println("  nodeOccurences:"+Arrays.toString(nodeOccurences));
-                //System.out.println("  nodeScores:"+Arrays.toString(nodeScores));
+                    
+                    if (merStats) {
+                        merFound[p.getNodeId()][queryWordCounter]=true;
+                        int extendedTreeId=session.nodeMapping.get(p.getNodeId());
+                        int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
+                        PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
+                        PhyloNode origNode = session.originalTree.getById(originalNodeId);
+                        bwMerStats.append(fasta.getHeader()+";");
+                        bwMerStats.append(p.getNodeId()+";"+session.ARTree.getById(p.getNodeId()).getLabel()+";");
+                        bwMerStats.append(extendedTreeId+";"+extNode.getLabel()+";");
+                        bwMerStats.append(originalNodeId+";"+origNode.getLabel()+";");
+                        bwMerStats.append(queryWordCounter+";");
+                        bwMerStats.append(String.valueOf(p.getPPStar())+";");
+                        bwMerStats.append("present");
+                        bwMerStats.append("\n");
 
+                    }
+                    
+                }
                 //graph of alignment, if asked
                 if(graphAlignment) {
-                    int topDiagSumPos=topPosition-qw.getOriginalPosition()+(queryLength-minOverlap);
-                    if (topDiagSumPos>-1 && topDiagSumPos<bestPPStarsDiagsum.getSize()) {
-                            graphDataForTopTuples[2][queryWordCounter*xSize+topPosition]= allPairs.get(0).getPPStar();                        
-                    }
+                   int topPosition =session.hash.getTopPosition(qw);
+                   //System.out.println((queryWordCounter*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
+                   graphDataForTopTuples[2][queryWordCounter*xSize+topPosition]= new Double(allPairs.get(0).getPPStar());                        
                 }
 
-                //DEBUG
-                //if (queryWordCounter>1000)
-                //        break;
-                //DEBUG
+                queryWordCounter++;
 
             }
+            //System.out.println("  AFTER ALIGNMENT");
+            //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
+            //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
+            if (merStats) {
+                for (int nodeId = 0; nodeId < merFound.length; nodeId++) {
+                    for (int merPos = 0; merPos < merFound[nodeId].length; merPos++) {
+                        if ((merFound[nodeId][merPos]==false) && (!session.ARTree.getById(nodeId).isLeaf())) {
+                            int extendedTreeId=session.nodeMapping.get(nodeId);
+                            int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
+                            PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
+                            PhyloNode origNode = session.originalTree.getById(originalNodeId);
+                            bwMerStats.append(fasta.getHeader()+";");
+                            bwMerStats.append(nodeId+";"+session.ARTree.getById(nodeId).getLabel()+";");
+                            bwMerStats.append(extendedTreeId+";"+extNode.getLabel()+";");
+                            bwMerStats.append(originalNodeId+";"+origNode.getLabel()+";");
+                            bwMerStats.append(merPos+";");
+                            bwMerStats.append(session.PPStarThresholdAsLog10+";");
+                            bwMerStats.append("absent");
+                            bwMerStats.append("\n");
+                        }
+                    }
+                }
+            }
+            
 
             //display alignment result of requested
             if (graphAlignment) {
@@ -592,7 +632,7 @@ public class AlignScoringProcess {
                 JFrame infos=new JFrame();
                 infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 infos.setLayout(new GridLayout(1, 1));
-                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),bestPPStarsDiagsum.getSize(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
+                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
                 infos.setSize(1024, 250);
                 infos.pack();
                 RefineryUtilities.centerFrameOnScreen(infos);
@@ -634,6 +674,7 @@ public class AlignScoringProcess {
                 //System.out.println("originalNodeId:"+originalNodeId);
                 //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
                 nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
+                
                 if (nodeScores[nodeId]>bestScore) {
                     secondBest=bestNodeId;
                     secondScore=bestScore;
@@ -644,7 +685,9 @@ public class AlignScoringProcess {
                     secondScore=nodeScores[nodeId];
                 }
             }
-
+            //System.out.println("  AFTER SCORING");
+            //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
+            //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
             Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
             Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
 
@@ -811,6 +854,28 @@ public class AlignScoringProcess {
                     sb=new StringBuffer(size);
                 }   
             }
+            
+            
+            boolean debugFine=true;
+            if (debugFine) {
+                File scoreFile=new File(logDir.getAbsolutePath()+File.separator+"log_scores_"+fasta.getHeader().split(" ")[0]);
+                BufferedWriter newBw = Files.newBufferedWriter(scoreFile.toPath());
+                newBw.append("ARId;ARLabel;ExtendedId;ExtendedLabel;OriginalId;OrginalLabel;score;occurences\n");
+                for (Integer nodeId : selectedNodes) {
+                    int extendedTreeId2=session.nodeMapping.get(nodeId);
+                    int originalNodeId2 = session.extendedTree.getFakeToOriginalId(extendedTreeId2);
+                    newBw.append(String.valueOf(nodeId)+";");
+                    newBw.append(String.valueOf(session.ARTree.getById(nodeId).getLabel())).append(";"); //ARTree nodeName
+                    newBw.append(String.valueOf(extendedTreeId2)).append(";"); //extended Tree nodeID
+                    newBw.append(String.valueOf(session.extendedTree.getById(extendedTreeId2).getLabel())).append(";"); //extended Tree nodeName
+                    newBw.append(String.valueOf(originalNodeId2)).append(";"); //edge of original tree (original nodeId)
+                    newBw.append(String.valueOf(session.originalTree.getById(originalNodeId2).getLabel())).append(";"); //edge of original tree (original nodeName
+                    newBw.append(nodeScores[nodeId]+";"+nodeOccurences[nodeId]+"\n");
+                }
+                newBw.close();
+            }
+            
+            
 
             //reset the scoring vectors
             long startResetTime=System.currentTimeMillis();
@@ -822,6 +887,10 @@ public class AlignScoringProcess {
             long endResetTime=System.currentTimeMillis();
             totalResetTime+=endResetTime-startResetTime;
 
+        }
+        
+        if (merStats) {
+            bwMerStats.close();
         }
         
         //flush to disk the last CSV buffer

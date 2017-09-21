@@ -5,65 +5,20 @@
  */
 package core.hash;
 
-import java.io.Serializable;
-
-
 /**
- * Pair representing a (nodeId,PP*) association. These are used in the 
- * LinkedLists
+ * A (nodeId,PP*) association
  * @author ben
  */
-public class Pair implements Comparable<Pair>,Serializable {
-    
-    private static final long serialVersionUID = 7100L;
-
-    
-    private int nodeId=-1;
-    private float PPStar=-1.0f;
-
-    public Pair(int nodeId, float PPStar) {
-        this.nodeId=nodeId;
-        this.PPStar=PPStar;
-    }
-
-    public int getNodeId() {
-        return nodeId;
-    }
-
-    public float getPPStar() {
-        return PPStar;
-    }
-
-    public void setNodeId(int nodeId) {
-        this.nodeId = nodeId;
-    }
-
-    public void setPPStar(float PPStar) {
-        this.PPStar = PPStar;
-    }
+public interface Pair extends Comparable<Pair> {
+    public int getNodeId();
+    public float getPPStar();
+    public void setNodeId(int nodeId);
+    public void setPPStar(float PPStar);
 
     @Override
-    /**
-     * the comparator is inversed to put highest values first
-     * @param o
-     * @return 
-     */
-    public int compareTo(Pair o) {
-        return -Float.compare(this.PPStar,o.getPPStar());
-//        if ((this.PPStar-o.getPPStar())<0.0) {
-//            return 1;
-//        } else if ((this.PPStar-o.getPPStar())>0.0){
-//            return -1;
-//        } else {
-//            return 0;
-//        }
+    public default int compareTo(Pair o) {
+        return -Float.compare(this.getPPStar(),o.getPPStar());
     }
-
-    @Override
-    public String toString() {
-        return "nodeId="+nodeId+" PPStar="+PPStar;
-    }
-    
-    
+   
 
 }

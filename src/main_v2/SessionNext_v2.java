@@ -8,7 +8,7 @@ package main_v2;
 import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
-import core.hash.SimpleHash_v2;
+import core.hash.CustomHash_v2;
 import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;
@@ -34,6 +34,7 @@ public class SessionNext_v2 {
     
     public int k=-1;
     public int minK=-1;
+    public int branchPerEdge=-1;
     public float stateThreshold=Float.MIN_VALUE;
     public float PPStarThreshold=Float.MIN_VALUE;
     public float PPStarThresholdAsLog10=Float.NEGATIVE_INFINITY;
@@ -50,7 +51,7 @@ public class SessionNext_v2 {
      */
     public HashMap<Integer,Integer> nodeMapping=null;
     public PProbasSorted parsedProbas=null;    
-    public SimpleHash_v2 hash=null;
+    public CustomHash_v2 hash=null;
     public Float calibrationNormScore=null;
     
     /**
@@ -58,14 +59,16 @@ public class SessionNext_v2 {
      * @param k the value of k
      * @param mink the value of mink
      * @param alpha the value of alpha
+     * @param branchPerEdge the number of branches injected on each edge
      * @param stateThreshold the value of stateThreshold
      * @param PPStarThreshold the value of PPStarThreshold
      * @param PPStarThresholdAsLog10 the value of PPStarThresholdAsLog10
      */
-    public SessionNext_v2(int k, int mink, float alpha, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
+    public SessionNext_v2(int k, int mink, float alpha, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
         this.k=k;
         this.minK=mink;
         this.alpha=alpha;
+        this.branchPerEdge=branchPerEdge;
         this.stateThreshold=stateThreshold;
         this.PPStarThreshold=PPStarThreshold;
         this.PPStarThresholdAsLog10=PPStarThresholdAsLog10;
@@ -84,7 +87,7 @@ public class SessionNext_v2 {
         this.parsedProbas=arpl.getPProbas();
     }
     
-    public void associateHash(SimpleHash_v2 hash) {
+    public void associateHash(CustomHash_v2 hash) {
         this.hash=hash;
     }
     
@@ -102,6 +105,7 @@ public class SessionNext_v2 {
             oos.writeInt(k);
             oos.writeInt(minK);
             oos.writeFloat(alpha);
+            oos.writeInt(branchPerEdge);
             oos.writeFloat(stateThreshold);
             oos.writeFloat(PPStarThreshold);
             oos.writeFloat(PPStarThresholdAsLog10);
@@ -146,10 +150,11 @@ public class SessionNext_v2 {
             int k=ois.readInt();
             int minK=ois.readInt();
             float alpha=ois.readFloat();
+            int branchPerEdge=ois.readInt();
             float stateThreshold=ois.readFloat();
             float PPStarThreshold=ois.readFloat();
             float PPStarThresholdAsLog10=ois.readFloat();
-            SessionNext_v2 s=new SessionNext_v2(k, minK, alpha, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
+            SessionNext_v2 s=new SessionNext_v2(k, minK, alpha, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
             Infos.println("Loading States");
             s.states = (States)ois.readObject();
             Infos.println("Loading Alignment");
@@ -168,7 +173,7 @@ public class SessionNext_v2 {
             s.calibrationNormScore=ois.readFloat();
             if (loadHash) {
                 Infos.println("Loading Hash");
-                s.hash = (SimpleHash_v2)ois.readObject();
+                s.hash = (CustomHash_v2)ois.readObject();
             }
 
             ois.close();

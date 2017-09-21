@@ -279,6 +279,17 @@ public class PhyloTree extends JTree implements Serializable {
     public HashMap<Integer,Integer> getAllJPlaceMappings() {
         return jPlaceEdgeMapping;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb=new StringBuilder();
+        sb.append("#nodes="+this.getNodeCount());
+        sb.append(" #leaves="+this.getLeavesCount());
+        sb.append(" rooted="+this.isRooted());
+        return sb.toString();
+    }
+    
+    
     
     //--------------------------------------------------------------------------
     //--------------------------------------------------------------------------
@@ -333,24 +344,24 @@ public class PhyloTree extends JTree implements Serializable {
      */
     private void mapNodesByDFS(PhyloNode node,PhyloTree otherTree) {
         
-        //go down recursively is some children
+        //go down recursively in children
         Enumeration e=node.children();        
         while (e.hasMoreElements()) {
             PhyloNode n=(PhyloNode)e.nextElement();
             mapNodesByDFS(n,otherTree);
         }
         //returning up, from the sons
-        //IF ROOT, we will associate parent only if both trees are rooted on same branch
+        //IF ROOT, no parent to associate
         if (node.isRoot()) {
             //System.out.println("SKIP ROOT");
             return;
         }
         //System.out.println("IN: "+node);
+        //System.out.println("    parent to associate="+node.getParent());
         
-        //returns up, time to associate associate nodes, 3 possible case:
-        //1. node child of root, 
-        //we will associate parent only if both trees are rooted on same branch
-        //this is verified after completing the mapping, in the mapnodes() method
+//        //returns up, time to associate nodes, 3 possible case:
+        //1. node is child of root, and just a leaf
+        //we will associate only the leaf, not its parent
         if (((PhyloNode)node.getParent())==this.getRoot()) {
             if (node.isLeaf()) {
                 PhyloNode otherLeaf=otherTree.getByName(node.getLabel());
@@ -374,7 +385,6 @@ public class PhyloTree extends JTree implements Serializable {
             nodeMapping.put(parent.getId(), otherParent.getId());
         }
         
-        //System.out.println(nodeMapping);
     }
     //--------------------------------------------------------------------------
     //--------------------------------------------------------------------------

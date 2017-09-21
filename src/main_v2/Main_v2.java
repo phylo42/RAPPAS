@@ -27,7 +27,7 @@ public class Main_v2 {
             System.out.println("#############################################################");
             System.out.println("## RApid Phylogenetic Placement via Ancestral Sequences");
             System.out.println("## (RAPPAS) v"+consoleVersion);
-            System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France) + lamas");
+            System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France)");
             System.out.println("#############################################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
@@ -148,80 +148,86 @@ public class Main_v2 {
                             ;            
                             
                             
-/////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp            
-//            arguments=
-//                              "-m B "
-//                            + "-w /home/ben/Desktop/k8_a1.1 "
-//                            + "-i /home/ben/Desktop/k8_a1.1/A33_nx348_la.align "
-//                            + "-t /home/ben/Desktop/k8_a1.1/T33_nx348_la.tree "
-//                            + "-k "+String.valueOf(8)+" "
-//                            + "-a "+String.valueOf(1.1)+" "
-//                            + "-v 1 "
-//                            + "--ardir /home/ben/Desktop/k8_a1.1/AR "
-//                            //+ "--extree "+exTree+" "
-//                            + "--builddbfull "
-//                            + "--froot"
-//                            + "--dbinram "
-//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
-//                            + "--nsbound -100000.0 "
-//                            + "--nocalib"
-//                            ;     
+/////////FOR TESTS CORRECTION: pplacer_16S_dbInRAM, A34, k8_a1.0, R500bp            
+            arguments=
+                              "-m B "
+                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0 "
+                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Ax/A34_nx34_la.align "
+                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Tx/T34_nx34_la.tree "
+                            + "-k "+String.valueOf(11)+" "
+                            + "-a "+String.valueOf(0.75)+" "
+                            + "-v 1 "
+                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
+                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/AR "
+                            //+ "--extree "+exTree+" "
+                            //+ "--builddbfull "
+                            + "--froot "
+                            //+ "--dbinram "
+                            //+ "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+                            + "--nsbound -100000.0 "
+                            + "--nocalib "
+                            + "--unihash"
+                            ;     
 //            arguments=
 //                              "-m p "
-//                            + "-w /home/ben/Desktop/k8_a1.1 "
-//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
-//                            + "-d /home/ben/Desktop/k8_a1.1/DB_session_k8_a1.1_t3.2708576E-5.small "
+//                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0 "
+//                            + "-q /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Rx/R34_nx34_la_r500.fasta "
+//                            //+ "-d /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0/DB_session_k8_a1.0_f1_t-4.81648.medium "
+//                            //+ "-d /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0/DB_session_k8_a1.0_f1_t-4.81648.union "
+//                            //+ "-d /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0/DB_session_k11_a1.0_f1_t-6.6226597.medium "
+//                            + "-d /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0/DB_session_k11_a0.5_f1_t-6.6226597.union "
+//                            //+ "-d /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0/DB_session_k11_a1.0_f1_t-6.6226597.union "
 //                            + "-v 1 "
-//                            //+ "--nsbound -100000.0"
+//                            + "--nsbound -100000.0"
 //                            ;    
 /////////FOR DB SMALL CORRECTION: pplacer_16S_dbInRAM, A33, k8_a1.1, R300bp              
                             
                             
 //  FOR PROTEIN ANALYSIS TESTS
 /////////////////////////////////
-
-            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML";
-            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml_prot";
-            a=inputsPath+File.separator+"cox1_euka_oma.mfa";
-            t=inputsPath+File.separator+"RAxML_bestTree.test";
-            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
-            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
-
-            q=inputsPath+File.separator+"queries.fasta";
-            db=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/DB_session_k4_a1.0_t0.00390625.medium";
-
-            //db build launch
-            arguments=
-                              "-m B "
-                            + "-s prot "
-                            + "-w "+workDir+" "
-                            + "-i "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(4)+" "
-                            + "-a "+String.valueOf(1.0)+" "
-                            + "-v 1 "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
-                            + "--ardir "+arDir+" "
-                            //+ "--extree "+exTree+" "
-                            //+ "--dbfull "
-                            //+ "--froot"
-                            //+ "--dbinram "
+//
+//            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML";
+//            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml_prot";
+//            a=inputsPath+File.separator+"cox1_euka_oma.mfa";
+//            t=inputsPath+File.separator+"RAxML_bestTree.test";
+//            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
+//            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+//
+//            q=inputsPath+File.separator+"queries.fasta";
+//            db=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/DB_session_k4_a1.0_t0.00390625.medium";
+//
+//            //db build launch
+//            arguments=
+//                              "-m B "
+//                            + "-s prot "
+//                            + "-w "+workDir+" "
+//                            + "-i "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(4)+" "
+//                            + "-a "+String.valueOf(1.0)+" "
+//                            + "-v 1 "
+//                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
+//                            + "--ardir "+arDir+" "
+//                            //+ "--extree "+exTree+" "
+//                            //+ "--dbfull "
+//                            //+ "--froot"
+//                            //+ "--dbinram "
+////                            + "-q "+q+" "
+////                            + "--nsbound -100000.0 "
+////                            + "--nocalib"
+//                            ;
+//
+////            // placement launch
+//            arguments=
+//                              "-m p "
+//                            + "-w "+workDir+" "
 //                            + "-q "+q+" "
-//                            + "--nsbound -100000.0 "
-//                            + "--nocalib"
-                            ;
-
-//            // placement launch
-            arguments=
-                              "-m p "
-                            + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-v 0 "
-                            + "--nsbound -1000.0"
-                            ;   
-
-
+//                            + "-d "+db+" "
+//                            + "-v 0 "
+//                            + "--nsbound -1000.0"
+//                            ;   
+//
+//
 
 //////////////////////////////////
 
@@ -230,7 +236,7 @@ public class Main_v2 {
                             
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             
             
             
@@ -248,7 +254,7 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            //argsParser.ARBinary=new File("baseml");
+            argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA
@@ -264,7 +270,6 @@ public class Main_v2 {
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
 
-                
                 Main_DBBUILD_2.DBGeneration(argsParser.analysisType,
                                             null,
                                             argsParser.k,
@@ -283,7 +288,8 @@ public class Main_v2 {
                                             argsParser.queriesFile,
                                             argsParser.callString,
                                             argsParser.nsBound,
-                                            argsParser.noCalibration
+                                            argsParser.noCalibration,
+                                            argsParser.unionHash
                                             );
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
@@ -308,7 +314,7 @@ public class Main_v2 {
             
             long endTime=System.currentTimeMillis();
             System.out.println("Total execution time: "+(endTime-startTime)+" ms");
-            System.exit(0);
+            //System.exit(0);
             
         } catch (Exception ex) {
             ex.printStackTrace();

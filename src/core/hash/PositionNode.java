@@ -15,7 +15,7 @@ import java.util.Collections;
  * associated reference position.
  * @author ben
  */
-public class CustomNode implements Serializable {
+public class PositionNode implements Node,Serializable {
     
     private static final long serialVersionUID = 7200L;
 
@@ -26,8 +26,9 @@ public class CustomNode implements Serializable {
     /**
      *
      */
-    public CustomNode() {}
+    public PositionNode() {}
 
+    @Override
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
         boolean refPositionAlreadyRegistered=false;
         for (PositionPointer p:positionPointerList) {
@@ -39,10 +40,10 @@ public class CustomNode implements Serializable {
         if (!refPositionAlreadyRegistered) {
             //create new position otherwise
             PositionPointer pl=new PositionPointer(refPosition);
-            pl.add(new Pair(nodeId, PPStar));
+            pl.add(new Pair_16_32_bit(nodeId, PPStar));
             positionPointerList.add(pl);
         } else {
-            getPairList(refPosition).add(new Pair(nodeId, PPStar));
+            getPairList(refPosition).add(new Pair_16_32_bit(nodeId, PPStar));
         }
     }
 
@@ -50,6 +51,7 @@ public class CustomNode implements Serializable {
      * ref alignment positions associated to this node, order by underlying max(PP*)
      * @return 
      */
+    @Override
     public int[] getPositions() {
         int[] pos=new int[positionPointerList.size()];
         for (int i=0;i<positionPointerList.size();i++) {
@@ -63,6 +65,7 @@ public class CustomNode implements Serializable {
      * @param refPosition
      * @return 
      */
+    @Override
     public ArrayList<Pair> getPairList(int refPosition) {
         //return positionPointerList.stream().filter(p->p.getRefPosition()==refPosition).findFirst().orElse(null);
         for (PositionPointer p:positionPointerList) {
@@ -77,7 +80,8 @@ public class CustomNode implements Serializable {
      * get number of nodes associated to best position
      * @return 
      */
-    public int getNodeCountInTopPosition() {
+    @Override
+    public int getPairCountInTopPosition() {
         
         return this.positionPointerList.get(0).size();
     }
@@ -86,6 +90,7 @@ public class CustomNode implements Serializable {
      * get best (nodeId;PP*).
      * @return 
      */
+    @Override
     public Pair getBestPair() {
         return positionPointerList.get(0).get(0);
     }
@@ -94,12 +99,18 @@ public class CustomNode implements Serializable {
      * get best reference position.
      * @return 
      */
+    @Override
     public int getBestPosition() {
         return positionPointerList.get(0).getRefPosition();
     }
 
+    /**
+     * sort positions pointer (through their 1st associated Pair_16_32_bit PP*), then
+ sort the Pair_16_32_bit list itself
+     */
+    @Override
     public void sort() {
-        //sort each list of Pair objects
+        //sort each list of Pair_16_32_bit objects
         this.positionPointerList.stream().forEach(p->Collections.sort(p));
 //        for (Iterator<PositionPointer> iterator = positionPointerList.iterator(); iterator.hasNext();) {
 //            PositionPointer ppl = iterator.next();
@@ -135,7 +146,7 @@ public class CustomNode implements Serializable {
     public boolean limitToXPairsPerPosition(int X) {
         if (positionPointerList.get(0).size()>X) {
             //do not forget X is shifted by -1 for array coordinates (idx9==10th elt)
-            //remove nth to (X+2)th Pair
+            //remove nth to (X+2)th Pair_16_32_bit
             for (int i = positionPointerList.get(0).size()-1; i > X; i--) {
                 positionPointerList.get(0).remove(i);
             }
@@ -190,8 +201,8 @@ public class CustomNode implements Serializable {
 
         /**
          * Comparable retrieving inversed order to set. Work considering 
-         * that the list of Pair object is already sorted (best PP* as
-         * index 0).
+ that the list of Pair_16_32_bit object is already sorted (best PP* as
+ index 0).
          * @param o
          * @return 
          */

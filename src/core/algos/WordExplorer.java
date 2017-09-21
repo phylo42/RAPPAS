@@ -10,7 +10,7 @@ import core.DNAStates;
 import core.older.PProbas;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
-import core.hash.SimpleHash;
+import core.hash.CustomHash;
 import core.States;
 import etc.Environement;
 import etc.Infos;
@@ -197,7 +197,7 @@ public class WordExplorer {
            
             
             //prepare simplified hash
-            SimpleHash hash=new SimpleHash();
+            CustomHash hash=new CustomHash();
 
             Infos.println("Word generator threshold will be:"+thresholdAsLog);
             //Word Explorer

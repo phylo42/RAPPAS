@@ -268,7 +268,7 @@ public class ARProcessLauncher {
                     sb.append("fix_kappa = 0   * 0: estimate kappa; 1: fix kappa at value below\n");
                     sb.append("kappa = 5  * initial or fixed kappa\n");
                     sb.append("fix_alpha = 1   * 0: estimate alpha; 1: fix alpha at value below\n");
-                    sb.append("alpha = 0.433838   * initial or fixed alpha, 0:infinity (constant rate)\n");
+                    sb.append("alpha = 0.5   * initial or fixed alpha, 0:infinity (constant rate)\n");
                     sb.append("Malpha = 0   * 1: different alpha's for genes, 0: one alpha\n");
                     sb.append("ncatG = 4   * # of categories in the dG, AdG, or nparK models of rates\n");
                     sb.append("nparK = 0   * rate-class models. 1:rK, 2:rK&fK, 3:rK&MK(1/K), 4:rK&MK\n");

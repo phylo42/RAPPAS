@@ -53,6 +53,7 @@ public class ArgumentsParser_v2 {
     public File ARDirToUse=null;
     public File exTreeDir=null;
     public boolean dbInRAM=false;
+    public boolean unionHash=false;
     
     //parameters for placement
     public int minOverlap=100; //default =100
@@ -327,6 +328,11 @@ public class ArgumentsParser_v2 {
                         this.noCalibration=true;
                     }
                     
+                    //test --unihash parameter
+                    if (argsMap.get(index).equals("--unihash")) {
+                        this.unionHash=true;
+                    }
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -460,6 +466,7 @@ public class ArgumentsParser_v2 {
         "--dbinram         [] Operate DB build, whitout saving DB to files.\n" +
         "                  Then, place queries (-q) using medium and large DBs.\n" +
         "--nocalib         [] No calibration, use threshold formula. (B mode only).\n" +
+        "--unihash         [] Placement based on Union, not position. (B mode only).\n" +
         "\n\n"
         );
        System.exit(1);

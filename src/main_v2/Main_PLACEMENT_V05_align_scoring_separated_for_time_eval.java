@@ -17,7 +17,7 @@ import core.Score;
 import core.States;
 import core.algos.SequenceKnife;
 import core.hash.Pair;
-import core.hash.SimpleHash_v2;
+import core.hash.CustomHash_v2;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -184,7 +184,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
-            SimpleHash_v2 hash=session.hash;
+            CustomHash_v2 hash=session.hash;
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
@@ -391,7 +391,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                 while ((qw=sk.getNextWord())!=null) {
                     //Infos.println("Query mer: "+qw.toString());
 
-                    //get top Pair associated to this word
+                    //get top Pair_16_32_bit associated to this word
                     Pair topPair = hash.getTopPair(qw);
                     //if this word is not registered in the hash
                     if (topPair==null) {

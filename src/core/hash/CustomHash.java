@@ -43,14 +43,14 @@ import tree.PhyloTree;
  *
  * @author ben
  */
-public class SimpleHash implements Serializable{
+public class CustomHash implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
     HashMap<Word,LinkedList<Tuple>> hash=null;
 
     
-    public SimpleHash() {
+    public CustomHash() {
         hash=new HashMap<>();
     }
     
@@ -207,7 +207,7 @@ public class SimpleHash implements Serializable{
             fw.append("\n");
             
             //HASH
-            SimpleHash sh=new SimpleHash();
+            CustomHash sh=new CustomHash();
             
             for (int nodeId=0;nodeId<pprobas.accessTable().length;nodeId++) {
                 Infos.println("##### NodeId="+nodeId);
@@ -260,9 +260,9 @@ public class SimpleHash implements Serializable{
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleHash.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(SimpleHash.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         

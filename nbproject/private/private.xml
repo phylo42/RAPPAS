@@ -8,7 +8,6 @@
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_v2.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/ARResults.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/hash/CustomHash.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/hash/Node.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/hash/Pair.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/FASTAPointer.java</file>
@@ -18,6 +17,7 @@
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/algos/AlignScoringProcess.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/tree/PhyloTree.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_DBBUILD_2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/DNAStates.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_PLACEMENT_v07.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/ArgumentsParser_v2.java</file>
         </group>

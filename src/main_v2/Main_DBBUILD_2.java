@@ -460,7 +460,7 @@ public class Main_DBBUILD_2 {
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
                 if (nodeCounter%nodeBucketSize==0) {
                     Infos.println("Node: "+nodeId +" ("+((0.0+nodeCounter)/nodeTested)*100.0+"%)" );
-                    Infos.println("Current memory use:"+Environement.getMemoryUsage());
+                    Infos.println("Current "+Environement.getMemoryUsage());
                 }
                     //DEBUG
                     //if(nodeId!=709)
@@ -601,7 +601,7 @@ public class Main_DBBUILD_2 {
             File dbmedium=new File(db.getAbsoluteFile()+".medium");
             File dbsmall=new File(db.getAbsoluteFile()+".small");
             File dbunion=new File(db.getAbsoluteFile()+".union");
-            
+            File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
             
             
             
@@ -687,9 +687,19 @@ public class Main_DBBUILD_2 {
                     }
                     //associate medium calibration
                     session.associateCalibrationScore(calibrationNormScoreUnion);
-                    //now do placements on union DB
+                    //now do placements on normal union DB
                     System.out.println("Starting placement on medium DB...");
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
+                    placer.doPlacements(queries, dbsmall, workDir, callString, nsBound);
+                    //reduction to small DB
+                    System.out.println("Reduction to small DB...");
+                    session.hash.reducetoSmallHash_v2(100);
+                    System.gc();
+                    //calibration to small DB
+                    //NOTE: not done, we keep medium DB calibration as the basis.
+                    //now do placements on small DB
+                    System.out.println("Starting placement on small DB...");
+                    placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     placer.doPlacements(queries, dbsmall, workDir, callString, nsBound);
                     
                 }
@@ -891,9 +901,9 @@ public class Main_DBBUILD_2 {
                 float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
                 if (!noCalibration) {
                     if (writeTSVCalibrationLog) {
-                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
                     }
-                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
+                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
                     //do the placement and calculate score quantiles
                     asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                     calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
@@ -906,11 +916,37 @@ public class Main_DBBUILD_2 {
                 //associate medium calibration
                 session.associateCalibrationScore(calibrationNormScoreUnion);
                 //store in DB
-                System.out.println("Serialization of the database (union)...");
+                System.out.println("Serialization of the database (normal union)...");
                 session.storeHash(dbunion);
+                
+                //reduction 
+                session.hash.reducetoSmallHash_v2(100);
+                System.gc();
+                //calibration
+                float calibrationNormScoreSmallUnion=Float.NEGATIVE_INFINITY;
+                if (!noCalibration) {
+                    if (writeTSVCalibrationLog) {
+                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+                    }
+                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
+                    //do the placement and calculate score quantiles
+                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                    System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
+                    //closes the calibration log  
+                    if (writeTSVCalibrationLog){
+                        bwTSVCalibration.close();
+                    }
+                }
+                //associate medium calibration
+                session.associateCalibrationScore(calibrationNormScoreSmallUnion);
+                //store in DB
+                System.out.println("Serialization of the database (small union)...");
+                session.storeHash(dbsmallunion);
 
                 //serialization finished, output some log infos
                 Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
+                Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
                 System.out.println("\"Union\" database saved.");
             }
             

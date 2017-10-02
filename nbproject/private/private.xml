@@ -7,7 +7,6 @@
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/NewickReader.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/AbstractStates.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloNode.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/outputs/ARProcessLauncher.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/inputs/ARResults.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main/Main_DBBUILD.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/tree/PhyloTree.java</file>
@@ -17,7 +16,6 @@
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/algos/AlignScoringProcess.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/core/DNAStates.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_DBBUILD_2.java</file>
-            <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/alignement/Alignment.java</file>
             <file>file:/home/benclaff/NetBeansProjects/viromeplacer/src/main_v2/Main_PLACEMENT_v07.java</file>
         </group>
     </open-files>

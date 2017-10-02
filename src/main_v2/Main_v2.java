@@ -229,7 +229,7 @@ public class Main_v2 {
                             
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             
             
             
@@ -247,7 +247,7 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            argsParser.ARBinary=new File("baseml");
+            //argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA

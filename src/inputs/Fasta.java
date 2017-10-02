@@ -28,7 +28,7 @@ public class Fasta {
     }
 
     /**
-     * the sequence itself, without trailing characters
+     * the sequence itself, with/without gaps
      * @param removeGaps 
      */
     public String getSequence(boolean removeGaps) {

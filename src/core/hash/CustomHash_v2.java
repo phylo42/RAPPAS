@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -40,25 +41,24 @@ import tree.PhyloTree;
  * (nodeId, PP*)
  * @author ben
  */
-public class SimpleHash_v2 implements Serializable{
+public class CustomHash_v2 implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
-    CustomHashMap<Word,CustomNode> hash=null;
+    public static final int NODES_POSITION=1;
+    public static final int NODES_UNION=2;
     
-    /**
-     *
-     */
-    public SimpleHash_v2() {
-        hash=new CustomHashMap<>();
-    }
+    int nodeType=NODES_POSITION;
+    CustomHashMap<Word,Node> hash=null;
     
     /**
      *
      * @param k
      * @param s
+     * @param nodeType one of NODES_UNION or POSITION_UNION
      */
-    public SimpleHash_v2(int k, States s) {
+    public CustomHash_v2(int k, States s, int nodeType) {
+        this.nodeType=nodeType;
         hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount()+1, k)).intValue(),1.0f);
     }
     
@@ -70,15 +70,26 @@ public class SimpleHash_v2 implements Serializable{
      * @param refPos 
      */
     public void addTuple(Word w, float PPStar,int nodeId,int refPos) {
-//        CustomNode cn=null;
+//        PositionNode cn=null;
 //        if ((cn=hash.get(w))==null) {
-//            hash.put(w, cn=new CustomNode());
+//            hash.put(w, cn=new PositionNode());
 //        }
 //        cn.registerTuple(nodeId, refPos, PPStar);
-       
+        //System.out.println("word:"+w);
+        //System.out.println("CustomHash type: "+nodeType);
         if (!hash.containsKey(w)) {
-            hash.put(w, new CustomNode());
+            switch (nodeType) {
+                case NODES_UNION:
+                    //System.out.println("new word attached to UnionNode");
+                    hash.put(w, new UnionNode());
+                    break;
+                case NODES_POSITION:
+                    //System.out.println("new word attached to PositionNode");
+                    hash.put(w, new PositionNode());
+                    break;
+            }
         }
+        //System.out.println("update Node of type: "+hash.get(w).getClass().toString());
         hash.get(w).registerTuple(nodeId, refPos, PPStar);
         
 
@@ -88,8 +99,17 @@ public class SimpleHash_v2 implements Serializable{
      * for debug purposes only (access to CustomHashMap hashtable)
      * @return 
      */
-    public CustomHashMap<Word, CustomNode> getHash() {
+    public CustomHashMap<Word, Node> getHash() {
         return hash;
+    }
+    
+    /**
+     * to know which type of nodes is backing this hash, 
+     * one of CustomHash_v2.NODES_UNION or CustomHash_v2.NODES_POSITION
+     * @return 
+     */
+    public int getHashType() {
+        return this.nodeType;
     }
 
     /**
@@ -98,7 +118,7 @@ public class SimpleHash_v2 implements Serializable{
      * @return 
      */
     public Pair getTopPair(Word w) {
-        CustomNode cn=null;
+        Node cn=null;
         if ((cn=hash.get(w))!=null)
             return cn.getBestPair();
         else
@@ -109,10 +129,10 @@ public class SimpleHash_v2 implements Serializable{
      * retrieves only (nodeId,PP*) pairs stored under the position
      * associated to the best PP*
      * @param w
-     * @return 
+     * @return null if word not in present in hash
      */
     public List<Pair> getPairsOfTopPosition(Word w) {
-        CustomNode cn=null;
+        Node cn=null;
         if ((cn=hash.get(w))!=null) {
             return cn.getPairList(cn.getBestPosition());
         } else {
@@ -126,7 +146,7 @@ public class SimpleHash_v2 implements Serializable{
      * @return 
      */
     public int[] getPositions(Word w) {
-        CustomNode cn=null;
+        Node cn=null;
         if ((cn=hash.get(w))!=null) {
             return cn.getPositions();
         } else {
@@ -140,7 +160,7 @@ public class SimpleHash_v2 implements Serializable{
      * @return -1 if word not in hash
      */
     public int getTopPosition(Word w) {
-        CustomNode cn=null;
+        Node cn=null;
         if ((cn=hash.get(w))!=null) {
             return cn.getBestPosition();
         } else {
@@ -152,9 +172,11 @@ public class SimpleHash_v2 implements Serializable{
     
     public void sortData() {
         double startTime=System.currentTimeMillis();
-        hash.values().stream().forEach( l -> {l.sort();} );
+        AtomicInteger pairCount=new AtomicInteger(0);
+        hash.values().stream().forEach( l -> {l.sort();pairCount.addAndGet(l.getPairCountInTopPosition());} );
         double endTime=System.currentTimeMillis();
-        Infos.println("Tuples sorting took "+(endTime-startTime)+" ms");
+        Infos.println("# Pairs sorted in top positions: "+pairCount.get());
+        Infos.println("Pair sorting took "+(endTime-startTime)+" ms");
     }
     
     
@@ -198,7 +220,7 @@ public class SimpleHash_v2 implements Serializable{
     public void reduceToMediumHash() {
         
         hash.keySet().stream().forEach((next) -> {
-            hash.get(next).clearPairsOfWorsePositions();
+            ((PositionNode)hash.get(next)).clearPairsOfWorsePositions();
         });
         
     }
@@ -212,7 +234,7 @@ public class SimpleHash_v2 implements Serializable{
     public void reducetoSmallHash(int X) {
         List<Word> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
-                                            .filter((w) -> hash.get(w).limitToXPairsPerPosition(X))
+                                            .filter((w) -> ((PositionNode)hash.get(w)).limitToXPairsPerPosition(X))
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
                                             .collect(Collectors.toList());
         collect.stream().forEach((w)-> {hash.remove(w);});
@@ -227,7 +249,7 @@ public class SimpleHash_v2 implements Serializable{
         assert X>0;
         List<Word> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
-                                            .filter((w) -> hash.get(w).getNodeCountInTopPosition()>X)
+                                            .filter((w) -> hash.get(w).getPairCountInTopPosition()>X)
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
                                             .collect(Collectors.toList());
         collect.stream().forEach((w)-> {hash.remove(w);});
@@ -345,7 +367,7 @@ public class SimpleHash_v2 implements Serializable{
             ///// TEST ON HASH V1
             boolean testBuckets=false;
             boolean doHashV1=true;
-            final SimpleHash hash=new SimpleHash();
+            final CustomHash hash=new CustomHash();
             
             if (doHashV1) {
                 
@@ -434,7 +456,7 @@ public class SimpleHash_v2 implements Serializable{
             testBuckets=false;
             
             //prepare simplified hash
-            SimpleHash_v2 hash2=new SimpleHash_v2();
+            CustomHash_v2 hash2=new CustomHash_v2(k,s,NODES_POSITION);
 
             Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
             Infos.println("Building all words probas...");
@@ -512,7 +534,7 @@ public class SimpleHash_v2 implements Serializable{
             
             //HERE Search how many Nodes per hash bucket.
             if (testBuckets) {
-                CustomHashMap.Node<Word, CustomNode>[] accessToHash = hash2.getHash().getAccessToHash();
+                CustomHashMap.Node<Word, Node>[] accessToHash = hash2.getHash().getAccessToHash();
                 for (int i = 0; i < accessToHash.length; i++) {
                     Object node = accessToHash[i];
                     if (node instanceof core.hash.CustomHashMap.TreeNode) {
@@ -570,9 +592,9 @@ public class SimpleHash_v2 implements Serializable{
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleHash_v2.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash_v2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(SimpleHash_v2.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash_v2.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         

@@ -13,7 +13,7 @@ import core.DNAStates;
 import core.DiagSum;
 import core.PProbasSorted;
 import core.QueryWord;
-import core.hash.SimpleHash;
+import core.hash.CustomHash;
 import core.States;
 import core.algos.SequenceKnife;
 import etc.Environement;
@@ -189,7 +189,7 @@ public class Main_PLACEMENT_V02_align_toptuplestoscorefromalign {
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
-            SimpleHash hash=session.hash;
+            CustomHash hash=session.hash;
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             Infos.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
@@ -329,7 +329,7 @@ public class Main_PLACEMENT_V02_align_toptuplestoscorefromalign {
                     //Infos.println("Query mer: "+qw.toString());
 
 
-                    SimpleHash.Tuple topTuple = hash.getTopTuple(qw);
+                    CustomHash.Tuple topTuple = hash.getTopTuple(qw);
                     //if this word is not registered in the hash
                     if (topTuple==null) {
                         queryWordCounter++;
@@ -473,9 +473,9 @@ public class Main_PLACEMENT_V02_align_toptuplestoscorefromalign {
                         int diagSumPos=refPos-word.getOriginalPosition()+(queryLength-minOverlap);
                         if (bestPPStarsDiagsum.getEffectiveWordCount(diagSumPos)>=((20-k+1)/sk.getStep())) {
                             positionSurvivingTest[diagSumPos]=true;
-                            List<SimpleHash.Tuple> tuple = hash.getTuplePerRefPosition(word, refPos);
+                            List<CustomHash.Tuple> tuple = hash.getTuplePerRefPosition(word, refPos);
                             for (int i = 0; i < tuple.size(); i++) {
-                                SimpleHash.Tuple get = tuple.get(i);
+                                CustomHash.Tuple get = tuple.get(i);
                                 //only tuples at this positons which are from nodes encountered at alignmnet
                                 if (nodesEncountered[get.getNodeId()]) {
                                     diagsumsPerNode.get(nodeIdToDiagsumListIndex[get.getNodeId()]).sum(diagSumPos, -thresholdAsLog+get.getPPStar());

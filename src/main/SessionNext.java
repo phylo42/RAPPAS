@@ -7,7 +7,7 @@ package main;
 
 import alignement.Alignment;
 import core.PProbasSorted;
-import core.hash.SimpleHash;
+import core.hash.CustomHash;
 import core.States;
 import etc.Infos;
 import inputs.ARResults;
@@ -38,7 +38,7 @@ public class SessionNext {
     Alignment align=null;
     PhyloTree tree=null;
     PProbasSorted parsedProbas=null;    
-    SimpleHash hash=null;
+    CustomHash hash=null;
     
     
     public SessionNext(int k, int mink, float factor, float stateThreshold, float wordThreshold) {
@@ -59,7 +59,7 @@ public class SessionNext {
         this.parsedProbas=im.getPProbas();
     }
     
-    public void associateHash(SimpleHash hash) {
+    public void associateHash(CustomHash hash) {
         this.hash=hash;
     }
     
@@ -117,7 +117,7 @@ public class SessionNext {
             s.parsedProbas = (PProbasSorted)ois.readObject();
             if (loadHash) {
                 Infos.println("Loading Hash");
-                s.hash = (SimpleHash)ois.readObject();
+                s.hash = (CustomHash)ois.readObject();
             }
             ois.close();
             fis.close();

@@ -71,11 +71,9 @@ public class AAStates extends AbstractStates implements States,Serializable {
         bytes.put('Y',(byte)18);
         bytes.put('V',(byte)19);
         //ambigous states which are allowed
-        ambigousStates=2;
-        states.put((byte)20, 'N');
-        states.put((byte)21, '-');
-        bytes.put('N',(byte)20);
-        bytes.put('-',(byte)21);
+        ambigousStates=1;
+        states.put((byte)20, '-');
+        bytes.put('-',(byte)20);
         
     }
 

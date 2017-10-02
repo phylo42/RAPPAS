@@ -11,7 +11,7 @@ import core.AAStates;
 import core.DNAStates;
 import core.PProbasSorted;
 import core.QueryWord;
-import core.hash.SimpleHash;
+import core.hash.CustomHash;
 import core.States;
 import core.algos.SequenceKnife;
 import etc.Environement;
@@ -191,7 +191,7 @@ public class Main_PLACEMENT_2 {
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
-            SimpleHash hash=null;
+            CustomHash hash=null;
             if (memory_mode==MEMORY_LARGE) {
                 hash=session.hash;
                 Infos.println("Hash test: "+hash.getRegisteredWords().size()+" keys");
@@ -433,7 +433,7 @@ public class Main_PLACEMENT_2 {
                     while ((qw=sk.getNextWord())!=null) {
                         //Infos.println("Query mer: "+qw.toString());
                         
-                        SimpleHash.Tuple topTuple = hash.getTopTuple(qw);
+                        CustomHash.Tuple topTuple = hash.getTopTuple(qw);
                         //System.out.println("Match: "+topTuple);
                         //if this word is not registered in the hash
                         if (topTuple==null) {

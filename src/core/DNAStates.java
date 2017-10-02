@@ -46,11 +46,14 @@ public class DNAStates extends AbstractStates implements Serializable {
     
     @Override
     public byte stateToByte(char c) {
+        if (c=='U') {
+            c='T';
+        }
         try {
             return bytes.get(c);
         } catch (NullPointerException ex) {
             //ex.printStackTrace();
-            Infos.println("Unexpected state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
+            Infos.println("Unexpected (not ATUCGN) state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
         }
         return 'N';
     }
@@ -78,6 +81,9 @@ public class DNAStates extends AbstractStates implements Serializable {
 
     @Override
     public int stateToInt(char c) {
+        if (c=='U') {
+            c='T';
+        }
         return bytes.get(c).intValue();
     }
 

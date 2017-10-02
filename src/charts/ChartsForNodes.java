@@ -108,8 +108,8 @@ private static final int N = 1000;
                 double z = 0.0;
                 if (dataset instanceof XYZDataset) {
                     z = ((XYZDataset) dataset).getZValue(series, item);
+                    //System.out.println("x:"+x+" y:"+y+" z:"+z);
                 }
-                Paint p = this.paintScale.getPaint(z);
                 double xx0 = domainAxis.valueToJava2D(x + this.xOffset, dataArea,
                         plot.getDomainAxisEdge());
                 double yy0 = rangeAxis.valueToJava2D(y + this.yOffset, dataArea,
@@ -132,8 +132,9 @@ private static final int N = 1000;
                             Math.abs(yy1 - yy0));
                 }
                 
+                Paint p = this.paintScale.getPaint(z);
                 g2.setPaint(p);
-                
+
                 //g2.setStroke(new BasicStroke(5.0f));                    
                 
                 //if (dataset.getY(series, item).doubleValue() > 0) {
@@ -550,11 +551,15 @@ private static final int N = 1000;
 //            float scaledValue = (float) (value / (getUpperBound() - getLowerBound()));
 //            float scaledH = H1 + scaledValue * (H2 - H1);
 //            return Color.getHSBColor(scaledH, 1f, 0.9f);
+            //System.out.println("upperBound:"+upperBound+" lowerBound:"+lowerBound+" value:"+value);
             float scaledValue = (float) (Math.abs(value) / (getUpperBound() - getLowerBound()));
+            //System.out.println("scaledValue:"+scaledValue);
             if (scaledValue>=1.0) {
                 return new Color(255, 255, 255, 0); //fully transparent, is PP* is its minimum value
             } else {
                 float scaledH = H1 + scaledValue * (H2 - H1);
+                //System.out.println("sclaedH:"+scaledH);
+                //System.out.println(Arrays.toString(new Color(Color.HSBtoRGB(scaledH, 1f, 0.9f)).getRGBComponents(new float[4])));
                 return Color.getHSBColor(scaledH, 1f, 0.9f);
             }
         }
@@ -589,9 +594,7 @@ private static final int N = 1000;
                if (scaledValue>=1.0) {
                    return new Color(255, 255, 255, 0); //fully transparent, is PP* is its minimum value
                } else {
-                   System.out.println("Value: "+scaledValue);
                    //range is on [0.0;1.0] for instance a PP* trehsold of [~0;-6] will go from red to blue
-                   System.out.println(gs.getColor(scaledValue).toString());
                    return gs.getColor(scaledValue);
                    
                }

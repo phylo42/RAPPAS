@@ -14,7 +14,7 @@ import core.DiagSum;
 import core.PProbasSorted;
 import core.QueryWord;
 import core.Score;
-import core.hash.SimpleHash;
+import core.hash.CustomHash;
 import core.States;
 import core.algos.SequenceKnife;
 import etc.Environement;
@@ -189,7 +189,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
-            SimpleHash hash=session.hash;
+            CustomHash hash=session.hash;
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
@@ -350,7 +350,7 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
                     //Infos.println("Query mer: "+qw.toString());
 
 
-                    SimpleHash.Tuple topTuple = hash.getTopTuple(qw);
+                    CustomHash.Tuple topTuple = hash.getTopTuple(qw);
                     //if this word is not registered in the hash
                     if (topTuple==null) {
                         queryWordCounter++;
@@ -489,10 +489,10 @@ public class Main_PLACEMENT_V03_align_scoreallnodes {
                     for (int refPos:allRefPos) {
                         int diagSumPos=refPos-word.getOriginalPosition()+(queryLength-minOverlap);
                         positionSurvivingTest[diagSumPos]=true;
-                        List<SimpleHash.Tuple> allTuples = hash.getTuplePerRefPosition(word, refPos);
+                        List<CustomHash.Tuple> allTuples = hash.getTuplePerRefPosition(word, refPos);
                         //System.out.println("allTuples:"+allTuples);
                         for (int i = 0; i < allTuples.size(); i++) {
-                            SimpleHash.Tuple tuple = allTuples.get(i);
+                            CustomHash.Tuple tuple = allTuples.get(i);
                             
                             //condition of minimum words on diagsum
                             if (bestPPStarsDiagsum.getEffectiveWordCount(diagSumPos)>=((20-k+1)/sk.getStep())) {

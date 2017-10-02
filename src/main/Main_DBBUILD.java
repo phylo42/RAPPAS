@@ -6,7 +6,7 @@
 package main;
 
 import alignement.Alignment;
-import core.hash.SimpleHash;
+import core.hash.CustomHash;
 import core.States;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
@@ -392,7 +392,7 @@ public class Main_DBBUILD {
             Infos.println("NodeId=0, 5 first statesIndexes:"+ Arrays.deepToString(im.getPProbas().getStateIndexSet(0, 0, 5)));
             
             //prepare simplified hash
-            SimpleHash hash=new SimpleHash();
+            CustomHash hash=new CustomHash();
             
             System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+thresholdAsLog);

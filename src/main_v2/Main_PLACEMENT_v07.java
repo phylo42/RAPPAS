@@ -10,6 +10,7 @@ import core.DNAStates;
 import core.States;
 import core.algos.AlignScoringProcess;
 import core.algos.SequenceKnife;
+import core.hash.CustomHash_v2;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -150,6 +151,10 @@ public class Main_PLACEMENT_v07 {
             
             String[] elts=db.getName().split("\\.");
             String dbSize=elts[elts.length-1];
+            Infos.println("Hash type: "+session.hash.getHashType());
+            if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+                dbSize="union";
+            }
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
@@ -226,7 +231,7 @@ public class Main_PLACEMENT_v07 {
             } else {
                 asp=new AlignScoringProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,queryWordSampling,minOverlap);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,queryWordSampling,minOverlap,new File(logPath));
             //close TSV logs
             bwTSVPlacement.close();
             fp.closePointer();
@@ -264,13 +269,12 @@ public class Main_PLACEMENT_v07 {
             top.putAll(topMap);
             String out=top.toJSONString();
 
-            //just some basic formatting of the jplace file
-            //to make it a bit more human-readable, we input some \n
-            //at key places
+            //just some basic formatting
             out=out.replaceAll("\\},\\{", "\n\\},\\{\n\t"); //},{
             out=out.replaceAll("\\],\"","\\],\n\t\"");   //],"
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
             out=out.replaceAll(",\"placements\":\\[\\{\"p\"", ",\n\"placements\":\n[\n{\n\t\"p\"");
+
             //out=out.replace("]},", "]},"); //]}
             
             FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));
@@ -290,7 +294,7 @@ public class Main_PLACEMENT_v07 {
             //just for coherent output, close the percentage
             System.out.println(queryCounter+"/"+totalQueries+" queries analyzed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             //just for coherent output, close the percentage
-            System.out.println(placements.size()+" significative placements reported in JPlace output.");
+            System.out.println(placements.size()+" significant placements reported in JPlace output.");
             System.out.println("(Note: "+(100-(((0.0+placements.size())/totalQueries)*100))+"% of the queries are duplicates)");            
             Infos.println("#######################################################################");
 

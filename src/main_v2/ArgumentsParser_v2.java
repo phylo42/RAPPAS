@@ -8,6 +8,7 @@ package main_v2;
 import main.*;
 import etc.Environement;
 import java.io.File;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -26,8 +27,8 @@ public class ArgumentsParser_v2 {
     public static final int DB_MEDIUM=0;
     public static final int DB_SMALL=0;
     
-    public static int TYPE_DNA=1;
-    public static int TYPE_PROTEIN=2;
+    public static final int TYPE_DNA=1;
+    public static final int TYPE_PROTEIN=2;
 
     
     private HashMap<Integer,String> argsMap=null;
@@ -52,6 +53,7 @@ public class ArgumentsParser_v2 {
     public File ARDirToUse=null;
     public File exTreeDir=null;
     public boolean dbInRAM=false;
+    public boolean unionHash=false;
     
     //parameters for placement
     public int minOverlap=100; //default =100
@@ -133,7 +135,8 @@ public class ArgumentsParser_v2 {
                         this.workingDir=wd;
                         wGiven=true;
                     } else {
-                        System.out.println("Cannot read from / write to this directory: "+wd.getAbsolutePath());
+                        System.out.println("Cowardly refusing to use a working directory that does not exist !");
+                        System.out.println("Will not read/write from to this directory: "+wd.getAbsolutePath());
                         System.exit(1);
                     }
             }        
@@ -325,6 +328,11 @@ public class ArgumentsParser_v2 {
                         this.noCalibration=true;
                     }
                     
+                    //test --unihash parameter
+                    if (argsMap.get(index).equals("--unihash")) {
+                        this.unionHash=true;
+                    }
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -449,7 +457,7 @@ public class ArgumentsParser_v2 {
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "--ardir           [dir] Skip AR reconstruction, searching its results\n"+
         "                  in the specified directory (B mode only).\n" +
-        "--arbinary        [file] Binary used for AR, ex: phyml. (B mode only).\n" +
+        "--arbinary        [file] Binary used for AR. (phyml|baseml...) (B mode only).\n" +
         "--extree          [dir] Skip fake nodes injection, and use files present in\n"+
         "                  the specified directory instead (B mode only).\n" +
         "--dbfull          [] Save DB full; unused by current algo. (B mode only).\n" +      
@@ -458,6 +466,7 @@ public class ArgumentsParser_v2 {
         "--dbinram         [] Operate DB build, whitout saving DB to files.\n" +
         "                  Then, place queries (-q) using medium and large DBs.\n" +
         "--nocalib         [] No calibration, use threshold formula. (B mode only).\n" +
+        "--unihash         [] Placement based on Union, not position. (B mode only).\n" +
         "\n\n"
         );
        System.exit(1);

@@ -15,23 +15,23 @@ import java.util.Collections;
  * associated reference position.
  * @author ben
  */
-public class PositionNode implements Node,Serializable {
+public class PositionPointer implements HashPointer,Serializable {
     
     private static final long serialVersionUID = 7200L;
 
     //small init capacity because if k around 8 to 12, few occurences are
     //expected in the ref alignment
-    private ArrayList<PositionPointer> positionPointerList=new ArrayList<>(3);
+    private ArrayList<PositionList> positionPointerList=new ArrayList<>(3);
 
     /**
      *
      */
-    public PositionNode() {}
+    public PositionPointer() {}
 
     @Override
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
         boolean refPositionAlreadyRegistered=false;
-        for (PositionPointer p:positionPointerList) {
+        for (PositionList p:positionPointerList) {
             if (p.getRefPosition()==refPosition) {
                 refPositionAlreadyRegistered=true;
                 break;
@@ -39,7 +39,7 @@ public class PositionNode implements Node,Serializable {
         }
         if (!refPositionAlreadyRegistered) {
             //create new position otherwise
-            PositionPointer pl=new PositionPointer(refPosition);
+            PositionList pl=new PositionList(refPosition);
             pl.add(new Pair_16_32_bit(nodeId, PPStar));
             positionPointerList.add(pl);
         } else {
@@ -68,7 +68,7 @@ public class PositionNode implements Node,Serializable {
     @Override
     public ArrayList<Pair> getPairList(int refPosition) {
         //return positionPointerList.stream().filter(p->p.getRefPosition()==refPosition).findFirst().orElse(null);
-        for (PositionPointer p:positionPointerList) {
+        for (PositionList p:positionPointerList) {
             if (p.getRefPosition()==refPosition) {
                 return p;
             }
@@ -113,7 +113,7 @@ public class PositionNode implements Node,Serializable {
         //sort each list of Pair_16_32_bit objects
         this.positionPointerList.stream().forEach(p->Collections.sort(p));
 //        for (Iterator<PositionPointer> iterator = positionPointerList.iterator(); iterator.hasNext();) {
-//            PositionPointer ppl = iterator.next();
+//            PositionList ppl = iterator.next();
 //            Collections.sort(ppl);
 //        }
         //then sort these list (= sort the position by the PP* at 1st 
@@ -184,13 +184,13 @@ public class PositionNode implements Node,Serializable {
     /**
      * internal class just to link a reference position to a LinkedList
      */
-    private class PositionPointer extends ArrayList<Pair> implements Comparable<PositionPointer>,Serializable {
+    private class PositionList extends ArrayList<Pair> implements Comparable<PositionList>,Serializable {
         
         private static final long serialVersionUID = 7210L;
         
         private int refPosition=-1;
 
-        public PositionPointer(int refPosition) {
+        public PositionList(int refPosition) {
             super(1);
             this.refPosition=refPosition;
         }
@@ -207,7 +207,7 @@ public class PositionNode implements Node,Serializable {
          * @return 
          */
         @Override
-        public int compareTo(PositionPointer o) {
+        public int compareTo(PositionList o) {
             return -Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
         }
 

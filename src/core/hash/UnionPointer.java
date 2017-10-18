@@ -17,41 +17,71 @@ import java.util.stream.IntStream;
  * associated reference position.
  * @author ben
  */
-public class UnionNode implements Node,Serializable {
+public class UnionPointer implements HashPointer,Serializable {
     
     private static final long serialVersionUID = 7300L;
 
-    //only one fake position pointer, with fake position set to -10
-    UnionPointer pointer=new UnionPointer(0);
+    //only one fake position list, with fake position set to -10
+    UnionList list=new UnionList(0);
 
     /**
      *
      */
-    public UnionNode() {}
+    public UnionPointer() {}
 
     @Override
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
         //No pairs associatd to the word yet
-        if (pointer.size()>0) {
-            OptionalInt finding =   IntStream.rangeClosed(0, pointer.size()-1)
-                                    .filter(i->pointer.get(i).getNodeId()==nodeId)
-                                    .findFirst();
-            if (finding.isPresent()) {
-                int i=finding.getAsInt();
-                //System.out.println("In node: Pair of same nodeId already existing at index: "+i);
-                //replace previous pair if better PP*
-                if (PPStar > pointer.get(i).getPPStar()) {
-                    pointer.get(i).setPPStar(PPStar);
-                }   
-            } else {
-                //System.out.println("In node: New pair created: ");
-                pointer.add(new Pair_16_32_bit(nodeId, PPStar));
+//        if (list.size()>0) {
+//            OptionalInt finding =   IntStream.rangeClosed(0, list.size()-1)
+//                                    .filter(i->list.get(i).getNodeId()==nodeId)
+//                                    .findFirst();
+//            if (finding.isPresent()) {
+//                int i=finding.getAsInt();
+//                //System.out.println("In node: Pair of same nodeId already existing at index: "+i);
+//                //replace previous pair if better PP*
+//                if (PPStar > list.get(i).getPPStar()) {
+//                    list.get(i).setPPStar(PPStar);
+//                }   
+//            } else {
+//                //System.out.println("In node: New pair created: ");
+//                list.add(new Pair_16_32_bit(nodeId, PPStar));
+//            }
+//        } else {
+//            //System.out.println("In node: First pair created: ");
+//            //assign new pair if node not already registered
+//            list.add(new Pair_16_32_bit(nodeId, PPStar));
+//        }
+        
+        
+        if (list.size()>0) {
+            boolean found=false;
+            for (int i = 0; i < list.size(); i++) {
+                Pair get = list.get(i);
+                //nodeid already registerd
+                if (get.getNodeId()==nodeId) {
+                    found=true;
+                    //replace previous pair if better PP*
+                    if (PPStar > list.get(i).getPPStar()) {
+                        list.get(i).setPPStar(PPStar);
+                    }
+                }
+                break;
+            }
+            //node not yet registered, do it
+            if (!found) {
+                list.add(new Pair_16_32_bit(nodeId, PPStar));
             }
         } else {
-            //System.out.println("In node: First pair created: ");
-            //assign new pair if node not already registered
-            pointer.add(new Pair_16_32_bit(nodeId, PPStar));
+            //create very first pair
+            list.add(new Pair_16_32_bit(nodeId, PPStar));
         }
+
+        
+        
+        
+        
+        
     }
     
     /**
@@ -71,7 +101,7 @@ public class UnionNode implements Node,Serializable {
      */
     @Override
     public ArrayList<Pair> getPairList(int refPosition) {
-        return pointer;
+        return list;
     }
     
     /**
@@ -81,7 +111,7 @@ public class UnionNode implements Node,Serializable {
     @Override
     public int getPairCountInTopPosition() {
         
-        return pointer.size();
+        return list.size();
     }
 
     /**
@@ -90,7 +120,7 @@ public class UnionNode implements Node,Serializable {
      */
     @Override
     public Pair getBestPair() {
-        return pointer.get(0);
+        return list.get(0);
     }
 
     /**
@@ -99,12 +129,12 @@ public class UnionNode implements Node,Serializable {
      */
     @Override
     public int getBestPosition() {
-        return pointer.getRefPosition();
+        return list.getRefPosition();
     }
 
     @Override
     public void sort() {
-        Collections.sort(pointer);            
+        Collections.sort(list);            
     }  
 
     
@@ -112,13 +142,13 @@ public class UnionNode implements Node,Serializable {
     /**
      * internal class just to link a reference position to a LinkedList
      */
-    private class UnionPointer extends ArrayList<Pair> implements Comparable<UnionPointer>,Serializable {
+    private class UnionList extends ArrayList<Pair> implements Comparable<UnionList>,Serializable {
         
         private static final long serialVersionUID = 7310L;
         
         private int refPosition=-1;
 
-        public UnionPointer(int refPosition) {
+        public UnionList(int refPosition) {
             super(1);
             this.refPosition=refPosition;
         }
@@ -135,15 +165,14 @@ public class UnionNode implements Node,Serializable {
          * @return 
          */
         @Override
-        public int compareTo(UnionPointer o) {
+        public int compareTo(UnionList o) {
             return -Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
         }
 
         @Override
         public boolean add(Pair e) {
             boolean ok= super.add(e);
-            this.trimToSize(); //force arrylist capacity to preserve a max 
-            //of memory
+            this.trimToSize(); //force arrylist capacity to preserve a max of memory
             return ok;
         }
         

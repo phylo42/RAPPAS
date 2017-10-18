@@ -55,6 +55,11 @@ public class ProbabilisticWord extends AbstractWord implements Comparable<Probab
         return originalPosition;
     }
 
+    public void update(byte[] key, float value, int originalPosition) {
+        this.word=key;
+        this.ppStarValue=value;
+        this.originalPosition=originalPosition;
+    }
     
     
     @Override

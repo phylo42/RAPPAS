@@ -684,9 +684,9 @@ public class CustomHashMap<Word,Tuple> extends CustomAbstractMap<Word,Tuple>
         }
         ++modCount;
         if (++size > threshold) {
-            //System.out.println("RESIZE ! BEFORE size="+size+" threshold="+threshold+" table.length="+table.length);
+            System.out.println("RESIZE ! BEFORE size="+size+" threshold="+threshold+" table.length="+table.length);
             resize();
-            //System.out.println("RESIZE ! AFTER size="+size+" threshold="+threshold+" table.length="+table.length);
+            System.out.println("RESIZE ! AFTER size="+size+" threshold="+threshold+" table.length="+table.length);
             
         }
         afterNodeInsertion(evict);

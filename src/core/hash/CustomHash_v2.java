@@ -49,7 +49,7 @@ public class CustomHash_v2 implements Serializable{
     public static final int NODES_UNION=2;
     
     int nodeType=NODES_POSITION;
-    CustomHashMap<Word,Node> hash=null;
+    CustomHashMap<Word,HashPointer> hash=null;
     
     /**
      *
@@ -59,7 +59,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public CustomHash_v2(int k, States s, int nodeType) {
         this.nodeType=nodeType;
-        hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount()+1, k)).intValue(),1.0f);
+        hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)*0.75).intValue(),0.95f);
     }
     
     /**
@@ -69,27 +69,28 @@ public class CustomHash_v2 implements Serializable{
      * @param nodeId
      * @param refPos 
      */
-    public void addTuple(Word w, float PPStar,int nodeId,int refPos) {
-//        PositionNode cn=null;
+    public void addTuple(byte[] word, float PPStar,int nodeId,int refPos) {
+//        PositionPointer cn=null;
 //        if ((cn=hash.get(w))==null) {
-//            hash.put(w, cn=new PositionNode());
+//            hash.put(w, cn=new PositionPointer());
 //        }
 //        cn.registerTuple(nodeId, refPos, PPStar);
         //System.out.println("word:"+w);
         //System.out.println("CustomHash type: "+nodeType);
+        SimpleWord w=new SimpleWord(word);
         if (!hash.containsKey(w)) {
             switch (nodeType) {
                 case NODES_UNION:
-                    //System.out.println("new word attached to UnionNode");
-                    hash.put(w, new UnionNode());
+                    //System.out.println("new word attached to UnionPointer");
+                    hash.put(w, new UnionPointer());
                     break;
                 case NODES_POSITION:
-                    //System.out.println("new word attached to PositionNode");
-                    hash.put(w, new PositionNode());
+                    //System.out.println("new word attached to PositionPointer");
+                    hash.put(w, new PositionPointer());
                     break;
             }
         }
-        //System.out.println("update Node of type: "+hash.get(w).getClass().toString());
+        //System.out.println("update HashPointer of type: "+hash.get(w).getClass().toString());
         hash.get(w).registerTuple(nodeId, refPos, PPStar);
         
 
@@ -99,7 +100,7 @@ public class CustomHash_v2 implements Serializable{
      * for debug purposes only (access to CustomHashMap hashtable)
      * @return 
      */
-    public CustomHashMap<Word, Node> getHash() {
+    public CustomHashMap<Word, HashPointer> getHash() {
         return hash;
     }
     
@@ -118,7 +119,7 @@ public class CustomHash_v2 implements Serializable{
      * @return 
      */
     public Pair getTopPair(Word w) {
-        Node cn=null;
+        HashPointer cn=null;
         if ((cn=hash.get(w))!=null)
             return cn.getBestPair();
         else
@@ -132,7 +133,7 @@ public class CustomHash_v2 implements Serializable{
      * @return null if word not in present in hash
      */
     public List<Pair> getPairsOfTopPosition(Word w) {
-        Node cn=null;
+        HashPointer cn=null;
         if ((cn=hash.get(w))!=null) {
             return cn.getPairList(cn.getBestPosition());
         } else {
@@ -146,7 +147,7 @@ public class CustomHash_v2 implements Serializable{
      * @return 
      */
     public int[] getPositions(Word w) {
-        Node cn=null;
+        HashPointer cn=null;
         if ((cn=hash.get(w))!=null) {
             return cn.getPositions();
         } else {
@@ -160,7 +161,7 @@ public class CustomHash_v2 implements Serializable{
      * @return -1 if word not in hash
      */
     public int getTopPosition(Word w) {
-        Node cn=null;
+        HashPointer cn=null;
         if ((cn=hash.get(w))!=null) {
             return cn.getBestPosition();
         } else {
@@ -220,7 +221,7 @@ public class CustomHash_v2 implements Serializable{
     public void reduceToMediumHash() {
         
         hash.keySet().stream().forEach((next) -> {
-            ((PositionNode)hash.get(next)).clearPairsOfWorsePositions();
+            ((PositionPointer)hash.get(next)).clearPairsOfWorsePositions();
         });
         
     }
@@ -234,7 +235,7 @@ public class CustomHash_v2 implements Serializable{
     public void reducetoSmallHash(int X) {
         List<Word> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
-                                            .filter((w) -> ((PositionNode)hash.get(w)).limitToXPairsPerPosition(X))
+                                            .filter((w) -> ((PositionPointer)hash.get(w)).limitToXPairsPerPosition(X))
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
                                             .collect(Collectors.toList());
         collect.stream().forEach((w)-> {hash.remove(w);});
@@ -498,7 +499,7 @@ public class CustomHash_v2 implements Serializable{
                     }
                     
                     //register the words in the hash
-                    wd.getRetainedWords().stream().forEach((w)-> {hash2.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
+                    wd.getRetainedWords().stream().forEach((w)-> {hash2.addTuple(w.getWord(), w.getPpStarValue(), nodeId, w.getOriginalPosition());});
                     totalTuplesPassingThreshold+=wd.getRetainedWords().size();
                     
                     //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
@@ -534,7 +535,7 @@ public class CustomHash_v2 implements Serializable{
             
             //HERE Search how many Nodes per hash bucket.
             if (testBuckets) {
-                CustomHashMap.Node<Word, Node>[] accessToHash = hash2.getHash().getAccessToHash();
+                CustomHashMap.Node<Word, HashPointer>[] accessToHash = hash2.getHash().getAccessToHash();
                 for (int i = 0; i < accessToHash.length; i++) {
                     Object node = accessToHash[i];
                     if (node instanceof core.hash.CustomHashMap.TreeNode) {

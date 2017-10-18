@@ -88,7 +88,7 @@ public class AlignScoringProcess {
      */
     public float processCalibration(RandomSeqGenerator rs, int samplingAmount,BufferedWriter bwTSV, int queryWordSampling, int minOverlap, int q_quantile, int n_quantile) throws IOException {
 
-        //list of normalizedScore
+        //list of bestNormalizedScore
         ArrayList<Float> normalizedScores=new ArrayList<>(samplingAmount);
 
         ///////////////////////////////////////////////////////            
@@ -297,7 +297,7 @@ public class AlignScoringProcess {
             //in the query
             float normalizedScore=bestScore/maxWords;
             normalizedScores.add(normalizedScore);
-//            Infos.println("Normalized score: "+normalizedScore);
+//            Infos.println("Normalized score: "+bestNormalizedScore);
 
 
 
@@ -665,6 +665,8 @@ public class AlignScoringProcess {
             float bestScore=Float.NEGATIVE_INFINITY;
             int secondBest=-1;
             float secondScore=Float.NEGATIVE_INFINITY;
+            //sum of all scores of all nodes, used later for the score ratio
+            double allLikelihoodSums=0.0f;
             for (Integer nodeId:selectedNodes) {
                 //System.out.println("Scoring originalNode:"+nodeId);
                 //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
@@ -674,6 +676,13 @@ public class AlignScoringProcess {
                 //System.out.println("originalNodeId:"+originalNodeId);
                 //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
                 nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
+                System.out.println("nodeScores[nodeId]="+nodeScores[nodeId]);
+                System.out.println("double: "+((double)nodeScores[nodeId]));
+                System.out.println("math.pow:"+Math.pow(10.0, (double)nodeScores[nodeId]));
+                allLikelihoodSums+=Math.pow(10.0, ((double)nodeScores[nodeId]/maxWords));
+                
+                //TODO
+                //here keep track of the X best node score, X being given by option --kept-at-most
                 
                 if (nodeScores[nodeId]>bestScore) {
                     secondBest=bestNodeId;
@@ -699,6 +708,10 @@ public class AlignScoringProcess {
 
             // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
             ////////////////////////////////////////////////////////////////
+            
+            //TODO, repeat that for the X best node scores
+            
+            
             //check if this was a fake originalNode or not
             //to do that, retromapping from ARTree to extended tree 
             int extendedTreeId=session.nodeMapping.get(bestNodeId);
@@ -752,8 +765,8 @@ public class AlignScoringProcess {
 
             //basic normalization, divide score by number of words present
             //in the query
-            float normalizedScore=bestScore/maxWords;
-            Infos.println("Normalized score: "+normalizedScore);
+            float bestNormalizedScore=bestScore/maxWords;
+            Infos.println("Normalized score: "+bestNormalizedScore);
 
 
             long endScoringTime=System.currentTimeMillis();
@@ -773,7 +786,7 @@ public class AlignScoringProcess {
             //write result in file if a originalNode was hit
             if (bwTSV!=null) {
                 //only score passing --nsbound if this debug option is set
-                if (normalizedScore>=nsBound) {
+                if (bestNormalizedScore>=nsBound) {
                     //OUTPUT n°1: the CSV report of placement
                     //allow in particular to check that nodes were correclty
                     //mappes at every step (original tree, extended tree,
@@ -785,7 +798,7 @@ public class AlignScoringProcess {
                     sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
                     sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
                     sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-                    sb.append(String.valueOf(normalizedScore)).append("\n");
+                    sb.append(String.valueOf(bestNormalizedScore)).append("\n");
                 }
             }
             //OUTPUT n°2: the JSON placement object (jplace file)
@@ -796,28 +809,34 @@ public class AlignScoringProcess {
             //identical sequence exists, then we don't the block below
             //as all the alignmnet/placement algo was skipped.
 
+            
+            //TO DO , create as many placement objects as outpus asked by --keep-at-most
+            
             //only score passing --nsbound if this debug option is set
-            if (normalizedScore>=nsBound) {
-                //System.out.println("Score pass threshold: normalizedScore="+normalizedScore+" nsBound="+nsBound);
+            if (bestNormalizedScore>=nsBound) {
+                //System.out.println("Score pass threshold: bestNormalizedScore="+bestNormalizedScore+" nsBound="+nsBound);
                 //object representing placements (mandatory), it contains 2 key/value couples
                 JSONObject placement=new JSONObject();
                 //first we build the "p" array, containing the position/scores of all reads
                 JSONArray pMetadata=new JSONArray();
                 //in pplacer/EPA several placements can be associated to a query
                 //we input only the best one, but that can be changed in the future
+                //"distal_length","like_weight_ratio","pendant_length","edge_num","likelihood"
                 JSONArray placeColumns=new JSONArray();
-
+                
                 //fake fields for compatibility with current tools (guppy, archeopteryx)
                 //should be provided as an option
                 placeColumns.add(0.1); //distal_length
-                placeColumns.add(normalizedScore); //we put also PP* in the like_weight_ratio column to allow sorting in iTol
+                System.out.println("allLikelihoodSums:"+allLikelihoodSums);
+                double weigth_ratio=Math.pow(10.0, (double)bestNormalizedScore)/allLikelihoodSums;
+                placeColumns.add(weigth_ratio); //like_weight_ratio column of ML-based methods
                 placeColumns.add(0.1); //pendant_length
 
                 //placeColumns.add(session.ARTree.getById(bestNodeId).getLabel()); // 1. ARTree nodeName
                 //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
                 placeColumns.add(originalNodeId); // 3. edge of original tree (original nodeId=edgeID)
                 //placeColumns.add(session.originalTree.getById(originalNodeId).getLabel()); // 4. edge of original tree (original nodeName)
-                placeColumns.add(normalizedScore); // 4. PP*
+                placeColumns.add(bestNormalizedScore); // 4. PP*
                 pMetadata.add(placeColumns);
 
                 placement.put("p", pMetadata);
@@ -856,7 +875,7 @@ public class AlignScoringProcess {
             }
             
             
-            boolean debugFine=true;
+            boolean debugFine=false;
             if (debugFine) {
                 File scoreFile=new File(logDir.getAbsolutePath()+File.separator+"log_scores_"+fasta.getHeader().split(" ")[0]);
                 BufferedWriter newBw = Files.newBufferedWriter(scoreFile.toPath());

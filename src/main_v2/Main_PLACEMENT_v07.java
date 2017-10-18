@@ -20,6 +20,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
@@ -58,13 +59,13 @@ public class Main_PLACEMENT_v07 {
 
     /**
      * call this constructor when doing placement via debug operation --dbinram
+     * or several files will be placed on same database
      * @param session 
      * @param dbInRAM 
      */
     public Main_PLACEMENT_v07(SessionNext_v2 session, boolean dbInRAM) {
         this.session=session;
         this.dbInRAM=dbInRAM;
-        
     }
     
     
@@ -111,12 +112,7 @@ public class Main_PLACEMENT_v07 {
             String logPath=workDir+File.separator+"logs"+File.separator;
             //ancestral reconstruciton
             String ARPath=workDir+File.separator+"AR"+File.separator;
-            //session itself
-            boolean loadHash=true;
-            if (!dbInRAM) {
-                System.out.println("Loading ancestral words DB... ("+db.getName()+")");
-                session= SessionNext_v2.load(db,loadHash);
-            } 
+
             //mers size
             Infos.println("k="+session.k);
             Infos.println("min_k="+session.minK);
@@ -152,9 +148,14 @@ public class Main_PLACEMENT_v07 {
             String[] elts=db.getName().split("\\.");
             String dbSize=elts[elts.length-1];
             Infos.println("Hash type: "+session.hash.getHashType());
-            if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
-                dbSize="union";
+            if ( ! (dbSize.equals("large") || dbSize.equals("medium") || dbSize.equals("small") || dbSize.equals("union") || dbSize.equals("sunion")) ) {
+                System.out.println("dbSize not recognized (from DB filename): "+dbSize);
+                System.exit(1);
             }
+                
+//            if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+//                dbSize="union";
+//            }
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
@@ -238,7 +239,7 @@ public class Main_PLACEMENT_v07 {
 
             
             ////////////////////////////////////////////////////////////////////
-            //JSON OUTPUT
+            // FINALIZE JSON OUTPUT
             ////////////////////////////////////////////////////////////////////
             //finish the json strucutre and output it to a file
             //associate the list of placements to the top level
@@ -269,7 +270,7 @@ public class Main_PLACEMENT_v07 {
             top.putAll(topMap);
             String out=top.toJSONString();
 
-            //just some basic formatting
+            //just some basic formatting for human readability
             out=out.replaceAll("\\},\\{", "\n\\},\\{\n\t"); //},{
             out=out.replaceAll("\\],\"","\\],\n\t\"");   //],"
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]

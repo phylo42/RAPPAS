@@ -103,7 +103,7 @@ public class Main_DBBUILD_2 {
                                         boolean buildDBFull,
                                         boolean forceRooting,
                                         boolean dbInRAM,
-                                        File queries,
+                                        List<File> queries,
                                         String callString,
                                         Float nsBound,
                                         boolean noCalibration,
@@ -454,20 +454,33 @@ public class Main_DBBUILD_2 {
             Infos.println("Building all PP* probas...");
             int totalTuplesBuiltForHash=0;
             int nodeCounter=0;
-            int nodeTested=ARTree.getInternalNodesByDFS().size();
-            int nodeBucketSize=nodeTested/10;
+            int nodeTested=ARTree.getInternalNodesByDFS().size(); //for time logging
+            int nodeBatchSize=nodeTested/ 10;                     //for time logging
+            int nodeBatchExplorationSize=0;                       //for time logging
+            long perBatchExploreTime=0;                       //for time logging
+            long perBatchInsertionTime=0;                     //for time logging
+            
             double startHashBuildTime=System.currentTimeMillis();
+            
+            
+            
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
-                if (nodeCounter%nodeBucketSize==0) {
+                
+                if (nodeCounter%nodeBatchSize==0) {
                     Infos.println("Node: "+nodeId +" ("+((0.0+nodeCounter)/nodeTested)*100.0+"%)" );
                     Infos.println("Current "+Environement.getMemoryUsage());
+                    Infos.println("# WordExplorer launched in this batch: "+nodeBatchExplorationSize);
+                    Infos.println("WordExplorer took on average: "+(((perBatchExploreTime+0.0)/nodeBatchExplorationSize)*0.000001)+" ms");
+                    Infos.println("Hash insertions took on average: "+(((perBatchInsertionTime+0.0)/nodeBatchExplorationSize)*0.000001)+" ms");
+                    //reset exploration timers 
+                    nodeBatchExplorationSize=0;
+                    perBatchExploreTime=0;
+                    perBatchInsertionTime=0;
                 }
                     //DEBUG
                     //if(nodeId!=709)
                     //    continue;
                     //DEBUG                
-                
-                //double startMerScanTime=System.currentTimeMillis();
                 WordExplorer wd =null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
@@ -478,8 +491,8 @@ public class Main_DBBUILD_2 {
                     //if(pos<1198 || pos>1202)
                     //    continue;
                     //DEBUG
-                    
-                    //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
+                    //double startScanTime=System.currentTimeMillis();
+                    //Infos.println("---- Current align pos: "+pos +" to "+(pos+(k-1)));
                     wd =new WordExplorer(   k,
                                             pos,
                                             nodeId,
@@ -487,15 +500,24 @@ public class Main_DBBUILD_2 {
                                             PPStarThresholdAsLog
                                         );
                     
+                    
+                    long startExploreTime=System.nanoTime();
                     for (int j = 0; j < arpr.getPProbas().getStateCount(); j++) {
                         wd.exploreWords(pos, j);
                     }
+                    long endExploreTime=System.nanoTime();
+                    perBatchExploreTime+=(endExploreTime-startExploreTime);
                     
+                    
+                    double startInsertionTime=System.nanoTime();
                     //register the words in the hash
                     for (ProbabilisticWord w:wd.getRetainedWords()) {
-                        session.hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());
+                        session.hash.addTuple(w.getWord(), w.getPpStarValue(), nodeId, w.getOriginalPosition());
                     }
                     totaTuplesInNode+=wd.getRetainedWords().size();
+                    long endInsertionTime=System.nanoTime();
+                    perBatchInsertionTime+=(endInsertionTime-startInsertionTime);
+                    
                     
                     //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
                     //Infos.println("Words in this position:"+wd.getRetainedWords().size());
@@ -504,6 +526,9 @@ public class Main_DBBUILD_2 {
                     //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
                     
                     wd=null;
+                    
+                    nodeBatchExplorationSize++;
+                    
                 }
                 totalTuplesBuiltForHash+=totaTuplesInNode;
                 
@@ -524,7 +549,7 @@ public class Main_DBBUILD_2 {
             double endHashBuildTime=System.currentTimeMillis();
             System.out.println("Hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
             System.out.println("Words in the hash: "+session.hash.keySet().size());
-            System.out.println("Tuples built for the hash:"+totalTuplesBuiltForHash);
+            System.out.println("Tuples explored:"+totalTuplesBuiltForHash);
 
                        
             ////////////////////////////////////////////////////////////////////
@@ -612,7 +637,11 @@ public class Main_DBBUILD_2 {
                 System.out.println("#############################");
                 System.out.println("## dbInRAM mode !");
                 System.out.println("## DB kept in memory and not exported in flat files");
-                System.out.println("## queries: "+queries.getAbsolutePath());
+                System.out.println("## queries: ");
+                for (int i = 0; i < queries.size(); i++) {
+                    File query = queries.get(i);
+                    System.out.println("## "+queries.get(i).getAbsolutePath());
+                }
                 System.out.println("#############################");
                 BufferedWriter bwTSVCalibration=null;
                 int bufferSize=2097152; // buffer of 2mo
@@ -620,7 +649,7 @@ public class Main_DBBUILD_2 {
                 RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
                 
                 if (session.hash.getHashType()==CustomHash_v2.NODES_POSITION) {
-                    
+                    System.out.println("POSITIONAL DB SELECTED");
                     //reduction to medium DB
                     System.out.println("Reduction to medium DB...");
                     session.hash.reduceToMediumHash();
@@ -652,7 +681,10 @@ public class Main_DBBUILD_2 {
                     //now do placements on medium DB
                     System.out.println("Starting placement on medium DB...");
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    placer.doPlacements(queries, dbmedium, workDir, callString, nsBound);
+                    for (int i = 0; i < queries.size(); i++) {
+                        File query = queries.get(i);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound);
+                    }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
                     session.hash.reducetoSmallHash_v2(100);
@@ -662,10 +694,13 @@ public class Main_DBBUILD_2 {
                     //now do placements on small DB
                     System.out.println("Starting placement on small DB...");
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    placer.doPlacements(queries, dbsmall, workDir, callString, nsBound);
-                
-                } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+                    for (int i = 0; i < queries.size(); i++) {
+                        File query = queries.get(i);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound);
+                    }
                     
+                } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+                    System.out.println("UNION DB SELECTED");
                     //calibration
                     float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
                     if (nsBound==null) {
@@ -688,20 +723,25 @@ public class Main_DBBUILD_2 {
                     //associate medium calibration
                     session.associateCalibrationScore(calibrationNormScoreUnion);
                     //now do placements on normal union DB
-                    System.out.println("Starting placement on medium DB...");
+                    System.out.println("Starting placement on union DB...");
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    placer.doPlacements(queries, dbsmall, workDir, callString, nsBound);
+                    for (int i = 0; i < queries.size(); i++) {
+                        File query = queries.get(i);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound);
+                    }
                     //reduction to small DB
-                    System.out.println("Reduction to small DB...");
+                    System.out.println("Reduction to small union DB...");
                     session.hash.reducetoSmallHash_v2(100);
                     System.gc();
                     //calibration to small DB
                     //NOTE: not done, we keep medium DB calibration as the basis.
                     //now do placements on small DB
-                    System.out.println("Starting placement on small DB...");
+                    System.out.println("Starting placement on small union DB...");
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    placer.doPlacements(queries, dbsmall, workDir, callString, nsBound);
-                    
+                    for (int i = 0; i < queries.size(); i++) {
+                        File query = queries.get(i);
+                        placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound);
+                    }                    
                 }
                 
                 System.out.println("DBINRAM OPERATIONS FINISHED.");

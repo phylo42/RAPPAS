@@ -9,8 +9,10 @@ import main.*;
 import etc.Environement;
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,7 +59,7 @@ public class ArgumentsParser_v2 {
     
     //parameters for placement
     public int minOverlap=100; //default =100
-    public File queriesFile=null;
+    public List<File> queriesFiles=null;
     public File databaseFile=null;
     public int dbsize=DB_MEDIUM;
     public Float nsBound=null;
@@ -302,13 +304,20 @@ public class ArgumentsParser_v2 {
                     
                     //test -q parameter (to use with --dbinram)
                     if (argsMap.get(index).equals("--queries") || argsMap.get(index).equals("-q")) {
-                        File queries=new File(argsMap.get(index+1));
-                        if (queries.isFile() && queries.canRead()) {
-                            this.queriesFile=queries;
-                        } else {
-                            System.out.println(queries.getAbsolutePath());
-                            System.out.println("Cannot open queries: Not a file or no read permission.");
-                            System.exit(1);
+                        this.queriesFiles=new ArrayList<>();
+                        //split eventually if these are filenames separated by ','
+                        String[] elts=argsMap.get(index+1).split(",");
+                        for (int i = 0; i < elts.length; i++) {
+                            String elt = elts[i];
+                            File query=new File(elt);
+                            if (query.isFile() && query.canRead()) {
+                                queriesFiles.add(new File(elt));
+                            } else {
+                                System.out.println(query.getAbsolutePath());
+                                System.out.println("Cannot open query file: Not a file or no read permission.");
+                                System.out.println("File: "+elt);
+                                System.exit(1);
+                            }
                         }
                     }                  
                     
@@ -355,18 +364,26 @@ public class ArgumentsParser_v2 {
                 
                 for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
                     int index=it.next();
+                    
                     //test -q parameter
                     if (argsMap.get(index).equals("--queries") || argsMap.get(index).equals("-q")) {
-                        File queries=new File(argsMap.get(index+1));
-                        if (queries.isFile() && queries.canRead()) {
-                            this.queriesFile=queries;
-                            qGiven=true;
-                        } else {
-                            System.out.println(queries.getAbsolutePath());
-                            System.out.println("Cannot open queries: Not a file or no read permission.");
-                            System.exit(1);
+                        this.queriesFiles=new ArrayList<>();
+                        //split eventually if these are filenames separated by ','
+                        String[] elts=argsMap.get(index+1).split(",");
+                        for (int i = 0; i < elts.length; i++) {
+                            String elt = elts[i];
+                            File query=new File(elt);
+                            if (query.isFile() && query.canRead()) {
+                                queriesFiles.add(new File(elt));
+                            } else {
+                                System.out.println(query.getAbsolutePath());
+                                System.out.println("Cannot open query file: Not a file or no read permission.");
+                                System.out.println("File: "+elt);
+                                System.exit(1);
+                            }
                         }
                     }
+                    
                     //test -d parameter
                     if (argsMap.get(index).equals("--database") || argsMap.get(index).equals("-d")) {
                         File database=new File(argsMap.get(index+1));
@@ -448,8 +465,9 @@ public class ArgumentsParser_v2 {
         "-s (--states)     [nucl|prot] States used in analysis (B mode). \n" +    
         "-t (--tree)       [file] Reference tree, in newick format.\n"+
         "                  reconstruction and DB build (B mode only).\n" +
-        "-q (--queries)    [file] Query reads to place on the reference tree,\n"+
-        "                  in fasta format (P mode only)\n" +
+        "-q (--queries)    [file[,...,file]] Query reads to place on the reference" +
+        "                  tree, in fasta format (P mode only). Several files can\n"+
+        "                  be placed if filenames are separated by ','.\n" +
         "-v (--verbose)    Verbosity level: 0=none ; 1=basic ; 2=full\n" +
         "-w (--workdir)    [dir] Path of the working directory (default= ./).\n\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+

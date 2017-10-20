@@ -17,8 +17,8 @@ public class Pair_16_32_bit implements Pair,Serializable {
     
     private static final long serialVersionUID = 7101L;
 
-    //as java as no unsigned int, we simply use char, to store the nodeIds
-    //this allows a max of  2^16-1 node ids and is 16bit instead of the 32bits of int
+    //as java as no unsigned int, we simply trick it by using char,
+    //this allows a max of  2^16-1 node ids, using 16bit instead of the 32bits of integer
     private char nodeId='\u0000'; //init to 0
     private float PPStar=Float.NEGATIVE_INFINITY;
 

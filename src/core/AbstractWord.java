@@ -50,7 +50,6 @@ public abstract class AbstractWord implements Word,Serializable {
         //return JenkinsHash.hash32(this.word, 1);
         //return word.hashCode();
     }
-
-
+    
     
 }

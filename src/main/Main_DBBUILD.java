@@ -475,7 +475,7 @@ public class Main_DBBUILD {
             ////////////////////////////////////////////////////////////////////
             //OUTPUT SOME STATS IN THE log directory
             
-            double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getTuples(w).size()).toArray();
+            double[] vals=hash.getKeys().stream().mapToDouble(w->hash.getTuples(w.getWord()).size()).toArray();
             //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"),k,alpha);
             //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+wordPPStarThreshold+".png"), k, alpha);
             

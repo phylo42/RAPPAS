@@ -5,12 +5,24 @@
 
 package main_v2;
 
+import alignement.Alignment;
 import core.AAStates;
 import core.DNAStates;
 import core.States;
+import etc.Infos;
+import inputs.FASTAPointer;
+import inputs.Fasta;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.UIManager;
 import static main.Main_DBBUILD.TYPE_DNA;
+import tree.NewickReader;
+import tree.PhyloTree;
 
 
 /**
@@ -110,7 +122,8 @@ public class Main_v2 {
 
 
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
+            //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
+            String db=workDir+File.separator+"DB_session_k8_a1.5_f1_t-3.40775.union";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -124,6 +137,7 @@ public class Main_v2 {
                             + "-k "+String.valueOf(8)+" "
                             + "-a "+String.valueOf(1.5)+" "
                             + "-v 1 "
+                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
                             + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--dbfull "
@@ -131,43 +145,45 @@ public class Main_v2 {
                             //+ "--dbinram "
 //                            + "-q "+q+" "
 //                            + "--nsbound -100000.0 "
-//                            + "--nocalib"
+                            + "--nocalib "
+                            + "--onlyfakes"
                             ;
             
             
             
             
 //            // placement launch
-//            String arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0 "
-//                            + "--nsbound -1000.0"
+            arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 0 "
+                            + "--nsbound -1000.0 "
+                            + "--keep-at-most 7"
                             ;            
                             
                             
 /////////FOR TESTS CORRECTION: HCV, A34, k8_a1.0, R500bp  --> case where our algo cannot fails compared to EPA/PPlacer          
-            arguments=
-                              "-m B "
-                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0 "
-                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Ax/A34_nx34_la.align "
-                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Tx/T34_nx34_la.tree "
-                            + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.0)+" "
-                            + "-v 1 "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
-                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/AR "
-                            //+ "--extree "+exTree+" "
-                            //+ "--builddbfull "
-                            + "--froot "
-                            + "--dbinram "
-                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
-                            + "--nsbound -100000.0 "
-                            + "--nocalib "
-                            + "--unihash"
-                            ;     
+//            arguments=
+//                              "-m B "
+//                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0 "
+//                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Ax/A34_nx34_la.align "
+//                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Tx/T34_nx34_la.tree "
+//                            + "-k "+String.valueOf(8)+" "
+//                            + "-a "+String.valueOf(1.0)+" "
+//                            + "-v 1 "
+//                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
+//                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/AR "
+//                            //+ "--extree "+exTree+" "
+//                            //+ "--builddbfull "
+//                            + "--froot "
+//                            + "--dbinram "
+//                            + "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib "
+//                            + "--unihash"
+//                            ;     
 //            arguments=
 //                              "-m p "
 //                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0 "
@@ -184,25 +200,25 @@ public class Main_v2 {
                             
 
 /////////FOR TESTS OF DB BUILD SPEED: HCV, A34, k12_a0.75 --> case where our RAPPAS seems to slow down with number of nodes explored       
-            arguments=
-                              "-m B "
-                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Dx/A34_nx34_la/k12_a0.75 "
-                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Ax/A34_nx34_la.align "
-                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Tx/T34_nx34_la.tree "
-                            + "-k "+String.valueOf(11)+" "
-                            + "-a "+String.valueOf(0.75)+" "
-                            + "-v 1 "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
-                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Dx/A34_nx34_la/AR "
-                            //+ "--extree "+exTree+" "
-                            //+ "--builddbfull "
-                            + "--froot "
-                            //+ "--dbinram "
-                            //+ "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
-                            + "--nsbound -100000.0 "
-                            + "--nocalib "
-                            + "--unihash"
-                            ;     
+//            arguments=
+//                              "-m B "
+//                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Dx/A34_nx34_la/k12_a0.75 "
+//                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Ax/A34_nx34_la.align "
+//                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Tx/T34_nx34_la.tree "
+//                            + "-k "+String.valueOf(11)+" "
+//                            + "-a "+String.valueOf(0.75)+" "
+//                            + "-v 1 "
+//                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
+//                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Dx/A34_nx34_la/AR "
+//                            //+ "--extree "+exTree+" "
+//                            //+ "--builddbfull "
+//                            + "--froot "
+//                            //+ "--dbinram "
+//                            //+ "-q /home/ben/Desktop/k8_a1.1/R33_nx348_la_r300.fasta "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib "
+//                            + "--unihash"
+//                            ;     
 /////////FOR TESTS OF DB BUILD SPEED: HCV, A34, k12_a0.75 --> case where our RAPPAS seems to slow down with number of nodes explored       
 
 
@@ -266,10 +282,6 @@ public class Main_v2 {
             
             //force args
             args=arguments.split(" ");
-            
-            
-            
-            
             //System.out.println(Arrays.toString(args));
     
            
@@ -283,7 +295,7 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            argsParser.ARBinary=new File("baseml");
+            //argsParser.ARBinary=new File("baseml");
             
             
             //type of Analysis, DNA or AA
@@ -295,9 +307,17 @@ public class Main_v2 {
                 s=new AAStates();
                 System.out.println("Set analysis for PROTEIN");
             }
+
+            
+            
+            //////////////////////
+            //DB_BUILD MODE
             
             if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
                 System.out.println("Starting db_build pipeline...");
+                
+
+
 
                 Main_DBBUILD_2.DBGeneration(argsParser.analysisType,
                                             null,
@@ -318,8 +338,17 @@ public class Main_v2 {
                                             argsParser.callString,
                                             argsParser.nsBound,
                                             argsParser.noCalibration,
-                                            argsParser.unionHash
+                                            argsParser.unionHash,
+                                            argsParser.reduction,
+                                            argsParser.reducedAlignFile,
+                                            argsParser.reductionRatio,
+                                            argsParser.onlyFakeNodes,
+                                            argsParser.keepAtMost,
+                                            argsParser.keepFactor
                                             );
+                
+            //////////////////////
+            //PLACEMENT MODE
                 
             } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
                 System.out.println("Starting placement pipeline...");
@@ -328,11 +357,6 @@ public class Main_v2 {
                 SessionNext_v2 session= SessionNext_v2.load(argsParser.databaseFile,true);
                 
                 
-//                int placed=Main_PLACEMENT_V05_align_scoring_separated_for_time_eval.Main_PLACEMENT_V05_align_scoreallnodes(
-//                                            argsParser.queriesFiles,
-//                                            argsParser.databaseFile,
-//                                            argsParser.workingDir
-//                                            );
                 Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session, false);
                 for (int i = 0; i < argsParser.queriesFiles.size(); i++) {
                     File query = argsParser.queriesFiles.get(i);
@@ -340,7 +364,9 @@ public class Main_v2 {
                                                 argsParser.databaseFile,
                                                 argsParser.workingDir,
                                                 argsParser.callString,
-                                                argsParser.nsBound
+                                                argsParser.nsBound,
+                                                argsParser.keepAtMost,
+                                                argsParser.keepFactor
                                                 );
                 }
                 

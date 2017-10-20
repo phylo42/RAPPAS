@@ -56,17 +56,16 @@ public class UnionPointer implements HashPointer,Serializable {
         
         if (list.size()>0) {
             boolean found=false;
-            for (int i = 0; i < list.size(); i++) {
-                Pair get = list.get(i);
+            for (Pair p:list) {
                 //nodeid already registerd
-                if (get.getNodeId()==nodeId) {
+                if (p.getNodeId()==nodeId) {
                     found=true;
                     //replace previous pair if better PP*
-                    if (PPStar > list.get(i).getPPStar()) {
-                        list.get(i).setPPStar(PPStar);
+                    if (PPStar > p.getPPStar()) {
+                        p.setPPStar(PPStar);
                     }
+                    break;
                 }
-                break;
             }
             //node not yet registered, do it
             if (!found) {

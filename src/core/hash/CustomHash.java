@@ -128,7 +128,7 @@ public class CustomHash implements Serializable{
         return hash.keySet();
     }
           
-    public List<Tuple> getTuples(Word w) {
+    public List<Tuple> getTuples(byte[] w) {
         return hash.get(w);
     }
 

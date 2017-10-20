@@ -221,6 +221,36 @@ public class SequenceKnife {
     }
     
     /**
+     * must be called to retireve mers one by one
+     * @return the next mer as a @Word, null is no more mers to return
+     */
+    public byte[] getNextByteWord() {
+        if (iterator>merOrder.length-1) {
+            return null;
+        }
+        int currentPosition=merOrder[iterator];
+        int charactersLeft=sequence.length-currentPosition;
+        if (charactersLeft>=minK) {
+            byte[] word=null;
+            if (charactersLeft<k) {
+                word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+charactersLeft);
+            } else {
+                word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+k);
+            }
+            iterator++;
+            return word;
+            
+        } else {
+            //Infos.println("Skip word on position "+currentPosition+": length < minK !");
+            //this allow to skip words that are too short but in the middle
+            //of the shuffled mer order, we just skip them and go to the next one.
+            iterator++;
+            return getNextByteWord();
+        }
+    }
+    
+    
+    /**
      * must be called after instantiation if one is interested to retrieve \n
      * the same shuffled mer order
      * @param seed 

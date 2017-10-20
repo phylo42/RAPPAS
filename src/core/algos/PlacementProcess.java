@@ -6,6 +6,7 @@
 package core.algos;
 
 import charts.ChartsForNodes;
+import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.math.Quantiles;
 import core.DiagSum;
 import core.QueryWord;
@@ -20,6 +21,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -40,15 +43,18 @@ import tree.PhyloTree;
  *
  * @author ben
  */
-public class AlignScoringProcess {
+public class PlacementProcess {
     
     
     //debug/////////////////////////////////////////////////////////////
     //max number of queries treated 
-    int queryLimit=1;
+    int queryLimit=1000000;
     //graph of words alignment
     boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false;
+    //test different way to select best score
+    boolean useTopTwo=false; //score only searcing top 2 values
+    boolean useSelectionAlgo=true; // score using Hoare's selection algorithm
     //debug/////////////////////////////////////////////////////////////
     
     
@@ -68,7 +74,7 @@ public class AlignScoringProcess {
      * @param nsBound
      * @param queryLimit the value of queryLimit
      */
-    public AlignScoringProcess(SessionNext_v2 session, Float nsBound, int queryLimit) {
+    public PlacementProcess(SessionNext_v2 session, Float nsBound, int queryLimit) {
         this.session=session;
         this.nsBound=nsBound;
         this.queryLimit=queryLimit;
@@ -148,7 +154,7 @@ public class AlignScoringProcess {
 
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
-            QueryWord qw=null;
+            byte[] qw=null;
             SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
 
             
@@ -160,7 +166,7 @@ public class AlignScoringProcess {
             int queryWordCounter=0;
 
             //loop on words
-            while ((qw=sk.getNextWord())!=null) {
+            while ((qw=sk.getNextByteWord())!=null) {
                 queryWordCounter++;
                 //Infos.println("Query mer: "+qw.toString());
                 
@@ -189,7 +195,7 @@ public class AlignScoringProcess {
 
             }
 
-//            Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
+//            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
 //            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
 
             //if selectedNodes is empty (no node could be associated)
@@ -358,12 +364,7 @@ public class AlignScoringProcess {
     
     
     
-    
-    
-    
-    
-    
-    
+
     /**
      * 
      * @param fp
@@ -371,10 +372,27 @@ public class AlignScoringProcess {
      * @param bwTSV
      * @param queryWordSampling
      * @param minOverlap
+     * @param logDir
+     * @param keepAtMost
+     * @param keepFactor
      * @return the number of queries effectively placed (kmers were found in DB)
      * @throws java.io.IOException
      */
-    public int processQueries(SequencePointer fp, JSONArray placements, BufferedWriter bwTSV, int queryWordSampling, int minOverlap, File logDir) throws IOException {
+    public int processQueries(  SequencePointer fp,
+                                JSONArray placements,
+                                BufferedWriter bwTSV,
+                                int queryWordSampling,
+                                int minOverlap,
+                                File logDir,
+                                int keepAtMost,
+                                float keepFactor
+            
+                                ) throws IOException {
+        
+        
+
+        
+        
         
         ///////////////////////////////////////////////////////            
         // PREPARE VECTORS USED TO ALIGN AND SCORE NODES
@@ -383,13 +401,17 @@ public class AlignScoringProcess {
         //variable size, expanded only at 1st encounter with the node
         //when nodeOccurences[nodeId]==0
         //,reset at each read
-        ArrayList<Integer> selectedNodes=new ArrayList<>();
+        ArrayList<Integer> selectedNodes=new ArrayList<>(10);
         //instanciated once
         int[] nodeOccurences=new int[session.ARTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
         float[] nodeScores=new float[session.ARTree.getNodeCount()]; // tab[score] --> index=nodeId
-        //Arrays.fill(nodeOccurences, 0);
-        //Arrays.fill(nodeScores, 0.0f);     
-
+        float[] nodeScoresCopy=new float[session.ARTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
+        float kthLargestValue=-1;
+        int numberOfBestScoreToConsiderForOutput=-1;
+        Score[] bestScoreList=new Score[keepAtMost]; //in ascending order
+        for (int i = 0; i < bestScoreList.length; i++) {
+            bestScoreList[i]=new Score(-1, Float.NEGATIVE_INFINITY);
+        }
 
         ///////////////////////////////////////////////////////////////////       
         // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
@@ -407,6 +429,7 @@ public class AlignScoringProcess {
         //map(checksum)=JSON placement object to which identical reads
         //              are associated (same score and placement)
         HashMap<String,JSONObject> checksumToJSONObject=new HashMap<>();
+        
 
         //////////////////////////////////////////////////////////////////
         // PREPARE TSV OUTPUT
@@ -433,6 +456,7 @@ public class AlignScoringProcess {
 
 
         int queryCounter=0;
+        int placedQueryCounter=0;
         long totalAlignTime=0;
         long totalScoringTime=0;
         long totalWritingTime=0;
@@ -444,9 +468,9 @@ public class AlignScoringProcess {
         while ((fasta=fp.nextSequenceAsFastaObject())!=null) {  //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
 
             queryCounter++;
-
+            
             //console display to follow the process
-            if ((queryCounter%200000)==0) {
+            if ((queryCounter%100000)==0) {
                 System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             }
             
@@ -471,7 +495,6 @@ public class AlignScoringProcess {
             if (identicalSeqsRegistry.containsKey(checksum)) {
                 identicalSeqsRegistry.get(checksum).add(subHeader);
                 Infos.println("! SKIPPED BECAUSE DUPLICATE: "+fasta.getHeader());
-                queryCounter++;
                 //before skipping, update the outputs
                 //for now, only jplace is done here...
                 //note that detailed comments about the jplace are
@@ -500,6 +523,7 @@ public class AlignScoringProcess {
             long endChecksumTime=System.currentTimeMillis();
             totalChecksumTime+=endChecksumTime-startChecksumTime;
 
+            placedQueryCounter++;
 
             Infos.println("#######################################################################");
             Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
@@ -512,10 +536,10 @@ public class AlignScoringProcess {
 
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
-            QueryWord qw=null;
+            byte[] qw=null;
             SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
-            int queryWordCounter=0;
-            int queryWordFoundCounter=0;
+            int queryKmerCount=0;
+            int queryKmerMatchingDB=0;
 
 
 
@@ -546,16 +570,16 @@ public class AlignScoringProcess {
             Infos.println("Launching scoring on candidate nodes...");
             boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
-            while ((qw=sk.getNextWord())!=null) {
+            while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
 
                 //get Pairs associated to this word
                 List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
                 if (allPairs==null) {
-                    queryWordCounter++;
+                    queryKmerCount++;
                     continue;
                 }
-                queryWordFoundCounter++;
+                queryKmerMatchingDB++;
                 
                 //System.out.println("Pairs: "+allPairs);
                 for (int i = 0; i < allPairs.size(); i++) {
@@ -569,9 +593,9 @@ public class AlignScoringProcess {
                     nodeOccurences[p.getNodeId()]+=1;
                     //score associated to originalNode x for current read
                     nodeScores[p.getNodeId()]+=p.getPPStar();
-                    
+
                     if (merStats) {
-                        merFound[p.getNodeId()][queryWordCounter]=true;
+                        merFound[p.getNodeId()][queryKmerCount]=true;
                         int extendedTreeId=session.nodeMapping.get(p.getNodeId());
                         int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
                         PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
@@ -580,7 +604,7 @@ public class AlignScoringProcess {
                         bwMerStats.append(p.getNodeId()+";"+session.ARTree.getById(p.getNodeId()).getLabel()+";");
                         bwMerStats.append(extendedTreeId+";"+extNode.getLabel()+";");
                         bwMerStats.append(originalNodeId+";"+origNode.getLabel()+";");
-                        bwMerStats.append(queryWordCounter+";");
+                        bwMerStats.append(queryKmerCount+";");
                         bwMerStats.append(String.valueOf(p.getPPStar())+";");
                         bwMerStats.append("present");
                         bwMerStats.append("\n");
@@ -591,11 +615,11 @@ public class AlignScoringProcess {
                 //graph of alignment, if asked
                 if(graphAlignment) {
                    int topPosition =session.hash.getTopPosition(qw);
-                   //System.out.println((queryWordCounter*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
-                   graphDataForTopTuples[2][queryWordCounter*xSize+topPosition]= new Double(allPairs.get(0).getPPStar());                        
+                   //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
+                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double(allPairs.get(0).getPPStar());                        
                 }
 
-                queryWordCounter++;
+                queryKmerCount++;
 
             }
             //System.out.println("  AFTER ALIGNMENT");
@@ -640,7 +664,7 @@ public class AlignScoringProcess {
             }
 
 
-            Infos.println("Proportion of query words retrieved in the hash: "+queryWordFoundCounter+"/"+queryWordCounter);
+            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
             long endAlignTime=System.currentTimeMillis();
             totalAlignTime+=(endAlignTime-startAlignTime);
             Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
@@ -648,7 +672,7 @@ public class AlignScoringProcess {
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
             if (selectedNodes.size()<1) {
-                //Infos.println("Read cannot be placed.");
+                Infos.println("Read cannot be placed.");
                 //TODO: currently this query will not be in output csv 
                 //and jplace... put them in special output ?
                 continue; //to next query
@@ -658,15 +682,14 @@ public class AlignScoringProcess {
             // NOW CORRECTING SCORING BY UNMATCHED WORDS
             ///////////////////////////////////////////////////////
             long startScoringTime=System.currentTimeMillis();
-            //now add the score corresponding to the words not found,
-            // query.e. threshold*#_words_not_scored (because no in hash)
-            int maxWords=sk.getMerCount();
+            
             int bestNodeId=-1;
             float bestScore=Float.NEGATIVE_INFINITY;
             int secondBest=-1;
             float secondScore=Float.NEGATIVE_INFINITY;
-            //sum of all scores of all nodes, used later for the score ratio
-            double allLikelihoodSums=0.0f;
+            
+            //correct scoring by score of unmatched words (i.e. the threshold)
+            //and normalize by dividing by number of kmers involved in the score
             for (Integer nodeId:selectedNodes) {
                 //System.out.println("Scoring originalNode:"+nodeId);
                 //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
@@ -675,36 +698,93 @@ public class AlignScoringProcess {
                 //Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
                 //System.out.println("originalNodeId:"+originalNodeId);
                 //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
-                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
-                System.out.println("nodeScores[nodeId]="+nodeScores[nodeId]);
-                System.out.println("double: "+((double)nodeScores[nodeId]));
-                System.out.println("math.pow:"+Math.pow(10.0, (double)nodeScores[nodeId]));
-                allLikelihoodSums+=Math.pow(10.0, ((double)nodeScores[nodeId]/maxWords));
+                //correct scoring by score of unmatched words (i.e. the threshold)
+//                System.out.print("maxWords:"+queryKmerCount);
+//                System.out.print(" nodeId:"+nodeId);
+//                System.out.print("\tscore:"+nodeScores[nodeId]);
+//                System.out.print("\toccur:"+nodeOccurences[nodeId]);
+                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(queryKmerCount-nodeOccurences[nodeId]);
                 
-                //TODO
-                //here keep track of the X best node score, X being given by option --kept-at-most
-                
-                if (nodeScores[nodeId]>bestScore) {
-                    secondBest=bestNodeId;
-                    secondScore=bestScore;
-                    bestNodeId=nodeId;
-                    bestScore=nodeScores[nodeId];
-                } else if (nodeScores[nodeId]>secondScore) {
-                    secondBest=nodeId;
-                    secondScore=nodeScores[nodeId];
+                //here keep track of the 2 best scores
+                if (useTopTwo) {
+                    if (nodeScores[nodeId]>bestScore) {
+                        secondBest=bestNodeId;
+                        secondScore=bestScore;
+                        bestNodeId=nodeId;
+                        bestScore=nodeScores[nodeId];
+                    } else if (nodeScores[nodeId]>secondScore) {
+                        secondBest=nodeId;
+                        secondScore=nodeScores[nodeId];
+                    }
                 }
             }
+            
+            
+            //now add the score corresponding to the words not found,
+            // query.e. threshold*#_words_not_scored (because no in hash)
+            //sum of all scores of all nodes, used later for the score ratio
+            double allLikelihoodSums=0.0;
+            
+            //to check what is the real ordering
+//            float[] copyOf = new float[selectedNodes.size()];
+//            int c=0;
+//            for (int nodeId:selectedNodes) {
+//                copyOf[c]=nodeScores[nodeId];
+//                c++;
+//            }
+//            Arrays.sort(copyOf);
+//            System.out.println(Arrays.toString(Arrays.copyOfRange(copyOf, 0, 10)));
+//            System.out.println(Arrays.toString(Arrays.copyOfRange(copyOf, copyOf.length-10, copyOf.length)));
+
+            //here keep track of the nth best node scores using selection algorithm
+            //this should be on average O(k.log(k) + n)
+            
+            if (useSelectionAlgo) {
+                System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
+                numberOfBestScoreToConsiderForOutput=keepAtMost;
+                //level down keepAtMost is less nodes were selected
+                if(selectedNodes.size()<keepAtMost) {
+                    numberOfBestScoreToConsiderForOutput=selectedNodes.size();
+                }
+                //selection algo, on average O(n)
+                //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
+                // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
+                //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
+                //System.out.println("numberOfBestScoreToConsiderForOutput:"+numberOfBestScoreToConsiderForOutput);
+                kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
+                //System.out.println("kthLargestValue:"+kthLargestValue);
+                //search all node scores larger than this kth value
+                int i=0;
+                for (int nodeId:selectedNodes) {
+                    if (i==numberOfBestScoreToConsiderForOutput) { 
+                        break;//we already got the nth best scores, no need to iterate more
+                    }
+                    if (nodeScores[nodeId]>=kthLargestValue) {
+                        //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
+                        bestScoreList[i].score=nodeScores[nodeId];
+                        bestScoreList[i].nodeId=nodeId;
+                        //build the total likelihood sum (for the likelihood weight ratio)
+                        //before the power of ten, divide by #words, to use the normalized score
+                        allLikelihoodSums+=Math.pow(10.0, (double)bestScoreList[i].score);
+                        i++;
+                    }
+                }
+                //finally do a sort of bestScoreList, O(k.log(k))
+                Arrays.sort(bestScoreList);
+                bestScore=bestScoreList[bestScoreList.length-1].score;
+                bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
+            }
+            
+            
             //System.out.println("  AFTER SCORING");
             //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
             //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
             Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
-            Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
-
-            //simple debug test
-            if (session.nodeMapping.get(bestNodeId)==null) { //simple test
-                System.out.println("bestNode not found: "+bestNodeId+" "+String.valueOf(session.ARTree.getById(bestNodeId).getLabel()));
-                System.exit(1);
-            }
+            //Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
+//            if (useSelectionAlgo) {
+//                System.out.println("selection algo + sort: "+Arrays.toString(bestScoreList));
+//            }
+            
 
             // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
             ////////////////////////////////////////////////////////////////
@@ -739,7 +819,7 @@ public class AlignScoringProcess {
                     //get path from this node to bestNodeId
                     //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
                     PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
-                    //System.out.println("Path to second: "+shortestPath.path);
+                    System.out.println("Path to second: "+shortestPath.path.size());
                     //path will be as:
                     //firstNode-X0-...-secondNode
                     //or nodeToTest-secondNode(X0) if immediate neighboor
@@ -763,12 +843,6 @@ public class AlignScoringProcess {
             } 
 
 
-            //basic normalization, divide score by number of words present
-            //in the query
-            float bestNormalizedScore=bestScore/maxWords;
-            Infos.println("Normalized score: "+bestNormalizedScore);
-
-
             long endScoringTime=System.currentTimeMillis();
             totalScoringTime+=endScoringTime-startScoringTime;
 
@@ -786,7 +860,7 @@ public class AlignScoringProcess {
             //write result in file if a originalNode was hit
             if (bwTSV!=null) {
                 //only score passing --nsbound if this debug option is set
-                if (bestNormalizedScore>=nsBound) {
+                if (bestScoreList[bestScoreList.length-1].score>=nsBound) {
                     //OUTPUT n°1: the CSV report of placement
                     //allow in particular to check that nodes were correclty
                     //mappes at every step (original tree, extended tree,
@@ -798,7 +872,7 @@ public class AlignScoringProcess {
                     sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
                     sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
                     sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-                    sb.append(String.valueOf(bestNormalizedScore)).append("\n");
+                    sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\n");
                 }
             }
             //OUTPUT n°2: the JSON placement object (jplace file)
@@ -808,36 +882,43 @@ public class AlignScoringProcess {
             //-or a previous placement object corresponding to an
             //identical sequence exists, then we don't the block below
             //as all the alignmnet/placement algo was skipped.
-
             
-            //TO DO , create as many placement objects as outpus asked by --keep-at-most
             
             //only score passing --nsbound if this debug option is set
-            if (bestNormalizedScore>=nsBound) {
+            if (bestScoreList[bestScoreList.length-1].score>=nsBound) {
                 //System.out.println("Score pass threshold: bestNormalizedScore="+bestNormalizedScore+" nsBound="+nsBound);
                 //object representing placements (mandatory), it contains 2 key/value couples
                 JSONObject placement=new JSONObject();
                 //first we build the "p" array, containing the position/scores of all reads
                 JSONArray pMetadata=new JSONArray();
-                //in pplacer/EPA several placements can be associated to a query
-                //we input only the best one, but that can be changed in the future
-                //"distal_length","like_weight_ratio","pendant_length","edge_num","likelihood"
-                JSONArray placeColumns=new JSONArray();
                 
-                //fake fields for compatibility with current tools (guppy, archeopteryx)
-                //should be provided as an option
-                placeColumns.add(0.1); //distal_length
-                System.out.println("allLikelihoodSums:"+allLikelihoodSums);
-                double weigth_ratio=Math.pow(10.0, (double)bestNormalizedScore)/allLikelihoodSums;
-                placeColumns.add(weigth_ratio); //like_weight_ratio column of ML-based methods
-                placeColumns.add(0.1); //pendant_length
-
-                //placeColumns.add(session.ARTree.getById(bestNodeId).getLabel()); // 1. ARTree nodeName
-                //placeColumns.add(session.extendedTree.getById(extendedTreeId).getLabel()); // 2. extended tree nodeName
-                placeColumns.add(originalNodeId); // 3. edge of original tree (original nodeId=edgeID)
-                //placeColumns.add(session.originalTree.getById(originalNodeId).getLabel()); // 4. edge of original tree (original nodeName)
-                placeColumns.add(bestNormalizedScore); // 4. PP*
-                pMetadata.add(placeColumns);
+                //we create as many lines in "p" as asked by --keep-at-most and --keep-ratio
+                double bestRatio=-1;
+                for (int i = bestScoreList.length-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
+                    //calculate weight_ratio
+                    double weigth_ratio=Math.pow(10.0, (double)bestScoreList[i].score)/allLikelihoodSums;
+                    //if best score, memorize this ratio
+                    if (i==bestScoreList.length-1) {
+                        bestRatio=weigth_ratio;
+                    }
+                    //System.out.println("Likelihood weight ratio: "+weigth_ratio);
+                    //take into account option --keep-factor
+                    if (i<bestScoreList.length-2 && weigth_ratio<(bestRatio*keepFactor)) {
+                        break;
+                    }
+                    //in pplacer/EPA several placements can be associated to a query
+                    //we input only the best one, but that can be changed in the future
+                    //"distal_length","like_weight_ratio","pendant_length","edge_num","likelihood"
+                    JSONArray placeColumns=new JSONArray();
+                    placeColumns.add(bestScoreList[i].nodeId); // 1. edge of original tree (original nodeId=edgeID)
+                    placeColumns.add(bestScoreList[i].score); // 2. PP*
+                    placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
+                    //fake fields for compatibility with current tools (guppy, archeopteryx)
+                    //should be provided as an option
+                    placeColumns.add(0.1); //distal_length
+                    placeColumns.add(0.1); //pendant_length
+                    pMetadata.add(placeColumns);
+                }
 
                 placement.put("p", pMetadata);
 
@@ -864,9 +945,9 @@ public class AlignScoringProcess {
             totalWritingTime+=endWritingTime-startWritingTime;
 
 
-            //push the stringbuffer to the CSV bufferedwriter every 50000 sequences
+            //push the stringbuffer to the CSV bufferedwriter every 25000 sequences
             if (bwTSV!=null) {
-                if ((queryCounter%50000)==0) {
+                if ((queryCounter%25000)==0) {
                     int size=sb.length();
                     bwTSV.append(sb);
                     sb=null;
@@ -900,11 +981,14 @@ public class AlignScoringProcess {
             long startResetTime=System.currentTimeMillis();
             for (Integer nodeId : selectedNodes) {
                 nodeScores[nodeId]=0.0f;
+                nodeScoresCopy[nodeId]=0.0f;
                 nodeOccurences[nodeId]=0;
             }
             selectedNodes.clear();
+            
             long endResetTime=System.currentTimeMillis();
             totalResetTime+=endResetTime-startResetTime;
+            
 
         }
         
@@ -918,17 +1002,17 @@ public class AlignScoringProcess {
         long endTotalPlacementTime=System.currentTimeMillis();
         System.out.println("############################################################");
         System.out.println("Checksum registry took in total: "+totalChecksumTime+" ms");
-        System.out.println("Alignments and pre-scoring took in total: "+totalAlignTime+" ms");
+        System.out.println("kmer matching took in total: "+totalAlignTime+" ms");
         System.out.println("Scoring took in total: "+totalScoringTime+" ms");
         System.out.println("Writing .csv and .jplace took in total: "+totalWritingTime+" ms");
         System.out.println("Reset took in total: "+totalResetTime+" ms");
         System.out.println("------------------------------------------------------------");
-        System.out.println("(per read average)");
-        System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/queryCounter)+" ms");
-        System.out.println("Alignments and pre-scoring took on average: "+((0.0+totalAlignTime)/queryCounter)+" ms");
-        System.out.println("Scoring took on average: "+((0.0+totalScoringTime)/queryCounter)+" ms");
-        System.out.println("Writing .csv and .jplace took on average: "+((0.0+totalWritingTime)/queryCounter)+" ms");
-        System.out.println("Reset took on average: "+((0.0+totalResetTime)/queryCounter)+" ms");
+        System.out.println("(per placement average)");
+        System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/placedQueryCounter)+" ms");
+        System.out.println("k-mer matching took on average: "+((0.0+totalAlignTime)/placedQueryCounter)+" ms");
+        System.out.println("Scoring took on average: "+((0.0+totalScoringTime)/placedQueryCounter)+" ms");
+        System.out.println("Writing .csv and .jplace took on average: "+((0.0+totalWritingTime)/placedQueryCounter)+" ms");
+        System.out.println("Reset took on average: "+((0.0+totalResetTime)/placedQueryCounter)+" ms");
         System.out.println("------------------------------------------------------------");
         System.out.println("Placement Process (without DB load) took: "+(endTotalPlacementTime-startTotalPlacementTime)+" ms");
         System.out.println("############################################################");
@@ -940,6 +1024,94 @@ public class AlignScoringProcess {
     public boolean parallelProcessReads() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    /**
+     * get kth largest element in average O(n) linear time (Hoare's selection algorithm)
+     * @param arr
+     * @param data 
+     * @param k th element to return
+     * @return 
+     */
+    public float selectKthLargestValue(float[] arr, int k) {
+        if (arr == null || arr.length <= k) {
+            throw new Error();
+        }
+
+        int from = 0, to = arr.length - 1;
+
+        // if from == to we reached the kth element
+        while (from < to) {
+            int r = from, w = to;
+            float mid = arr[(r + w) / 2];
+            // stop if the reader and writer meets
+            while (r < w) {
+               if (arr[r] >= mid) { // put the large values at the end
+                    float tmp = arr[w];
+                    arr[w] = arr[r];
+                    arr[r] = tmp;
+                    w--;
+                } else { // the value is smaller than the pivot, skip
+                    r++;
+                }
+        }
+        // if we stepped up (r++) we need to step one down
+        if (arr[r] > mid)
+            r--;
+
+        // the r pointer is on the end of the first k elements
+            if (k <= r) {
+                to = r;
+            } else {
+                from = r + 1;
+            }
+        }
+        return arr[k];
+    }
+    
+    
+    
+    
+    /**
+     * simple class to wrap the score and likelihood_weight_ratio associated to the n best nodes
+     */
+    private class Score implements Comparable<Score>{
+        public int nodeId;
+        public float score=Float.NEGATIVE_INFINITY;
+
+        public Score(int nodeId, float score) {
+            this.nodeId = nodeId;
+            this.score = score;
+        }
+        
+        
+        
+        @Override
+        public int compareTo(Score o) {
+            return Float.compare(this.score, o.score);
+        }  
+
+        @Override
+        public String toString() {
+            return nodeId+":"+score;
+        }
+        
+        
+    }
+    
+    private class ScoreComparator implements Comparator<Score> {
+
+//        float[] nodeScores=null;
+//        
+//        public ScoreComparator(float[] nodeScores) {
+//            
+//        
+//        }
+        @Override
+        public int compare(Score o1, Score o2) {
+            return Float.compare(o1.score, o2.score);
+        }
+    }
+    
     
     
     

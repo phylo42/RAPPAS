@@ -24,8 +24,10 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +51,9 @@ public class CustomHash_v2 implements Serializable{
     public static final int NODES_UNION=2;
     
     int nodeType=NODES_POSITION;
-    CustomHashMap<Word,HashPointer> hash=null;
+    HashMap<ByteArrayWrapper,HashPointer> hash=null;
+
+    ByteArrayWrapper wBuf=null;
     
     /**
      *
@@ -59,7 +63,8 @@ public class CustomHash_v2 implements Serializable{
      */
     public CustomHash_v2(int k, States s, int nodeType) {
         this.nodeType=nodeType;
-        hash=new CustomHashMap<>(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)*0.75).intValue(),0.95f);
+        this.wBuf=new ByteArrayWrapper(new byte[k]);
+        hash=new HashMap<ByteArrayWrapper,HashPointer>(new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)*0.75).intValue(),0.95f);
     }
     
     /**
@@ -77,21 +82,21 @@ public class CustomHash_v2 implements Serializable{
 //        cn.registerTuple(nodeId, refPos, PPStar);
         //System.out.println("word:"+w);
         //System.out.println("CustomHash type: "+nodeType);
-        SimpleWord w=new SimpleWord(word);
-        if (!hash.containsKey(w)) {
+        wBuf.setArray(word);
+        if (!hash.containsKey(wBuf)) {
             switch (nodeType) {
                 case NODES_UNION:
                     //System.out.println("new word attached to UnionPointer");
-                    hash.put(w, new UnionPointer());
+                    hash.put(new ByteArrayWrapper(word), new UnionPointer());
                     break;
                 case NODES_POSITION:
                     //System.out.println("new word attached to PositionPointer");
-                    hash.put(w, new PositionPointer());
+                    hash.put(new ByteArrayWrapper(word), new PositionPointer());
                     break;
             }
         }
         //System.out.println("update HashPointer of type: "+hash.get(w).getClass().toString());
-        hash.get(w).registerTuple(nodeId, refPos, PPStar);
+        hash.get(wBuf).registerTuple(nodeId, refPos, PPStar);
         
 
     }
@@ -100,7 +105,7 @@ public class CustomHash_v2 implements Serializable{
      * for debug purposes only (access to CustomHashMap hashtable)
      * @return 
      */
-    public CustomHashMap<Word, HashPointer> getHash() {
+    public HashMap<ByteArrayWrapper, HashPointer> getHash() {
         return hash;
     }
     
@@ -118,9 +123,9 @@ public class CustomHash_v2 implements Serializable{
      * @param w
      * @return 
      */
-    public Pair getTopPair(Word w) {
+    public Pair getTopPair(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(w))!=null)
+        if ((cn=hash.get(wBuf.setArray(w)))!=null)
             return cn.getBestPair();
         else
             return null;
@@ -132,9 +137,9 @@ public class CustomHash_v2 implements Serializable{
      * @param w
      * @return null if word not in present in hash
      */
-    public List<Pair> getPairsOfTopPosition(Word w) {
+    public List<Pair> getPairsOfTopPosition(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(w))!=null) {
+        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
             return cn.getPairList(cn.getBestPosition());
         } else {
             return null;
@@ -146,9 +151,9 @@ public class CustomHash_v2 implements Serializable{
      * @param w
      * @return 
      */
-    public int[] getPositions(Word w) {
+    public int[] getPositions(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(w))!=null) {
+        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
             return cn.getPositions();
         } else {
             return null;
@@ -160,9 +165,9 @@ public class CustomHash_v2 implements Serializable{
      * @param w
      * @return -1 if word not in hash
      */
-    public int getTopPosition(Word w) {
+    public int getTopPosition(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(w))!=null) {
+        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
             return cn.getBestPosition();
         } else {
             return -1;
@@ -186,10 +191,10 @@ public class CustomHash_v2 implements Serializable{
      * @param w
      * @return 
      */
-    public List<Pair> getPairs(Word w) {
+    public List<Pair> getPairs(byte[] w) {
         ArrayList<Pair> l =new ArrayList();
-        for (int p: hash.get(w).getPositions()) {
-            l.addAll(hash.get(w).getPairList(p));
+        for (int p: hash.get(wBuf.setArray(w)).getPositions()) {
+            l.addAll(hash.get(wBuf.setArray(w)).getPairList(p));
         }
         return l;
     }
@@ -200,15 +205,15 @@ public class CustomHash_v2 implements Serializable{
      * @param position
      * @return 
      */
-    public List<Pair> getPairs(Word w,int position) {
-        if (hash.containsKey(w)) {
-            return hash.get(w).getPairList(position);
+    public List<Pair> getPairs(byte[] w,int position) {
+        if (hash.containsKey(wBuf.setArray(w))) {
+            return hash.get(wBuf.setArray(w)).getPairList(position);
         } else {
             return null;
         }
     }
 
-    public Set<Word> keySet() {
+    public Set<ByteArrayWrapper> keySet() {
         return hash.keySet();
     }
     
@@ -233,7 +238,7 @@ public class CustomHash_v2 implements Serializable{
      */
     @Deprecated
     public void reducetoSmallHash(int X) {
-        List<Word> collect = hash.keySet()  .stream() 
+        List<ByteArrayWrapper> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
                                             .filter((w) -> ((PositionPointer)hash.get(w)).limitToXPairsPerPosition(X))
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
@@ -248,7 +253,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public void reducetoSmallHash_v2(int X) {
         assert X>0;
-        List<Word> collect = hash.keySet()  .stream() 
+        List<ByteArrayWrapper> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
                                             .filter((w) -> hash.get(w).getPairCountInTopPosition()>X)
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
@@ -258,20 +263,7 @@ public class CustomHash_v2 implements Serializable{
     }    
     
     
-    /**
-     * Basic DFS to explore the RED/BLACK tree associated to buckets
-     * @param root 
-     */
-    int DFSCount=0;
-    private int bucketDFS(CustomHashMap.TreeNode root) {
-        if (root.getLeft()!=null) {
-            bucketDFS(root.getLeft());
-        }
-        if (root.getRight()!=null) {
-            bucketDFS(root.getRight());
-        }
-        return DFSCount++;
-    }
+
     
     
     
@@ -534,25 +526,25 @@ public class CustomHash_v2 implements Serializable{
 
             
             //HERE Search how many Nodes per hash bucket.
-            if (testBuckets) {
-                CustomHashMap.Node<Word, HashPointer>[] accessToHash = hash2.getHash().getAccessToHash();
-                for (int i = 0; i < accessToHash.length; i++) {
-                    Object node = accessToHash[i];
-                    if (node instanceof core.hash.CustomHashMap.TreeNode) {
-                        CustomHashMap.TreeNode n=(CustomHashMap.TreeNode)node;
-                        System.out.println("i"+i+"=TreeNode: "+n.getValue()+" left:"+n.getLeft()+" right:"+n.getRight());
-                        System.out.println("Size:"+hash2.bucketDFS(n));
-                    } else if (node instanceof core.hash.CustomHashMap.Node) {
-                        if (node!=null)
-                            System.out.println("i"+i+"=Node: "+node.getClass().getName());
-                        else
-                            System.out.println(node);
-                    } else {
-                        System.out.println(node);
-                    }
-                }
-            }
-            fw.close();
+//            if (testBuckets) {
+//                CustomHashMap.Node<byte[], HashPointer>[] accessToHash = hash2.getHash().getAccessToHash();
+//                for (int i = 0; i < accessToHash.length; i++) {
+//                    Object node = accessToHash[i];
+//                    if (node instanceof core.hash.CustomHashMap.TreeNode) {
+//                        CustomHashMap.TreeNode n=(CustomHashMap.TreeNode)node;
+//                        System.out.println("i"+i+"=TreeNode: "+n.getValue()+" left:"+n.getLeft()+" right:"+n.getRight());
+//                        System.out.println("Size:"+hash2.bucketDFS(n));
+//                    } else if (node instanceof core.hash.CustomHashMap.Node) {
+//                        if (node!=null)
+//                            System.out.println("i"+i+"=Node: "+node.getClass().getName());
+//                        else
+//                            System.out.println(node);
+//                    } else {
+//                        System.out.println(node);
+//                    }
+//                }
+//            }
+//            fw.close();
             
             
             ///////////////////////////////////////////////////::
@@ -565,7 +557,6 @@ public class CustomHash_v2 implements Serializable{
             //byte[] word={1, 0, 0, 0, 3, 1, 2, 0};
             //byte[] word={1, 0, 0, 0, 3, 1, 2, 0};
                     
-            Word w=new SimpleWord(word);
             
             //all words in hash
             //hash.keySet().stream().forEach(key->{System.out.println(key);});
@@ -575,16 +566,16 @@ public class CustomHash_v2 implements Serializable{
             
             System.out.println("-----");
             if (doHashV1)
-                System.out.println(hash.getTuples(w).toString().replaceAll(",", "\n"));
+                System.out.println(hash.getTuples(word).toString().replaceAll(",", "\n"));
             System.out.println("-----");
-            int[] positions=hash2.getPositions(w);
+            int[] positions=hash2.getPositions(word);
             for (int p:positions) {
-                System.out.println(p+":\n"+hash2.getPairs(w, p).toString().replaceAll(",", "\n"));
+                System.out.println(p+":\n"+hash2.getPairs(word, p).toString().replaceAll(",", "\n"));
             }
             
             int i=0;
-            for (Word wo:hash2.keySet()) {
-                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo).size());
+            for (ByteArrayWrapper wo:hash2.keySet()) {
+                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo.getArray()).size());
                 i++;
             }
             

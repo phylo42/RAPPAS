@@ -8,7 +8,7 @@ package main_v2;
 import core.AAStates;
 import core.DNAStates;
 import core.States;
-import core.algos.AlignScoringProcess;
+import core.algos.PlacementProcess;
 import core.algos.SequenceKnife;
 import core.hash.CustomHash_v2;
 import etc.Environement;
@@ -79,9 +79,17 @@ public class Main_PLACEMENT_v07 {
      * @param workDir
      * @param callString
      * @param nsBound
+     * @param keepAtMost
+     * @param keepRatio
      * @return 
      */
-    public int doPlacements(File q, File db, File workDir, String callString,Float nsBound) {
+    public int doPlacements(    File q,
+                                File db,
+                                File workDir,
+                                String callString,
+                                Float nsBound,
+                                int keepAtMost,
+                                float keepRatio) {
 
         try {
                         
@@ -110,8 +118,7 @@ public class Main_PLACEMENT_v07 {
             //LOAD SESSION//////////////////////////////////////////////////////
             //logs
             String logPath=workDir+File.separator+"logs"+File.separator;
-            //ancestral reconstruciton
-            String ARPath=workDir+File.separator+"AR"+File.separator;
+
 
             //mers size
             Infos.println("k="+session.k);
@@ -126,11 +133,6 @@ public class Main_PLACEMENT_v07 {
             //type of Analysis AA or DNA////////////////////////////////////////
             States s=session.states; 
 
-            //PREPARE DIRECTORIES///////////////////////////////////////////////
-            if (!workDir.exists()) {workDir.mkdir();}
-            if (!new File(logPath).exists()) {new File(logPath).mkdir();}
-            if (!new File(ARPath).exists()) {new File(ARPath).mkdir();}
-            
             
             //SOME BASIC DISPLAY TO CONTROL SESSION LOAD////////////////////////
             Infos.println(session.align.describeAlignment(false));
@@ -225,14 +227,14 @@ public class Main_PLACEMENT_v07 {
             //NORMALIZED SCORE BELOW THE CALIBRATION RESULT WILL NOT BE OUTPUT
             //IN THE JPLACE OUPUT
             //TODO: HERE EXTEND WITH PARALLELISM
-            AlignScoringProcess asp=null;
+            PlacementProcess asp=null;
             if (nsBound!=null) {  //norm score bound was set manually via command line
                 System.out.println("User provided nsBound !");
-                asp=new AlignScoringProcess(session,nsBound, queryLimit);
+                asp=new PlacementProcess(session,nsBound, queryLimit);
             } else {
-                asp=new AlignScoringProcess(session,session.calibrationNormScore, queryLimit);
+                asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,queryWordSampling,minOverlap,new File(logPath));
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);
             //close TSV logs
             bwTSVPlacement.close();
             fp.closePointer();
@@ -255,15 +257,12 @@ public class Main_PLACEMENT_v07 {
             //- in pplacer: "distal_length", "edge_num", "like_weight_ratio", "likelihood", "pendant_length"
             //- in EPA: "edge_num", "likelihood", "like_weight_ratio", "distal_length", "pendant_length"
             JSONArray fList=new JSONArray();
+            fList.add("edge_num"); //i.e equal to the id of the son originalNode
+            fList.add("likelihood"); //
+            fList.add("like_weight_ratio");
             //add fake fields to be compatible with current visualisation tools
             fList.add("distal_length");
-            fList.add("like_weight_ratio");
             fList.add("pendant_length");
-            //fList.add("ARTree_nodeName");
-            //fList.add("ExtendedTree_nodeName");
-            fList.add("edge_num"); //i.e equal to the id of the son originalNode
-            //fList.add("edge_label"); //i.e equal to the id of the son originalNode
-            fList.add("likelihood"); //rename to likelihood even if it is not, but for compatibility with other programs
             top.put("fields", fList);
             
             //put all the elements in the top JSON object
@@ -275,6 +274,7 @@ public class Main_PLACEMENT_v07 {
             out=out.replaceAll("\\],\"","\\],\n\t\"");   //],"
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
             out=out.replaceAll(",\"placements\":\\[\\{\"p\"", ",\n\"placements\":\n[\n{\n\t\"p\"");
+            out=out.replaceAll("\\],\\[", "\\],\n\t\\[");
 
             //out=out.replace("]},", "]},"); //]}
             
@@ -295,7 +295,7 @@ public class Main_PLACEMENT_v07 {
             //just for coherent output, close the percentage
             System.out.println(queryCounter+"/"+totalQueries+" queries analyzed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             //just for coherent output, close the percentage
-            System.out.println(placements.size()+" significant placements reported in JPlace output.");
+            System.out.println(placements.size()+" different placements reported in JPlace output.");
             System.out.println("(Note: "+(100-(((0.0+placements.size())/totalQueries)*100))+"% of the queries are duplicates)");            
             Infos.println("#######################################################################");
 

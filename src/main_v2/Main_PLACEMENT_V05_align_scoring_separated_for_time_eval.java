@@ -392,7 +392,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                     //Infos.println("Query mer: "+qw.toString());
 
                     //get top Pair_16_32_bit associated to this word
-                    Pair topPair = hash.getTopPair(qw);
+                    Pair topPair = hash.getTopPair(qw.getWord());
                     //if this word is not registered in the hash
                     if (topPair==null) {
                         queryWordCounter++;
@@ -402,7 +402,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                     queryWordCounter++;
                     queryWordFoundCounter++;
                     //top position of this word
-                    int topPosition=hash.getPositions(qw)[0];
+                    int topPosition=hash.getPositions(qw.getWord())[0];
                     //graph of alignment, if asked
                     if(graphAlignment) {
                         int topDiagSumPos=topPosition-qw.getOriginalPosition()+(queryLength-minOverlap);
@@ -466,7 +466,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
                     if ((refPos=alignmentMatrix[queryPos])>-1) {
                         QueryWord word=sk.getWordAt(queryPos);
                         //pairs of (nodeId,PP*)
-                        List<Pair> allPairs = hash.getPairs(word, refPos);
+                        List<Pair> allPairs = hash.getPairs(word.getWord(), refPos);
                         for (int i = 0; i < allPairs.size(); i++) {
                             Pair p = allPairs.get(i);
                             //score only encountered nodes

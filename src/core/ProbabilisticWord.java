@@ -56,7 +56,9 @@ public class ProbabilisticWord extends AbstractWord implements Comparable<Probab
     }
 
     public void update(byte[] key, float value, int originalPosition) {
-        this.word=key;
+        for (int i = 0; i < key.length; i++) {
+            this.word[i]=key[i]; //copy the primitives to avoid array copies when calling update()
+        }
         this.ppStarValue=value;
         this.originalPosition=originalPosition;
     }

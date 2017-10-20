@@ -52,6 +52,7 @@ public class SessionNext_v2 {
     public HashMap<Integer,Integer> nodeMapping=null;
     public PProbasSorted parsedProbas=null;    
     public CustomHash_v2 hash=null;
+    public boolean onlyFakes=false;
     public Float calibrationNormScore=null;
     
     /**
@@ -87,8 +88,9 @@ public class SessionNext_v2 {
         this.parsedProbas=arpl.getPProbas();
     }
     
-    public void associateHash(CustomHash_v2 hash) {
+    public void associateHash(CustomHash_v2 hash, boolean onlyFakes) {
         this.hash=hash;
+        this.onlyFakes=onlyFakes;
     }
     
     public void associateCalibrationScore(float score) {
@@ -126,6 +128,7 @@ public class SessionNext_v2 {
             Infos.println("Storing of Calibration");
             oos.writeFloat(calibrationNormScore); 
             Infos.println("Storing of Hash");
+            oos.writeBoolean(onlyFakes);
             oos.writeObject(hash);           
             oos.close();
             fos.close();
@@ -173,6 +176,10 @@ public class SessionNext_v2 {
             s.calibrationNormScore=ois.readFloat();
             if (loadHash) {
                 Infos.println("Loading Hash");
+                s.onlyFakes=ois.readBoolean();
+                if (s.onlyFakes) {
+                    System.out.println("Loaded DB only contain ancestral kmers associated to fake nodes.");
+                }
                 s.hash = (CustomHash_v2)ois.readObject();
             }
 

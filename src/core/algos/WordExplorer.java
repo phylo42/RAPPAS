@@ -12,7 +12,6 @@ import core.PProbasSorted;
 import core.ProbabilisticWord;
 import core.hash.CustomHash;
 import core.States;
-import core.Word;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -23,13 +22,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.PhyloTree;
@@ -42,11 +39,11 @@ public class WordExplorer {
 
     //set the array to the number of words that will be tested
     //initial capacity of the arraylist is arbitrary, but tests showed that
-    //only ~ 100-1000 words survived the 2 tresholds if both set at 1e-6
+    //only ~ 10000 words survived the 2 tresholds if both set at 1e-6
     //table realloc will occur if we get behind this size,
     //I was initally using testedWordCount as the maximum size, but this is
-    //a memory killer ...
-    int initalCapacity=100;
+    //a memory killer for nothing...
+    int initalCapacity=1000;
     ArrayList<ProbabilisticWord> words=new ArrayList(initalCapacity);
      
     //external parameters
@@ -63,17 +60,7 @@ public class WordExplorer {
     byte[] word=null;
     PProbasSorted ppSet=null;
     boolean boundReached=false;
-    
-    //variables to manage words list 
-    //i.e. to avoid too many memory footprint, this list need to be created at 
-    //instanciation of WordExplorer, then the ProbabilisticWord created in the list
-    //should not be replaced with new instanticiations but the primitive content
-    //is updated instaed.
-    //as the ProbabilisticWord list return by WordExplorer will have a different
-    //size for different i,j positions (see exploreWords() ), we need variables
-    //to determine which fraction of the list [0,n] should be returned
-    int lastIndexOfCurrentRecursion=-1; //increases while exploreWords() finds new words
-    boolean newCall=true; //to know when we are at first recursive call
+
 
     /**
      *
@@ -92,17 +79,12 @@ public class WordExplorer {
         this.ppSet=ppSet;
     }
     
-    public List<ProbabilisticWord> getRetainedWords() {
-        if (lastIndexOfCurrentRecursion>-1) {
-            return words.subList(0, lastIndexOfCurrentRecursion);
-        } else {
-            return new ArrayList<>(1); //empty list
-        }
+    public ArrayList<ProbabilisticWord> getRetainedWords() {
+        return words;
     }
     
     /**
-     * return list of words retained for the k-mer determine by the i,j reference
-     * alignment coordinates
+     * 
      * @param i
      * @param j
      */
@@ -112,13 +94,6 @@ public class WordExplorer {
         //  and refPosition+k being the maximumi, with i=k-1.
         //- with j the current state, descending ordered by their PP, from j=0
         //  to a maxumim j=(#states)
-        
-        //init index if this is a new call for these i,j interval
-        if (newCall) {
-            newCall=false;
-            lastIndexOfCurrentRecursion=-1;
-        }
-        
         //System.out.println("IN: "+i+" "+j);
         word[i-refPosition]=ppSet.getState(nodeId, i, j);
         //System.out.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
@@ -132,15 +107,7 @@ public class WordExplorer {
         if (i==(refPosition+k-1)) {
             //register word
             if (!boundReached) {
-                //words list is too small to fit new word
-                if (words.size()-1<lastIndexOfCurrentRecursion) {
-                    lastIndexOfCurrentRecursion++;
-                    words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
-                //words list big enough, just update value in the word object    
-                } else {
-                    words.get(lastIndexOfCurrentRecursion).update(Arrays.copyOf(word, word.length), currentLogSum, refPosition);
-                    lastIndexOfCurrentRecursion++;
-                }
+                words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
                 //System.out.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
             }
             //decrease before return

@@ -12,10 +12,12 @@ import core.ProbabilisticWord;
 import core.QueryWord;
 import core.States;
 import core.Word;
-import core.algos.AlignScoringProcess;
+import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
+import core.algos.WordExplorer_v2;
+import core.hash.ByteArrayWrapper;
 import core.hash.CustomHash_v2;
 import etc.Environement;
 import etc.Infos;
@@ -35,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -85,6 +88,12 @@ public class Main_DBBUILD_2 {
      * @param nsBound
      * @param noCalibration 
      * @param unionHash 
+     * @param reduction 
+     * @param reducedAlignFile 
+     * @param reductionRatio 
+     * @param onlyFakeNodes 
+     * @param keepAtMost 
+     * @param keepRatio 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -107,7 +116,13 @@ public class Main_DBBUILD_2 {
                                         String callString,
                                         Float nsBound,
                                         boolean noCalibration,
-                                        boolean unionHash
+                                        boolean unionHash,
+                                        boolean reduction,
+                                        File reducedAlignFile,
+                                        double reductionRatio,
+                                        boolean onlyFakeNodes,
+                                        int keepAtMost,
+                                        float keepRatio
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
         
@@ -129,7 +144,7 @@ public class Main_DBBUILD_2 {
             String extendedTreePath=workDir.getAbsolutePath()+File.separator+"extended_trees"+File.separator;
             //ancestral reconstruciton
             String ARPath=workDir.getAbsolutePath()+File.separator+"AR"+File.separator;
-            
+
             
             //build of extended ARTree/////////////////////////////////////////////
             float minBranchLength=-1.0f;
@@ -177,15 +192,14 @@ public class Main_DBBUILD_2 {
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             
-            //////////////////////
-            //PREPARE DIRECTORIES
+            //prepare directories
             if (!workDir.exists()) {workDir.mkdir();}
             if (!new File(logPath).exists()) {new File(logPath).mkdir();}
             if (!new File(extendedTreePath).exists()) {new File(extendedTreePath).mkdir();}
             if (!new File(ARPath).exists()) {new File(ARPath).mkdir();}
             
-            //////////////////////
-            //LOAD ORIGINAL ALIGNMENT
+            
+            //load original alignment
             FASTAPointer fp=new FASTAPointer(a, false);
             Fasta fasta=null;
             ArrayList<Fasta> fastas=new ArrayList<>();
@@ -195,10 +209,26 @@ public class Main_DBBUILD_2 {
             Alignment align=new Alignment(fastas);
             Infos.println(align.describeAlignment(false));
             fp.closePointer();
-            
-            /////////////////////
-            //PARSE ORIGINAL TREE
-            //read line
+
+            //if necessary reduces alignement
+            if (reduction) {
+                System.out.println("Alignment reduction based on ratio="+reductionRatio);
+                System.out.println("Before reduction: "+align.describeAlignment(false));
+                align.reduceAlignment(reductionRatio);
+                System.out.println("After reduction: "+align.describeAlignment(false));
+                //write a copy of reduced align
+                File reducedAlign=null;
+                if (reducedAlignFile!=null) {
+                    reducedAlign=reducedAlignFile;
+                } else {
+                    reducedAlign=new File(workDir.getAbsolutePath()+File.separator+"align.reduced");
+                }
+                align.writeAlignmentAsFasta(reducedAlign);
+                Infos.println("Reduced alignment written to: "+reducedAlign.getAbsolutePath());
+            }
+
+
+            //parse tree
             String line=null;
             String tline=null;
             BufferedReader br=new BufferedReader(new FileReader(t));
@@ -206,9 +236,10 @@ public class Main_DBBUILD_2 {
             br.close();
             PhyloTree originalTree = NewickReader.parseNewickTree2(tline, forceRooting, false);
             Infos.println("Original tree read.");
-            
-            //test if alignment/tree labels are matching.
-            //if not, exit before raising more errors later in the algo...
+
+
+            //integrity tests: do alignment/tree labels match ?
+            //if not, exit before raising more errors later in the algos...
             List<String> alignLabels = Arrays.asList(align.getRowLabels());
             int notFoundCount=0;
             for (Iterator<String> iterator = alignLabels.iterator(); iterator.hasNext();) {
@@ -220,6 +251,9 @@ public class Main_DBBUILD_2 {
             }
             if (notFoundCount>0) {System.exit(1);}
             alignLabels=null;
+            
+            
+            
             
             /////////////////////
             //BUILD RELAXED TREE
@@ -356,7 +390,7 @@ public class Main_DBBUILD_2 {
             
             
             ////////////////////////////////////////////////////////////////////
-            //LOAD THE NEW POSTERIOR PROBAS AND PAML TREE MADE FROM THE AR
+            //LOAD THE NEW POSTERIOR PROBAS AND CORRESPONDING AR TREE
 
             SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
             
@@ -365,9 +399,10 @@ public class Main_DBBUILD_2 {
             //the ARResults object will take in charge 2 operations:
             //1. the call of the wrapper used to parse the AR results
             //   these will return ARTree and Posterior Probas
-            //2. the correspondance between the original ARTree node names
-            //   and the modification operated by the AR software (which
-            //   renames internal nodes/labels in its own way...)
+            //2. the correspondance between the original extendedTree node names
+            //   and the modification in ARTree operated by the AR software
+            //   (which renames internal nodes/labels in its own way...)
+            //3. the 
             System.out.println("Parsing Ancestral reconstruction results...");
             arpr=new ARResults(    arpl,
                                         align,
@@ -377,6 +412,10 @@ public class Main_DBBUILD_2 {
                                     );
             session.associateStates(s);
             session.associateInputs(arpr);
+            
+            
+            
+            
             
             //output in the AR directory the mapping of the nodes for debugging
             File map=new File(arpl.ARPath.getAbsolutePath()+File.separator+"ARtree_id_mapping.tsv");
@@ -396,32 +435,31 @@ public class Main_DBBUILD_2 {
             
             Infos.println("#########STARTING SERIES OF RAPID TEST TO CONFIRM ANCESTRAL RECONSTRUCTION AND PARSING WENT FINE########");
             //to compare node mapping , output state of the original tree and extended tree
-            Infos.println("OriginalTree rooted: "+originalTree.isRooted());
-            Infos.println("OriginalTree # nodes: "+originalTree.getNodeCount());
-            Infos.println("OriginalTree leaves: "+originalTree.getLeavesByDFS().size());
-            Infos.println("OriginalTree internal nodes: "+originalTree.getInternalNodesByDFS().size());
-            Infos.println("OriginalTree nodes by DFS:      "+originalTree.getNodeIdsByDFS().size());
-            Infos.println("OriginalTree node names by DFS: "+originalTree.getLabelsByDFS().size());
-            Infos.println("ExtendedTree rooted: "+extendedTree.isRooted());
-            Infos.println("ExtendedTree # nodes: "+extendedTree.getNodeCount());
-            Infos.println("ExtendedTree leaves: "+extendedTree.getLeavesByDFS().size());
-            Infos.println("ExtendedTree internal nodes: "+(extendedTree.getNodeIdsByDFS().size()-extendedTree.getLeavesByDFS().size()));
-            Infos.println("ExtendedTree new Fake leaves: "+extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray().length);
-            Infos.println("ExtendedTree new Fake internal nodes: "+extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray().length);
-            Infos.println("ExtendedTree nodes by DFS:      "+extendedTree.getNodeIdsByDFS().size());
-            Infos.println("ExtendedTree node names by DFS: "+extendedTree.getLabelsByDFS().size());
+            Infos.println("OriginalTree rooted: "+session.originalTree.isRooted());
+            Infos.println("OriginalTree # nodes: "+session.originalTree.getNodeCount());
+            Infos.println("OriginalTree leaves: "+session.originalTree.getLeavesByDFS().size());
+            Infos.println("OriginalTree internal nodes: "+session.originalTree.getInternalNodesByDFS().size());
+            Infos.println("OriginalTree nodes by DFS:      "+session.originalTree.getNodeIdsByDFS().size());
+            Infos.println("OriginalTree node names by DFS: "+session.originalTree.getLabelsByDFS().size());
+            Infos.println("ExtendedTree rooted: "+session.extendedTree.isRooted());
+            Infos.println("ExtendedTree # nodes: "+session.extendedTree.getNodeCount());
+            Infos.println("ExtendedTree leaves: "+session.extendedTree.getLeavesByDFS().size());
+            Infos.println("ExtendedTree internal nodes: "+(session.extendedTree.getNodeIdsByDFS().size()-session.extendedTree.getLeavesByDFS().size()));
+            Infos.println("ExtendedTree new Fake leaves: "+session.extendedTree.getFakeLeaves().stream().mapToInt(n->n.getId()).toArray().length);
+            Infos.println("ExtendedTree new Fake internal nodes: "+session.extendedTree.getFakeInternalNodes().stream().mapToInt(n->n.getId()).toArray().length);
+            Infos.println("ExtendedTree nodes by DFS:      "+session.extendedTree.getNodeIdsByDFS().size());
+            Infos.println("ExtendedTree node names by DFS: "+session.extendedTree.getLabelsByDFS().size());
             //Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) "+extendedTree.getFakeNodeMapping());
             Infos.println("Node mapping between ExtendedTree/OriginalTree nodes,  map(fake)=original : ("+extendedTree.getFakeNodeMapping().size()+" mappings) ");
             //to raidly check that AR ARTree was read correctly
-            PhyloTree ARTree=arpr.getARTree();
-            Infos.println("ARTree rooted: "+ARTree.isRooted());
-            Infos.println("ARTree # nodes: "+ARTree.getNodeCount());
-            Infos.println("ARTree leaves: "+ARTree.getLeavesByDFS().size());
-            Infos.println("ARTree internal nodes: "+ARTree.getInternalNodesByDFS().size());
-            Infos.println("ARTree nodes by DFS:      "+ARTree.getNodeIdsByDFS().size());
-            Infos.println("ARTree node names by DFS: "+ARTree.getLabelsByDFS().size());
+            Infos.println("ARTree rooted: "+session.ARTree.isRooted());
+            Infos.println("ARTree # nodes: "+session.ARTree.getNodeCount());
+            Infos.println("ARTree leaves: "+session.ARTree.getLeavesByDFS().size());
+            Infos.println("ARTree internal nodes: "+session.ARTree.getInternalNodesByDFS().size());
+            Infos.println("ARTree nodes by DFS:      "+session.ARTree.getNodeIdsByDFS().size());
+            Infos.println("ARTree node names by DFS: "+session.ARTree.getLabelsByDFS().size());
             //Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) "+arpr.getTreeMapping().toString());
-            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+arpr.getTreeMapping().entrySet().size()+" mappings) ");
+            Infos.println("Node mapping between ARTree/ExtendedTree nodes, map(extended)=AR: ("+session.nodeMapping.entrySet().size()+" mappings) ");
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 3 first PP:"+Arrays.deepToString(arpr.getPProbas().getPPSet(0, 0, 3)));
             Infos.println("NodeId=0, 3 first states:"+ Arrays.deepToString(arpr.getPProbas().getStateSet(0, 0, 3)));
@@ -436,17 +474,16 @@ public class Main_DBBUILD_2 {
             
             //positions for which word are built
             SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
-            int[] refPositions=knife.getMerOrder();     
             
             //prepare hash
             System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
             if (unionHash) {
                     System.out.println("Union hash used.");
-                    session.hash=new CustomHash_v2(k, s, CustomHash_v2.NODES_UNION);
+                    session.associateHash(new CustomHash_v2(k, s, CustomHash_v2.NODES_UNION),onlyFakeNodes);
             } else {
                     System.out.println("Positional hash used.");
-                    session.hash=new CustomHash_v2(k, s, CustomHash_v2.NODES_POSITION);
+                    session.associateHash(new CustomHash_v2(k, s, CustomHash_v2.NODES_POSITION),onlyFakeNodes);
             }
             
             //Word Explorer used to buildDBFull ancestral words
@@ -454,7 +491,12 @@ public class Main_DBBUILD_2 {
             Infos.println("Building all PP* probas...");
             int totalTuplesBuiltForHash=0;
             int nodeCounter=0;
-            int nodeTested=ARTree.getInternalNodesByDFS().size(); //for time logging
+            int nodeTested=-1;
+            if (onlyFakeNodes) {
+                nodeTested=session.ARTree.getInternalNodesByDFS().size(); //for time logging
+            } else {
+                nodeTested=session.extendedTree.getFakeInternalNodes().size(); //for time logging
+            }
             int nodeBatchSize=nodeTested/ 10;                     //for time logging
             int nodeBatchExplorationSize=0;                       //for time logging
             long perBatchExploreTime=0;                       //for time logging
@@ -465,6 +507,14 @@ public class Main_DBBUILD_2 {
             
             
             for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
+                
+                //if only fake nodes asked by the user
+                if (onlyFakeNodes) {
+                    int extTreeId=session.nodeMapping.get(nodeId);
+                    if (!session.extendedTree.getById(extTreeId).isFakeNode()) {
+                        continue;
+                    }
+                }
                 
                 if (nodeCounter%nodeBatchSize==0) {
                     Infos.println("Node: "+nodeId +" ("+((0.0+nodeCounter)/nodeTested)*100.0+"%)" );
@@ -481,19 +531,19 @@ public class Main_DBBUILD_2 {
                     //if(nodeId!=709)
                     //    continue;
                     //DEBUG                
-                WordExplorer wd =null;
+                WordExplorer_v2 wd =null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
 
                     if(pos+k-1>align.getLength()-1)
                         continue;
                     //DEBUG
-                    //if(pos<1198 || pos>1202)
-                    //    continue;
+                    //if(pos>3)
+                    //    System.exit(1);
                     //DEBUG
                     //double startScanTime=System.currentTimeMillis();
                     //Infos.println("---- Current align pos: "+pos +" to "+(pos+(k-1)));
-                    wd =new WordExplorer(   k,
+                    wd =new WordExplorer_v2(   k,
                                             pos,
                                             nodeId,
                                             arpr.getPProbas(),
@@ -547,11 +597,15 @@ public class Main_DBBUILD_2 {
             session.hash.sortData();
             
             double endHashBuildTime=System.currentTimeMillis();
-            System.out.println("Hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            System.out.println("Words in the hash: "+session.hash.keySet().size());
+            System.out.println("Hash construction took: "+(endHashBuildTime-startHashBuildTime)+" ms");
+            System.out.println("k-mers in the hash: "+session.hash.keySet().size());
             System.out.println("Tuples explored:"+totalTuplesBuiltForHash);
 
-                       
+            if (session.hash.keySet().size()<1) {
+                System.out.println("Something went wrong... hash is empty.");
+                System.exit(1);
+            }
+            
             ////////////////////////////////////////////////////////////////////
             //OUTPUT SOME STATS IN THE WORKDIR
             
@@ -564,8 +618,8 @@ public class Main_DBBUILD_2 {
                 Infos.println("Building #positions_per_word histogram...");
                 double[] values=new double[session.hash.keySet().size()];
                 int i=0;
-                for (Iterator<Word> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    Word next = iterator.next();
+                for (Iterator<ByteArrayWrapper> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+                    byte[] next = iterator.next().getArray();
                     values[i]=new Double(session.hash.getPositions(next).length);
                     i++;
                 }
@@ -594,8 +648,8 @@ public class Main_DBBUILD_2 {
                 Infos.println("Building #nodes_per_1stposition histogram...");
                 double[] values=new double[session.hash.keySet().size()];
                 int i=0;
-                for (Iterator<Word> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    Word next = iterator.next();
+                for (Iterator<ByteArrayWrapper> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+                    byte[] next = iterator.next().getArray();
                     values[i]=new Double(session.hash.getPairsOfTopPosition(next).size());
                     i++;
                 }
@@ -664,7 +718,7 @@ public class Main_DBBUILD_2 {
                         System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
                         //generate random sequences
                         rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
-                        AlignScoringProcess asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                         //do the placement and calculate score quantiles
                         calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                         System.out.println("Score bound: "+calibrationNormScoreMedium);
@@ -683,7 +737,7 @@ public class Main_DBBUILD_2 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
@@ -696,7 +750,7 @@ public class Main_DBBUILD_2 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
@@ -709,7 +763,7 @@ public class Main_DBBUILD_2 {
                         }
                         System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
                         //do the placement and calculate score quantiles
-                        AlignScoringProcess asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                         calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                         System.out.println("Score bound: "+calibrationNormScoreUnion);
                         //closes the calibration log  
@@ -727,7 +781,7 @@ public class Main_DBBUILD_2 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small union DB...");
@@ -740,7 +794,7 @@ public class Main_DBBUILD_2 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound);
+                        placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound,keepAtMost,keepRatio);
                     }                    
                 }
                 
@@ -758,7 +812,7 @@ public class Main_DBBUILD_2 {
             BufferedWriter bwTSVCalibration=null;
             int bufferSize=2097152; // buffer of 2mo
             //generate random sequences for calibrations
-            AlignScoringProcess asp=null;
+            PlacementProcess asp=null;
             RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
             
             
@@ -778,7 +832,7 @@ public class Main_DBBUILD_2 {
                             bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
                         }
                         System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
-                        asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                        asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                         //do the placement and calculate score quantiles
                         float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                         System.out.println("Score bound: "+calibrationNormScoreLarge);
@@ -837,7 +891,7 @@ public class Main_DBBUILD_2 {
                         bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
-                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                     //do the placement and calculate score quantiles
                     calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreMedium);
@@ -893,7 +947,7 @@ public class Main_DBBUILD_2 {
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
                     //do the placement and calculate score quantiles
-                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                     calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreSmall);
                     //closes the calibration log  
@@ -945,7 +999,7 @@ public class Main_DBBUILD_2 {
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
                     //do the placement and calculate score quantiles
-                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                     calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreUnion);
                     //closes the calibration log  
@@ -970,7 +1024,7 @@ public class Main_DBBUILD_2 {
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
                     //do the placement and calculate score quantiles
-                    asp=new AlignScoringProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
                     calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
                     //closes the calibration log  

@@ -8,17 +8,15 @@ package main_v2;
 import outputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.AAStates;
+import core.DNAStatesShifted;
 import core.ProbabilisticWord;
-import core.QueryWord;
 import core.States;
-import core.Word;
 import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
-import core.algos.WordExplorer_v2;
-import core.hash.ByteArrayWrapper;
 import core.hash.CustomHash_v2;
+import core.hash.CustomHash_v4_FastUtil81;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -37,9 +35,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -156,10 +156,10 @@ public class Main_DBBUILD_2 {
             //build of Hash/////////////////////////////////////////////////////
             int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             int min_k=k;
-            
             float sitePPThreshold=Float.MIN_VALUE;
             float PPStarThreshold=(float)Math.pow((alpha*0.25),k);
             float PPStarThresholdAsLog=(float)Math.log10(PPStarThreshold);
+            boolean wordCompression=true;
             Infos.println("k="+k);
             Infos.println("factor="+alpha);
             Infos.println("PPStarThreshold="+PPStarThreshold);
@@ -182,9 +182,10 @@ public class Main_DBBUILD_2 {
             boolean buildRelaxedTree=true;
             //skip paml marginal ancestral reconstruction (made on extended ARTree)
             boolean launchAR=true;
-            
             boolean histogramNumberPositionsPerNode=true;
             boolean hitsogramNumberNodesPerFirstPosition=true;
+            
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
             
             ////////////////////////////////////////////////////////////////////
@@ -475,63 +476,95 @@ public class Main_DBBUILD_2 {
             //positions for which word are built
             SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
             
+            //if this is DNA, will use kmer compression
+            if (session.states instanceof DNAStatesShifted) {
+                System.out.println("Using kmer compression.");
+                wordCompression=true;
+            } else {
+                wordCompression=false;
+            }
+            
             //prepare hash
             System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
             if (unionHash) {
                     System.out.println("Union hash used.");
-                    session.associateHash(new CustomHash_v2(k, s, CustomHash_v2.NODES_UNION),onlyFakeNodes);
+                    session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_UNION),onlyFakeNodes);
             } else {
                     System.out.println("Positional hash used.");
-                    session.associateHash(new CustomHash_v2(k, s, CustomHash_v2.NODES_POSITION),onlyFakeNodes);
+                    session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_POSITION),onlyFakeNodes);
             }
             
-            //Word Explorer used to buildDBFull ancestral words
-            //with a branch and bound approach
+            //prepare batches for ancestral k-mer generation
+            double startHashBuildTime=System.currentTimeMillis();
+            ArrayList<Integer> nodesTested=new ArrayList<>(100);
+            if (onlyFakeNodes) {
+                //search which nodes are fakes
+                ArrayList<Integer> possiblytested=session.ARTree.getInternalNodesByDFS();
+                for (int i = 0; i < possiblytested.size(); i++) {
+                    Integer nodeId = possiblytested.get(i);
+                    int extTreeId=session.nodeMapping.get(nodeId);
+                    if (session.extendedTree.getById(extTreeId).isFakeNode()) {
+                        nodesTested.add(nodeId);
+                    } 
+                }
+            } else {
+                //take all internal nodes, fakes + original
+                nodesTested=session.ARTree.getInternalNodesByDFS();
+            }
+            int nodeBatchSize=nodesTested.size()/10;         //for time logging
+            int perBatchWordExplorerLaunchs=0;               //for time logging
+            int perBatchExploreTime=0;                       //for time logging
+            int perBatchInsertionTime=0;                     //for time logging
+            int perBatchTotalTuples=0;                       //for time logging
+            Infos.println("# node tested: "+nodesTested.size());
+            Infos.println("Batch size: "+nodeBatchSize);
+                    
+                    
             Infos.println("Building all PP* probas...");
             int totalTuplesBuiltForHash=0;
             int nodeCounter=0;
-            int nodeTested=-1;
-            if (onlyFakeNodes) {
-                nodeTested=session.ARTree.getInternalNodesByDFS().size(); //for time logging
-            } else {
-                nodeTested=session.extendedTree.getFakeInternalNodes().size(); //for time logging
-            }
-            int nodeBatchSize=nodeTested/ 10;                     //for time logging
-            int nodeBatchExplorationSize=0;                       //for time logging
-            long perBatchExploreTime=0;                       //for time logging
-            long perBatchInsertionTime=0;                     //for time logging
-            
-            double startHashBuildTime=System.currentTimeMillis();
-            
-            
-            
-            for (int nodeId:session.ARTree.getInternalNodesByDFS()) {
+            boolean warnedAboutMemory=false;
+            for (int nodeId:nodesTested) {
                 
-                //if only fake nodes asked by the user
-                if (onlyFakeNodes) {
-                    int extTreeId=session.nodeMapping.get(nodeId);
-                    if (!session.extendedTree.getById(extTreeId).isFakeNode()) {
-                        continue;
-                    }
-                }
+                //double startMerScanTime=System.currentTimeMillis();
                 
                 if (nodeCounter%nodeBatchSize==0) {
-                    Infos.println("Node: "+nodeId +" ("+((0.0+nodeCounter)/nodeTested)*100.0+"%)" );
+                    System.out.println("Node: "+nodeCounter +" ("+((0.0+nodeCounter)/nodesTested.size())*100.0+"%)" );
+                    Infos.println("Time: "+dateFormat.format(Calendar.getInstance().getTime()));
                     Infos.println("Current "+Environement.getMemoryUsage());
-                    Infos.println("# WordExplorer launched in this batch: "+nodeBatchExplorationSize);
-                    Infos.println("WordExplorer took on average: "+(((perBatchExploreTime+0.0)/nodeBatchExplorationSize)*0.000001)+" ms");
-                    Infos.println("Hash insertions took on average: "+(((perBatchInsertionTime+0.0)/nodeBatchExplorationSize)*0.000001)+" ms");
+                    Infos.println("# WordExplorer launches in this batch: "+perBatchWordExplorerLaunchs);
+                    Infos.println("WordExplorer took on average: "+(((perBatchExploreTime+0.0)/perBatchWordExplorerLaunchs)*0.000001)+" ms");
+                    Infos.println("# kmers generated in this batch: "+perBatchTotalTuples);
+                    Infos.println("Hash insertions took on average: "+(((perBatchInsertionTime+0.0)/perBatchWordExplorerLaunchs)*0.000001)+" ms");
+                    //free memory before next batch
+                    System.gc();
+                    warnedAboutMemory=false;
                     //reset exploration timers 
-                    nodeBatchExplorationSize=0;
+                    perBatchWordExplorerLaunchs=0;
                     perBatchExploreTime=0;
                     perBatchInsertionTime=0;
+                    perBatchTotalTuples=0;
                 }
-                    //DEBUG
-                    //if(nodeId!=709)
-                    //    continue;
-                    //DEBUG                
-                WordExplorer_v2 wd =null;
+                
+                //check the status of memory,
+                //if more than 80% of allocated heap is used
+                //attempt a trimming of the hashtables
+                double usage=Environement.getMemoryUsageAsMB()/Environement.getHeapMaxAsMB();
+                if (usage > 0.8) {
+                    if (!warnedAboutMemory) {
+                        System.out.println(">80% of memory allocation reached. Now activating aggressive hash trimming...");
+                    }
+                    warnedAboutMemory=true;
+                    session.hash.sortData();
+                }
+                
+
+                    
+                //Word Explorer used to buildDBFull ancestral words
+                //with a branch and bound approach
+                //WordExplorer_v2 wd =null;
+                WordExplorer wd=null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
 
@@ -543,55 +576,60 @@ public class Main_DBBUILD_2 {
                     //DEBUG
                     //double startScanTime=System.currentTimeMillis();
                     //Infos.println("---- Current align pos: "+pos +" to "+(pos+(k-1)));
-                    wd =new WordExplorer_v2(   k,
+                    wd =new WordExplorer(   k,
                                             pos,
                                             nodeId,
                                             arpr.getPProbas(),
-                                            PPStarThresholdAsLog
+                                            PPStarThresholdAsLog,
+                                            wordCompression,
+                                            session.states
                                         );
                     
                     
-                    long startExploreTime=System.nanoTime();
+                    double startExploreTime=System.currentTimeMillis();
                     for (int j = 0; j < arpr.getPProbas().getStateCount(); j++) {
                         wd.exploreWords(pos, j);
                     }
-                    long endExploreTime=System.nanoTime();
+                    double endExploreTime=System.currentTimeMillis();
                     perBatchExploreTime+=(endExploreTime-startExploreTime);
                     
                     
-                    double startInsertionTime=System.nanoTime();
+                    double startInsertionTime=System.currentTimeMillis();
                     //register the words in the hash
                     for (ProbabilisticWord w:wd.getRetainedWords()) {
-                        session.hash.addTuple(w.getWord(), w.getPpStarValue(), nodeId, w.getOriginalPosition());
+                        int extTreeId=session.nodeMapping.get(nodeId);
+                        int originalId=session.extendedTree.getFakeToOriginalId(extTreeId);
+                        session.hash.addTuple(w.getWord(), w.getPpStarValue(), originalId, w.getOriginalPosition());
                     }
                     totaTuplesInNode+=wd.getRetainedWords().size();
-                    long endInsertionTime=System.nanoTime();
+                    double endInsertionTime=System.currentTimeMillis();
                     perBatchInsertionTime+=(endInsertionTime-startInsertionTime);
-                    
-                    
-                    //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
-                    //Infos.println("Words in this position:"+wd.getRetainedWords().size());
-                    
                     //double endScanTime=System.currentTimeMillis();
-                    //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
+                    
+
+                    //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
+//                    Infos.println("Words in this position:"+wd.getRetainedWords().size());
+//                    Infos.println("Explorer time:"+(endExploreTime-startExploreTime));
+//                    Infos.println("Insertion time:"+(endInsertionTime-startInsertionTime));
+//                    Infos.println("==Word search took "+(endScanTime-startScanTime)+" ms");
+                    
                     
                     wd=null;
                     
-                    nodeBatchExplorationSize++;
+                    perBatchWordExplorerLaunchs++;
                     
                 }
+                perBatchTotalTuples+=totaTuplesInNode;
                 totalTuplesBuiltForHash+=totaTuplesInNode;
-                
-                
-                //register all words in the hash
-                //Infos.println("Tuples in this node:"+totaTuplesInNode);
                 //double endMerScanTime=System.currentTimeMillis();
+                //register all words in the hash
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 nodeCounter++;
                 
             }
-
+            //for logging a 100%
+            System.out.println("Node: LAST (100%)" );
             
             Infos.println("Sorting hash components...");
             session.hash.sortData();
@@ -618,16 +656,20 @@ public class Main_DBBUILD_2 {
                 Infos.println("Building #positions_per_word histogram...");
                 double[] values=new double[session.hash.keySet().size()];
                 int i=0;
-                for (Iterator<ByteArrayWrapper> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    byte[] next = iterator.next().getArray();
+                double max=0;
+                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+                    byte[] next = iterator.next();
                     values[i]=new Double(session.hash.getPositions(next).length);
+                    if (values[i]>max) {
+                        max=values[i];
+                    }
                     i++;
                 }
                 //jfreechat histogram construction and output as image
                 HistogramDataset dataset = new HistogramDataset();
                 dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-                int bins=25;
-                dataset.addSeries("Big",values,bins);
+                int bins=50;
+                dataset.addSeries("Big",values,bins,0,max);
                 String plotTitle = "#positions_per_word"; 
                 String xaxis = "#positions";
                 String yaxis = "proportion"; 
@@ -648,17 +690,21 @@ public class Main_DBBUILD_2 {
                 Infos.println("Building #nodes_per_1stposition histogram...");
                 double[] values=new double[session.hash.keySet().size()];
                 int i=0;
-                for (Iterator<ByteArrayWrapper> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    byte[] next = iterator.next().getArray();
-                    values[i]=new Double(session.hash.getPairsOfTopPosition(next).size());
+                double max=0;
+                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+                    byte[] next = iterator.next();
+                    values[i]=new Double(session.hash.getPairsOfTopPosition2(next).size());
+                    if (values[i]>max) {
+                        max=values[i];
+                    }
                     i++;
                 }
                 //jfreechat histogram construction and output as image
                 HistogramDataset dataset = new HistogramDataset();
                 dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-                int bins=25;
-                dataset.addSeries("Big",values,bins,0,500);
-                String plotTitle = "#nodes_per_1stposition"; 
+                int bins=50;
+                dataset.addSeries("Big",values,bins,0,max);
+                String plotTitle = "#nodes_per_kmers"; 
                 String xaxis = "#nodes";
                 String yaxis = "proportion"; 
                 PlotOrientation orientation = PlotOrientation.VERTICAL; 

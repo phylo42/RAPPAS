@@ -5,6 +5,8 @@
  */
 package core.hash;
 
+import gnu.trove.map.TIntObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,9 +53,7 @@ public class UnionPointer implements HashPointer,Serializable {
 //            //System.out.println("In node: First pair created: ");
 //            //assign new pair if node not already registered
 //            list.add(new Pair_16_32_bit(nodeId, PPStar));
-//        }
-        
-        
+//        }        
         if (list.size()>0) {
             boolean found=false;
             for (Pair p:list) {
@@ -76,11 +76,6 @@ public class UnionPointer implements HashPointer,Serializable {
             list.add(new Pair_16_32_bit(nodeId, PPStar));
         }
 
-        
-        
-        
-        
-        
     }
     
     /**
@@ -171,14 +166,11 @@ public class UnionPointer implements HashPointer,Serializable {
         @Override
         public boolean add(Pair e) {
             boolean ok= super.add(e);
-            this.trimToSize(); //force arrylist capacity to preserve a max of memory
+            //this.trimToSize(); //force arrylist capacity to preserve a max of memory
             return ok;
         }
-        
-        
-
-
     }
 
-
+    
+    
 }

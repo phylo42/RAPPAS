@@ -15,6 +15,9 @@ import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.PAMLWrapper;
+import it.unimi.dsi.fastutil.chars.Char2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -22,7 +25,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +39,7 @@ import tree.PhyloTree;
  * (nodeId, PP*)
  * @author ben
  */
-public class CustomHash_v2 implements Serializable{
+public class CustomHash_v4_FastUtil81 implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
@@ -46,70 +48,55 @@ public class CustomHash_v2 implements Serializable{
     
     int nodeType=NODES_UNION;
     
-    HashMap<ByteArrayWrapper,HashPointer> hash=null;
+    Object2ObjectOpenCustomHashMap<byte[],UnionPointerWithMap> hash;
 
-    ByteArrayWrapper wBuf=null;
     
-    int maxPointerSize=-1;
-    long addTupleCalls=0l;
-    long totalContainsTime=0l;
-    long totalRegisterTime=0l;
+    ArrayList<Pair> pairsBuffer =new ArrayList(1024);
+    
+    int maxCapacitySize=-1;
+
     /**
      *
      * @param k
      * @param s
      * @param nodeType one of NODES_UNION or POSITION_UNION
      */
-    public CustomHash_v2(int k, States s, int nodeType) {        
-        this.maxPointerSize=new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue();
+    public CustomHash_v4_FastUtil81(int k, States s, int nodeType) {        
+        this.maxCapacitySize=new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue();
         this.nodeType=nodeType;
-        this.wBuf=new ByteArrayWrapper(new byte[k]);
         //internal tests showed that with k<14 we generally get at least 75% of the possible k-mers
-        hash=new HashMap<>(new Double(maxPointerSize*0.75).intValue(),0.8f);
+        this.hash=new Object2ObjectOpenCustomHashMap<>(
+                            new Double(maxCapacitySize*0.75).intValue(),  //intial capacity
+                            0.8f, //inital load factor                
+                            new HashStrategy()
+                        );
     }
     
     /**
      * only entry point to fill the hash (used at DB generation)
-     * @param w
+     * @param word
      * @param PPStar
      * @param nodeId
      * @param refPos 
      */
     public void addTuple(byte[] word, float PPStar,int nodeId,int refPos) {
-
-       long containsStart=System.nanoTime();
-       wBuf.setArray(word);
-       HashPointer cn=null;
-       if ((cn=hash.get(wBuf))==null) {
-            switch (nodeType) {
-                case NODES_UNION:
-                    //System.out.println("new word attached to UnionPointer");
-                    hash.put(wBuf, cn=new UnionPointer());
-                    break;
-                case NODES_POSITION:
-                    //System.out.println("new word attached to PositionPointer");
-                    hash.put(wBuf, cn=new PositionPointer());
-                    break;
-            }
-            
+        
+        if (!hash.containsKey(word)) {            
+            UnionPointerWithMap hp=new UnionPointerWithMap();
+            hp.registerTuple(nodeId, refPos, PPStar);
+            hash.put(word, hp);
+        } else {
+            //update list of pairs
+            hash.get(word).registerTuple(nodeId, refPos, PPStar);
         }
-        long containsEnd=System.nanoTime();
-        totalContainsTime+=(containsEnd-containsStart);
         
-        long registerStart=System.nanoTime();
-        //System.out.println("update HashPointer of type: "+hash.get(w).getClass().toString());
-        cn.registerTuple(nodeId, refPos, PPStar);
-        long registerEnd=System.nanoTime();
-        totalRegisterTime+=(registerEnd-registerStart);
-        
-        addTupleCalls++;
     }
 
     /**
      * for debug purposes only (access to CustomHashMap hashtable)
      * @return 
      */
-    public HashMap<ByteArrayWrapper, HashPointer> getHash() {
+    public Object2ObjectOpenCustomHashMap<byte[],UnionPointerWithMap> getHash() {
         return hash;
     }
     
@@ -129,10 +116,11 @@ public class CustomHash_v2 implements Serializable{
      */
     public Pair getTopPair(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null)
+        if ((cn=hash.get(w))!=null) {
             return cn.getBestPair();
-        else
+        } else {
             return null;
+        }
     }    
     
     /**
@@ -141,14 +129,26 @@ public class CustomHash_v2 implements Serializable{
      * @param w
      * @return null if word not in present in hash
      */
+    @Deprecated
     public List<Pair> getPairsOfTopPosition(byte[] w) {
+        
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
+        if ((cn=hash.get(w))!=null) {
             return cn.getPairList(cn.getBestPosition());
         } else {
             return null;
         }
     }  
+    
+    public Char2FloatMap.FastEntrySet getPairsOfTopPosition2(byte[] w) {
+        UnionPointerWithMap up=null;
+        if ((up=hash.get(w))!=null) {
+            return hash.get(w).getPairs();
+        } else {
+            return null;
+        }
+        
+    }
     
     /**
      * reference alignment positions associated to a word
@@ -157,7 +157,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public int[] getPositions(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
+        if ((cn=hash.get(w))!=null) {
             return cn.getPositions();
         } else {
             return null;
@@ -171,7 +171,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public int getTopPosition(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
+        if ((cn=hash.get(w))!=null) {
             return cn.getBestPosition();
         } else {
             return -1;
@@ -181,6 +181,9 @@ public class CustomHash_v2 implements Serializable{
     
     
     public void sortData() {
+        //trim hash to max size
+        this.hash.trim(maxCapacitySize);
+        //do sorting
         double startTime=System.currentTimeMillis();
         AtomicInteger pairCount=new AtomicInteger(0);
         hash.values().stream().forEach( l -> {l.sort();pairCount.addAndGet(l.getPairCountInTopPosition());} );
@@ -196,11 +199,11 @@ public class CustomHash_v2 implements Serializable{
      * @return 
      */
     public List<Pair> getPairs(byte[] w) {
-        ArrayList<Pair> l =new ArrayList();
-        for (int p: hash.get(wBuf.setArray(w)).getPositions()) {
-            l.addAll(hash.get(wBuf.setArray(w)).getPairList(p));
+        pairsBuffer.clear();
+        for (int p: hash.get(w).getPositions()) {
+            pairsBuffer.addAll(hash.get(w).getPairList(p));
         }
-        return l;
+        return pairsBuffer;
     }
     
     /**
@@ -210,29 +213,22 @@ public class CustomHash_v2 implements Serializable{
      * @return 
      */
     public List<Pair> getPairs(byte[] w,int position) {
-        if (hash.containsKey(wBuf.setArray(w))) {
-            return hash.get(wBuf.setArray(w)).getPairList(position);
+        if (hash.containsKey(w)) {
+            return hash.get(w).getPairList(position);
         } else {
             return null;
         }
-    }
-
-    public Set<ByteArrayWrapper> keySet() {
+    }    
+    
+    public Set<byte[]> keySet() {
         return hash.keySet();
     }
-    
-    
-    
     
     /**
      * empty all the positions which where not associated to the best PP*
      */
     public void reduceToMediumHash() {
-        
-        hash.keySet().stream().forEach((next) -> {
-            ((PositionPointer)hash.get(next)).clearPairsOfWorsePositions();
-        });
-        
+        return;
     }
 
     /**
@@ -242,13 +238,7 @@ public class CustomHash_v2 implements Serializable{
      */
     @Deprecated
     public void reducetoSmallHash(int X) {
-        List<ByteArrayWrapper> collect = hash.keySet()  .stream() 
-                                            //.peek((w)->System.out.println("REDUCING:"+w))
-                                            .filter((w) -> ((PositionPointer)hash.get(w)).limitToXPairsPerPosition(X))
-                                            //.peek((w)->System.out.println("TRASHED!:"+w))
-                                            .collect(Collectors.toList());
-        collect.stream().forEach((w)-> {hash.remove(w);});
-        collect=null;
+        return;
     }
     
     /**
@@ -257,27 +247,14 @@ public class CustomHash_v2 implements Serializable{
      */
     public void reducetoSmallHash_v2(int X) {
         assert X>0;
-        List<ByteArrayWrapper> collect = hash.keySet()  .stream() 
+        List<byte[]> collect = hash.keySet().stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
-                                            .filter((w) -> hash.get(w).getPairCountInTopPosition()>X)
+                                            .filter((w) -> hash.get(w).getPairs().size()>X)
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
                                             .collect(Collectors.toList());
         collect.stream().forEach((w)-> {hash.remove(w);});
         collect=null;
     }    
-    
-    
-    public long getTotalContainsTime() {
-        return this.totalContainsTime;
-    }
-
-    public long getTotalRegisterTime() {
-        return this.totalRegisterTime;
-    }
-    
-    public long getTotalAddTupleCalls() {
-        return this.addTupleCalls;
-    }
     
     
     ////////////////////////////////////////////////////////////////////////////
@@ -464,7 +441,7 @@ public class CustomHash_v2 implements Serializable{
             testBuckets=false;
             
             //prepare simplified hash
-            CustomHash_v2 hash2=new CustomHash_v2(k,s,NODES_POSITION);
+            CustomHash_v4_FastUtil81 hash2=new CustomHash_v4_FastUtil81(k,s,NODES_POSITION);
 
             Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
             Infos.println("Building all words probas...");
@@ -591,8 +568,8 @@ public class CustomHash_v2 implements Serializable{
             }
             
             int i=0;
-            for (ByteArrayWrapper wo:hash2.keySet()) {
-                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo.getArray()).size());
+            for (byte[] wo:hash2.keySet()) {
+                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo).size());
                 i++;
             }
             
@@ -601,9 +578,9 @@ public class CustomHash_v2 implements Serializable{
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(CustomHash_v2.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash_v4_FastUtil81.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(CustomHash_v2.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash_v4_FastUtil81.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         

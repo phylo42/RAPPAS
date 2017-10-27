@@ -18,6 +18,8 @@ import core.States;
 import core.algos.SequenceKnife;
 import core.hash.Pair;
 import core.hash.CustomHash_v2;
+import core.hash.CustomHash_v3_Trove303;
+import core.hash.CustomHash_v4_FastUtil81;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -184,7 +186,7 @@ public class Main_PLACEMENT_V05_align_scoring_separated_for_time_eval {
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
-            CustomHash_v2 hash=session.hash;
+            CustomHash_v4_FastUtil81 hash=session.hash;
             Infos.println(Environement.getMemoryUsage());
             long endLoadTime=System.currentTimeMillis();
             System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");

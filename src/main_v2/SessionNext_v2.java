@@ -9,6 +9,8 @@ import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
 import core.hash.CustomHash_v2;
+import core.hash.CustomHash_v3_Trove303;
+import core.hash.CustomHash_v4_FastUtil81;
 import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;
@@ -51,7 +53,7 @@ public class SessionNext_v2 {
      */
     public HashMap<Integer,Integer> nodeMapping=null;
     public PProbasSorted parsedProbas=null;    
-    public CustomHash_v2 hash=null;
+    public CustomHash_v4_FastUtil81 hash=null;
     public boolean onlyFakes=false;
     public Float calibrationNormScore=null;
     
@@ -88,7 +90,7 @@ public class SessionNext_v2 {
         this.parsedProbas=arpl.getPProbas();
     }
     
-    public void associateHash(CustomHash_v2 hash, boolean onlyFakes) {
+    public void associateHash(CustomHash_v4_FastUtil81 hash, boolean onlyFakes) {
         this.hash=hash;
         this.onlyFakes=onlyFakes;
     }
@@ -178,9 +180,11 @@ public class SessionNext_v2 {
                 Infos.println("Loading Hash");
                 s.onlyFakes=ois.readBoolean();
                 if (s.onlyFakes) {
-                    System.out.println("Loaded DB only contain ancestral kmers associated to fake nodes.");
+                    //System.out.println("Loaded DB only contain ancestral kmers associated to fake nodes.");
+                } else {
+                    System.out.println("Loaded DB only also contain ancestral kmers associated to original nodes.");
                 }
-                s.hash = (CustomHash_v2)ois.readObject();
+                s.hash = (CustomHash_v4_FastUtil81)ois.readObject();
             }
 
             ois.close();

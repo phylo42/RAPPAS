@@ -214,8 +214,7 @@ public class PositionPointer implements HashPointer,Serializable {
         @Override
         public boolean add(Pair e) {
             boolean ok= super.add(e);
-            this.trimToSize(); //force arrylist capacity to preserve a max 
-            //of memory
+            //this.trimToSize(); //force arrylist capacity to preserve a max of memory
             return ok;
         }
         

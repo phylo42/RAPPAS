@@ -17,31 +17,48 @@ import java.util.LinkedHashMap;
 public class DNAStates extends AbstractStates implements Serializable {
     
     private static final long serialVersionUID = 6001L;
+    
+    char[]states = {'A','T','C','G','N','-'};
+    byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05}; 
 
     public DNAStates() {
-        
-        states =new LinkedHashMap<>();
-        bytes =new LinkedHashMap<>();
-    
-        states.put((byte)0, 'A');
-        states.put((byte)1, 'T');
-        states.put((byte)2, 'C');
-        states.put((byte)3, 'G');
-        bytes.put('A',(byte)0);
-        bytes.put('T',(byte)1);
-        bytes.put('C',(byte)2);
-        bytes.put('G',(byte)3);
         //ambigous states which are allowed
         ambigousStates=2;
-        states.put((byte)4, 'N');
-        states.put((byte)5, '-');
-        bytes.put('N',(byte)4);
-        bytes.put('-',(byte)5);
     }
+
+    @Override
+    protected byte charToByte(char c) {
+        byte b=-1;
+        switch (c) {
+            case 'a':
+                b=0x00; break;
+            case 'A':
+                b=0x00; break;
+            case 't':
+                b=0x01; break;
+            case 'T':
+                b=0x01; break;
+            case 'c':
+                b=0x02; break;
+            case 'C':
+                b=0x02; break;
+            case 'g':
+                b=0x03; break;
+            case 'G':
+                b=0x03; break;
+            case 'N':
+                b=0x04; break;
+            case '-':
+                b=0x05; break;
+        }
+        return b;
+    }
+    
+    
     
     @Override
     public char byteToState(byte b) {
-        return states.get(b);
+        return states[b];
     }
     
     @Override
@@ -50,7 +67,7 @@ public class DNAStates extends AbstractStates implements Serializable {
             c='T';
         }
         try {
-            return bytes.get(c);
+            return bytes[charToByte(c)];
         } catch (NullPointerException ex) {
             //ex.printStackTrace();
             Infos.println("Unexpected (not ATUCGN) state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
@@ -63,20 +80,19 @@ public class DNAStates extends AbstractStates implements Serializable {
     public String getSequence(byte[] bytes) {
         char[] c=new char[bytes.length];
         for (int i = 0; i < c.length; i++) {
-            c[i]=states.get(bytes[i]);
-            
+            c[i]=states[bytes[i]];
         }
         return new String(c);
     }
 
     @Override
     public int getStateCount() {
-        return states.size();
+        return states.length;
     }
     
     @Override
     public int getNonAmbiguousStatesCount() {
-        return states.size()-ambigousStates;
+        return states.length-ambigousStates;
     }
 
     @Override
@@ -84,7 +100,17 @@ public class DNAStates extends AbstractStates implements Serializable {
         if (c=='U') {
             c='T';
         }
-        return bytes.get(c).intValue();
+        return bytes[charToByte(c)];
+    }
+
+    @Override
+    public byte[] compressMer(byte[] bytes) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public char[] expandMer(byte[] mer, int k) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 

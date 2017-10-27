@@ -113,7 +113,7 @@ public class Main_PLACEMENT_v07 {
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             //LOADING ALL DATA FROM THE INPUT DATABASE
-            long startLoadTime=System.currentTimeMillis();
+
             
             //LOAD SESSION//////////////////////////////////////////////////////
             //logs
@@ -159,8 +159,7 @@ public class Main_PLACEMENT_v07 {
 //                dbSize="union";
 //            }
             Infos.println(Environement.getMemoryUsage());
-            long endLoadTime=System.currentTimeMillis();
-            System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
+
             Environement.printMemoryUsageDescription();
 
             ////////////////////////////////////////////////////////////////////
@@ -230,6 +229,7 @@ public class Main_PLACEMENT_v07 {
             PlacementProcess asp=null;
             if (nsBound!=null) {  //norm score bound was set manually via command line
                 System.out.println("User provided nsBound !");
+                
                 asp=new PlacementProcess(session,nsBound, queryLimit);
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
@@ -275,7 +275,8 @@ public class Main_PLACEMENT_v07 {
             out=out.replaceAll("\\]\\}\\],", "\\]\n\\}\n\\],\n"); //]}]
             out=out.replaceAll(",\"placements\":\\[\\{\"p\"", ",\n\"placements\":\n[\n{\n\t\"p\"");
             out=out.replaceAll("\\],\\[", "\\],\n\t\\[");
-
+            out=out.replaceAll("\"p\":\\[\\[","\"p\":\n\t\\[\\[");
+            out=out.replaceAll("\"nm\":\\[\\[","\"nm\":\n\t\\[\\[");
             //out=out.replace("]},", "]},"); //]}
             
             FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));
@@ -296,7 +297,7 @@ public class Main_PLACEMENT_v07 {
             System.out.println(queryCounter+"/"+totalQueries+" queries analyzed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             //just for coherent output, close the percentage
             System.out.println(placements.size()+" different placements reported in JPlace output.");
-            System.out.println("(Note: "+(100-(((0.0+placements.size())/totalQueries)*100))+"% of the queries are duplicates)");            
+            System.out.println("(Note: "+(((0.0+queryCounter-placements.size())/totalQueries)*100)+"% of the queries are duplicates)");            
             Infos.println("#######################################################################");
 
 

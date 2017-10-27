@@ -49,6 +49,7 @@ public class Alignment implements Serializable {
         this.colPartitionIds=colPartitionIds;
         this.reduced=reduced;
         this.reductionThreshold=reductionThreshold;
+        this.gapProportions=gapProportions;
     }
     
     /**

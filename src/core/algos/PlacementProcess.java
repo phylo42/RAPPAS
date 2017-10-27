@@ -6,14 +6,18 @@
 package core.algos;
 
 import charts.ChartsForNodes;
-import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.math.Quantiles;
+import core.DNAStatesShifted;
 import core.DiagSum;
-import core.QueryWord;
 import core.hash.Pair;
 import etc.Infos;
 import inputs.Fasta;
 import inputs.SequencePointer;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.chars.Char2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import java.awt.GridLayout;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -47,8 +51,11 @@ public class PlacementProcess {
     
     
     //debug/////////////////////////////////////////////////////////////
+    //csv log
+    boolean csvLog=false;
     //max number of queries treated 
-    int queryLimit=1000000;
+    int queryLimit=Integer.MAX_VALUE;
+    //int queryLimit=1000000;
     //graph of words alignment
     boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false;
@@ -390,7 +397,7 @@ public class PlacementProcess {
                                 ) throws IOException {
         
         
-
+        System.out.println("Starting to place queries...");
         
         
         
@@ -417,18 +424,38 @@ public class PlacementProcess {
         // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
         AbstractChecksum checksumGenerator=null;
         try {
-            checksumGenerator = JacksumAPI.getChecksumInstance("sha256");
-            checksumGenerator.setEncoding(AbstractChecksum.HEX);
+            checksumGenerator = JacksumAPI.getChecksumInstance("crc32");
+            checksumGenerator.setEncoding(AbstractChecksum.BASE32);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Main_PLACEMENT_v07.class.getName()).log(Level.SEVERE, null, ex);
         }
         //map to associate seqeunce checksums to Fasta headers
         //map(checksum)=List of headers corresponding to identical sequences
-        HashMap<String,ArrayList<String>> identicalSeqsRegistry=new HashMap<>();
+//        Object2ObjectOpenCustomHashMap<byte[],Integer> identicalSeqsRegistry=new Object2ObjectOpenCustomHashMap(new Hash.Strategy<byte[]>() {
+//            @Override
+//            public int hashCode(byte[] o) {
+//                return Arrays.hashCode(o);
+//            }
+//
+//            @Override
+//            public boolean equals(byte[] a, byte[] b) {
+//                return Arrays.equals(a, b);
+//            }
+//        });
         //map to associate sequence checksums to JSONObject
         //map(checksum)=JSON placement object to which identical reads
         //              are associated (same score and placement)
-        HashMap<String,JSONObject> checksumToJSONObject=new HashMap<>();
+        Object2ObjectOpenCustomHashMap<byte[],JSONObject> checksumToJSONObject=new Object2ObjectOpenCustomHashMap(new Hash.Strategy<byte[]>() {
+            @Override
+            public int hashCode(byte[] o) {
+                return Arrays.hashCode(o);
+            }
+
+            @Override
+            public boolean equals(byte[] a, byte[] b) {
+                return Arrays.equals(a, b);
+            }
+        });
         
 
         //////////////////////////////////////////////////////////////////
@@ -470,7 +497,7 @@ public class PlacementProcess {
             queryCounter++;
             
             //console display to follow the process
-            if ((queryCounter%100000)==0) {
+            if ((queryCounter%10000)==0) {
                 System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
             }
             
@@ -485,40 +512,43 @@ public class PlacementProcess {
             //are too heavy in memory
             long startChecksumTime=System.currentTimeMillis();
             checksumGenerator.reset(); //make it ready before next checksum computation
-            checksumGenerator.update(fasta.getSequence(false).getBytes());
-            String checksum = checksumGenerator.getFormattedValue();
+            checksumGenerator.update(fasta.getSequence(true).getBytes());
+            byte[] checksum = checksumGenerator.getByteArray();
             int cutIndex=fasta.getHeader().indexOf(" ");
-            if (cutIndex<0) //basically, space not found
+            if (cutIndex<0) { //basically, space not found
                 cutIndex=fasta.getHeader().length();
+            }
             String subHeader=fasta.getHeader().substring(0,cutIndex);
             //if this query sequence was already encountered
-            if (identicalSeqsRegistry.containsKey(checksum)) {
-                identicalSeqsRegistry.get(checksum).add(subHeader);
+            JSONObject placement =null;
+            if ((placement=checksumToJSONObject.get(checksum))!=null) {
+                //ArrayList<String> array = identicalSeqsRegistry.get(checksum);
+                //array.add(subHeader);
                 Infos.println("! SKIPPED BECAUSE DUPLICATE: "+fasta.getHeader());
+                //+" MULTIPLICITY:"+identicalSeqsRegistry.get(checksum));
+                
+                //System.out.println(array);
                 //before skipping, update the outputs
-                //for now, only jplace is done here...
-                //note that detailed comments about the jplace are
-                //in the jplace block on the bottom of the loop
+                //in the jplace block on the bottom of the main placement loop
                 //get back the placement out from the JSONObject
                 //if it passed the --nsbound debug option (if not, do not exists)
-                JSONObject placement = checksumToJSONObject.get(checksum);
                 if (placement!=null) {
-                    //the "p" object values are the same, no changes
-                    //JSONArray pMetadata=(JSONArray)placement.get("p");
+                    //the "p" object values stay unchanged
                     //the "nm" object has to be extended with the identifier
                     //and multiplicity of this read
-                    JSONArray allIdentifiers=(JSONArray)placement.get("nm");
-                    JSONArray readMultiplicity=new JSONArray();
-                    readMultiplicity.add(fasta.getHeader());
-                    readMultiplicity.add(1);
-                    allIdentifiers.add(readMultiplicity);   
+                    JSONArray allQueryIdentifiers=(JSONArray)placement.get("nm");
+                    JSONArray queryMultiplicity=new JSONArray();
+                    queryMultiplicity.add(subHeader);
+                    queryMultiplicity.add(1);
+                    allQueryIdentifiers.add(queryMultiplicity);   
                 }
-                //go to next query
+                //go to next query, as detected as duplicate and jplace file now updated
                 continue;
             } else {
-                ArrayList<String> a=new ArrayList<>();
-                a.add(subHeader);
-                identicalSeqsRegistry.put(checksum,a);
+                placement=new JSONObject();
+                //ArrayList<String> a=new ArrayList<>();
+                //a.add(subHeader);
+                //identicalSeqsRegistry.put(checksum,1);
             }
             long endChecksumTime=System.currentTimeMillis();
             totalChecksumTime+=endChecksumTime-startChecksumTime;
@@ -572,9 +602,17 @@ public class PlacementProcess {
             //loop on words
             while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
-
+                
                 //get Pairs associated to this word
-                List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
+                Char2FloatMap.FastEntrySet allPairs =null;
+                if (session.states instanceof DNAStatesShifted) {
+                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
+                } else {
+                    allPairs = session.hash.getPairsOfTopPosition2(qw);
+                }
+                
+
+                //word is not present in hash
                 if (allPairs==null) {
                     queryKmerCount++;
                     continue;
@@ -582,30 +620,33 @@ public class PlacementProcess {
                 queryKmerMatchingDB++;
                 
                 //System.out.println("Pairs: "+allPairs);
-                for (int i = 0; i < allPairs.size(); i++) {
-                    Pair p = allPairs.get(i);
+                
+                for (ObjectIterator<Char2FloatMap.Entry> iterator = allPairs.fastIterator(); iterator.hasNext();) {
+                    Char2FloatMap.Entry p = iterator.next();
+                    int nodeId=(int)p.getCharKey();
+                    
                     //we will score only encountered nodes, originalNode registered
                     //at 1st encouter
-                    if (nodeOccurences[p.getNodeId()]==0) {
-                        selectedNodes.add(p.getNodeId());
+                    if (nodeOccurences[p.getCharKey()]==0) {
+                        selectedNodes.add(nodeId);
                     }
                     //count # times originalNode encountered
-                    nodeOccurences[p.getNodeId()]+=1;
+                    nodeOccurences[nodeId]+=1;
                     //score associated to originalNode x for current read
-                    nodeScores[p.getNodeId()]+=p.getPPStar();
+                    nodeScores[nodeId]+=p.getFloatValue();
 
                     if (merStats) {
-                        merFound[p.getNodeId()][queryKmerCount]=true;
-                        int extendedTreeId=session.nodeMapping.get(p.getNodeId());
+                        merFound[nodeId][queryKmerCount]=true;
+                        int extendedTreeId=session.nodeMapping.get(nodeId);
                         int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
                         PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
                         PhyloNode origNode = session.originalTree.getById(originalNodeId);
                         bwMerStats.append(fasta.getHeader()+";");
-                        bwMerStats.append(p.getNodeId()+";"+session.ARTree.getById(p.getNodeId()).getLabel()+";");
+                        bwMerStats.append(nodeId+";"+session.ARTree.getById(nodeId).getLabel()+";");
                         bwMerStats.append(extendedTreeId+";"+extNode.getLabel()+";");
                         bwMerStats.append(originalNodeId+";"+origNode.getLabel()+";");
                         bwMerStats.append(queryKmerCount+";");
-                        bwMerStats.append(String.valueOf(p.getPPStar())+";");
+                        bwMerStats.append(String.valueOf(p.getFloatValue())+";");
                         bwMerStats.append("present");
                         bwMerStats.append("\n");
 
@@ -616,7 +657,7 @@ public class PlacementProcess {
                 if(graphAlignment) {
                    int topPosition =session.hash.getTopPosition(qw);
                    //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
-                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double(allPairs.get(0).getPPStar());                        
+                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allPairs.toArray()[0]);                        
                 }
 
                 queryKmerCount++;
@@ -703,7 +744,7 @@ public class PlacementProcess {
 //                System.out.print(" nodeId:"+nodeId);
 //                System.out.print("\tscore:"+nodeScores[nodeId]);
 //                System.out.print("\toccur:"+nodeOccurences[nodeId]);
-                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(queryKmerCount-nodeOccurences[nodeId]);
+                nodeScores[nodeId]+=(session.PPStarThresholdAsLog10*(queryKmerCount-nodeOccurences[nodeId]));
                 
                 //here keep track of the 2 best scores
                 if (useTopTwo) {
@@ -736,9 +777,9 @@ public class PlacementProcess {
 //            System.out.println(Arrays.toString(Arrays.copyOfRange(copyOf, 0, 10)));
 //            System.out.println(Arrays.toString(Arrays.copyOfRange(copyOf, copyOf.length-10, copyOf.length)));
 
+
             //here keep track of the nth best node scores using selection algorithm
             //this should be on average O(k.log(k) + n)
-            
             if (useSelectionAlgo) {
                 System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
                 numberOfBestScoreToConsiderForOutput=keepAtMost;
@@ -761,11 +802,12 @@ public class PlacementProcess {
                     }
                     if (nodeScores[nodeId]>=kthLargestValue) {
                         //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
+                        //division by kmer count to normalize
                         bestScoreList[i].score=nodeScores[nodeId];
                         bestScoreList[i].nodeId=nodeId;
                         //build the total likelihood sum (for the likelihood weight ratio)
                         //before the power of ten, divide by #words, to use the normalized score
-                        allLikelihoodSums+=Math.pow(10.0, (double)bestScoreList[i].score);
+                        allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score));
                         i++;
                     }
                 }
@@ -774,6 +816,28 @@ public class PlacementProcess {
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
             }
+            
+            //if necessary
+            //prepare weightRatioShift for allowing weight-ratio when proba < "double" primitive boundary
+            float weightRatioShift=0.0f; 
+            
+            if ( -308f >= bestScore ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
+                weightRatioShift=bestScore;
+                //System.out.println("weightRatioShift set to: "+weightRatioShift);
+                //rebuild allLikelihoodSums using the shift
+                int i=0;
+                for (int nodeId:selectedNodes) {
+                    if (i==numberOfBestScoreToConsiderForOutput) { 
+                        break;//we already got the nth best scores, no need to iterate more
+                    }
+                    if (nodeScores[nodeId]>=kthLargestValue) {
+                        allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift));
+                        i++;
+                    }
+                }
+
+            }
+            
             
             
             //System.out.println("  AFTER SCORING");
@@ -786,61 +850,75 @@ public class PlacementProcess {
 //            }
             
 
+            // DEPRECATED !!!!
+            // THIS IS USED ONLY IF DEBUG OPTION --orinodes IS CALLED
+            // AT DB_BUILD. THEN, THIS BLOCK IS EXECUTED AS DB CONTAIN ARTREE
+            // NODEIDS. IF DB WAS BUILT WITHOUT THIS OPTION, IT CONTAINS
+            // ORIGINAL_TREE NODEIDS, NOT AR_TREE NODEIDS !!!
             // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
             ////////////////////////////////////////////////////////////////
             
-            //TODO, repeat that for the X best node scores
+            int extendedTreeId=-1;
+            int originalNodeId = -1;
+            PhyloNode nodeToTest = null;
             
+            if (session.onlyFakes==false) {       
             
-            //check if this was a fake originalNode or not
-            //to do that, retromapping from ARTree to extended tree 
-            int extendedTreeId=session.nodeMapping.get(bestNodeId);
-            int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
-            PhyloNode nodeToTest = session.extendedTree.getById(extendedTreeId);
-            //if this is an original originalNode, select adjacent branch 
-            //leading to 2nd best PP*
-            if (!nodeToTest.isFakeNode()) {
-                //System.out.println("############### change best node to neighboors !");                    
-                Infos.println("Current best node is an original node...");
-
-                PhyloNode firstNode = null;
-                PhyloNode secondNode = null;
-                //if there was no other scored nodes ? this case happened when a single query mer was found in the DB
-                if (secondBest<0) {
-                    //arbitrary choice, take FAKE node which is left son.
-                    firstNode = session.ARTree.getById(bestNodeId);
-                    secondNode = firstNode.getChildAt(0);
-                    bestNodeId =secondNode.getId();
-
-                } else {
-                    firstNode = session.ARTree.getById(bestNodeId);
-                    //select node of 2nd best score
-                    secondNode = session.ARTree.getById(secondBest);
-                    //get path from this node to bestNodeId
-                    //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
-                    PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
-                    System.out.println("Path to second: "+shortestPath.path.size());
-                    //path will be as:
-                    //firstNode-X0-...-secondNode
-                    //or nodeToTest-secondNode(X0) if immediate neighboor
-                    //in all case the 2nd elt of the path is the X0 chosen 
-                    //for the placement
-                    bestNodeId=shortestPath.path.get(1).getId();
-                  
-                }
+                //check if this was a fake originalNode or not
+                //to do that, retromapping from ARTree to extended tree 
                 extendedTreeId=session.nodeMapping.get(bestNodeId);
-                originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);        
+                originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
+                nodeToTest = session.extendedTree.getById(extendedTreeId);
+                //if this is an original originalNode, select adjacent branch 
+                //leading to 2nd best PP*
+                if (!nodeToTest.isFakeNode() ) {
+                    //System.out.println("############### change best node to neighboors !");                    
+                    Infos.println("Current best node is an original node...");
+
+                    PhyloNode firstNode = null;
+                    PhyloNode secondNode = null;
+                    //if there was no other scored nodes ? this case happened when a single query mer was found in the DB
+                    if (secondBest<0) {
+                        //arbitrary choice, take FAKE node which is left son.
+                        firstNode = session.ARTree.getById(bestNodeId);
+                        secondNode = firstNode.getChildAt(0);
+                        bestNodeId =secondNode.getId();
+
+                    } else {
+                        firstNode = session.ARTree.getById(bestNodeId);
+                        //select node of 2nd best score
+                        secondNode = session.ARTree.getById(secondBest);
+                        //get path from this node to bestNodeId
+                        //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
+                        PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
+                        //System.out.println("Path to second: "+shortestPath.path.size());
+                        //path will be as:
+                        //firstNode-X0-...-secondNode
+                        //or nodeToTest-secondNode(X0) if immediate neighboor
+                        //in all case the 2nd elt of the path is the X0 chosen 
+                        //for the placement
+                        bestNodeId=shortestPath.path.get(1).getId();
+
+                    }
+                    extendedTreeId=session.nodeMapping.get(bestNodeId);
+                    originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);        
+
+
+                    //System.out.println("NEW Selected node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+                    //System.out.println("mapping: ARTree="+ARTree.getById(bestNodeId)+" ExtendedTree="+extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
+
+                    if (!session.extendedTree.getById(extendedTreeId).isFakeNode()) {
+                        System.out.println("Something went wrong in neighboor node search !!!!");
+                        System.exit(1);
+                    }
+
+                } 
                 
                 
-                //System.out.println("NEW Selected node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
-                //System.out.println("mapping: ARTree="+ARTree.getById(bestNodeId)+" ExtendedTree="+extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
-
-                if (!session.extendedTree.getById(extendedTreeId).isFakeNode()) {
-                    System.out.println("Something went wrong in neighboor node search !!!!");
-                    System.exit(1);
-                }
-
-            } 
+                
+                
+                
+            }
 
 
             long endScoringTime=System.currentTimeMillis();
@@ -857,8 +935,9 @@ public class PlacementProcess {
 //                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
 
             long startWritingTime=System.currentTimeMillis();
+            
             //write result in file if a originalNode was hit
-            if (bwTSV!=null) {
+            if (csvLog && (bwTSV!=null) ) {
                 //only score passing --nsbound if this debug option is set
                 if (bestScoreList[bestScoreList.length-1].score>=nsBound) {
                     //OUTPUT n°1: the CSV report of placement
@@ -866,15 +945,27 @@ public class PlacementProcess {
                     //mappes at every step (original tree, extended tree,
                     //AR modified tree)
                     sb.append(fasta.getHeader().split(" ")[0]).append("\t");
-                    sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
-                    sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
-                    sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
-                    sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
-                    sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
-                    sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-                    sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\n");
+                    if (session.onlyFakes==false) {
+                        sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
+                        sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
+                        sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
+                        sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
+                        sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
+                        sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
+                        sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\n");
+                    } else {
+                        sb.append("").append("\t"); //ARTree nodeID
+                        sb.append("").append("\t"); //ARTree nodeName
+                        sb.append("").append("\t"); //extended Tree nodeID
+                        sb.append("").append("\t"); //extended Tree nodeName
+                        sb.append(String.valueOf(bestNodeId)).append("\t"); //edge of original tree (original nodeId)
+                        sb.append(String.valueOf(session.originalTree.getById(bestNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
+                        sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\n");
+                    }
                 }
             }
+            
+            
             //OUTPUT n°2: the JSON placement object (jplace file)
             //2 possibilities:
             //-either do a new placement object and add ot to the list
@@ -883,27 +974,27 @@ public class PlacementProcess {
             //identical sequence exists, then we don't the block below
             //as all the alignmnet/placement algo was skipped.
             
-            
             //only score passing --nsbound if this debug option is set
             if (bestScoreList[bestScoreList.length-1].score>=nsBound) {
-                //System.out.println("Score pass threshold: bestNormalizedScore="+bestNormalizedScore+" nsBound="+nsBound);
-                //object representing placements (mandatory), it contains 2 key/value couples
-                JSONObject placement=new JSONObject();
+
                 //first we build the "p" array, containing the position/scores of all reads
                 JSONArray pMetadata=new JSONArray();
-                
-                //we create as many lines in "p" as asked by --keep-at-most and --keep-ratio
+                //we create as many lines in "p" block as asked by --keep-at-most and --keep-ratio
                 double bestRatio=-1;
                 for (int i = bestScoreList.length-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
                     //calculate weight_ratio
-                    double weigth_ratio=Math.pow(10.0, (double)bestScoreList[i].score)/allLikelihoodSums;
+                    double weigth_ratio=-1;
+//                    System.out.println("allLikelihoodSums:"+allLikelihoodSums);
+//                    System.out.println("score:"+bestScoreList[i].score);
+//                    System.out.println("with shift:"+(bestScoreList[i].score-weightRatioShift));
+                    weigth_ratio=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift))/allLikelihoodSums;
                     //if best score, memorize this ratio
                     if (i==bestScoreList.length-1) {
                         bestRatio=weigth_ratio;
                     }
                     //System.out.println("Likelihood weight ratio: "+weigth_ratio);
                     //take into account option --keep-factor
-                    if (i<bestScoreList.length-2 && weigth_ratio<(bestRatio*keepFactor)) {
+                    if (i<bestScoreList.length-1 && weigth_ratio<(bestRatio*keepFactor)) {
                         break;
                     }
                     //in pplacer/EPA several placements can be associated to a query
@@ -915,23 +1006,25 @@ public class PlacementProcess {
                     placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
                     //fake fields for compatibility with current tools (guppy, archeopteryx)
                     //should be provided as an option
-                    placeColumns.add(0.1); //distal_length
-                    placeColumns.add(0.1); //pendant_length
+                    placeColumns.add(0.0); //distal_length
+                    placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
                     pMetadata.add(placeColumns);
                 }
 
                 placement.put("p", pMetadata);
 
-                //second we build the "nm" array, containing the reads identifiers
-                //And their read multiplicity
+                //second we build the "nm" array, containing the read identifier
+                //and its multiplicity. 
+                //Only one element as this is the 1st read,
+                //identical reads will be detected before the placement computation
+                //and will simply be added to this list (see checksum block before 
+                //the alignment/scoring blocks).
                 JSONArray allIdentifiers=new JSONArray();
-                //these are simply all the identical sequences
                 JSONArray readMultiplicity=new JSONArray();
                 readMultiplicity.add(fasta.getHeader());
                 readMultiplicity.add(1);
                 allIdentifiers.add(readMultiplicity);
                 placement.put("nm", allIdentifiers);
-
                 //store the placement in the list of placements
                 placements.add(placement);
                 //JSON for this read DONE, if duplicates are found later,
@@ -955,27 +1048,7 @@ public class PlacementProcess {
                 }   
             }
             
-            
-            boolean debugFine=false;
-            if (debugFine) {
-                File scoreFile=new File(logDir.getAbsolutePath()+File.separator+"log_scores_"+fasta.getHeader().split(" ")[0]);
-                BufferedWriter newBw = Files.newBufferedWriter(scoreFile.toPath());
-                newBw.append("ARId;ARLabel;ExtendedId;ExtendedLabel;OriginalId;OrginalLabel;score;occurences\n");
-                for (Integer nodeId : selectedNodes) {
-                    int extendedTreeId2=session.nodeMapping.get(nodeId);
-                    int originalNodeId2 = session.extendedTree.getFakeToOriginalId(extendedTreeId2);
-                    newBw.append(String.valueOf(nodeId)+";");
-                    newBw.append(String.valueOf(session.ARTree.getById(nodeId).getLabel())).append(";"); //ARTree nodeName
-                    newBw.append(String.valueOf(extendedTreeId2)).append(";"); //extended Tree nodeID
-                    newBw.append(String.valueOf(session.extendedTree.getById(extendedTreeId2).getLabel())).append(";"); //extended Tree nodeName
-                    newBw.append(String.valueOf(originalNodeId2)).append(";"); //edge of original tree (original nodeId)
-                    newBw.append(String.valueOf(session.originalTree.getById(originalNodeId2).getLabel())).append(";"); //edge of original tree (original nodeName
-                    newBw.append(nodeScores[nodeId]+";"+nodeOccurences[nodeId]+"\n");
-                }
-                newBw.close();
-            }
-            
-            
+
 
             //reset the scoring vectors
             long startResetTime=System.currentTimeMillis();
@@ -985,7 +1058,6 @@ public class PlacementProcess {
                 nodeOccurences[nodeId]=0;
             }
             selectedNodes.clear();
-            
             long endResetTime=System.currentTimeMillis();
             totalResetTime+=endResetTime-startResetTime;
             
@@ -1009,9 +1081,9 @@ public class PlacementProcess {
         System.out.println("------------------------------------------------------------");
         System.out.println("(per placement average)");
         System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/placedQueryCounter)+" ms");
-        System.out.println("k-mer matching took on average: "+((0.0+totalAlignTime)/placedQueryCounter)+" ms");
-        System.out.println("Scoring took on average: "+((0.0+totalScoringTime)/placedQueryCounter)+" ms");
-        System.out.println("Writing .csv and .jplace took on average: "+((0.0+totalWritingTime)/placedQueryCounter)+" ms");
+        System.out.println("k-mer match/score took on average: "+((0.0+totalAlignTime)/placedQueryCounter)+" ms");
+        System.out.println("Score correction/ratio took on average: "+((0.0+totalScoringTime)/placedQueryCounter)+" ms");
+        System.out.println("Writing .jplace and/or .csv took on average: "+((0.0+totalWritingTime)/placedQueryCounter)+" ms");
         System.out.println("Reset took on average: "+((0.0+totalResetTime)/placedQueryCounter)+" ms");
         System.out.println("------------------------------------------------------------");
         System.out.println("Placement Process (without DB load) took: "+(endTotalPlacementTime-startTotalPlacementTime)+" ms");

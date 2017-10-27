@@ -34,5 +34,19 @@ public interface States {
     public int getStateCount();
     public int getNonAmbiguousStatesCount();
     
+    /**
+     * allows the possibility of mer compression
+     * @param bytes
+     * @return 
+     */
+    public byte[] compressMer(byte[] bytes);
+
+    /**
+     * allows the possibility of mer expansion as chars
+     * @param mer
+     * @param k
+     * @return 
+     */
+    public char[] expandMer(byte[] mer, int k);
     
 }

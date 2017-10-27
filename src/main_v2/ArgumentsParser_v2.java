@@ -47,30 +47,29 @@ public class ArgumentsParser_v2 {
     double reductionRatio=0.999;
     
     //parameters for DB build
-    public int k=8; //default=8
-    public float alpha=1.4f; //default=1.5
+    public int k=10; //default=10
+    public float alpha=1.0f; //default=1.0
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
-    public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
     public boolean forceRooting=false;
-    public boolean noCalibration=false;
-    public boolean onlyFakeNodes=false;
-    //eventual directories passed for debugging
+    //passed for debugging in DB_build
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;
     public File exTreeDir=null;
-    public boolean dbInRAM=false;
-    public boolean unionHash=true;
+    public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
+    public boolean noCalibration=true; //skip calibration step
+    public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
+    public boolean unionHash=true; //if false, use old positionnal hash
+    public boolean onlyFakeNodes=true; //if false, uses ancestral kmers of original nodes
     
     //parameters for placement
-    public int minOverlap=100; //default =100
+    public int minOverlap=100; //deprecated, was used for diagsums coordinates
     public List<File> queriesFiles=null;
     public File databaseFile=null;
-    public int dbsize=DB_MEDIUM;
-    public Float nsBound=null;
+    public Float nsBound=Float.NEGATIVE_INFINITY; //do not consider score threshold determined at calibration but this particular threshold
     public int keepAtMost=7;
-    public float keepFactor=0.1f;
+    public float keepFactor=0.01f;
     
     //call string
     public String callString=null;
@@ -193,7 +192,7 @@ public class ArgumentsParser_v2 {
                 for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
                     int index=it.next();
                     //test -a parameter
-                    if (argsMap.get(index).equals("--input") || argsMap.get(index).equals("-i")) {
+                    if (argsMap.get(index).equals("--refalign") || argsMap.get(index).equals("-r")) {
                         File alignment=new File(argsMap.get(index+1));
                         if (alignment.isFile() && alignment.canRead()) {
                             this.alignmentFile=alignment;
@@ -204,7 +203,7 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     //test -t parameter
-                    if (argsMap.get(index).equals("--tree") || argsMap.get(index).equals("-t")) {
+                    if (argsMap.get(index).equals("--reftree") || argsMap.get(index).equals("-t")) {
                         File tree=new File(argsMap.get(index+1));
                         if (tree.isFile() && tree.canRead()) {
                             this.treeFile=tree;
@@ -220,6 +219,10 @@ public class ArgumentsParser_v2 {
                         try {
                             this.k=Integer.parseInt(kVal);
                             kGiven=true;
+                            if (this.k<3) {
+                                this.k=3;
+                                System.out.println("--alpha set to 3 (minimum allowed values) .");
+                            }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '-k (--k)' as an integer value.");
                             System.exit(1);
@@ -232,6 +235,10 @@ public class ArgumentsParser_v2 {
                         try {
                             this.alpha=Float.parseFloat(alphaVal);
                             alphaGiven=true;
+                            if (this.alpha<0) {
+                                this.alpha=1.0f;
+                                System.out.println("--alpha set to 1.0 .");
+                            }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '-a (--alpha)' as an integer value.");
                             System.exit(1);
@@ -246,25 +253,42 @@ public class ArgumentsParser_v2 {
                         try {
                             this.fakeBranchAmount=Integer.parseInt(fVal);
                             fGiven=true;
+                            if (this.fakeBranchAmount<1) {
+                                this.fakeBranchAmount=1;
+                                System.out.println("--fakebranch set to 1.");
+                            }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '-f (--fakebranch)' as an integer value.");
                             System.exit(1);
                         }
-                        
+                       
                     }
+                    
+                    //test -b parameter
+                    if (argsMap.get(index).equals("--arbinary") || argsMap.get(index).equals("-b")) {
+                        File ARBinaryFile=new File(argsMap.get(index+1));
+                        System.out.println("Using AR binary provided by user: "+ARBinaryFile.getAbsolutePath());
+                        if (ARBinaryFile.isFile() && ARBinaryFile.canExecute()) {
+                            this.ARBinary=ARBinaryFile;
+                        } else {
+                            System.out.println("Cannot execute binary loaded through option --arbinary: Not a file or no execution permission.");
+                            System.exit(1);
+                        }
+                    }
+                    
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS
                     
                     //test --skipredu
-                    if (argsMap.get(index).equals("--skip-redu")) {
+                    if (argsMap.get(index).equals("--no-reduction")) {
                         System.out.println("Original alignment will be used (no gapped columns removed).");
                         this.reduction=false;
                     }
                     
                     //test --writeredu
-                    if (argsMap.get(index).equals("--write-redu")) {
+                    if (argsMap.get(index).equals("--write-reduction")) {
                         File f=new File(argsMap.get(index+1));
                         if (f.isFile() && f.canWrite()) {
                             this.reducedAlignFile=f;
@@ -275,11 +299,15 @@ public class ArgumentsParser_v2 {
                     }
                     
                     //test --ratioredu
-                    if (argsMap.get(index).equals("--ratioredu")) {
+                    if (argsMap.get(index).equals("--ratio-reduction")) {
                         String alphaVal=argsMap.get(index+1);
                         try {
                             this.reductionRatio=Double.parseDouble(alphaVal);
                             alphaGiven=true;
+                            if (this.reductionRatio>1) {
+                                this.reductionRatio=1;
+                                System.out.println("--ratioredu set to 1.0 .");
+                            }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '--ratioredu' as a double value.");
                             System.exit(1);
@@ -298,18 +326,7 @@ public class ArgumentsParser_v2 {
                             System.exit(1);
                         }
                     }
-                    
-                    //test --arbinary parameter
-                    if (argsMap.get(index).equals("--arbinary")) {
-                        File ARBinaryFile=new File(argsMap.get(index+1));
-                        System.out.println("Using AR binary provided by user: "+ARBinaryFile.getAbsolutePath());
-                        if (ARBinaryFile.isFile() && ARBinaryFile.canExecute()) {
-                            this.ARBinary=ARBinaryFile;
-                        } else {
-                            System.out.println("Cannot execute binary loaded through option --arbinary: Not a file or no execution permission.");
-                            System.exit(1);
-                        }
-                    }
+                   
                     
                     //test --extendedtree parameter
                     if (argsMap.get(index).equals("--extree")) {
@@ -331,7 +348,7 @@ public class ArgumentsParser_v2 {
                     }
                     
                     //test --froot parameter
-                    if (argsMap.get(index).equals("--froot")) {
+                    if (argsMap.get(index).equals("--force-root")) {
                         this.forceRooting=true;
                     }
                     
@@ -371,8 +388,8 @@ public class ArgumentsParser_v2 {
                     }
                     
                     //test --nocalib parameter
-                    if (argsMap.get(index).equals("--nocalib")) {
-                        this.noCalibration=true;
+                    if (argsMap.get(index).equals("--calibration")) {
+                        this.noCalibration=false;
                     }
                     
                     //test --unihash parameter
@@ -381,9 +398,9 @@ public class ArgumentsParser_v2 {
                     }
                     
                     //test --onlyfake
-                    if (argsMap.get(index).equals("--onlyfakes")) {
-                        System.out.println("DB will only contain ancestral kmers associated to fake nodes.");
-                        this.onlyFakeNodes=true;
+                    if (argsMap.get(index).equals("--original-nodes")) {
+                        System.out.println("DB will alse contain ancestral kmers associated to original nodes (--orinodes).");
+                        this.onlyFakeNodes=false;
                     }
                     
                     //test --keep-at-most
@@ -391,6 +408,10 @@ public class ArgumentsParser_v2 {
                         String val=argsMap.get(index+1);
                         try {
                             this.keepAtMost=Integer.parseInt(val);
+                            if (this.keepAtMost<1) {
+                                this.keepAtMost=1;
+                                System.out.println("--keep-at-most set to 1 .");
+                            }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '--keep-at-most' as an integer value.");
                             System.exit(1);
@@ -402,7 +423,10 @@ public class ArgumentsParser_v2 {
                         String val=argsMap.get(index+1);
                         try {
                             this.keepFactor=Float.parseFloat(val);
-                        } catch (NumberFormatException ex ) {
+                            if (this.keepFactor>1) {
+                                this.keepFactor=1;
+                                System.out.println("--keep-factor set to 1.0 .");
+                            }                        } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '--keep-factor' as an integer value.");
                             System.exit(1);
                         }
@@ -493,6 +517,10 @@ public class ArgumentsParser_v2 {
                         String val=argsMap.get(index+1);
                         try {
                             this.keepAtMost=Integer.parseInt(val);
+                            if (this.keepAtMost<1) {
+                                this.keepAtMost=1;
+                                System.out.println("--keep-at-most set to 1 .");
+                            }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '--keep-at-most' as an integer value.");
                             System.exit(1);
@@ -504,7 +532,10 @@ public class ArgumentsParser_v2 {
                         String val=argsMap.get(index+1);
                         try {
                             this.keepFactor=Float.parseFloat(val);
-                        } catch (NumberFormatException ex ) {
+                            if (this.keepFactor>1) {
+                                this.keepFactor=1;
+                                System.out.println("--keep-factor set to 1.0 .");
+                            }                        } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '--keep-factor' as an integer value.");
                             System.exit(1);
                         }
@@ -541,38 +572,39 @@ public class ArgumentsParser_v2 {
         " Minimum usage,\n"+
         " 1.For building the ancestral kmers database:\n"+
         "   java -jar viromplacer.jar -m B -b ARbinary -w workdir \\ \n"+
-        "   -s dna -i alignment.fasta -t tree.newick\n" +
+        "   -s nucl -r alignment.fasta -t tree.newick\n" +
         " 2.For placing the query reads, using the database built in 1. :\n"+
-        "   java -jar viromplacer.jar -m P -q queries.fasta \n"+
-                
-        " Note: Do not hesistate to allocate lots of memory at the first step,\n" +
+        "   java -jar viromplacer.jar -m P -q queries.fasta \n"+ 
+        "\n"+ 
+        " Note1:Default values are reported in []. \n"+ 
+        " Note2:Do not hesistate to allocate lots of memory at the first step,\n" +
         "       as increasing k rapidly brings to large requirements.\n"+
         "       ex: java -jar -Xms1024m -Xmx16g viromplacer.jar [...] \n"+
         "       -Xms -> memory allocated at startup. (m=MegaByte, g=GigaByte)\n"+
         "       -Xmx -> maximum allocation allowed.  \n"+
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"+
-        "-a (--alpha)      [float] Alpha modifier levelling the proba threshold \n"+
+        "-a (--alpha)      [1.0] Alpha modifier levelling the proba threshold \n"+
         "                  used in ancestral words filtering. (B mode only)\n" +
-        "-b (--arbinary)   [file] Binary for marginal AR, currently phyml and \n" +
-        "                  baseml (from PAML) are supported. (B mode only)\n" +
+        "-b (--arbinary)   [file] Binary for marginal AR, currently 'phyml' and \n" +
+        "                  'baseml' (from PAML) are supported. (B mode only)\n" +
         "-d (--database)   [file] The database of ancestral kmers. (B/P mode) \n"+
-        "-f (--fakebranch) [int] # fake nodes to add along ref tree branches. \n"+
-        "-i (--input)      Input sequences, in fasta format. When building the \n"+
-        "                  database (-d mode), it is the multiple alignment from\n"+
-        "                  which was inferred the phylogenetic tree. \n"+
-        "-k (--k)          [int] Word length used for the DB build. (B mode only)\n" +
-        "-m (--mode)       One of 'B' for \"Build\" or 'P' for \"Place\"\n" +
+        "-f (--fakebranch) [1] # fake nodes to add along ref tree branches. \n"+
+        "-k (--k)          [10] Word length used for the DB build. (B mode only)\n" +
+        "-m (--mode)       One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
         "                   * B: Build DB of ancestral words and associated \n"+
         "                        probabilites. \n" +
         "                   * P: Placement of query sequences, using a DB of\n"+
         "                        ancestral words prevously built with mode B.\n" +
-        "-s (--states)     [nucl|prot] States used in analysis (B mode). \n" +    
-        "-t (--tree)       [file] Reference tree, in newick format.\n"+
+        "-r (--refalign)   [file] Ref. sequences, fasta file. When building the \n"+
+        "                  database (-d mode), it is the multiple alignment from\n"+
+        "                  which was inferred the phylogenetic tree. \n"+        
+        "-s (--states)     [nucl] States used in analysis, nucl or prot. (B mode) \n" +    
+        "-t (--reftree)       [file] Reference tree, in newick format.\n"+
         "                  reconstruction and DB build (B mode only).\n" +
-        "-q (--queries)    [file[,file,...]] Fasta queries to place on the tree." +
+        "-q (--queries)    [file[,file,...]] Fasta queries to place on the tree.\n" +
         "                  Can be a list of files separated by ','. (B/P mode)\n"+
         "                  be placed if filenames are separated by ','.\n" +
-        "-v (--verbose)    Verbosity level: -1=null ; 0=basic ; 1=full\n" +
+        "-v (--verbose)    [0] Verbosity level: -1=null ; 0=low ; 1=high\n" +
         "-w (--workdir)    [dir] Path to the working directory (B/P mode).\n\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "Debug options: Use only if you know what you are doing...    \n" +
@@ -582,24 +614,24 @@ public class ArgumentsParser_v2 {
         "--extree          [dir] Skip fake nodes injection, and use files present\n"+
         "                  in the specified directory instead (B mode only)\n" +
         "--dbfull          [] Save full DB (unused in algo). (B mode only)\n" +      
-        "--froot           [] If input tree is unrooted, root it. (B mode only).\n" +
+        "--force-root      [] Root input tree, if non rooted. (B mode only)\n" +
         "--nsbound         [float] Force normalized score bound. (P mode only)\n" +
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +
-        "--nocalib         [] No calibration, use threshold formula. (B mode only).\n" +
+        "--calibration     [] Prototype calib. on random anc. kmers. (B mode only).\n" +
         "--poshash         [] Places using older deprecated hash. (B mode only)\n" +
-        "--skip-redu       [] Do not operate alignment reduction. By default,\n" +
+        "--no-reduction    [] Do not operate alignment reduction. By default,\n" +
         "                  reference alignment columns with more than 'ratio'\n" +
         "                  gaps are ignored (see --ratio-redu). (B mode only)\n" +
-        "--write-redu      [file] Write reduced alignment to file. (B mode only)\n" +
-        "--ratio-redu      [float] Ratio for alignment reduction, default=0.999 \n" +
-        "                  i.e. sites with >99.9% gaps are ignored. (B mode only)\n" +
-        "--onlyfakes       [] Ancestral k-mers only for fake nodes. (B mode only)\n" +
-        "--keep-at-most    [int] Max number of placement per query we keep in\n" +
-        "                  the jplace output (default=7). (B/P mode)\n" +
-        "--keep-factor     [float] Report placement with likelihood_ratio higher\n" +
-        "                  than (factor x best_likelihood_ratio) (default=0.1).\n" +
-        "                  (B/P mode)" +
+        "--write-reduction [file] Write reduced alignment to file. (B mode only)\n" +
+        "--ratio-reduction [0.999] Ratio for alignment reduction, i.e. sites \n" +
+        "                  with >99.9% gaps are ignored. (B mode only)\n" +
+        "--original-nodes  [] Also compute ancestral kmers for original nodes,\n" +
+        "                  produces heavier (unused) computations. (B mode only)\n" +
+        "--keep-at-most    [7] Max number of placement per query we keep in\n" +
+        "                  the jplace output. (B/P mode)\n" +
+        "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
+        "                  than (factor x best_likelihood_ratio). (B/P mode)\n" +
         "\n\n"
         );
        System.exit(1);

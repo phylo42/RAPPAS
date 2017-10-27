@@ -119,6 +119,22 @@ public class Environement {
     }
 
     /**
+     * get current heap allocation
+     * @return 
+     */
+    public static Double getHeapUsageAsMB() {
+        return new Double((Runtime.getRuntime().totalMemory()/1048576));
+    }
+    
+    /**
+     * get max allowed heap allocation
+     * @return 
+     */
+    public static Double getHeapMaxAsMB() {
+        return new Double((Runtime.getRuntime().maxMemory()/1048576));
+    }
+    
+    /**
      * return file size as MB, or null if file not exists
      * @param f
      * @return 

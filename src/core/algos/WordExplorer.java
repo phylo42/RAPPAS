@@ -60,6 +60,8 @@ public class WordExplorer {
     byte[] word=null;
     PProbasSorted ppSet=null;
     boolean boundReached=false;
+    boolean wordCompression=false;
+    States s=null;
 
 
     /**
@@ -70,13 +72,15 @@ public class WordExplorer {
      * @param ppSet
      * @param wordThresholdAsLog
      */
-    public WordExplorer(int k, int refPosition, int nodeId, PProbasSorted ppSet, float wordThresholdAsLog) {
+    public WordExplorer(int k, int refPosition, int nodeId, PProbasSorted ppSet, float wordThresholdAsLog, boolean wordCompression, States s) {
         this.refPosition=refPosition;
         this.wordThresholdAsLog=wordThresholdAsLog;
         this.word=new byte[k];
         this.k=k;
         this.nodeId=nodeId;
         this.ppSet=ppSet;
+        this.wordCompression=wordCompression;
+        this.s=s;
     }
     
     public ArrayList<ProbabilisticWord> getRetainedWords() {
@@ -98,16 +102,17 @@ public class WordExplorer {
         word[i-refPosition]=ppSet.getState(nodeId, i, j);
         //System.out.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
         currentLogSum+=ppSet.getPP(nodeId, i, j);
-        if(currentLogSum<wordThresholdAsLog)
-            boundReached=true;
-        else
-            boundReached=false;
+        boundReached = currentLogSum<wordThresholdAsLog;
         
         //register word if k-th position
         if (i==(refPosition+k-1)) {
             //register word
             if (!boundReached) {
-                words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
+                if (wordCompression) {
+                    words.add(new ProbabilisticWord(s.compressMer(Arrays.copyOf(word, word.length)), currentLogSum, refPosition ));
+                } else {
+                    words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
+                }
                 //System.out.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
             }
             //decrease before return
@@ -225,7 +230,9 @@ public class WordExplorer {
                                             pos,
                                             nodeId,
                                             pprobas,
-                                            thresholdAsLog
+                                            thresholdAsLog,
+                                            false,
+                                            s
                                         );
                     
                     for (int j = 0; j < pprobas.getStateCount(); j++) {

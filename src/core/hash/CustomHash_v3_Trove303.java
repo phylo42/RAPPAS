@@ -12,6 +12,8 @@ import core.States;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
 import etc.Infos;
+import gnu.trove.map.hash.TCustomHashMap;
+import gnu.trove.strategy.HashingStrategy;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.PAMLWrapper;
@@ -22,7 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +39,7 @@ import tree.PhyloTree;
  * (nodeId, PP*)
  * @author ben
  */
-public class CustomHash_v2 implements Serializable{
+public class CustomHash_v3_Trove303 implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
@@ -46,9 +48,11 @@ public class CustomHash_v2 implements Serializable{
     
     int nodeType=NODES_UNION;
     
-    HashMap<ByteArrayWrapper,HashPointer> hash=null;
+    TCustomHashMap<byte[],HashPointer> hash;
 
-    ByteArrayWrapper wBuf=null;
+    
+    ArrayList<Pair> pairsBuffer =new ArrayList(1024);
+    HashPointer tempPointer=null;
     
     int maxPointerSize=-1;
     long addTupleCalls=0l;
@@ -60,47 +64,83 @@ public class CustomHash_v2 implements Serializable{
      * @param s
      * @param nodeType one of NODES_UNION or POSITION_UNION
      */
-    public CustomHash_v2(int k, States s, int nodeType) {        
+    public CustomHash_v3_Trove303(int k, States s, int nodeType) {        
         this.maxPointerSize=new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue();
         this.nodeType=nodeType;
-        this.wBuf=new ByteArrayWrapper(new byte[k]);
         //internal tests showed that with k<14 we generally get at least 75% of the possible k-mers
-        hash=new HashMap<>(new Double(maxPointerSize*0.75).intValue(),0.8f);
+        this.hash=new TCustomHashMap<>(
+                new HashingStrategy<byte[]>() {
+                    @Override
+                    public int computeHashCode(byte[] object) {
+                        return Arrays.hashCode(object);
+                    }
+
+                    @Override
+                    public boolean equals(byte[] o1, byte[] o2) {
+                        return Arrays.equals(o1, o2);
+                    }
+                },
+                new Double(maxPointerSize*0.75).intValue(),  //intial capacity
+                0.8f //inital load factor
+        );
+        //init first temp pointer
+        switch (nodeType) {
+            case NODES_UNION:
+                tempPointer=new UnionPointer();
+                break;
+            case NODES_POSITION:
+                tempPointer=new PositionPointer();
+                break;
+        }
+        
     }
     
     /**
      * only entry point to fill the hash (used at DB generation)
-     * @param w
+     * @param word
      * @param PPStar
      * @param nodeId
      * @param refPos 
      */
     public void addTuple(byte[] word, float PPStar,int nodeId,int refPos) {
 
-       long containsStart=System.nanoTime();
-       wBuf.setArray(word);
-       HashPointer cn=null;
-       if ((cn=hash.get(wBuf))==null) {
+        long containsStart=System.nanoTime();
+        
+        if (!hash.containsKey(word)) {
+            long containsEnd=System.nanoTime();
+            totalContainsTime+=(containsEnd-containsStart);
+            
+            HashPointer hp=null;
+            //we build a new pointer 
             switch (nodeType) {
                 case NODES_UNION:
-                    //System.out.println("new word attached to UnionPointer");
-                    hash.put(wBuf, cn=new UnionPointer());
+                    hp=new UnionPointer();
                     break;
                 case NODES_POSITION:
-                    //System.out.println("new word attached to PositionPointer");
-                    hash.put(wBuf, cn=new PositionPointer());
+                    hp=new PositionPointer();
                     break;
-            }
+                default:
+                    hp=new UnionPointer();
+                    break;
+            }     
+            long registerStart=System.nanoTime();
+            hp.registerTuple(nodeId, refPos, PPStar);
+            hash.put(word, hp);
+            long registerEnd=System.nanoTime();
+            totalRegisterTime+=(registerEnd-registerStart);            
             
+        } else {
+            long containsEnd=System.nanoTime();
+            totalContainsTime+=(containsEnd-containsStart);
+            
+            //update list of pairs
+            long registerStart=System.nanoTime();
+            hash.get(word).registerTuple(nodeId, refPos, PPStar);
+            long registerEnd=System.nanoTime();
+            totalRegisterTime+=(registerEnd-registerStart);
         }
-        long containsEnd=System.nanoTime();
-        totalContainsTime+=(containsEnd-containsStart);
         
-        long registerStart=System.nanoTime();
-        //System.out.println("update HashPointer of type: "+hash.get(w).getClass().toString());
-        cn.registerTuple(nodeId, refPos, PPStar);
-        long registerEnd=System.nanoTime();
-        totalRegisterTime+=(registerEnd-registerStart);
+
         
         addTupleCalls++;
     }
@@ -109,7 +149,7 @@ public class CustomHash_v2 implements Serializable{
      * for debug purposes only (access to CustomHashMap hashtable)
      * @return 
      */
-    public HashMap<ByteArrayWrapper, HashPointer> getHash() {
+    public TCustomHashMap<byte[], HashPointer> getHash() {
         return hash;
     }
     
@@ -129,10 +169,11 @@ public class CustomHash_v2 implements Serializable{
      */
     public Pair getTopPair(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null)
+        if ((cn=hash.get(w))!=null) {
             return cn.getBestPair();
-        else
+        } else {
             return null;
+        }
     }    
     
     /**
@@ -143,7 +184,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public List<Pair> getPairsOfTopPosition(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
+        if ((cn=hash.get(w))!=null) {
             return cn.getPairList(cn.getBestPosition());
         } else {
             return null;
@@ -157,7 +198,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public int[] getPositions(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
+        if ((cn=hash.get(w))!=null) {
             return cn.getPositions();
         } else {
             return null;
@@ -171,7 +212,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public int getTopPosition(byte[] w) {
         HashPointer cn=null;
-        if ((cn=hash.get(wBuf.setArray(w)))!=null) {
+        if ((cn=hash.get(w))!=null) {
             return cn.getBestPosition();
         } else {
             return -1;
@@ -196,11 +237,11 @@ public class CustomHash_v2 implements Serializable{
      * @return 
      */
     public List<Pair> getPairs(byte[] w) {
-        ArrayList<Pair> l =new ArrayList();
-        for (int p: hash.get(wBuf.setArray(w)).getPositions()) {
-            l.addAll(hash.get(wBuf.setArray(w)).getPairList(p));
+        pairsBuffer.clear();
+        for (int p: hash.get(w).getPositions()) {
+            pairsBuffer.addAll(hash.get(w).getPairList(p));
         }
-        return l;
+        return pairsBuffer;
     }
     
     /**
@@ -210,14 +251,14 @@ public class CustomHash_v2 implements Serializable{
      * @return 
      */
     public List<Pair> getPairs(byte[] w,int position) {
-        if (hash.containsKey(wBuf.setArray(w))) {
-            return hash.get(wBuf.setArray(w)).getPairList(position);
+        if (hash.containsKey(w)) {
+            return hash.get(w).getPairList(position);
         } else {
             return null;
         }
     }
 
-    public Set<ByteArrayWrapper> keySet() {
+    public Set<byte[]> keySet() {
         return hash.keySet();
     }
     
@@ -242,7 +283,7 @@ public class CustomHash_v2 implements Serializable{
      */
     @Deprecated
     public void reducetoSmallHash(int X) {
-        List<ByteArrayWrapper> collect = hash.keySet()  .stream() 
+        List<byte[]> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
                                             .filter((w) -> ((PositionPointer)hash.get(w)).limitToXPairsPerPosition(X))
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
@@ -257,7 +298,7 @@ public class CustomHash_v2 implements Serializable{
      */
     public void reducetoSmallHash_v2(int X) {
         assert X>0;
-        List<ByteArrayWrapper> collect = hash.keySet()  .stream() 
+        List<byte[]> collect = hash.keySet()  .stream() 
                                             //.peek((w)->System.out.println("REDUCING:"+w))
                                             .filter((w) -> hash.get(w).getPairCountInTopPosition()>X)
                                             //.peek((w)->System.out.println("TRASHED!:"+w))
@@ -464,7 +505,7 @@ public class CustomHash_v2 implements Serializable{
             testBuckets=false;
             
             //prepare simplified hash
-            CustomHash_v2 hash2=new CustomHash_v2(k,s,NODES_POSITION);
+            CustomHash_v3_Trove303 hash2=new CustomHash_v3_Trove303(k,s,NODES_POSITION);
 
             Infos.println("Word generator threshold will be:"+wordPPStarThresholdAsLog);
             Infos.println("Building all words probas...");
@@ -591,8 +632,8 @@ public class CustomHash_v2 implements Serializable{
             }
             
             int i=0;
-            for (ByteArrayWrapper wo:hash2.keySet()) {
-                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo.getArray()).size());
+            for (byte[] wo:hash2.keySet()) {
+                System.out.println(i+":"+hash2.getPairsOfTopPosition(wo).size());
                 i++;
             }
             
@@ -601,9 +642,9 @@ public class CustomHash_v2 implements Serializable{
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(CustomHash_v2.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash_v3_Trove303.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(CustomHash_v2.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CustomHash_v3_Trove303.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         

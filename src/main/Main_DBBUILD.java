@@ -427,7 +427,9 @@ public class Main_DBBUILD {
                                             pos,
                                             nodeId,
                                             im.getPProbas(),
-                                            thresholdAsLog
+                                            thresholdAsLog,
+                                            false,
+                                            s
                                         );
                     
                     for (int j = 0; j < im.getPProbas().getStateCount(); j++) {

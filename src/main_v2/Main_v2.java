@@ -5,24 +5,12 @@
 
 package main_v2;
 
-import alignement.Alignment;
 import core.AAStates;
-import core.DNAStates;
+import core.DNAStatesShifted;
 import core.States;
-import etc.Infos;
-import inputs.FASTAPointer;
-import inputs.Fasta;
-import java.io.BufferedReader;
+import etc.NullPrintStream;
 import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 import javax.swing.UIManager;
-import static main.Main_DBBUILD.TYPE_DNA;
-import tree.NewickReader;
-import tree.PhyloTree;
 
 
 /**
@@ -31,7 +19,7 @@ import tree.PhyloTree;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.8";
+    private final static String consoleVersion="0.91";
 
     public static void main (String[] args) {
         try {
@@ -39,7 +27,7 @@ public class Main_v2 {
             System.out.println("#############################################################");
             System.out.println("## RApid Phylogenetic Placement via Ancestral Sequences");
             System.out.println("## (RAPPAS) v"+consoleVersion);
-            System.out.println("## Author: benjamin.linard (LIRMM-CNRS, Montpellier, France)");
+            System.out.println("## Authors: benjamin.linard, fabio.pardi (LIRMM-CNRS, Montpellier)");
             System.out.println("#############################################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
@@ -118,12 +106,15 @@ public class Main_v2 {
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-
-
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
-            String db=workDir+File.separator+"DB_session_k8_a1.5_f1_t-3.40775.union";
+            //String db=workDir+File.separator+"DB_session_k8_a1.5_f1_t-3.40775.union";
+            
+            //String db=workDir+File.separator+"DB_session_k10_a1.0_f1_t-6.0206.union";
+            String db=workDir+File.separator+"DB_session_k8_a1.0_f1_t-4.81648.union";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -132,21 +123,18 @@ public class Main_v2 {
             String arguments=
                               "-m B "
                             + "-w "+workDir+" "
-                            + "-i "+a+" "
+                            + "-r "+a+" "
                             + "-t "+t+" "
                             + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.5)+" "
+                            + "-a "+String.valueOf(1.0)+" "
                             + "-v 1 "
                             + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
                             + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
-                            //+ "--dbfull "
-                            //+ "--froot"
+                            //+ "--forceroot"
                             //+ "--dbinram "
 //                            + "-q "+q+" "
-//                            + "--nsbound -100000.0 "
-                            + "--nocalib "
-                            + "--onlyfakes"
+                            + "--nsbound -10000000.0 "
                             ;
             
             
@@ -159,8 +147,9 @@ public class Main_v2 {
                             + "-q "+q+" "
                             + "-d "+db+" "
                             + "-v 0 "
-                            + "--nsbound -1000.0 "
-                            + "--keep-at-most 7"
+                            //+ "--nsbound -1000.0 "  -Infinity if not given
+                            + "--keep-at-most 7 "
+                            + "--keep-factor 0.01"
                             ;            
                             
                             
@@ -168,7 +157,7 @@ public class Main_v2 {
 //            arguments=
 //                              "-m B "
 //                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Dx/A34_nx34_la/k8_a1.0 "
-//                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Ax/A34_nx34_la.align "
+//                            + "-r /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Ax/A34_nx34_la.align "
 //                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV/Tx/T34_nx34_la.tree "
 //                            + "-k "+String.valueOf(8)+" "
 //                            + "-a "+String.valueOf(1.0)+" "
@@ -203,7 +192,7 @@ public class Main_v2 {
 //            arguments=
 //                              "-m B "
 //                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Dx/A34_nx34_la/k12_a0.75 "
-//                            + "-i /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Ax/A34_nx34_la.align "
+//                            + "-r /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Ax/A34_nx34_la.align "
 //                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/HCV_sunion/Tx/T34_nx34_la.tree "
 //                            + "-k "+String.valueOf(11)+" "
 //                            + "-a "+String.valueOf(0.75)+" "
@@ -246,7 +235,7 @@ public class Main_v2 {
 //                              "-m B "
 //                            + "-s prot "
 //                            + "-w "+workDir+" "
-//                            + "-i "+a+" "
+//                            + "-r "+a+" "
 //                            + "-t "+t+" "
 //                            + "-k "+String.valueOf(4)+" "
 //                            + "-a "+String.valueOf(1.0)+" "
@@ -281,7 +270,7 @@ public class Main_v2 {
                             
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             //System.out.println(Arrays.toString(args));
     
            
@@ -295,13 +284,22 @@ public class Main_v2 {
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
             
             //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            //argsParser.ARBinary=new File("baseml");
+            argsParser.ARBinary=new File("baseml");
+            
+            
+            //set verbosity to null, if required
+            if (argsParser.verbose<0) {
+                //PrintStream original = System.out;
+                System.setOut(new NullPrintStream());
+                //System.out.println("Message not shown.");
+                //System.setOut(original); //to get back output stream
+            }
             
             
             //type of Analysis, DNA or AA
             States s=null; 
             if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
-                s=new DNAStates();
+                s=new DNAStatesShifted();
                 System.out.println("Set analysis for DNA");
             } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
                 s=new AAStates();
@@ -354,9 +352,11 @@ public class Main_v2 {
                 System.out.println("Starting placement pipeline...");
                 //load session itself (i.e the DB)
                 System.out.println("Loading ancestral words DB... ("+argsParser.databaseFile.getName()+")");
+                long startLoadTime=System.currentTimeMillis();
                 SessionNext_v2 session= SessionNext_v2.load(argsParser.databaseFile,true);
-                
-                
+                long endLoadTime=System.currentTimeMillis();
+                System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
+            
                 Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session, false);
                 for (int i = 0; i < argsParser.queriesFiles.size(); i++) {
                     File query = argsParser.queriesFiles.get(i);

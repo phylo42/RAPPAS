@@ -213,6 +213,8 @@ public class ARProcessLauncher {
         com.add("n");
         com.add("-a"); //gamma shape param
         com.add("0.5");
+        com.add("-f"); //base frequencies based on aligned
+        com.add("e"); 
         //com.add("--quiet"); //no interactive questions
         com.add("--no_memory_check"); //no interactive questions for mem usage
 
@@ -404,6 +406,8 @@ public class ARProcessLauncher {
             com.add("n");
             com.add("-a"); //gamma shape param
             com.add("0.5");
+            com.add("-f"); //base frequencies based on aligned
+            com.add("e"); 
             //com.add("--quiet"); //no interactive questions
             com.add("--no_memory_check");
             

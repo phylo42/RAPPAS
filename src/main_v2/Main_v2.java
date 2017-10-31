@@ -126,7 +126,7 @@ public class Main_v2 {
                             + "-w "+workDir+" "
                             + "-r "+a+" "
                             + "-t "+t+" "
-                            + "-k "+String.valueOf(10)+" "
+                            + "-k "+String.valueOf(8)+" "
                             + "-a "+String.valueOf(1.0)+" "
                             + "-v 1 "
                             + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
@@ -271,7 +271,7 @@ public class Main_v2 {
                             
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             //System.out.println(Arrays.toString(args));
     
            

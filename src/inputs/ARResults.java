@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import outputs.ARProcessLauncher;
 import tree.ExtendedTree;
 import tree.PhyloTree;
 
@@ -128,14 +127,14 @@ public class ARResults {
             Infos.println("Loading of PAML Posterior Probas used " + (endTime - startTime) + " ms");
         } else if (this.arpl.currentProg==ARProcessLauncher.AR_PHYML) {
             //with PHYML both tree and probas files are alignment name + extension
-            File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_tree.txt");
+            File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_ancestral_tree.txt");
             long startTime = System.currentTimeMillis();
             PHYMLWrapper pw=new PHYMLWrapper(extendedAlign,s);
             this.ARTree=pw.parseTree(new FileInputStream(tree));
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");
             //probas
-            File align = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_stats.txt");
+            File align = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_ancestral_seq.txt");
             startTime = System.currentTimeMillis();
             this.probas = pw.parseSortedProbas(new FileInputStream(align),Float.MIN_VALUE,true,Integer.MAX_VALUE);
             endTime = System.currentTimeMillis();

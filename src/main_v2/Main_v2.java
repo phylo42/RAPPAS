@@ -102,19 +102,20 @@ public class Main_v2 {
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
 
             //pplacer benchmark queries 
-//            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
+            //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_f1_t-3.40775.union";
             
-            //String db=workDir+File.separator+"DB_session_k10_a1.0_f1_t-6.0206.union";
-            String db=workDir+File.separator+"DB_session_k8_a1.0_f1_t-4.81648.union";
+            //String db=workDir+File.separator+"DB_session_k10_a0.75_f1_t-7.269987.union";
+            String db=workDir+File.separator+"DB_session_k10_a1.0_f1_t-6.0206.union";
+            //String db=workDir+File.separator+"DB_session_k8_a1.0_f1_t-4.81648.union";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
@@ -125,11 +126,11 @@ public class Main_v2 {
                             + "-w "+workDir+" "
                             + "-r "+a+" "
                             + "-t "+t+" "
-                            + "-k "+String.valueOf(8)+" "
+                            + "-k "+String.valueOf(10)+" "
                             + "-a "+String.valueOf(1.0)+" "
                             + "-v 1 "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml "
-                            + "--ardir "+arDir+" "
+                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+                            //+ "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--forceroot"
                             //+ "--dbinram "
@@ -140,17 +141,17 @@ public class Main_v2 {
             
             
             
-//            // placement launch
-            arguments=
-                              "-m p "
-                            + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-v 0 "
-                            //+ "--nsbound -1000.0 "  -Infinity if not given
-                            + "--keep-at-most 7 "
-                            + "--keep-factor 0.01"
-                            ;            
+            // placement launch
+//            arguments=
+//                              "-m p "
+//                            + "-w "+workDir+" "
+//                            + "-q "+q+" "
+//                            + "-d "+db+" "
+//                            + "-v 0 "
+//                            //+ "--nsbound -1000.0 "  -Infinity if not given
+//                            + "--keep-at-most 7 "
+//                            + "--keep-factor 0.01"
+//                            ;            
                             
                             
 /////////FOR TESTS CORRECTION: HCV, A34, k8_a1.0, R500bp  --> case where our algo cannot fails compared to EPA/PPlacer          
@@ -270,7 +271,7 @@ public class Main_v2 {
                             
             
             //force args
-            //args=arguments.split(" ");
+            args=arguments.split(" ");
             //System.out.println(Arrays.toString(args));
     
            
@@ -281,10 +282,10 @@ public class Main_v2 {
             //parse program arguments
             ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
             //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml");
-            //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml/src/phyml");
+            //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml");
             
-            //HACK FOR CURRENT DEBUGING AND PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            argsParser.ARBinary=new File("baseml");
+            //HACK FOR SIMPLIFIYING CURRENT PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
+            //argsParser.ARBinary=new File("baseml");
             
             
             //set verbosity to null, if required

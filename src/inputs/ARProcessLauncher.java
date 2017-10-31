@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package outputs;
+package inputs;
 
 import etc.Infos;
 import java.io.BufferedInputStream;
@@ -128,16 +128,21 @@ public class ARProcessLauncher {
                 //we expect 2 files to be present in ARPath
                 //alignName_phyml_stats.txt
                 //alignName_phyml_tree.txt
-                File stats=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName().split("\\.")[0]+"_phyml_stats.txt");
-                File tree=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName().split("\\.")[0]+"_phyml_tree.txt");
+                File stats=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName()+"_phyml_stats.txt");
+                File tree=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName()+"_phyml_ancestral_tree.txt");
+                File seq=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName()+"_phyml_ancestral_seq.txt");
                 if (!stats.exists() || !stats.canRead()) {
-                    System.out.println("alignName_phyml_stats.txt file do not exists or cannot be read in "+stats.getAbsolutePath());
+                    System.out.println(stats.getAbsolutePath()+" do not exists or cannot be read.");
                     System.exit(1);
                 }
                 if (!tree.exists() || !tree.canRead()) {
-                    System.out.println("alignName_phyml_tree.txt file do not exists or cannot be read in "+tree.getAbsolutePath());
+                    System.out.println(tree.getAbsolutePath()+" do not exists or cannot be read.");
                     System.exit(1);
-                }                
+                }
+                if (!seq.exists() || !seq.canRead()) {
+                    System.out.println(seq.getAbsolutePath()+" do not exists or cannot be read.");
+                    System.exit(1);
+                }
                 break;
             case AR_FASTML:
                 System.out.println("prepareAR() for FastML not supported yet...");
@@ -193,7 +198,6 @@ public class ARProcessLauncher {
         com.add(ARBinary.getAbsolutePath());
         com.add("--ancestral"); //marginal reconstruct
         com.add("-i"); //align
-        //System.out.println(alignPath.getAbsolutePath());
         com.add(alignPath.getAbsolutePath());
         com.add("-u"); //tree
         com.add(treePath.getAbsolutePath());
@@ -209,7 +213,7 @@ public class ARProcessLauncher {
         com.add("n");
         com.add("-a"); //gamma shape param
         com.add("0.5");
-        com.add("--quiet"); //no interactive questions
+        //com.add("--quiet"); //no interactive questions
         com.add("--no_memory_check"); //no interactive questions for mem usage
 
         Infos.println("Ancestral reconstruct command: "+com);
@@ -279,7 +283,7 @@ public class ARProcessLauncher {
                     sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
                     sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
                     sb.append("fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                    sb.append("method = 1  * Optimization method 0: simultaneous; 1: one branch a time\n");
+                    sb.append("method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
                     fw = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"baseml.ctl"));
                     Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
                     fw.append(sb);
@@ -335,7 +339,7 @@ public class ARProcessLauncher {
                     sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
                     sb.append("      * icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
                     sb.append("  fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                    sb.append("       method = 1  * Optimization method 0: simultaneous; 1: one branch a time\n");
+                    sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
                     
                     fw = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"codeml.ctl"));
                     Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"codeml.ctl");
@@ -400,7 +404,8 @@ public class ARProcessLauncher {
             com.add("n");
             com.add("-a"); //gamma shape param
             com.add("0.5");
-            com.add("--quiet"); //no interactive questions
+            //com.add("--quiet"); //no interactive questions
+            com.add("--no_memory_check");
             
             Infos.println("Ancestral reconstruct command: "+com);
             
@@ -410,27 +415,31 @@ public class ARProcessLauncher {
             //phyml is written all data files near the input aignment file...
             //we move them to the AR directory
             //files are:
-            // 1. alignName_phyml_ancestral_seq   (unused)
-            // 2. alignName_phyml_stats.txt       (used)
-            // 3. alignName_phyml_tree.txt        (used)
+            // 1. alignName_phyml_ancestral_seq.txt         (used)
+            // 2. alignName_phyml_stats.txt                 (unused)
+            // 3. alignName_phyml_ancestral_tree.txt        (used)
+            // 4. alignName_phyml_tree.txt                  (unused)
             File stats=new File(alignPath.getAbsolutePath()+"_phyml_stats.txt");
-            File tree=new File(alignPath.getAbsolutePath()+"_phyml_tree.txt");
-            File seq=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_seq");
+            File tree=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_tree.txt");
+            File seq=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_seq.txt");
+            File oriTree=new File(alignPath.getAbsolutePath()+"_phyml_tree.txt");
             //check that they were correctly created
             if (!stats.exists() || !stats.exists()) {
                 System.out.println("Phyml outputs are missing, the process may have failed...");
                 System.exit(1);
             }
             File statsNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_stats.txt");
-            File treeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_tree.txt");
-            File seqNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_ancestral_seq");
+            File treeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_ancestral_tree.txt");
+            File seqNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_ancestral_seq.txt");
+            File oriTreeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_tree.txt");
             
             boolean move=stats.renameTo(statsNew);
             boolean move2=tree.renameTo(treeNew);
             boolean move3=seq.renameTo(seqNew);
+            boolean move4=oriTree.renameTo(oriTreeNew);
             
-            if (!move || ! move2 || !move3) {
-                System.out.println("Could not move phyml results to /AR directory");
+            if (!move || ! move2 || !move3 || !move4) {
+                System.out.println("Could not move phyml results from /extended_tree to /AR directory");
                 System.exit(1);
             }
             
@@ -497,7 +506,7 @@ public class ARProcessLauncher {
                     sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
                     sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
                     sb.append("fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                    sb.append("method = 1  * Optimization method 0: simultaneous; 1: one branch a time\n");
+                    sb.append("method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
                     fw=new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"baseml.ctl"));
                     Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
                     fw.append(sb);
@@ -552,7 +561,7 @@ public class ARProcessLauncher {
                     sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
                     sb.append("      * icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
                     sb.append("  fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                    sb.append("       method = 1  * Optimization method 0: simultaneous; 1: one branch a time\n");
+                    sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
                     
                     fw = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"codeml.ctl"));
                     Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"codeml.ctl");
@@ -601,10 +610,10 @@ public class ARProcessLauncher {
         inputStreamToOutputStream(p.getInputStream(), STDOUTOutputStream);
         inputStreamToOutputStream(p.getErrorStream(), STDERROutputStream);
         Infos.println("External process operating reconstruction is logged in: "+new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt").getAbsolutePath());
-        Infos.println("Launching ancestral reconstruction (go and take a coffee, it might take hours!) ...");
+        Infos.println("Launching ancestral reconstruction (go and take a coffee, it might take hours if > 5000 leaves!) ...");
         try {
             p.waitFor();
-            Thread.sleep(1000);
+            Thread.sleep(100);
         } catch (InterruptedException ex) {
             Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
         }

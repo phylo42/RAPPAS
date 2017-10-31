@@ -26,12 +26,12 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     //11000000 mask for position 3
     byte[] maskArray={(byte)0x03,(byte)0x0C,(byte)0x30,(byte)0xC0};
     
-    char[] states = {'A','T','C','G','N','-'};
-    byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05};     
+    char[] states = {'A','T','C','G','N','-','.'};
+    byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06};     
 
     public DNAStatesShifted() {
         //ambigous states which are allowed
-        ambigousStates=2;
+        ambigousStates=3;
     }
     
     
@@ -59,10 +59,12 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
                 //reset pivot byte
                 fourBasesByte=0x00;
             }
+            //shift the 2 bits coding the i-th base, in the i%4 byte
             fourBasesByte= (byte) ( fourBasesByte | (bytes[i] << (2*(i%4))) ) ;            
         }
         //last mer fragment was last than 4 bases
-        //just add the 
+        //use a complete byte, and at expansion, k will be used to know how
+        //many bit pairs will need to be read.
         if (insertions<kmer.length) {
             kmer[kmer.length-1]=fourBasesByte;
         }
@@ -112,6 +114,10 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
                 b=0x01; break;
             case 'T':
                 b=0x01; break;
+            case 'u':
+                b=0x01; break;
+            case 'U':
+                b=0x01; break; 
             case 'c':
                 b=0x02; break;
             case 'C':
@@ -122,8 +128,15 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
                 b=0x03; break;
             case 'N':
                 b=0x04; break;
+            case 'n':
+                b=0x04; break;
             case '-':
                 b=0x05; break;
+            case '.':
+                b=0x06; break;
+            default:
+                Infos.println("Unexpected state in the sequence (not ATUCGN-.), replaced with N. (char='"+String.valueOf(c)+"')");
+                b=0x04; break; //put N if other IUPAC base
         }
         return b;
     }
@@ -135,16 +148,7 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     
     @Override
     public byte stateToByte(char c) {
-        if (c=='U') {
-            c='T';
-        }
-        try {
-            return bytes[charToByte(c)];
-        } catch (NullPointerException ex) {
-            //ex.printStackTrace();
-            Infos.println("Unexpected (not ATUCGN) state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
-        }
-        return 'N';
+        return bytes[charToByte(c)];
     }
     
 

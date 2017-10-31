@@ -5,7 +5,7 @@
  */
 package main_v2;
 
-import outputs.ARProcessLauncher;
+import inputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.AAStates;
 import core.DNAStatesShifted;

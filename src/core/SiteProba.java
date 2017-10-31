@@ -34,7 +34,7 @@ public class SiteProba implements Comparable<SiteProba> {
 
     @Override
     public String toString() {
-        return " SiteProba: "+state+":"+proba;
+        return " SiteProba: state="+state+", PP="+proba;
     }
     
     

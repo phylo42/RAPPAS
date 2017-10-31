@@ -110,22 +110,19 @@ public class PHYMLWrapper implements ARWrapper {
                 lineNumber++;
                 if (lineNumber%500000==0) {
                     Infos.println("Line: >"+lineNumber);
-                }
-                
+                }                
                 if (line.startsWith("Site\tNode")) { //start of section
+                    //header is Site\tNodeLabel\tA\tC\tG\t	T
                     String[] stateStrings=line.split("\t");
                     stateOrder=new char[stateStrings.length-2]; //2 first columns (site/node)
                     for (int i = 0; i < stateOrder.length; i++) {
                         stateOrder[i]=stateStrings[i+2].charAt(0);
                     }
-                    System.out.println("States found:"+Arrays.toString(stateOrder));
-                    for (byte i = 0; i < states.getStateCount(); i++) {
-                        System.out.println(i+":"+states.byteToState(i));
-                    }                    
+                    Infos.println("States found:"+Arrays.toString(stateOrder));                
                     start=true;
                     continue;
                 }
-                if (line.trim().equals("")) { //useless lines
+                if (line.trim().isEmpty()) { //useless lines
                     continue;
                 }
 
@@ -137,7 +134,7 @@ public class PHYMLWrapper implements ARWrapper {
 
                     //node parsing
                     currentNode=data[1].trim();
-                    nodeId=tree.getByName("x"+currentNode).getId();
+                    nodeId=tree.getByName(currentNode).getId();
                     if (nodeId!=previousId) {
                         nodeCount++;
                         //DEBUG
@@ -150,20 +147,22 @@ public class PHYMLWrapper implements ARWrapper {
                     
                     //site and probas parsing
                     int site=Integer.parseInt(data[0].trim());
+                    //System.out.println("NODE/SITE: "+nodeId+" "+site);
                     for (int i = 0; i < stateOrder.length; i++) {
-                        char s = stateOrder[i];
                         SiteProba sp=new SiteProba();
-                        sp.state=states.stateToByte(s);
+                        sp.state=states.stateToByte(stateOrder[i]);
                         sp.proba=Float.parseFloat(data[i+2]);
+                        //System.out.print(" "+sp.state+":"+sp.proba);
                         if (sp.proba<sitePPThreshold)
                             sp.proba=sitePPThreshold;
                         if (asLog10)
                             sp.proba=(float)Math.log10(sp.proba);
                         probasPerSite.set(i,sp);
                     }
+                    //System.out.println("");
                     //sort 
                     Collections.sort(probasPerSite);
-                    System.out.println(probasPerSite);
+                    //System.out.println(probasPerSite);
                     //register
                     matrix.setStates(nodeId, site-1, probasPerSite);
                     
@@ -173,7 +172,7 @@ public class PHYMLWrapper implements ARWrapper {
             }
             Infos.println( "Number of (site x nodes) for which pp were parsed: "+currentPP);
             Infos.println( "Number of (sites) for which pp were parsed: "+(0.0+currentPP/(tree.getNodeCount()-tree.getLeavesCount())));
-            
+                        
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (java.lang.NumberFormatException ex) {

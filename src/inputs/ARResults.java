@@ -130,7 +130,18 @@ public class ARResults {
             File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_ancestral_tree.txt");
             long startTime = System.currentTimeMillis();
             PHYMLWrapper pw=new PHYMLWrapper(extendedAlign,s);
-            this.ARTree=pw.parseTree(new FileInputStream(tree));
+            this.ARTree=pw.parseTree(new FileInputStream(tree),false);
+            Infos.println("AR tree rooted? :"+ARTree.isRooted());
+            //phyml AR unroot input tree even if they are rooted
+            //we need to reroot the tree as is was in the inital input
+            //What doeos phyml ?
+            //input:        ((C1,C2)node,S3)root;
+            //phyml output: (C3,C1,C2)newick_root;
+            //then we go back to the original input configuration
+            this.ARTree=pw.parseTree(new FileInputStream(tree),true);
+            
+            
+            Infos.println("PhyML unroots trees, rerooting this tree. AR tree rooted? :"+ARTree.isRooted());
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");
             //probas

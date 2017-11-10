@@ -18,7 +18,6 @@ public class PProbasSorted implements Serializable {
     
     float[][][] pp=null; //[nodeIndex][site][index]=PPStar
     byte[][][] states=null;//[nodeIndex][site][index]= State associated to PPStar
-    byte[][][] statesIndex=null;//[nodeIndex][site][index] =link from State value to states table index
     //example on pplacer benchmark:
     //pp[O][0]=[-0.51749474, -0.5934179, -0.64727, -0.665648]
     //states[0][0]=[3, 0, 2, 1]
@@ -28,7 +27,6 @@ public class PProbasSorted implements Serializable {
     public PProbasSorted(int nodeCount, int siteCount, int stateCount) {
         pp=new float[nodeCount][siteCount][stateCount];
         states=new byte[nodeCount][siteCount][stateCount];
-        statesIndex=new byte[nodeCount][siteCount][stateCount];
     }
     
     public void setStates(int nodeId, int site, ArrayList<SiteProba> probas) {
@@ -39,7 +37,6 @@ public class PProbasSorted implements Serializable {
         for (SiteProba sp:probas) {
             pp[nodeId][site][i]=sp.proba;
             states[nodeId][site][i]=sp.state;
-            statesIndex[nodeId][site][sp.state]=i;
             i++;
         }
     }
@@ -75,11 +72,7 @@ public class PProbasSorted implements Serializable {
     }
     
     public byte[][] getStateIndexSet(int nodeId, int siteStart, int siteEnd) {
-        if (siteEnd>=statesIndex[0].length) {
-            throw new IndexOutOfBoundsException("siteEnd="+siteEnd+" > to last site position");
-        } else {
-            return Arrays.copyOfRange(statesIndex[nodeId], siteStart, siteEnd+1);
-        }
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     public int getNodeCount() {

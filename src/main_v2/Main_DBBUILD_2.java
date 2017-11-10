@@ -464,7 +464,7 @@ public class Main_DBBUILD_2 {
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 3 first PP:"+Arrays.deepToString(arpr.getPProbas().getPPSet(0, 0, 3)));
             Infos.println("NodeId=0, 3 first states:"+ Arrays.deepToString(arpr.getPProbas().getStateSet(0, 0, 3)));
-            Infos.println("NodeId=0, 3 first statesIndexes:"+ Arrays.deepToString(arpr.getPProbas().getStateIndexSet(0, 0, 3)));
+            //Infos.println("NodeId=0, 3 first statesIndexes:"+ Arrays.deepToString(arpr.getPProbas().getStateIndexSet(0, 0, 3)));
             Infos.println("#######################################################################");
             
             

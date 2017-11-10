@@ -30,6 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import main.SessionNext;
 import tree.NewickReader;
+import tree.NewickWriter;
 import tree.PhyloTree;
 
 /**
@@ -60,10 +61,11 @@ public class PHYMLWrapper implements ARWrapper {
     /**
      * parse the tree from the basic.phylip_phyml_tree.txt file
      * @param input
+     * @param rerootPhyMLTree reverse the unrooted of phyml tree (C3,C1,C2); to the original ((C1,C2),C3)root;
      * @return
      * @throws IOException 
      */
-    public PhyloTree parseTree(InputStream input) throws IOException {
+    public PhyloTree parseTree(InputStream input,boolean rerootPhyMLTree) throws IOException {
         BufferedReader br=new BufferedReader(new InputStreamReader(input,"UTF-8"));
         String line=null;
         String originalTreeString=null;
@@ -71,7 +73,61 @@ public class PHYMLWrapper implements ARWrapper {
             if (line.trim().length()<1) {continue;}
             originalTreeString=line;
         }
-        this.tree=NewickReader.parseNewickTree2(originalTreeString, false, false);
+        //if necessary reroot phyml tree
+        if (rerootPhyMLTree) {
+            Infos.println("Reversing phyML unrooting...");
+            
+            //first change newick string to get root sons 
+            //order from (C3,C1,C2); to (C1,C2,C3);
+            
+            //1st, define root
+            int cladeClosingIndex=-1;
+            for (int i = originalTreeString.length()-1; i >= 0; i--) {
+                if (originalTreeString.charAt(i)==')') {
+                    cladeClosingIndex=i; 
+                    break;
+                }
+            }
+            //System.out.println("Closing index: "+cladeClosingIndex);
+            
+            //2nd, extract C1 to C3
+            String[] clades=new String[4]; //the 4th contains the root node 
+            int depth=0;
+            int cladeStart=1;
+            int cladeCounter=0;
+            for (int i = 0; i < originalTreeString.length(); i++) {
+                char c=originalTreeString.charAt(i);
+                if (c=='(') { depth++; }
+                if (c==')') { depth--; }
+                //we arrive or return to clade attached to roto
+                if ( (depth==1 && c==',') || (depth==0 && i==cladeClosingIndex) ) {
+                    //store previous clade string
+                    if (i>0) {
+                        clades[cladeCounter]=originalTreeString.substring(cladeStart,i);
+                        //System.out.println(clades[cladeCounter]);
+                        cladeCounter++;
+                    }
+                    cladeStart=i+1;
+                    
+                    continue;
+                }
+                                
+            }
+            //last one = the root
+            clades[cladeCounter]=originalTreeString.substring(cladeStart,originalTreeString.length());
+            //System.out.println(clades[cladeCounter]); 
+            
+            //reorder
+            originalTreeString="("+clades[1]+","+clades[2]+","+clades[0]+")"+clades[3];
+            //System.out.println("---\n"+originalTreeString+"\n---\n");
+            
+            
+            //then force rooting, which goes back to the original extended tree rooting
+            this.tree=NewickReader.parseNewickTree2(originalTreeString, true, false);
+            
+        } else {
+            this.tree=NewickReader.parseNewickTree2(originalTreeString, false, false);
+        }
         return this.tree;
     }
     
@@ -216,7 +272,7 @@ public class PHYMLWrapper implements ARWrapper {
             
             //tree
             PHYMLWrapper pw=new PHYMLWrapper(align,s);
-            PhyloTree tree=pw.parseTree(new FileInputStream(t));
+            PhyloTree tree=pw.parseTree(new FileInputStream(t),false);
             //tree.displayTree();
             //probas
             PProbasSorted probas = pw.parseSortedProbas(new FileInputStream(p),Float.MIN_VALUE,true,Integer.MAX_VALUE);

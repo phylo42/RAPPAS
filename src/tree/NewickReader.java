@@ -25,7 +25,7 @@ public class NewickReader {
      * top level), then force the return of a rooted tree; not that the root
      * will always be placed as follows: 
      * (son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
-     * @param considerJplaceEdgeLabels consider the {x} edge ids when this
+     * @param considerJplaceEdgeIds consider the {x} edge ids when this
      * newick tree is a jplace style tree. If not activated the presence of this 
      * labelling will explicitely throw an error. Example:
      * NumberFormatException: For input string: "0.00000100000050002909{0}" ;
@@ -38,7 +38,7 @@ public class NewickReader {
     public static PhyloTree parseNewickTree2(String s, boolean forceRooting, boolean considerJplaceEdgeIds) {
         
         if (s==null) {
-            System.out.println("Cannot read tree string, is null");
+            System.out.println("Cannot read tree, string is null");
             return null;
         }
         
@@ -89,7 +89,7 @@ public class NewickReader {
                     //to fill node
                     String[] data=sb.toString().split(":");
                     String label=data[0];
-                    Float bl=-1.0f;
+                    Float bl=0.0f;
                     int jplaceEdgeId=-1;
                     if (data.length>1) {
                         //if jplace file, consider {x} as jplace nodeids
@@ -133,7 +133,7 @@ public class NewickReader {
                 //to fill node
                 String[] data=sb.toString().split(":");
                 String label=data[0];
-                Float bl=-1.0f;
+                Float bl=0.0f;
                 int jplaceEdgeId=-1;
                 if (data.length>1) {
                     //if jplace file, consider {x} as jplace nodeids

@@ -131,17 +131,19 @@ public class ARResults {
             long startTime = System.currentTimeMillis();
             PHYMLWrapper pw=new PHYMLWrapper(extendedAlign,s);
             this.ARTree=pw.parseTree(new FileInputStream(tree),false);
-            Infos.println("AR tree rooted? :"+ARTree.isRooted());
-            //phyml AR unroot input tree even if they are rooted
-            //we need to reroot the tree as is was in the inital input
-            //What doeos phyml ?
-            //input:        ((C1,C2)node,S3)root;
-            //phyml output: (C3,C1,C2)newick_root;
-            //then we go back to the original input configuration
-            this.ARTree=pw.parseTree(new FileInputStream(tree),true);
+            Infos.println("Original tree rooted? : "+originalTree.isRooted());
+            Infos.println("PhyML AR tree rooted? : "+ARTree.isRooted());
             
-            
-            Infos.println("PhyML unroots trees, rerooting this tree. AR tree rooted? :"+ARTree.isRooted());
+            if (originalTree.isRooted() && (!ARTree.isRooted()) ) {
+                //phyml AR unroot input tree even if they are rooted
+                //we need to reroot the tree as is was in the inital input
+                //What doeos phyml ?
+                //input:        ((C1,C2)node,S3)root;
+                //phyml output: (C3,C1,C2)newick_root;
+                //then we go back to the original input configuration
+                this.ARTree=pw.parseTree(new FileInputStream(tree),true);
+                Infos.println("PhyML unroots trees, after rerooting this tree, AR tree rooted? :"+ARTree.isRooted());
+            }
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");
             //probas

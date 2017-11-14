@@ -201,6 +201,7 @@ public class Main_DBBUILD_2 {
             
             
             //load original alignment
+            Infos.println("Loading alignment: "+a.getAbsolutePath());
             FASTAPointer fp=new FASTAPointer(a, false);
             Fasta fasta=null;
             ArrayList<Fasta> fastas=new ArrayList<>();
@@ -208,7 +209,7 @@ public class Main_DBBUILD_2 {
                 fastas.add(fasta);
             }
             Alignment align=new Alignment(fastas);
-            Infos.println(align.describeAlignment(false));
+            Infos.println("Alignment read: "+align.describeAlignment(false));
             fp.closePointer();
 
             //if necessary reduces alignement
@@ -232,6 +233,7 @@ public class Main_DBBUILD_2 {
             //parse tree
             String line=null;
             String tline=null;
+            Infos.println("Loading tree: "+t.getAbsolutePath());
             BufferedReader br=new BufferedReader(new FileReader(t));
             while ((line=br.readLine())!=null) {tline=line;}
             br.close();
@@ -250,7 +252,10 @@ public class Main_DBBUILD_2 {
                     notFoundCount++;
                 }
             }
-            if (notFoundCount>0) {System.exit(1);}
+            if (notFoundCount>0) {
+                System.out.println("Alignment/tree labels do not match ! Aborting...");
+                System.exit(1);
+            }
             alignLabels=null;
             
             

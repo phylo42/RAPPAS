@@ -765,7 +765,7 @@ public class PlacementProcess {
             // query.e. threshold*#_words_not_scored (because no in hash)
             //sum of all scores of all nodes, used later for the score ratio
             double allLikelihoodSums=0.0;
-            
+            double lowestPowerOfTen=0.0;
             //to check what is the real ordering
 //            float[] copyOf = new float[selectedNodes.size()];
 //            int c=0;
@@ -791,14 +791,16 @@ public class PlacementProcess {
                 //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
                 // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
                 //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
-                //System.out.println("numberOfBestScoreToConsiderForOutput:"+numberOfBestScoreToConsiderForOutput);
                 kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
                 //System.out.println("kthLargestValue:"+kthLargestValue);
                 //search all node scores larger than this kth value
                 int i=0;
                 for (int nodeId:selectedNodes) {
                     if (i==numberOfBestScoreToConsiderForOutput) { 
-                        break;//we already got the nth best scores, no need to iterate more
+                        break;
+                        //we already got the nth best scores,
+                        //no need to iterate more because nothing more will be
+                        //output to the jplace 
                     }
                     if (nodeScores[nodeId]>=kthLargestValue) {
                         //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
@@ -808,23 +810,27 @@ public class PlacementProcess {
                         //build the total likelihood sum (for the likelihood weight ratio)
                         //before the power of ten, divide by #words, to use the normalized score
                         allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score));
+                        //remind lower power of 10, if goes below double limit, 
+                        //will need to shift the values
+                        if (bestScoreList[i].score<lowestPowerOfTen) {lowestPowerOfTen=bestScoreList[i].score;}
                         i++;
                     }
                 }
                 //finally do a sort of bestScoreList, O(k.log(k))
                 Arrays.sort(bestScoreList);
-                bestScore=bestScoreList[bestScoreList.length-1].score;
-                bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
+                bestScore=bestScoreList[numberOfBestScoreToConsiderForOutput-1].score;
+                bestNodeId=bestScoreList[numberOfBestScoreToConsiderForOutput-1].nodeId;
             }
             
             //if necessary
-            //prepare weightRatioShift for allowing weight-ratio when proba < "double" primitive boundary
+            //prepare variable weightRatioShift for allowing
+            //weight-ratio computations when proba is < to "double" primitive boundary
             float weightRatioShift=0.0f; 
-            
-            if ( -308f >= bestScore ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
+            if ( -308f >= lowestPowerOfTen ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
                 weightRatioShift=bestScore;
                 //System.out.println("weightRatioShift set to: "+weightRatioShift);
                 //rebuild allLikelihoodSums using the shift
+                allLikelihoodSums=0.0;
                 int i=0;
                 for (int nodeId:selectedNodes) {
                     if (i==numberOfBestScoreToConsiderForOutput) { 
@@ -976,17 +982,13 @@ public class PlacementProcess {
             
             //only score passing --nsbound if this debug option is set
             if (bestScoreList[bestScoreList.length-1].score>=nsBound) {
-
                 //first we build the "p" array, containing the position/scores of all reads
                 JSONArray pMetadata=new JSONArray();
                 //we create as many lines in "p" block as asked by --keep-at-most and --keep-ratio
                 double bestRatio=-1;
-                for (int i = bestScoreList.length-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
+                for (int i = numberOfBestScoreToConsiderForOutput-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
                     //calculate weight_ratio
                     double weigth_ratio=-1;
-//                    System.out.println("allLikelihoodSums:"+allLikelihoodSums);
-//                    System.out.println("score:"+bestScoreList[i].score);
-//                    System.out.println("with shift:"+(bestScoreList[i].score-weightRatioShift));
                     weigth_ratio=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift))/allLikelihoodSums;
                     //if best score, memorize this ratio
                     if (i==bestScoreList.length-1) {

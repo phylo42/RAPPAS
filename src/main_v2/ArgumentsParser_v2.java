@@ -188,14 +188,17 @@ public class ArgumentsParser_v2 {
                 boolean kGiven=false;
                 boolean alphaGiven=false;
                 boolean fGiven=false;
+                boolean alignGiven=false;
+                boolean treeGiven=false;
                 
                 for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
                     int index=it.next();
-                    //test -a parameter
+                    //test -r parameter
                     if (argsMap.get(index).equals("--refalign") || argsMap.get(index).equals("-r")) {
                         File alignment=new File(argsMap.get(index+1));
                         if (alignment.isFile() && alignment.canRead()) {
                             this.alignmentFile=alignment;
+                            alignGiven=true;
                         } else {
                             System.out.println(alignment.getAbsolutePath());
                             System.out.println("Cannot open alignment: Not a file or no read permission.");
@@ -207,6 +210,7 @@ public class ArgumentsParser_v2 {
                         File tree=new File(argsMap.get(index+1));
                         if (tree.isFile() && tree.canRead()) {
                             this.treeFile=tree;
+                            treeGiven=true;
                         } else {
                             System.out.println(tree.getAbsolutePath());
                             System.out.println("Cannot open tree: Not a file or no read permission.");
@@ -441,7 +445,15 @@ public class ArgumentsParser_v2 {
                     
                 }
                 
+
+                ///////////////////////////////////////////////
+                //do not continue if align/tree not set (-r / -t)
+                ///////////////////////////////////////////////
+                if (!alignGiven) {System.out.println("Reference alignment not set correctly (use -r) ."); System.exit(1);}
+                if (!treeGiven) {System.out.println("Reference tree not set correctly (use -t) ."); System.exit(1);}
+                ///////////////////////////////////////////////
                 //use defaults if -k,-a,-f not set
+                ///////////////////////////////////////////////
                 if (!kGiven) {System.out.println("Default k="+this.k+" will be used.");}
                 if (!alphaGiven) {System.out.println("Default alpha="+this.alpha+" will be used.");}
                 if (!fGiven) {

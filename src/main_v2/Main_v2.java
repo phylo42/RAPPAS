@@ -212,7 +212,26 @@ public class Main_v2 {
 /////////FOR TESTS OF DB BUILD SPEED: HCV, A34, k12_a0.75 --> case where our RAPPAS seems to slow down with number of nodes explored       
 
 
-
+/////////FOR TESTS OF DB BUILD ERROR: BOLD_chordata, A30, k6_a1.50 --> case where our RAPPAS produces "null" value for likelihood_weight_ratio
+            arguments=
+                              "-m B "
+                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Dx/A30_nx759_la/k6_a1.50 "
+                            + "-r /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Ax/A30_nx759_la.align "
+                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Tx/T30_nx759_la.tree "
+                            + "-k "+String.valueOf(6)+" "
+                            + "-a "+String.valueOf(1.50)+" "
+                            + "-v 1 "
+                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Dx/A30_nx759_la/AR "
+                            + "--dbinram "
+                            + "--no-reduction "
+                            + "--nsbound -10000000.0 "
+                            + "-q /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r150.fasta"
+                            //+    ",/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r300.fasta"
+                            //+    ",/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r600.fasta"
+                            //+    ",/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r1200.fasta"
+                            ;     
+/////////FOR TESTS OF DB BUILD ERROR: BOLD_chordata, A30, k6_a1.50 --> case where our RAPPAS produces "null" value for likelihood_weight_ratio
 
 
 

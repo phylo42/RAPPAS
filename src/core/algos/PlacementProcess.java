@@ -377,6 +377,7 @@ public class PlacementProcess {
      * @param fp
      * @param placements
      * @param bwTSV
+     * @param bwNotPLaced
      * @param queryWordSampling
      * @param minOverlap
      * @param logDir
@@ -388,6 +389,7 @@ public class PlacementProcess {
     public int processQueries(  SequencePointer fp,
                                 JSONArray placements,
                                 BufferedWriter bwTSV,
+                                BufferedWriter bwNotPLaced,
                                 int queryWordSampling,
                                 int minOverlap,
                                 File logDir,
@@ -442,6 +444,7 @@ public class PlacementProcess {
 //                return Arrays.equals(a, b);
 //            }
 //        });
+
         //map to associate sequence checksums to JSONObject
         //map(checksum)=JSON placement object to which identical reads
         //              are associated (same score and placement)
@@ -663,9 +666,9 @@ public class PlacementProcess {
                 queryKmerCount++;
 
             }
-            //System.out.println("  AFTER ALIGNMENT");
-            //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
-            //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
+//            System.out.println("  AFTER ALIGNMENT");
+//            System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,0,nodeOccurences.length)));
+//            System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,0,nodeOccurences.length)));
             if (merStats) {
                 for (int nodeId = 0; nodeId < merFound.length; nodeId++) {
                     for (int merPos = 0; merPos < merFound[nodeId].length; merPos++) {
@@ -708,16 +711,19 @@ public class PlacementProcess {
             Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
             long endAlignTime=System.currentTimeMillis();
             totalAlignTime+=(endAlignTime-startAlignTime);
-            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
+            Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      
 
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
-            if (selectedNodes.size()<1) {
+            if ( (selectedNodes.size()<1) ) {
                 Infos.println("Read cannot be placed.");
-                //TODO: currently this query will not be in output csv 
-                //and jplace... put them in special output ?
+                //report queries that could not be placed because
+                //none of its kmers found in DB
+                bwNotPLaced.append(fasta.getHeader());
+                bwNotPLaced.newLine();
                 continue; //to next query
             }
+            
 
 
             // NOW CORRECTING SCORING BY UNMATCHED WORDS
@@ -818,9 +824,11 @@ public class PlacementProcess {
                 }
                 //finally do a sort of bestScoreList, O(k.log(k))
                 Arrays.sort(bestScoreList);
-                bestScore=bestScoreList[numberOfBestScoreToConsiderForOutput-1].score;
-                bestNodeId=bestScoreList[numberOfBestScoreToConsiderForOutput-1].nodeId;
+                bestScore=bestScoreList[bestScoreList.length-1].score;
+                bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
             }
+            //System.out.println("bestScoreList:"+Arrays.toString(bestScoreList));
+            //System.out.println("numberOfBestScoreToConsiderForOutput: "+numberOfBestScoreToConsiderForOutput);
             
             //if necessary
             //prepare variable weightRatioShift for allowing
@@ -831,15 +839,8 @@ public class PlacementProcess {
                 //System.out.println("weightRatioShift set to: "+weightRatioShift);
                 //rebuild allLikelihoodSums using the shift
                 allLikelihoodSums=0.0;
-                int i=0;
-                for (int nodeId:selectedNodes) {
-                    if (i==numberOfBestScoreToConsiderForOutput) { 
-                        break;//we already got the nth best scores, no need to iterate more
-                    }
-                    if (nodeScores[nodeId]>=kthLargestValue) {
-                        allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift));
-                        i++;
-                    }
+                for (int i=bestScoreList.length-numberOfBestScoreToConsiderForOutput;i<bestScoreList.length;i++) {
+                    allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift));
                 }
 
             }
@@ -851,6 +852,7 @@ public class PlacementProcess {
             //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
             Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
             //Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
+            //System.out.println("allLikelihoodSums: "+allLikelihoodSums);
 //            if (useSelectionAlgo) {
 //                System.out.println("selection algo + sort: "+Arrays.toString(bestScoreList));
 //            }
@@ -986,10 +988,15 @@ public class PlacementProcess {
                 JSONArray pMetadata=new JSONArray();
                 //we create as many lines in "p" block as asked by --keep-at-most and --keep-ratio
                 double bestRatio=-1;
-                for (int i = numberOfBestScoreToConsiderForOutput-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
+                for (int i = bestScoreList.length-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
+                    //System.out.println("i: "+i);
                     //calculate weight_ratio
                     double weigth_ratio=-1;
+                    //System.out.println("bestScoreList[i].score : "+bestScoreList[i].score);
+                    //System.out.println("bestScoreList[i].score-weightRatioShift : "+(bestScoreList[i].score-weightRatioShift));
+                    //System.out.println("Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift)):"+ Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift)));
                     weigth_ratio=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift))/allLikelihoodSums;
+                    
                     //if best score, memorize this ratio
                     if (i==bestScoreList.length-1) {
                         bestRatio=weigth_ratio;
@@ -1012,7 +1019,6 @@ public class PlacementProcess {
                     placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
                     pMetadata.add(placeColumns);
                 }
-
                 placement.put("p", pMetadata);
 
                 //second we build the "nm" array, containing the read identifier
@@ -1058,6 +1064,9 @@ public class PlacementProcess {
                 nodeScores[nodeId]=0.0f;
                 nodeScoresCopy[nodeId]=0.0f;
                 nodeOccurences[nodeId]=0;
+            }
+            for (int i = 0; i < bestScoreList.length; i++) {
+                bestScoreList[i]=new Score(-1, Float.NEGATIVE_INFINITY);
             }
             selectedNodes.clear();
             long endResetTime=System.currentTimeMillis();

@@ -194,7 +194,8 @@ public class Main_PLACEMENT_v07 {
             int bufferSize=2097152; // buffer of 2mo
             //placement results
             BufferedWriter bwTSVPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);
-            
+            //unplaced query log
+            BufferedWriter bwNotPlaced=new BufferedWriter(new FileWriter(new File(logPath+"notplaced_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);
 
             ////////////////////////////////////////////////////////////////////
             //PREPARE STRUCTURE (JSON OBJECT) FOR JPLACE OUTPUT 
@@ -234,9 +235,10 @@ public class Main_PLACEMENT_v07 {
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);
             //close TSV logs
             bwTSVPlacement.close();
+            bwNotPlaced.close();
             fp.closePointer();
 
             

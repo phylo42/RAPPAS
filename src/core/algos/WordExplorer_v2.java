@@ -16,35 +16,36 @@ import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
 import inputs.PAMLWrapper;
+import inputs.PHYMLWrapper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.PhyloTree;
 
 /**
- *
+ * second version of word explorer, which takes into account empty columns to generate k-mers
  * @author ben
  */
 public class WordExplorer_v2 {
 
     //set the array to the number of words that will be tested
     //initial capacity of the arraylist is arbitrary, but tests showed that
-    //only ~ 100-1000 words survived the 2 tresholds if both set at 1e-6
+    //only ~ 10000 words survived the 2 tresholds if both set at 1e-6
     //table realloc will occur if we get behind this size,
     //I was initally using testedWordCount as the maximum size, but this is
-    //a memory killer ...
-    int initalCapacity=100;
+    //a memory killer for nothing...
+    int initalCapacity=1000;
     ArrayList<ProbabilisticWord> words=new ArrayList(initalCapacity);
      
-    //external parameters
+    //external variables used in the recursion
     int k=-1;
     int refPosition=-1;
+    int current_k=-1;
     int nodeId=-1;
     float wordThresholdAsLog=0.0f;
     
@@ -56,20 +57,11 @@ public class WordExplorer_v2 {
     byte[] word=null;
     PProbasSorted ppSet=null;
     boolean boundReached=false;
-    
-    //variables to manage words list 
-    //i.e. to avoid too many memory footprint, this list need to be created at 
-    //instanciation of WordExplorer, then the ProbabilisticWord created in the list
-    //should not be replaced with new instanticiations but the primitive content
-    //is updated instaed.
-    //as the ProbabilisticWord list return by WordExplorer will have a different
-    //size for different i,j positions (see exploreWords() ), we need variables
-    //to determine which fraction of the list [0,n] should be returned
-    int lastIndexOfCurrentRecursion=-1; //increases while exploreWords() finds new words
-    int recursiveDepth=-1; //to know when we are at first recursive call
     boolean wordCompression=false;
     States s=null;
-    
+    //represents  gap intervals
+    int[] gapIntervals=null;
+
     /**
      *
      * @param k
@@ -87,65 +79,69 @@ public class WordExplorer_v2 {
         this.ppSet=ppSet;
         this.wordCompression=wordCompression;
         this.s=s;
+        this.current_k=0;
+        
+        //example of regions where 1 gapIntervals interval of 1 site
+        //and 1 gapIntervals interval of 2 sites
+        int[] intervalStarts={2,4};
+        int[] gapIntervals=new int[ppSet.getSiteCount()];
+        gapIntervals[2]=1;
+        gapIntervals[4]=2;
+        //{0,0,1,0,2,0,0,0}; //this table should be built in constructor
+        
     }
     
-    public List<ProbabilisticWord> getRetainedWords() {
-        if (lastIndexOfCurrentRecursion>-1) {
-            return words.subList(0, lastIndexOfCurrentRecursion);
-        } else {
-            return new ArrayList<>(1); //empty list
-        }
+    public ArrayList<ProbabilisticWord> getRetainedWords() {
+        return words;
     }
     
     /**
-     * return list of words retained for the k-mer determine by the i,j reference
-     * alignment coordinates
+     * 
      * @param i
      * @param j
      */
     public void exploreWords(int i, int j) {
         //for the algorithm below, consider ppSet as a (i,j) matrix
-        //- with i the position on the ref alignment, refPosition being the i=0
-        //  and refPosition+k being the maximumi, with i=k-1.
-        //- with j the current state, descending ordered by their PP, from j=0
+        //- with i the position on the ref alignment, with refPosition=i at start
+        //  and refPosition+k being the maximum where i=k-1.
+        //- with j the current state, in descending ordered by their PP, from j=0
         //  to a maxumim j=(#states)
         
-        //init index if this is top call of exploreWords() recursion
-        recursiveDepth++;
-        if (recursiveDepth==0) {
-            lastIndexOfCurrentRecursion=0;
+
+        System.out.println("IN: "+i+" "+j);
+        System.out.println("current_k:"+current_k);
+        //if after the alignment limit (can happen because of jumps
+        //over gapIntervals colulmns), then return, this word is not possible.
+        if (i>ppSet.getSiteCount()-1) {
+            return;
+        }
+        //if we start the exploration (current_k==0)at a i which is in a 
+        //gap interval, we avoid this exporation.
+        if ( (current_k==0) && gapIntervals[i]>0 ) {
+            System.out.println("statring in interval, return");
+            return;
         }
         
-        //System.out.println("IN: "+i+" "+j);
-        word[i-refPosition]=ppSet.getState(nodeId, i, j);
-        //System.out.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
+        
+        word[current_k]=ppSet.getState(nodeId, i, j);
+        System.out.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
         currentLogSum+=ppSet.getPP(nodeId, i, j);
-        if(currentLogSum<wordThresholdAsLog)
-            boundReached=true;
-        else
-            boundReached=false;
+        boundReached = currentLogSum<wordThresholdAsLog;
         
         //register word if k-th position
-        if (i==(refPosition+k-1)) {
+        if (current_k==k-1) {
+
             //register word
             if (!boundReached) {
-                //words list is too small to fit new word
-                if (words.size()-1<lastIndexOfCurrentRecursion) {
-                    lastIndexOfCurrentRecursion++;
-                    if (wordCompression) {
-                        words.add(new ProbabilisticWord(s.compressMer(Arrays.copyOf(word, word.length)), currentLogSum, refPosition ));
-                    } else {
-                        words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
-                    }
-                //words list big enough, just update value in the word object    
+                if (wordCompression) {
+                    words.add(new ProbabilisticWord(s.compressMer(Arrays.copyOf(word, word.length)), currentLogSum, refPosition ));
                 } else {
-                    words.get(lastIndexOfCurrentRecursion).update(Arrays.copyOf(word, word.length), currentLogSum, refPosition);
-                    lastIndexOfCurrentRecursion++;
+                    words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
                 }
-                //System.out.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
+                System.out.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
             }
             //decrease before return
-            //System.out.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
+            System.out.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
             currentLogSum-=ppSet.getPP(nodeId, i, j);
             //force return to parent
             return;
@@ -153,14 +149,29 @@ public class WordExplorer_v2 {
             //go down recursively
             for (int j2 = 0; j2 < ppSet.getStateCount(); j2++) {
                 if (boundReached) {break;}
+                
+                //remember with move to next kmer position
+                current_k++;
+                
+                //continue exploration by jumping over the next column
+                //which is flagged as a gapIntervals interval
+                if (gapIntervals[i+1]!=0) {
+                    exploreWords((i+1)+gapIntervals[i+1], j2);
+                }
+                //redo this exploration, but now considering this gapIntervals zone
                 exploreWords(i+1, j2);
-                //System.out.println("OUT: "+(i+1)+" "+j2);
+                
+                //remember with move back to previous kmer position
+                current_k--;
+                
+                
+                System.out.println("OUT: "+(i+1)+" "+j2);
+                System.out.println("current_k:"+current_k);
             }
         }
         //decrease before natural return
-        //System.out.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
+        System.out.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
         currentLogSum-=ppSet.getPP(nodeId, i, j);
-        recursiveDepth--;
         
     }
     
@@ -173,9 +184,9 @@ public class WordExplorer_v2 {
         try {
             
             
-            String a="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/relaxed_trees/relaxed_align_BrB_minbl0.001_1peredge.fasta";
-            String rst="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/AR/finished/rst";
-            
+            String a="/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/mod_matK.fasta.linsi.aln.reduced.fasta";
+            String ARTree="/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_tree.txt";
+            String ARStats="/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_seq.txt";
             
             int k=8;
             float sitePPThreshold=Float.MIN_VALUE;
@@ -207,14 +218,15 @@ public class WordExplorer_v2 {
             //LOAD THE POSTERIOR PROBAS AND PAML TREE IDS
             Infos.println("Loading PAML tree ids and Posterior Probas...");
             double startParsingTime=System.currentTimeMillis();
-            PAMLWrapper pw=new PAMLWrapper(align, s); //align extended or not by the relaxed bloc
+            PHYMLWrapper pw=new PHYMLWrapper(align, s);
+            //PAMLWrapper pw=new PAMLWrapper(align, s); //align extended or not by the relaxed bloc
             FileInputStream input = null;
             //input = new FileInputStream(new File(pp));
-            input = new FileInputStream(new File(rst));
-            //input = new FileInputStream(new File(ARPath+"rst"));
-            PhyloTree tree= pw.parseTree(input);
+            input = new FileInputStream(new File(ARTree));
+            //input = new FileInputStream(new File(ARPath+"tree"));
+            PhyloTree tree= pw.parseTree(input, false);
             Infos.println("Parsing posterior probas..");
-            input = new FileInputStream(new File(rst));
+            input = new FileInputStream(new File(ARStats));
             PProbasSorted pprobas = pw.parseSortedProbas(input,sitePPThreshold,true,Integer.MAX_VALUE); //parse less nodes for debug
             input.close();
             double endParsingTime=System.currentTimeMillis();
@@ -243,7 +255,7 @@ public class WordExplorer_v2 {
                 
                 
                 double startMerScanTime=System.currentTimeMillis();
-                WordExplorer wd =null;
+                WordExplorer_v2 wd =null;
                 int totalWordsInNode=0;
                 for (int pos:knife.getMerOrder()) {
 
@@ -256,7 +268,7 @@ public class WordExplorer_v2 {
                     
                     //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
                     //double startScanTime=System.currentTimeMillis();
-                    wd =new WordExplorer(   k,
+                    wd =new WordExplorer_v2(   k,
                                             pos,
                                             nodeId,
                                             pprobas,
@@ -303,9 +315,9 @@ public class WordExplorer_v2 {
             Infos.println("FINISHED.");
             
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(WordExplorer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(WordExplorer_v2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(WordExplorer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(WordExplorer_v2.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         

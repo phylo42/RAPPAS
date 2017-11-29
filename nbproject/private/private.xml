@@ -5,7 +5,9 @@
         <group>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_v2.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/algos/PlacementProcess.java</file>
-            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_PLACEMENT_v07.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_DBBUILD_2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/algos/WordExplorer_v2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/algos/WordExplorer.java</file>
         </group>
     </open-files>
 </project-private>

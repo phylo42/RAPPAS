@@ -975,12 +975,13 @@ public class PlacementProcess {
             
             
             //OUTPUT n°2: the JSON placement object (jplace file)
-            //2 possibilities:
-            //-either do a new placement object and add ot to the list
+            //2 possibilities in the process of adding a placement:
+            //-either do a new "placement" object and add ot to the list
             // of placements (block below is executed)
             //-or a previous placement object corresponding to an
             //identical sequence exists, then we don't the block below
             //as all the alignmnet/placement algo was skipped.
+            //(we didn't reached this block)
             
             //only score passing --nsbound if this debug option is set
             if (bestScoreList[bestScoreList.length-1].score>=nsBound) {

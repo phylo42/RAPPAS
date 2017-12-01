@@ -60,7 +60,7 @@ public class WordExplorer_v2 {
     boolean wordCompression=false;
     States s=null;
     //represents  gap intervals
-    int[] gapIntervals=null;
+    ArrayList<Integer>[] gapIntervals =null;
 
     /**
      *
@@ -68,9 +68,12 @@ public class WordExplorer_v2 {
      * @param refPosition
      * @param nodeId
      * @param ppSet
+     * @param align
      * @param wordThresholdAsLog
+     * @param wordCompression
+     * @param s
      */
-    public WordExplorer_v2(int k, int refPosition, int nodeId, PProbasSorted ppSet, float wordThresholdAsLog, boolean wordCompression, States s) {
+    public WordExplorer_v2(int k, int refPosition, int nodeId, PProbasSorted ppSet, Alignment align,float wordThresholdAsLog, boolean wordCompression, States s) {
         this.refPosition=refPosition;
         this.wordThresholdAsLog=wordThresholdAsLog;
         this.word=new byte[k];
@@ -80,14 +83,7 @@ public class WordExplorer_v2 {
         this.wordCompression=wordCompression;
         this.s=s;
         this.current_k=0;
-        
-        //example of regions where 1 gapIntervals interval of 1 site
-        //and 1 gapIntervals interval of 2 sites
-        int[] intervalStarts={2,4};
-        int[] gapIntervals=new int[ppSet.getSiteCount()];
-        gapIntervals[2]=1;
-        gapIntervals[4]=2;
-        //{0,0,1,0,2,0,0,0}; //this table should be built in constructor
+        this.gapIntervals = align.getGapIntervals();
         
     }
     
@@ -108,8 +104,8 @@ public class WordExplorer_v2 {
         //  to a maxumim j=(#states)
         
 
-        System.out.println("IN: "+i+" "+j);
-        System.out.println("current_k:"+current_k);
+        Infos.println("IN: "+i+" "+j);
+        Infos.println("current_k:"+current_k);
         //if after the alignment limit (can happen because of jumps
         //over gapIntervals colulmns), then return, this word is not possible.
         if (i>ppSet.getSiteCount()-1) {
@@ -117,14 +113,14 @@ public class WordExplorer_v2 {
         }
         //if we start the exploration (current_k==0)at a i which is in a 
         //gap interval, we avoid this exporation.
-        if ( (current_k==0) && gapIntervals[i]>0 ) {
-            System.out.println("statring in interval, return");
+        if ( (current_k==0) && gapIntervals[i]!=null ) {
+            Infos.println("starting in interval, return");
             return;
         }
         
         
         word[current_k]=ppSet.getState(nodeId, i, j);
-        System.out.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
+        Infos.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
         currentLogSum+=ppSet.getPP(nodeId, i, j);
         boundReached = currentLogSum<wordThresholdAsLog;
         
@@ -138,10 +134,10 @@ public class WordExplorer_v2 {
                 } else {
                     words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
                 }
-                System.out.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
+                Infos.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
             }
             //decrease before return
-            System.out.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
+            Infos.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
             currentLogSum-=ppSet.getPP(nodeId, i, j);
             //force return to parent
             return;
@@ -153,24 +149,32 @@ public class WordExplorer_v2 {
                 //remember with move to next kmer position
                 current_k++;
                 
-                //continue exploration by jumping over the next column
-                //which is flagged as a gapIntervals interval
-                if (gapIntervals[i+1]!=0) {
-                    exploreWords((i+1)+gapIntervals[i+1], j2);
-                }
-                //redo this exploration, but now considering this gapIntervals zone
+                //do this exploration, do not consider gap interval
+                Infos.println("EXPORATION NORMAL");
+                System.setProperty("debug.verbose", "1");
                 exploreWords(i+1, j2);
+                System.setProperty("debug.verbose", "1");
+                //redo exploration, by jumping over the gap intervals 
+                if (gapIntervals[i+1]!=null) {
+                    for (int i_interval = 0; i_interval < gapIntervals[i+1].size(); i_interval++) {
+                        Infos.println("EXPLORATION WITH GAP JUMP: gap_i+1="+(i+1)+" length="+gapIntervals[i+1].get(i_interval));
+                        Infos.println("NEXT i jump to --> "+(i+gapIntervals[i+1].get(i_interval)));
+                        exploreWords(i+gapIntervals[i+1].get(i_interval), j2);
+                    }
+                }
+                System.setProperty("debug.verbose", "1");
                 
                 //remember with move back to previous kmer position
                 current_k--;
                 
                 
-                System.out.println("OUT: "+(i+1)+" "+j2);
-                System.out.println("current_k:"+current_k);
+                Infos.println("OUT: "+(i+1)+" "+j2);
+                Infos.println("HERE: "+i+" "+j2);
+                Infos.println("current_k:"+current_k);
             }
         }
         //decrease before natural return
-        System.out.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
+        Infos.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
         currentLogSum-=ppSet.getPP(nodeId, i, j);
         
     }
@@ -184,11 +188,11 @@ public class WordExplorer_v2 {
         try {
             
             
-            String a="/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/mod_matK.fasta.linsi.aln.reduced.fasta";
-            String ARTree="/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_tree.txt";
-            String ARStats="/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_seq.txt";
+            String a="/home/ben/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced.fasta";
+            String ARTree="/home/ben/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_tree.txt";
+            String ARStats="/home/ben/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_seq.txt";
             
-            int k=8;
+            int k=6;
             float sitePPThreshold=Float.MIN_VALUE;
             int thresholdFactor=10;
             
@@ -210,7 +214,7 @@ public class WordExplorer_v2 {
             ArrayList<Fasta> fastas=new ArrayList<>();
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                 fastas.add(fasta);
-    }
+            }
             Alignment align=new Alignment(fastas);
             Infos.println(align.describeAlignment(false));
             fp.closePointer();
@@ -241,6 +245,12 @@ public class WordExplorer_v2 {
             //to raidly check that sorted probas are OK
             Infos.println("NodeId=0, 5 first PP:"+Arrays.deepToString(pprobas.getPPSet(0, 0, 5)));
             Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
+            //to rapidly check gap intervals
+            ArrayList<Integer>[] gapIntervals1 = align.getGapIntervals();
+            for (int i = 0; i < 107; i++) {
+                ArrayList<Integer> arrayList = gapIntervals1[i];
+                Infos.println("Gap interval i="+i+" (pos="+i+1+") : "+gapIntervals1[i]);
+            }
            
             
             //prepare simplified hash
@@ -262,16 +272,17 @@ public class WordExplorer_v2 {
                     if(pos+k-1>align.getLength()-1)
                         continue;
                     //DEBUG
-//                    if(pos<30 || pos>36)
-//                        continue;
+                    if(pos<79 || pos>107)
+                        continue;
                     //DEBUG
+                    System.setProperty("debug.verbose", "1");
                     
-                    //System.out.println("Current align pos: "+pos +" to "+(pos+(k-1)));
                     //double startScanTime=System.currentTimeMillis();
                     wd =new WordExplorer_v2(   k,
                                             pos,
                                             nodeId,
                                             pprobas,
+                                            align,
                                             thresholdAsLog,
                                             false,
                                             s

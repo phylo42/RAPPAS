@@ -15,6 +15,7 @@ import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer;
+import core.algos.WordExplorer_v2;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;
 import etc.Environement;
@@ -94,6 +95,8 @@ public class Main_DBBUILD_2 {
      * @param onlyFakeNodes 
      * @param keepAtMost 
      * @param keepRatio 
+     * @param doGapJumps 
+     * @param limitTo1Jump 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -122,7 +125,9 @@ public class Main_DBBUILD_2 {
                                         double reductionRatio,
                                         boolean onlyFakeNodes,
                                         int keepAtMost,
-                                        float keepRatio
+                                        float keepRatio,
+                                        boolean doGapJumps,
+                                        boolean limitTo1Jump
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
         
@@ -569,7 +574,7 @@ public class Main_DBBUILD_2 {
                 //Word Explorer used to buildDBFull ancestral words
                 //with a branch and bound approach
                 //WordExplorer_v2 wd =null;
-                WordExplorer wd=null;
+                WordExplorer_v2 wd=null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
 
@@ -581,13 +586,16 @@ public class Main_DBBUILD_2 {
                     //DEBUG
                     //double startScanTime=System.currentTimeMillis();
                     //Infos.println("---- Current align pos: "+pos +" to "+(pos+(k-1)));
-                    wd =new WordExplorer(   k,
+                    wd =new WordExplorer_v2(   k,
                                             pos,
                                             nodeId,
                                             arpr.getPProbas(),
+                                            align,
                                             PPStarThresholdAsLog,
                                             wordCompression,
-                                            session.states
+                                            session.states,
+                                            doGapJumps,
+                                            limitTo1Jump
                                         );
                     
                     

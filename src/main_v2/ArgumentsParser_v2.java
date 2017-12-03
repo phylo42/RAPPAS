@@ -62,6 +62,8 @@ public class ArgumentsParser_v2 {
     public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
     public boolean unionHash=true; //if false, use old positionnal hash
     public boolean onlyFakeNodes=true; //if false, uses ancestral kmers of original nodes
+    public boolean doGapJumps=false; //take gap jumps into account when building kmers
+    public boolean limitTo1Jump=false; //only allow a 1st jump, not jump combinations
     
     //parameters for placement
     public int minOverlap=100; //deprecated, was used for diagsums coordinates
@@ -436,8 +438,16 @@ public class ArgumentsParser_v2 {
                         }
                         
                     }
-                    
-                    
+                    //test --do-gap-jumps
+                    if (argsMap.get(index).equals("--do-gap-jumps")) {
+                        this.doGapJumps=true;
+                        System.out.println("Gap intervals activated.");
+                    }
+                    //test --only-1-jump
+                    if (argsMap.get(index).equals("--only-1-jump")) {
+                        this.limitTo1Jump=true;
+                        System.out.println("1st interval considered.");
+                    }
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -644,6 +654,8 @@ public class ArgumentsParser_v2 {
         "                  the jplace output. (B/P mode)\n" +
         "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
         "                  than (factor x best_likelihood_ratio). (B/P mode)\n" +
+        "--do-gap-jumps    [] k-mers jump over gaps. (B mode) \n" +
+        "--only-1-jump     [] Limit to 1 jump per kmer. (B mode) \n" +
         "\n\n"
         );
        System.exit(1);

@@ -29,6 +29,8 @@ import tree.PhyloTree;
 
 /**
  * second version of word explorer, which takes into account empty columns to generate k-mers
+ * the option 'onlyOneJump', restrain the kmer generation to a single jump
+ * when several jumps are possible inside the kmer
  * @author ben
  */
 public class WordExplorer_v2 {
@@ -48,6 +50,7 @@ public class WordExplorer_v2 {
     int current_k=-1;
     int nodeId=-1;
     float wordThresholdAsLog=0.0f;
+    int idxOfFirstJump=-1;
     
     //table to register proba proportion that is left on 
     float[] probaLeftPerCol=null;
@@ -60,7 +63,9 @@ public class WordExplorer_v2 {
     boolean wordCompression=false;
     States s=null;
     //represents  gap intervals
+    boolean doGapJumps=false;
     ArrayList<Integer>[] gapIntervals =null;
+    boolean limitTo1Jump=false;
 
     /**
      *
@@ -72,8 +77,19 @@ public class WordExplorer_v2 {
      * @param wordThresholdAsLog
      * @param wordCompression
      * @param s
+     * @param doGapJumps
+     * @param limitTo1Jump
      */
-    public WordExplorer_v2(int k, int refPosition, int nodeId, PProbasSorted ppSet, Alignment align,float wordThresholdAsLog, boolean wordCompression, States s) {
+    public WordExplorer_v2( int k,
+                            int refPosition,
+                            int nodeId,
+                            PProbasSorted ppSet,
+                            Alignment align,
+                            float wordThresholdAsLog,
+                            boolean wordCompression,
+                            States s,
+                            boolean doGapJumps,
+                            boolean limitTo1Jump) {
         this.refPosition=refPosition;
         this.wordThresholdAsLog=wordThresholdAsLog;
         this.word=new byte[k];
@@ -84,6 +100,8 @@ public class WordExplorer_v2 {
         this.s=s;
         this.current_k=0;
         this.gapIntervals = align.getGapIntervals();
+        this.doGapJumps=doGapJumps;
+        this.limitTo1Jump=limitTo1Jump;
         
     }
     
@@ -104,29 +122,24 @@ public class WordExplorer_v2 {
         //  to a maxumim j=(#states)
         
 
-        Infos.println("IN: "+i+" "+j);
-        Infos.println("current_k:"+current_k);
-        //if after the alignment limit (can happen because of jumps
-        //over gapIntervals colulmns), then return, this word is not possible.
+        //Infos.println("ENTERING : "+i+" "+j+" , current_k:"+current_k);
+        //if after the alignment limit (can happen because of gap jumps)
+        //then return, assigning a value to this kmer is impossible.
         if (i>ppSet.getSiteCount()-1) {
             return;
         }
-        //if we start the exploration (current_k==0)at a i which is in a 
-        //gap interval, we avoid this exporation.
-        if ( (current_k==0) && gapIntervals[i]!=null ) {
-            Infos.println("starting in interval, return");
-            return;
+        //reset the jump counter if we come back to 1st mer position
+        if (current_k==0) {
+            idxOfFirstJump=-1;
         }
         
-        
         word[current_k]=ppSet.getState(nodeId, i, j);
-        Infos.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
+        //Infos.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
         currentLogSum+=ppSet.getPP(nodeId, i, j);
         boundReached = currentLogSum<wordThresholdAsLog;
         
         //register word if k-th position
         if (current_k==k-1) {
-
             //register word
             if (!boundReached) {
                 if (wordCompression) {
@@ -134,49 +147,66 @@ public class WordExplorer_v2 {
                 } else {
                     words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
                 }
-                Infos.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
+                //Infos.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
             }
             //decrease before return
-            Infos.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
+            //Infos.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
             currentLogSum-=ppSet.getPP(nodeId, i, j);
             //force return to parent
             return;
         } else {
-            //go down recursively
+            
+            //go down recursively, testing each state at position i+1
             for (int j2 = 0; j2 < ppSet.getStateCount(); j2++) {
                 if (boundReached) {break;}
                 
-                //remember with move to next kmer position
-                current_k++;
-                
                 //do this exploration, do not consider gap interval
-                Infos.println("EXPORATION NORMAL");
-                System.setProperty("debug.verbose", "1");
+                //Infos.println("EXPORATION NORMAL");
+                //we move to next kmer position
+                current_k++;
                 exploreWords(i+1, j2);
-                System.setProperty("debug.verbose", "1");
-                //redo exploration, by jumping over the gap intervals 
-                if (gapIntervals[i+1]!=null) {
-                    for (int i_interval = 0; i_interval < gapIntervals[i+1].size(); i_interval++) {
-                        Infos.println("EXPLORATION WITH GAP JUMP: gap_i+1="+(i+1)+" length="+gapIntervals[i+1].get(i_interval));
-                        Infos.println("NEXT i jump to --> "+(i+gapIntervals[i+1].get(i_interval)));
-                        exploreWords(i+gapIntervals[i+1].get(i_interval), j2);
+                current_k--;
+                //Infos.println("OUT from : "+(i+1)+" "+j2+" , current_k:"+current_k+" , currently HERE: "+i+" "+j);
+                //redo exploration, by jumping over the gap intervals if any
+                //do condition on i because i+1 cannot be outside the alignment
+                if (doGapJumps && i<ppSet.getSiteCount()-1) {
+                    //verify if next i is associated to a gap interval
+                    if (gapIntervals[i+1]!=null) { 
+                        //do all jumps combinations 
+                        if (!limitTo1Jump) {
+                            for (int i_interval = 0; i_interval < gapIntervals[i+1].size(); i_interval++) {
+                                //we move to next kmer position and explore
+                                current_k++;
+                                exploreWords((i+1)+gapIntervals[i+1].get(i_interval), j2); //jump from i to i+1+gapInterval_length
+                                current_k--;
+                            }
+                        //or allow only 1 jump
+                        } else {
+                            if ((idxOfFirstJump==-1) ) { //do a jump only if not previously done
+                                idxOfFirstJump=i;
+                                for (int i_interval = 0; i_interval < gapIntervals[i+1].size(); i_interval++) {
+                                    //Infos.println("EXPLORATION WITH GAP JUMP: gap_i+1="+(i+1)+" length="+gapIntervals[i+1].get(i_interval));
+                                    //Infos.println("NEXT i jump to --> "+((i+1)+gapIntervals[i+1].get(i_interval)));
+                                    //we move to next kmer position
+                                    current_k++;
+                                    exploreWords((i+1)+gapIntervals[i+1].get(i_interval), j2); //jump from i to i+1+gapInterval_length
+                                    current_k--;
+                                    //Infos.println("OUT from : "+(i+gapIntervals[i+1].get(i_interval))+" "+j2+" , current_k:"+current_k+" , currently HERE: "+i+" "+j);
+                                }
+                            } else {
+                                //Infos.println("DO NOT JUMP, already jumped at idxOfFirstJump="+idxOfFirstJump);
+                            }
+                        }
                     }
                 }
-                System.setProperty("debug.verbose", "1");
-                
-                //remember with move back to previous kmer position
-                current_k--;
-                
-                
-                Infos.println("OUT: "+(i+1)+" "+j2);
-                Infos.println("HERE: "+i+" "+j2);
-                Infos.println("current_k:"+current_k);
             }
+            
+            
+            
         }
         //decrease before natural return
-        Infos.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
+        //Infos.println("sumCurrentWord="+currentLogSum+"-"+ppSet.getPP(nodeId, i, j));
         currentLogSum-=ppSet.getPP(nodeId, i, j);
-        
     }
     
     
@@ -186,13 +216,13 @@ public class WordExplorer_v2 {
         System.setProperty("debug.verbose", "1");
         
         try {
+            String HOME = System.getenv("HOME");
             
+            String a=HOME+"/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced.fasta";
+            String ARTree=HOME+"/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_tree.txt";
+            String ARStats=HOME+"/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_seq.txt";
             
-            String a="/home/ben/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced.fasta";
-            String ARTree="/home/ben/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_tree.txt";
-            String ARStats="/home/ben/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_seq.txt";
-            
-            int k=6;
+            int k=8;
             float sitePPThreshold=Float.MIN_VALUE;
             int thresholdFactor=10;
             
@@ -272,8 +302,8 @@ public class WordExplorer_v2 {
                     if(pos+k-1>align.getLength()-1)
                         continue;
                     //DEBUG
-                    if(pos<79 || pos>107)
-                        continue;
+//                    if(pos<79 || pos>107)
+//                        continue;
                     //DEBUG
                     System.setProperty("debug.verbose", "1");
                     
@@ -285,12 +315,14 @@ public class WordExplorer_v2 {
                                             align,
                                             thresholdAsLog,
                                             false,
-                                            s
+                                            s,
+                                            true,
+                                            true
                                         );
                     
                     for (int j = 0; j < pprobas.getStateCount(); j++) {
                         wd.exploreWords(pos, j);
-}
+                    }
                     
                     //register the words in the hash
                     wd.words.stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});

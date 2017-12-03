@@ -19,7 +19,7 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.91";
+    private final static String consoleVersion="0.95";
 
     public static void main (String[] args) {
         try {
@@ -127,15 +127,17 @@ public class Main_v2 {
                             + "-r "+a+" "
                             + "-t "+t+" "
                             + "-k "+String.valueOf(8)+" "
-                            + "-a "+String.valueOf(1.0)+" "
+                            + "-a "+String.valueOf(1.5)+" "
                             + "-v 1 "
                             + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            //+ "--ardir "+arDir+" "
+                            + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--forceroot"
                             //+ "--dbinram "
 //                            + "-q "+q+" "
                             + "--nsbound -10000000.0 "
+                            + "--do-gap-jumps "
+                            + "--only-1-jump"
                             ;
             
             
@@ -213,20 +215,20 @@ public class Main_v2 {
 
 
 /////////FOR TESTS OF DB BUILD ERROR: BOLD_chordata, A30, k6_a1.50 --> case where our RAPPAS produces "null" value for likelihood_weight_ratio
-            arguments=
-                              "-m B "
-                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Dx/A30_nx759_la/k6_a1.50 "
-                            + "-r /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Ax/A30_nx759_la.align "
-                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Tx/T30_nx759_la.tree "
-                            + "-k "+String.valueOf(6)+" "
-                            + "-a "+String.valueOf(1.50)+" "
-                            + "-v 1 "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Dx/A30_nx759_la/AR "
-                            + "--dbinram "
-                            + "--no-reduction "
-                            + "--nsbound -10000000.0 "
-                            + "-q /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r150.fasta"
+//            arguments=
+//                              "-m B "
+//                            + "-w /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Dx/A30_nx759_la/k6_a1.50 "
+//                            + "-r /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Ax/A30_nx759_la.align "
+//                            + "-t /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Tx/T30_nx759_la.tree "
+//                            + "-k "+String.valueOf(6)+" "
+//                            + "-a "+String.valueOf(1.50)+" "
+//                            + "-v 1 "
+//                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+//                            + "--ardir /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Dx/A30_nx759_la/AR "
+//                            + "--dbinram "
+//                            + "--no-reduction "
+//                            + "--nsbound -10000000.0 "
+//                            + "-q /media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r150.fasta"
                             //+    ",/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r300.fasta"
                             //+    ",/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r600.fasta"
                             //+    ",/media/ben/STOCK/DATA/viromeplacer/accu_tests/imports/BOLD_chordata/Rx/R30_nx759_la_r1200.fasta"
@@ -362,7 +364,10 @@ public class Main_v2 {
                                             argsParser.reductionRatio,
                                             argsParser.onlyFakeNodes,
                                             argsParser.keepAtMost,
-                                            argsParser.keepFactor
+                                            argsParser.keepFactor,
+                                            argsParser.doGapJumps,
+                                            argsParser.limitTo1Jump
+                        
                                             );
                 
             //////////////////////

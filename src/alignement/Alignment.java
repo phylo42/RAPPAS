@@ -5,6 +5,8 @@
  */
 package alignement;
 
+import etc.Infos;
+import inputs.FASTAPointer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -46,13 +50,15 @@ public class Alignment implements Serializable {
      * @param colLabels
      * @param rowLabels 
      */
-    private Alignment(char[][] charMatrix, String[] rowLabels, int [] colPartitionIds, boolean reduced,double[] gapProportions, double reductionThreshold) {
+    private Alignment(char[][] charMatrix, String[] rowLabels, int [] colPartitionIds, boolean reduced,int reducedColumnCount, double[] gapProportions, double reductionThreshold,ArrayList<Integer>[] gapIntervals) {
         this.charMatrix=charMatrix;
         this.rowLabels=rowLabels;
         this.colPartitionIds=colPartitionIds;
         this.reduced=reduced;
+        this.reducedColumnCount=reducedColumnCount;
         this.reductionThreshold=reductionThreshold;
         this.gapProportions=gapProportions;
+        this.gapIntervals=gapIntervals;
     }
     
     /**
@@ -60,7 +66,7 @@ public class Alignment implements Serializable {
      * @return 
      */
     public Alignment copy(){
-        return new Alignment(charMatrix, rowLabels,colPartitionIds,reduced,gapProportions,reductionThreshold);
+        return new Alignment(charMatrix, rowLabels,colPartitionIds,reduced,reducedColumnCount,gapProportions,reductionThreshold,gapIntervals);
     }
 
     /**
@@ -93,6 +99,7 @@ public class Alignment implements Serializable {
     private void fillAlignment(List<Fasta> fastas) {
         //to calculate gaps proportions in all columns
         gapProportions=new double[fastas.get(0).getSequence(false).length()];
+        
         //list of gap intervals
         gapIntervals=new ArrayList[fastas.get(0).getSequence(false).length()];
         
@@ -192,6 +199,8 @@ public class Alignment implements Serializable {
      */
     public void reduceAlignment(double ratio) {
         this.reductionThreshold=ratio;
+        
+        reducedColumnCount=0;
         boolean[] toRemove=new boolean[gapProportions.length];
         for (int j = 0; j < gapProportions.length; j++) {
             if (gapProportions[j]>=reductionThreshold) {
@@ -199,11 +208,13 @@ public class Alignment implements Serializable {
                 reducedColumnCount++;
             }
         }
+
         
-        //reset gap proportions
-        gapProportions=new double[charMatrix[0].length-reducedColumnCount];
         //fill new "reduced" matrix        
         char[][] newCharMatrix=new char[rowLabels.length][charMatrix[0].length-reducedColumnCount];
+        //update gap proportions 
+        gapProportions=new double[newCharMatrix[0].length];
+
         for (int i = 0; i < charMatrix.length; i++) {
             int shift=0;
             for (int j = 0; j < charMatrix[0].length; j++) {
@@ -217,16 +228,16 @@ public class Alignment implements Serializable {
                 }
             }
         }
-        char[][] old=charMatrix;
+       
+        for (int j = 0; j < newCharMatrix[0].length; j++) {
+            gapProportions[j]/=newCharMatrix.length;
+        }
+        
         charMatrix=newCharMatrix;
-        old=null;
         
         System.gc();//to free memory in case these matrices are large
+       
         
-        //update gap proportions 
-        for (int j = 0; j < charMatrix[0].length; j++) {
-            gapProportions[j]/=0.0+charMatrix.length;
-        }
         //update gap intervals
         updateGapIntervals();
         
@@ -245,15 +256,19 @@ public class Alignment implements Serializable {
     public void addSequence(String label, char[] seq) {
         //reinstantiate table with a new line
         char[][] newCharMatrix=new char[charMatrix.length+1][charMatrix[0].length];
-        for(int i=0; i<charMatrix.length; i++)
-            System.arraycopy(charMatrix[i], 0, newCharMatrix[i], 0, charMatrix[i].length);
-        System.arraycopy(seq, 0, newCharMatrix[charMatrix.length], 0, charMatrix[0].length);
+        for(int i=0; i<charMatrix.length; i++) {
+            newCharMatrix[i]=charMatrix[i];
+        }
+        newCharMatrix[charMatrix.length]=seq;
         charMatrix=newCharMatrix;
         //reinstantiate labels with a new element
         String[] newRowLabels=new String[rowLabels.length+1];
         System.arraycopy(rowLabels, 0, newRowLabels, 0, rowLabels.length);
         newRowLabels[rowLabels.length]=label;
         rowLabels=newRowLabels;
+        
+        //reset gap proportions
+        gapProportions=new double[charMatrix[0].length];
         
         //update gap proportions: divide by previous #seqs and multiply by new #seqs
         //update gap interval, just add eventual new intervals represented by this new seqeunce
@@ -288,13 +303,7 @@ public class Alignment implements Serializable {
             previousChar=c;
                      
             
-        }
-
-        
-           
-        
-
-        
+        }  
     }
     
     /**
@@ -303,24 +312,23 @@ public class Alignment implements Serializable {
      * @param seqs 
      */
     public void addAllSequences(String[] labels, ArrayList<char[]> seqs) {
-        //reinstantiate table with a new line
+        //reinstantiate sequence table with a new line
         char[][] newCharMatrix=new char[charMatrix.length+labels.length][charMatrix[0].length];
         for(int i=0; i<charMatrix.length; i++)
             newCharMatrix[i]=charMatrix[i];
         for (int i = 0; i < seqs.size(); i++) {
             newCharMatrix[charMatrix.length+i]=seqs.get(i);
         }
-        
         charMatrix=newCharMatrix;
+        //reset gap proportions
+        gapProportions=new double[charMatrix[0].length];
         //register new gaps
-        int[] gapsCount = new int[charMatrix[0].length]; //#gaps by site
-        for(int i=0; i<seqs.size(); i++) {
-            for (int j = 0; j < seqs.get(0).length; j++) {
-                char c=seqs.get(i)[j];
-                if (c=='-') {gapsCount[j]+=1;}
+        for(int i=0; i<newCharMatrix.length; i++) {
+            for (int j = 0; j < newCharMatrix[i].length; j++) {
+                if (newCharMatrix[i][j]=='-') {gapProportions[j]+=1;}
             }
         }
-        //reinstantiate table with a new line
+        //reinstantiate labels table with a new line
         String[] newRowLabels=new String[rowLabels.length+labels.length];
         for(int i=0; i<rowLabels.length; i++)
             newRowLabels[i]=rowLabels[i];
@@ -330,7 +338,7 @@ public class Alignment implements Serializable {
         
         //update gap proportions: divide by previous #seqs and multiply by new #seqs
         for (int j = 0; j < charMatrix[0].length; j++) {
-            gapProportions[j]= ((gapProportions[j]*(charMatrix.length-seqs.size()))+gapsCount[j])/charMatrix.length;
+            gapProportions[j]/=charMatrix.length;
         }
         
         //update gap intervals
@@ -349,29 +357,31 @@ public class Alignment implements Serializable {
         char[][] newMatrix=new char[charMatrix.length-1][charMatrix[0].length];
         String[] newLabels=new String[rowLabels.length-1];
         int shift=0;//line index shift
-                
+        //reset gap proportions
+        gapProportions=new double[newMatrix[0].length];
+        
         for (int i = 0; i < rowLabels.length; i++) {
             String rowLabel = rowLabels[i];
             if (rowLabel.equals(label)) {
                 found=true;
                 shift++;
-                //correct gap proportion before removal of this sequence
-                for (int j = 0; j < charMatrix[0].length; j++) {
-                    char c=charMatrix[i][j];
-                    int decrement=0;
-                    if (c=='-' || c=='.') {
-                        decrement=1;
-                    }
-                    gapProportions[j]= ((gapProportions[j]*charMatrix.length)-decrement)/newMatrix.length;
-                }
                 continue;
             }
             //copy data in table where sequence removed
             newLabels[i-shift]=rowLabels[i];
-            for (int k = 0; k < charMatrix[i].length; k++) {
-                newMatrix[i-shift][k]=charMatrix[i][k];
+            for (int j = 0; j < charMatrix[i].length; j++) {
+                newMatrix[i-shift][j]=charMatrix[i][j];
+                if (charMatrix[i][j]=='-') {
+                    gapProportions[j]+=1.0;
+                }
             }
         }
+        for (int j = 0; j < charMatrix[0].length; j++) {
+            gapProportions[j]/=newMatrix.length;
+        }
+        
+        
+        
         //update this object
         rowLabels=null;
         charMatrix=null;
@@ -539,7 +549,7 @@ public class Alignment implements Serializable {
                 sb.append(" Partitions: none");
             }
             if (reduced) {
-                sb.append(" reduced:"+reducedColumnCount);
+                sb.append(" reduced: #cols="+reducedColumnCount);
             } else {
                 sb.append(" reduced:false");
             }
@@ -610,6 +620,65 @@ public class Alignment implements Serializable {
         
         
         System.out.println("END");
+        
+        Infos.println("Loading Alignment...");
+        FASTAPointer fp=new FASTAPointer(new File("/home/ben/Dropbox/viromeplacer/test_datasets/accuracy_tests/R_analysis/BOLD_matk_v0.95/A14_older.mfa"), false);
+        Fasta fasta=null;
+        ArrayList<Fasta> fastas=new ArrayList<>();
+        while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
+            fastas.add(fasta);
+        }
+        a=new Alignment(fastas);
+        System.out.println(a.describeAlignment(true));
+        double[] gapProportions1 = a.getGapProportions();
+//        for (int i = 0; i < gapProportions1.length; i++) {
+//            double d = gapProportions1[i];
+//            System.out.println("i:"+i+ " prop="+d);
+//        }
+        a.reduceAlignment(1.0);
+        gapProportions1 = a.getGapProportions();
+//        for (int i = 0; i < gapProportions1.length; i++) {
+//            double d = gapProportions1[i];
+//            System.out.println("i:"+i+ " prop="+d);
+//        }
+        System.out.println(a.describeAlignment(true));
+        fp.closePointer();
+        
+        try {
+            a.writeAlignmentAsFasta(new File("/home/ben/test.fasta"));
+        } catch (IOException ex) {
+            Logger.getLogger(Alignment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("------------");
+        Alignment a2=a.copy();
+        gapProportions1 = a2.getGapProportions();
+//        for (int i = 0; i < gapProportions1.length; i++) {
+//            double d = gapProportions1[i];
+//            System.out.println("i:"+i+ " prop="+d);
+//        }
+        a2.removeSequence("SDH3502-15.matK_Rosales_1-790/1-790");
+        System.out.println(a2.describeAlignment(true));
+        gapProportions1 = a2.getGapProportions();
+//        for (int i = 0; i < gapProportions1.length; i++) {
+//            double d = gapProportions1[i];
+//            System.out.println("i:"+i+ " prop="+d);
+//        }
+        a2.removeSequence("DBMPP221-14.matK_Rosales_1-784/1-784");
+        System.out.println(a2.describeAlignment(true));
+        gapProportions1 = a2.getGapProportions();
+//        for (int i = 0; i < gapProportions1.length; i++) {
+//            double d = gapProportions1[i];
+//            System.out.println("i:"+i+ " prop="+d);
+//        }
+        System.out.println("Reduce at 1.0");
+        a2.reduceAlignment(1.0);
+        System.out.println(a2.describeAlignment(true));
+        
+        try {
+            a2.writeAlignmentAsFasta(new File("/home/ben/test2.fasta"));
+        } catch (IOException ex) {
+            Logger.getLogger(Alignment.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
         

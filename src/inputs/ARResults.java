@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.ExtendedTree;
+import tree.NewickWriter;
 import tree.PhyloTree;
 
 /**
@@ -138,11 +139,16 @@ public class ARResults {
                 //phyml AR unroot input tree even if they are rooted
                 //we need to reroot the tree as is was in the inital input
                 //What doeos phyml ?
-                //input:        ((C1,C2)node,S3)root;
+                //input:        ((C1,C2)node,C3)root;
                 //phyml output: (C3,C1,C2)newick_root;
-                //then we go back to the original input configuration
+                //then we go back to the original input configuration, i.e.
+                //((C1,C2)newick_root,C3)added_root;q
                 this.ARTree=pw.parseTree(new FileInputStream(tree),true);
-                Infos.println("PhyML unroots trees, after rerooting this tree, AR tree rooted? :"+ARTree.isRooted());
+                Infos.println("AR tree was unrooted by PhyML, rerooting for coherent jplace result. Now rooted: "+ARTree.isRooted());
+                NewickWriter nw=new NewickWriter(new File(tree.getAbsolutePath()+"_rerooted"));
+                nw.writeNewickTree(ARTree, true, true, false);
+                Infos.println("Rerooted tree written in :");
+                nw.close();
             }
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");

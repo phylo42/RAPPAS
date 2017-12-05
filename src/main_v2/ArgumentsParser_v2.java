@@ -44,7 +44,7 @@ public class ArgumentsParser_v2 {
     //parameters for alignment reduction
     public boolean reduction=true;
     public File reducedAlignFile=null;
-    double reductionRatio=0.999;
+    double reductionRatio=1.0;
     
     //parameters for DB build
     public int k=10; //default=10
@@ -299,7 +299,7 @@ public class ArgumentsParser_v2 {
                         if (f.isFile() && f.canWrite()) {
                             this.reducedAlignFile=f;
                         } else {
-                            System.out.println("Cannot open directory given through option --write-reduced-alignment: Not a file or no write permission.");
+                            System.out.println("Cannot write file given via option --write-reduction: Not a file or no write permission.");
                             System.exit(1);
                         }
                     }
@@ -312,10 +312,10 @@ public class ArgumentsParser_v2 {
                             alphaGiven=true;
                             if (this.reductionRatio>1) {
                                 this.reductionRatio=1;
-                                System.out.println("--ratioredu set to 1.0 .");
+                                System.out.println("--ratio-reduction set to 1.0 .");
                             }
                         } catch (NumberFormatException ex ) {
-                            System.out.println("Cannot parse '--ratioredu' as a double value.");
+                            System.out.println("Cannot parse '--ratio-reduction' as a double value.");
                             System.exit(1);
                         }
                         

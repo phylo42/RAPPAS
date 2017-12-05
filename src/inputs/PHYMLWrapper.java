@@ -203,6 +203,12 @@ public class PHYMLWrapper implements ARWrapper {
                     
                     //site and probas parsing
                     int site=Integer.parseInt(data[0].trim());
+                    if (site>align.getLength()) {
+                        System.out.println("It seems the phyML AR output contains more sites than the input reference alignment.");
+                        System.out.println("Was the AR performed on the same alignment ?");
+                        System.exit(1);
+                    }
+                    
                     //System.out.println("NODE/SITE: "+nodeId+" "+site);
                     for (int i = 0; i < stateOrder.length; i++) {
                         SiteProba sp=new SiteProba();
@@ -221,7 +227,6 @@ public class PHYMLWrapper implements ARWrapper {
                     //System.out.println(probasPerSite);
                     //register
                     matrix.setStates(nodeId, site-1, probasPerSite);
-                    
                         
                     currentPP++;
                 }

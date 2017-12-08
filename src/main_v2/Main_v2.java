@@ -19,7 +19,7 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="0.95";
+    private final static String consoleVersion="0.96";
 
     public static void main (String[] args) {
         try {

@@ -14,7 +14,6 @@ import core.States;
 import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
-import core.algos.WordExplorer;
 import core.algos.WordExplorer_v2;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;

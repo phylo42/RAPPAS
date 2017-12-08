@@ -11,12 +11,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import inputs.Fasta;
+import it.unimi.dsi.fastutil.objects.AbstractObject2IntSortedMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -464,7 +469,41 @@ public class Alignment implements Serializable {
         return charMatrix[0].length;
     }
     
-
+    @Deprecated
+    public Object2IntOpenHashMap<char[]> getKmerRedundancy(int k) {
+        
+        Object2IntOpenHashMap<char[]> map=new Object2IntOpenHashMap <>();
+        map.defaultReturnValue(-1);
+        LinkedList<Character> list=new LinkedList<>();
+        char[] mer=new char[k];
+        for (int i = 0; i < charMatrix.length; i++) {
+            char[] cs = charMatrix[i];
+            for (int j = 0; j < cs.length; j++) {
+                //mer = [j,j+k[
+                if (j<k) {
+                    list.addLast(cs[j]);
+                } else {
+                    list.removeFirst();
+                    list.addLast(cs[j]);
+                    int pos=0;
+                    for (Iterator<Character> iterator = list.iterator(); iterator.hasNext();) {
+                        mer[pos]=list.get(pos);
+                        pos++;
+                    }
+                    int count=map.getInt(mer);
+                    if (count==-1) {
+                        map.put(mer, 0);
+                    } else {
+                        map.put(mer, count+1);
+                    }
+                }  
+            }
+        }
+        return map;
+        
+    }
+    
+    
     /**
      * output alignment as a Fasta file
      * @param f

@@ -66,7 +66,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
         this.nodeType=nodeType;
         //internal tests showed that with k<14 we generally get at least 75% of the possible k-mers
         this.hash=new Object2ObjectOpenCustomHashMap<>(
-                            new Double(maxCapacitySize*0.75).intValue(),  //intial capacity
+                            new Double(maxCapacitySize/4).intValue(),  //intial capacity
                             0.8f, //inital load factor                
                             new HashStrategy()
                         );

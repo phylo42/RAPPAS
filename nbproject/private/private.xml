@@ -5,8 +5,12 @@
         <group>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/PHYMLWrapper.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_v2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/alignement/Alignment.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/inputs/ARResults.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_TESTREFERENCE.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/Main_DBBUILD_2.java</file>
             <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/main_v2/ArgumentsParser_v2.java</file>
+            <file>file:/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/src/core/hash/CustomHash_v4_FastUtil81.java</file>
         </group>
     </open-files>
 </project-private>

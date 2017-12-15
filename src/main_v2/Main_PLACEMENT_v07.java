@@ -230,7 +230,6 @@ public class Main_PLACEMENT_v07 {
             PlacementProcess asp=null;
             if (nsBound!=null) {  //norm score bound was set manually via command line
                 System.out.println("User provided nsBound !");
-                
                 asp=new PlacementProcess(session,nsBound, queryLimit);
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);

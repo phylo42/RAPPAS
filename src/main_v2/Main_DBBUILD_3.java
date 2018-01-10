@@ -15,6 +15,7 @@ import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer_v2;
+import core.algos.WordExplorer_v3;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;
 import etc.Environement;
@@ -60,7 +61,7 @@ import tree.PhyloTreeModel;
  *
  * @author ben
  */
-public class Main_DBBUILD_2 {
+public class Main_DBBUILD_3 {
     
     public static final int TYPE_DNA=1;
     public static final int TYPE_PROT=1;
@@ -401,9 +402,6 @@ public class Main_DBBUILD_2 {
             
             ////////////////////////////////////////////////////////////////////
             //LOAD THE NEW POSTERIOR PROBAS AND CORRESPONDING AR TREE
-
-            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
-            
             Infos.println("Loading AR modified dataset (modified tree, modified alignment, Posterior Probas...)");
             ARResults arpr=null;
             //the ARResults object will take in charge 2 operations:
@@ -419,27 +417,44 @@ public class Main_DBBUILD_2 {
                                         extendedTree,
                                         s
                                     );
-            session.associateStates(s);
-            session.associateInputs(arpr);
-            
-            
-            
-            
-            
             //output in the AR directory the mapping of the nodes for debugging
             File map=new File(arpl.ARPath.getAbsolutePath()+File.separator+"ARtree_id_mapping.tsv");
             FileWriter fw=new FileWriter(map);
             fw.append("extended_id\textended_label\tARTree_id\tARtree_label");
-            LinkedHashMap<Integer, Integer> map2 = session.ARTree.mapNodes(extendedTree);
+            LinkedHashMap<Integer, Integer> map2 = arpr.getARTree().mapNodes(extendedTree);
             for (Iterator<Integer> iterator = map2.keySet().iterator(); iterator.hasNext();) {
                 Integer ARTreeId = iterator.next();
                 fw.append("\n");
-                fw.append(map2.get(ARTreeId)+"\t"+session.extendedTree.getById(map2.get(ARTreeId)).getLabel()+"\t");
-                fw.append(ARTreeId+"\t"+session.ARTree.getById(ARTreeId).getLabel());
+                fw.append(map2.get(ARTreeId)+"\t"+arpr.getExtendedTree().getById(map2.get(ARTreeId)).getLabel()+"\t");
+                fw.append(ARTreeId+"\t"+arpr.getARTree().getById(ARTreeId).getLabel());
             }
-            fw.close();    
+            fw.close();   
             
             
+            ////////////////////////////////////////////////////////////////////
+            //BUILD SESSION OBJECT, 
+            //it regroups all variables for algo parameters/scoring
+            //and objects related to align/trees/hash structures
+            //
+            //are set at construction:
+            //session.k
+            //session.minK
+            //session.alpha
+            //session.branchPerLength
+            //session.sitePPThreshold
+            //session.PPStarProbaThreshold
+            //session.PPStarProbaThresholdAsLog10
+            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
+            //are set after instanciation
+            //session.states
+            session.associateStates(s);
+            //session.originalTree
+            //session.extendedTree
+            //session.ARTree
+            //session.nodeMapping
+            //session.align
+            //session.parsedProbas
+            session.associateInputs(arpr);
             
             
             Infos.println("#########STARTING SERIES OF RAPID TEST TO CONFIRM ANCESTRAL RECONSTRUCTION AND PARSING WENT FINE########");
@@ -475,6 +490,29 @@ public class Main_DBBUILD_2 {
             //Infos.println("NodeId=0, 3 first statesIndexes:"+ Arrays.deepToString(arpr.getPProbas().getStateIndexSet(0, 0, 3)));
             Infos.println("#######################################################################");
             
+            //!!!!  AT THIS POINT the session should be set with all important data
+            //session.k
+            //session.minK
+            //session.alpha
+            //session.states
+            //session.branchPerEdge
+            /////////
+            //session.stateThreshold
+            //session.PPStarThreshold
+            //session.PPStarThresholdAsLog10
+            /////////
+            //session.align
+            //session.originalTree
+            //session.extendedTree
+            //session.ARTree
+            //session.nodeMapping
+            
+            //!!!! BELOW will be associated these last important elements
+            //session.hash
+            //session.calibrationNormScore
+            
+                    
+            
             
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -492,7 +530,9 @@ public class Main_DBBUILD_2 {
                 wordCompression=false;
             }
             
-            //prepare hash
+            //prepare hash and associate it to session
+            //session.hash
+            //session.onlyFakes
             System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
             if (unionHash) {
@@ -572,7 +612,7 @@ public class Main_DBBUILD_2 {
                 //Word Explorer used to buildDBFull ancestral words
                 //with a branch and bound approach
                 //WordExplorer_v2 wd =null;
-                WordExplorer_v2 wd=null;
+                WordExplorer_v3 wd=null;
                 int totaTuplesInNode=0;
                 for (int pos:knife.getMerOrder()) {
 
@@ -584,20 +624,18 @@ public class Main_DBBUILD_2 {
                     //DEBUG
                     //double startScanTime=System.currentTimeMillis();
                     //Infos.println("---- Current align pos: "+pos +" to "+(pos+(k-1)));
-                    wd =new WordExplorer_v2(   k,
+                    wd =new WordExplorer_v3(session,
                                             pos,
                                             nodeId,
-                                            arpr.getPProbas(),
-                                            align,
-                                            PPStarThresholdAsLog,
                                             wordCompression,
-                                            session.states,
                                             doGapJumps,
                                             limitTo1Jump
                                         );
                     
                     
                     double startExploreTime=System.currentTimeMillis();
+                    //launch branch and bound search starting from each
+                    //possible state
                     for (int j = 0; j < arpr.getPProbas().getStateCount(); j++) {
                         wd.exploreWords(pos, j);
                     }
@@ -607,18 +645,12 @@ public class Main_DBBUILD_2 {
                     
                     double startInsertionTime=System.currentTimeMillis();
                     //register the words in the hash
-                    for (ProbabilisticWord w:wd.getRetainedWords()) {
-                        int extTreeId=session.nodeMapping.get(nodeId);
-                        int originalId=session.extendedTree.getFakeToOriginalId(extTreeId);
-                        session.hash.addTuple(w.getWord(), w.getPpStarValue(), originalId, w.getOriginalPosition());
-                    }
-                    totaTuplesInNode+=wd.getRetainedWords().size();
+                    totaTuplesInNode+=wd.getGeneratedTupleCount();
                     double endInsertionTime=System.currentTimeMillis();
                     perBatchInsertionTime+=(endInsertionTime-startInsertionTime);
                     //double endScanTime=System.currentTimeMillis();
                     
 
-                    //wd.getRetainedWords().stream().forEach((w)->System.out.println(w));
 //                    Infos.println("Words in this position:"+wd.getRetainedWords().size());
 //                    Infos.println("Explorer time:"+(endExploreTime-startExploreTime));
 //                    Infos.println("Insertion time:"+(endInsertionTime-startInsertionTime));

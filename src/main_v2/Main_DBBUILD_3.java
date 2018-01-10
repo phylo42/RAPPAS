@@ -563,7 +563,6 @@ public class Main_DBBUILD_3 {
             int nodeBatchSize=nodesTested.size()/10;         //for time logging
             int perBatchWordExplorerLaunchs=0;               //for time logging
             int perBatchExploreTime=0;                       //for time logging
-            int perBatchInsertionTime=0;                     //for time logging
             int perBatchTotalTuples=0;                       //for time logging
             Infos.println("# node tested: "+nodesTested.size());
             Infos.println("Batch size: "+nodeBatchSize);
@@ -584,14 +583,12 @@ public class Main_DBBUILD_3 {
                     Infos.println("# WordExplorer launches in this batch: "+perBatchWordExplorerLaunchs);
                     Infos.println("WordExplorer took on average: "+(((perBatchExploreTime+0.0)/perBatchWordExplorerLaunchs)*0.000001)+" ms");
                     Infos.println("# kmers generated in this batch: "+perBatchTotalTuples);
-                    Infos.println("Hash insertions took on average: "+(((perBatchInsertionTime+0.0)/perBatchWordExplorerLaunchs)*0.000001)+" ms");
                     //free memory before next batch
                     System.gc();
                     warnedAboutMemory=false;
                     //reset exploration timers 
                     perBatchWordExplorerLaunchs=0;
                     perBatchExploreTime=0;
-                    perBatchInsertionTime=0;
                     perBatchTotalTuples=0;
                 }
                 
@@ -641,14 +638,8 @@ public class Main_DBBUILD_3 {
                     }
                     double endExploreTime=System.currentTimeMillis();
                     perBatchExploreTime+=(endExploreTime-startExploreTime);
-                    
-                    
-                    double startInsertionTime=System.currentTimeMillis();
-                    //register the words in the hash
                     totaTuplesInNode+=wd.getGeneratedTupleCount();
-                    double endInsertionTime=System.currentTimeMillis();
-                    perBatchInsertionTime+=(endInsertionTime-startInsertionTime);
-                    //double endScanTime=System.currentTimeMillis();
+
                     
 
 //                    Infos.println("Words in this position:"+wd.getRetainedWords().size());

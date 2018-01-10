@@ -136,8 +136,8 @@ public class Main_v2 {
                             //+ "--dbinram "
 //                            + "-q "+q+" "
                             + "--nsbound -10000000.0 "
-                            + "--do-gap-jumps "
-                            + "--only-1-jump"
+                            //+ "--do-gap-jumps "
+                            //+ "--only-1-jump"
                             ;
             
             
@@ -292,7 +292,7 @@ public class Main_v2 {
                             
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             //System.out.println(Arrays.toString(args));
     
            
@@ -339,7 +339,7 @@ public class Main_v2 {
 
 
 
-                Main_DBBUILD_2.DBGeneration(argsParser.analysisType,
+                Main_DBBUILD_3.DBGeneration(argsParser.analysisType,
                                             null,
                                             argsParser.k,
                                             argsParser.alpha,

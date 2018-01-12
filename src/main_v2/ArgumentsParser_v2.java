@@ -117,6 +117,7 @@ public class ArgumentsParser_v2 {
 
         //general loop, must pass a 1st time on all arguments to set the mode for sure
         boolean wGiven=false;
+        boolean statesGiven=false;
         for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
             int index=it.next();
             
@@ -154,11 +155,13 @@ public class ArgumentsParser_v2 {
             //test -s parameter
             if (argsMap.get(index).equals("--states") || argsMap.get(index).equals("-s")) {
                 if (argsMap.get(index+1).equalsIgnoreCase("nucl")) {
+                    statesGiven=true;
                     this.analysisType=TYPE_DNA;
-                } else if (argsMap.get(index+1).equalsIgnoreCase("prot")) {
+                } else if (argsMap.get(index+1).equalsIgnoreCase("amino")) {
+                    statesGiven=true;
                     this.analysisType=TYPE_PROTEIN;
                 } else {
-                    System.out.println("Unexpected -s (--states) value, must be one of [nucl|prot].");
+                    System.out.println("Unexpected -s (--states) value, must be one of [nucl|amino].");
                     System.exit(1);
                 }
             }
@@ -176,6 +179,11 @@ public class ArgumentsParser_v2 {
             this.workingDir=Environement.getCurrentDirectory().toFile();
             System.out.println("Default working directory (current directory) will be used.");
             System.out.println("workDir="+this.workingDir.getAbsolutePath());
+        }
+        
+        if (!statesGiven) {
+            System.out.println("Analysis states not found. Use option -s (--states) and one of 'nucl' or 'amino'.");
+            System.exit(1);
         }
         
         
@@ -620,8 +628,8 @@ public class ArgumentsParser_v2 {
         "-r (--refalign)   [file] Ref. sequences, fasta file. When building the \n"+
         "                  database (-d mode), it is the multiple alignment from\n"+
         "                  which was inferred the phylogenetic tree. \n"+        
-        "-s (--states)     [nucl] States used in analysis, nucl or prot. (B mode) \n" +    
-        "-t (--reftree)       [file] Reference tree, in newick format.\n"+
+        "-s (--states)     ['nucl'|'amino'] States used in analysis. (B mode) \n" +    
+        "-t (--reftree)    [file] Reference tree, in newick format.\n"+
         "                  reconstruction and DB build (B mode only).\n" +
         "-q (--queries)    [file[,file,...]] Fasta queries to place on the tree.\n" +
         "                  Can be a list of files separated by ','. (B/P mode)\n"+

@@ -202,7 +202,11 @@ public class ARProcessLauncher {
         com.add("-u"); //tree
         com.add(treePath.getAbsolutePath());
         com.add("-m"); //model
-        com.add("GTR");
+        if (this.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+            com.add("LG");
+        } else {
+            com.add("GTR");            
+        }
         com.add("-c"); //number of relative substitution rate categories
         com.add("4");
         com.add("-b"); //neither approximate likelihood ratio test nor bootstrap values are computed
@@ -305,7 +309,7 @@ public class ARProcessLauncher {
                     sb.append("      * ndata = 100\n");
                     sb.append("        clock = 0  * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
                     sb.append("       aaDist = 0  * 0:equal, +:geometric; -:linear, 1-6:G1974,Miyata,c,p,v,a\n");
-                    sb.append("   aaRatefile = dat/wag.dat  * only used for aa seqs with model=empirical(_F)\n");
+                    sb.append("   aaRatefile = dat/lg.dat  * only used for aa seqs with model=empirical(_F)\n");
                     sb.append("                   * dayhoff.dat, jones.dat, wag.dat, mtmam.dat, or your own\n");
                     sb.append("        model = 2\n");
                     sb.append("                   * models for codons:\n");
@@ -395,7 +399,11 @@ public class ARProcessLauncher {
             com.add("-u"); //tree
             com.add(treePath.getAbsolutePath());
             com.add("-m"); //model
-            com.add("GTR");
+            if (this.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+                com.add("LG");
+            } else {
+                com.add("GTR");            
+            }
             com.add("-c"); //number of relative substitution rate categories
             com.add("4");
             com.add("-b"); //neither approximate likelihood ratio test nor bootstrap values are computed
@@ -529,7 +537,7 @@ public class ARProcessLauncher {
                     sb.append("      * ndata = 100\n");
                     sb.append("        clock = 0  * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
                     sb.append("       aaDist = 0  * 0:equal, +:geometric; -:linear, 1-6:G1974,Miyata,c,p,v,a\n");
-                    sb.append("   aaRatefile = dat/wag.dat  * only used for aa seqs with model=empirical(_F)\n");
+                    sb.append("   aaRatefile = dat/lg.dat  * only used for aa seqs with model=empirical(_F)\n");
                     sb.append("                   * dayhoff.dat, jones.dat, wag.dat, mtmam.dat, or your own\n");
                     sb.append("        model = 2\n");
                     sb.append("                   * models for codons:\n");

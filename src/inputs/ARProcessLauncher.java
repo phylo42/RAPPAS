@@ -201,11 +201,14 @@ public class ARProcessLauncher {
         com.add(alignPath.getAbsolutePath());
         com.add("-u"); //tree
         com.add(treePath.getAbsolutePath());
-        com.add("-m"); //model
         if (this.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+            com.add("-m"); //model
             com.add("LG");
+            com.add("-d"); //analysis type
+            com.add("aa");
         } else {
-            com.add("GTR");            
+            com.add("-m"); //model
+            com.add("GTR");    
         }
         com.add("-c"); //number of relative substitution rate categories
         com.add("4");
@@ -398,11 +401,14 @@ public class ARProcessLauncher {
             com.add(alignPath.getAbsolutePath());
             com.add("-u"); //tree
             com.add(treePath.getAbsolutePath());
-            com.add("-m"); //model
             if (this.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+                com.add("-m"); //model
                 com.add("LG");
+                com.add("-d"); //analysis type
+                com.add("aa");
             } else {
-                com.add("GTR");            
+                com.add("-m"); //model
+                com.add("GTR");    
             }
             com.add("-c"); //number of relative substitution rate categories
             com.add("4");
@@ -639,6 +645,11 @@ public class ARProcessLauncher {
     }
     
     
+    /**
+     * utility function to redirect a stream
+     * @param inputStream
+     * @param out 
+     */
     public static void inputStreamToOutputStream(final InputStream inputStream, final OutputStream out) {
         Thread t = new Thread(new Runnable() {
             @Override

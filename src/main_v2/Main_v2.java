@@ -275,15 +275,15 @@ public class Main_v2 {
                             ;
 //
 ////            // placement launch
-//            arguments=
-//                              "-m p "
-//                            + "-s amino "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0 "
-//                            + "--nsbound -1000.0"
-//                            ;   
+            arguments=
+                              "-m p "
+                            + "-s amino "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 0 "
+                            + "--nsbound -1000.0"
+                            ;   
 //
 //
 
@@ -294,7 +294,7 @@ public class Main_v2 {
                             
             
             //force args
-            args=arguments.split(" ");
+            //args=arguments.split(" ");
             //System.out.println(Arrays.toString(args));
     
            

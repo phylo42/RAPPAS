@@ -259,12 +259,12 @@ public class Main_v2 {
                             + "-w "+workDir+" "
                             + "-r "+a+" "
                             + "-t "+t+" "
-                            + "-k "+String.valueOf(6)+" "
+                            + "-k "+String.valueOf(3)+" "
                             + "-a "+String.valueOf(1.0)+" "
                             + "-v 1 "
                             //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
                             + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            //+ "--ardir "+arDir+" "
+                            + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--dbfull "
                             //+ "--froot"
@@ -275,19 +275,71 @@ public class Main_v2 {
                             ;
 //
 ////            // placement launch
-            arguments=
-                              "-m p "
-                            + "-s amino "
-                            + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-v 0 "
-                            + "--nsbound -1000.0"
-                            ;   
+//            arguments=
+//                              "-m p "
+//                            + "-s amino "
+//                            + "-w "+workDir+" "
+//                            + "-q "+q+" "
+//                            + "-d "+db+" "
+//                            + "-v 0 "
+//                            + "--nsbound -1000.0"
+//                            ;   
 //
 //
 
 //////////////////////////////////
+
+
+//  FOR PROTEIN ANALYSIS TESTS, large dataset
+///////////////////////////////////////////////
+//
+            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140";
+            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140";
+            a=inputsPath+File.separator+"mod_140.phy.fasta";
+            t=inputsPath+File.separator+"RAxML_bipartitions.140.BEST.WITH";
+            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140/AR";
+            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+
+            q=inputsPath+File.separator+"R2_nx5_la20_r300.fasta";
+            db=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140/DB_session_k3_a1.0_f1_t-3.90309.union";
+
+            //db build launch
+            arguments=
+                              "-m B "
+                            + "-s amino "
+                            + "-w "+workDir+" "
+                            + "-r "+a+" "
+                            + "-t "+t+" "
+                            + "-k "+String.valueOf(6)+" "
+                            + "-a "+String.valueOf(5.0)+" "
+                            + "-v 1 "
+                            //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
+                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+                            + "--ardir "+arDir+" "
+                            //+ "--extree "+exTree+" "
+                            //+ "--dbfull "
+                            //+ "--froot"
+                            //+ "--dbinram "
+//                            + "-q "+q+" "
+//                            + "--nsbound -100000.0 "
+//                            + "--nocalib"
+                            ;
+//
+////            // placement launch
+//            arguments=
+//                              "-m p "
+//                            + "-s amino "
+//                            + "-w "+workDir+" "
+//                            + "-q "+q+" "
+//                            + "-d "+db+" "
+//                            + "-v 0 "
+//                            + "--nsbound -100000.0"
+//                            ;   
+
+
+
+//////////////////////////////////
+
 
                             
                             

@@ -137,7 +137,7 @@ public class ARResults {
             
             if (originalTree.isRooted() && (!ARTree.isRooted()) ) {
                 //phyml AR unroot input tree even if they are rooted
-                //we need to reroot the tree as is was in the inital input
+                //we need to reroot the tree as it was in the inital input
                 //What doeos phyml ?
                 //input:        ((C1,C2)node,C3)root;
                 //phyml output: (C3,C1,C2)newick_root;

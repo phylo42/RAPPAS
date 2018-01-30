@@ -158,11 +158,11 @@ public class Main_DBBUILD_3 {
             boolean verboseAR=true;
 
             
-            //build of Hash/////////////////////////////////////////////////////
+            //build of threshold/////////////////////////////////////////////////////
             int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             int min_k=k;
             float sitePPThreshold=Float.MIN_VALUE;
-            float PPStarThreshold=(float)Math.pow((alpha*0.25),k);
+            float PPStarThreshold=(float)Math.pow((0.0+alpha/s.getNonAmbiguousStatesCount()),k);
             float PPStarThresholdAsLog=(float)Math.log10(PPStarThreshold);
             boolean wordCompression=true;
             Infos.println("k="+k);
@@ -560,10 +560,10 @@ public class Main_DBBUILD_3 {
                 //take all internal nodes, fakes + original
                 nodesTested=session.ARTree.getInternalNodesByDFS();
             }
-            int nodeBatchSize=nodesTested.size()/10;         //for time logging
-            int perBatchWordExplorerLaunchs=0;               //for time logging
+            int nodeBatchSize=nodesTested.size()/25;         //for time logging
+            long perBatchWordExplorerLaunchs=0;               //for time logging
             int perBatchExploreTime=0;                       //for time logging
-            int perBatchTotalTuples=0;                       //for time logging
+            long perBatchTotalTuples=0;                       //for time logging
             Infos.println("# node tested: "+nodesTested.size());
             Infos.println("Batch size: "+nodeBatchSize);
                     

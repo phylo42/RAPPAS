@@ -53,11 +53,14 @@ public class PhyloTree extends JTree implements Serializable {
     HashMap<Integer, Integer> jPlaceEdgeMapping=null;
     
 
-    //necessary to use the Extended tree specialization
+    /**
+     * necessary to use the ExtendedTree specialization
+     */
     public PhyloTree() {}
     
     /**
-     *
+     * constructor copy, used only to copy tree structure before pruning experiments
+     *  or at rerooting/unrooting of trees
      * @param newModel the value of newModel
      * @param isRooted the value of isRooted
      * @param isFromJPlace the value of isFromJPlace
@@ -68,11 +71,19 @@ public class PhyloTree extends JTree implements Serializable {
         this.isJplaceType=isFromJPlace;
     }
     
-    
+    /**
+     * return node using name mapping
+     * @param nodeName
+     * @return 
+     */
     public PhyloNode getByName(String nodeName) {
         return indexByName.get(nodeName);
     }
-    
+    /**
+     * return node using id mapping
+     * @param id
+     * @return 
+     */
     public PhyloNode getById(int id) {
         return indexById.get(id);
     }
@@ -109,6 +120,10 @@ public class PhyloTree extends JTree implements Serializable {
         return leavesCount;
     }
     
+    /**
+     * return root of the TreeModel
+     * @return 
+     */
     public PhyloNode getRoot() {
         return (PhyloNode)this.getModel().getRoot();
     }
@@ -276,6 +291,10 @@ public class PhyloTree extends JTree implements Serializable {
         return jPlaceEdgeMapping.get(jplaceEdgeId);
     }
     
+    /**
+     * return all jplace mapping in a map (see @getJplaceMapping)
+     * @return 
+     */
     public HashMap<Integer,Integer> getAllJPlaceMappings() {
         return jPlaceEdgeMapping;
     }

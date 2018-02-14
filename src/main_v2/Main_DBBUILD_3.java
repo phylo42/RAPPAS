@@ -560,7 +560,9 @@ public class Main_DBBUILD_3 {
                 //take all internal nodes, fakes + original
                 nodesTested=session.ARTree.getInternalNodesByDFS();
             }
-            int nodeBatchSize=nodesTested.size()/25;         //for time logging
+            int loggingBatchFraction=25;
+            int nodeBatchSize=nodesTested.size()/loggingBatchFraction;         //for time logging
+            if (nodesTested.size()<loggingBatchFraction) {nodeBatchSize=1;}
             long perBatchWordExplorerLaunchs=0;               //for time logging
             int perBatchExploreTime=0;                       //for time logging
             long perBatchTotalTuples=0;                       //for time logging
@@ -569,7 +571,7 @@ public class Main_DBBUILD_3 {
                     
                     
             Infos.println("Building all PP* probas...");
-            int totalTuplesBuiltForHash=0;
+            long totalTuplesBuiltForHash=0;
             int nodeCounter=0;
             boolean warnedAboutMemory=false;
             for (int nodeId:nodesTested) {
@@ -594,7 +596,9 @@ public class Main_DBBUILD_3 {
                 
                 //check the status of memory,
                 //if more than 80% of allocated heap is used
-                //attempt a trimming of the hashtables
+                //attempt a trimming of the hashtables after each node
+                //this greatly reduces speed for last nodes but 
+                //will allow to finish DB build which would fit tight in memory
                 double usage=Environement.getMemoryUsageAsMB()/Environement.getHeapMaxAsMB();
                 if (usage > 0.8) {
                     if (!warnedAboutMemory) {

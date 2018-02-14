@@ -403,6 +403,7 @@ public class Alignment implements Serializable {
     /**
      * return a particular sequence as a fasta (keeping gaps)
      * @param label
+     * @param withGaps
      * @return 
      */
     public Fasta getFasta(String label, boolean withGaps) {
@@ -410,7 +411,7 @@ public class Alignment implements Serializable {
         for (int i = 0; i < rowLabels.length; i++) {
             if (rowLabels[i].equals(label)) {
                 String seq=new String(charMatrix[i]);
-                if (withGaps) {seq.replaceAll("-", "");}
+                if (!withGaps) {seq=seq.replaceAll("-", "");}
                 f=new Fasta(label, seq);
                 break;
             }

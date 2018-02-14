@@ -22,8 +22,8 @@ public class NewickReader {
      * build a phylotree from a newick string, and init its indexes
      * @param s
      * @param forceRooting if the newick describes an unrooted tree (3 sons at
-     * top level), then force the return of a rooted tree; not that the root
-     * will always be placed as follows: 
+     * top level), then forces the return of a rooted tree; note that the root
+     * will always be inserted as follows: 
      * (son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
      * @param considerJplaceEdgeIds consider the {x} edge ids when this
      * newick tree is a jplace style tree. If not activated the presence of this 
@@ -256,10 +256,8 @@ public class NewickReader {
                 tree=new PhyloTree(new PhyloTreeModel(bufferedNode),rooted, considerJplaceEdgeIds);
             }
 
-
-
-
             //init indexes related to internal/leaves stats
+            //this is where the jPlaceEdgeMappings of PhyloTree are updated
             tree.initIndexes();
 
 
@@ -270,6 +268,7 @@ public class NewickReader {
             System.out.println("Something went wrong during tree parsing.");
             System.out.println("Please check that you input tree is in newick format.");
             System.out.println("Please avoid (),:; characters in your labels.");
+            System.out.println("If tree contains {x}, i.e. jplace edge labels, configure parser accordingly.");
             System.exit(1);
             return null;
         }

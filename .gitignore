@@ -5,3 +5,5 @@ rst/*
 dist/*
 build/*
 nbproject/private/profiler/*
+nbproject/private/*
+test/*

@@ -5,29 +5,9 @@
  */
 package core.algos;
 
-import alignement.Alignment;
-import core.DNAStates;
-import core.PProbasSorted;
-import core.ProbabilisticWord;
-import core.hash.CustomHash;
-import core.States;
-import core.hash.CustomHash_v4_FastUtil81;
-import etc.Environement;
-import etc.Infos;
-import inputs.FASTAPointer;
-import inputs.Fasta;
-import inputs.PAMLWrapper;
-import inputs.PHYMLWrapper;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import main_v2.SessionNext_v2;
-import tree.PhyloTree;
 
 /**
  * third version of word explorer

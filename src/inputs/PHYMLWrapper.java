@@ -10,13 +10,11 @@ import core.DNAStates;
 import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
-import core.older.PProbas;
 import etc.Infos;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,11 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import main.SessionNext;
 import tree.NewickReader;
-import tree.NewickWriter;
 import tree.PhyloTree;
 
 /**
@@ -253,69 +247,5 @@ public class PHYMLWrapper implements ARWrapper {
     }
     
     
-    
-    public static void main(String[] args) {
-        
-        try {
-            States s=new DNAStates();
-            File a=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.fasta");
-            File t=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.phylip_phyml_tree.txt");
-            File p=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.phylip_phyml_ancestral_seq");
-            
-            //////////////////////
-            //LOAD ORIGINAL ALIGNMENT
-            FASTAPointer fp=new FASTAPointer(a, false);
-            Fasta fasta=null;
-            ArrayList<Fasta> fastas=new ArrayList<>();
-            while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
-                fastas.add(fasta);
-            }
-            Alignment align=new Alignment(fastas);
-            Infos.println(align.describeAlignment(false));
-            fp.closePointer();
-            
-            
-            //tree
-            PHYMLWrapper pw=new PHYMLWrapper(align,s);
-            PhyloTree tree=pw.parseTree(new FileInputStream(t),false);
-            //tree.displayTree();
-            //probas
-            PProbasSorted probas = pw.parseSortedProbas(new FileInputStream(p),Float.MIN_VALUE,true,Integer.MAX_VALUE);
-            System.out.println(probas.getStateCount());
-            System.out.println(probas.getSiteCount());
-
-            int nodeId=tree.getByName("x5").getId();
-            System.out.println("nodeId:"+nodeId );
-            
-            for (int i = 0; i < probas.getSiteCount(); i++) {
-                for (int j = 0; j < probas.getStateCount(); j++) {
-                    
-                    System.out.print(s.byteToState(probas.getState(nodeId, i, j))+"="+probas.getPP(nodeId, i, j));
-                    System.out.print("\t");
-                    
-                }
-                System.out.println("");
-            }
-            System.out.println("----------------------------------------");
-
-            System.out.println("");
-            for (int i = 0; i < probas.getSiteCount(); i++) {
-                System.out.print(i+":");
-                for (int j = 0; j < probas.getStateCount(); j++) {
-                    System.out.print(s.byteToState(probas.getState(nodeId, i, j))+"="+Math.pow(10,probas.getPP(tree.getByName("x5").getId(), i, j)));
-                    System.out.print("\t");
-                    
-                }
-                System.out.println("");
-            }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PHYMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PHYMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
-    }
-
     
 }

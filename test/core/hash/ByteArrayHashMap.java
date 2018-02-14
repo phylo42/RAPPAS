@@ -5,6 +5,7 @@
  */
 package core.hash;
 
+import core.hash.*;
 import java.util.Arrays;
 import java.util.HashMap;
 

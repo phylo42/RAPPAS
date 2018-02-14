@@ -6,12 +6,9 @@
 package inputs;
 
 import core.PProbasSorted;
-import core.older.PProbas;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import tree.PhyloNode;
 
 /**
  *
@@ -23,9 +20,9 @@ public interface ARWrapper {
      * a wrapper load the posterior probas from the output of any ancestral state reconstruction software
      * @param input
      * @param sitePPThreshold
-     * @return a matrix @PPStats of posterior probas associated to nodes and sites
-     * @throws FileNotFoundException
-     * @throws IOException 
+     * @param asLog10
+     * @param debugNodeLimit
+     * @return a matrix @PPStats of posterior probas associated to nodes and sites 
      */    
     public PProbasSorted parseSortedProbas(InputStream input, float sitePPThreshold, boolean asLog10, int debugNodeLimit);
 

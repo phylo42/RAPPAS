@@ -1,3 +1,5 @@
+package misc;
+
 
 import inputs.FASTAPointer;
 import inputs.Fasta;

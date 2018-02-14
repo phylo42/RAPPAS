@@ -5,13 +5,9 @@
  */
 package core.hash;
 
-import gnu.trove.map.TIntObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.OptionalInt;
-import java.util.stream.IntStream;
 
 
 /**

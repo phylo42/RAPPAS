@@ -299,24 +299,6 @@ public class SequenceKnife {
         return this.step;
     }
     
-    public static void main(String[] args) {
-        SequenceKnife knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), SequenceKnife.SAMPLING_SEQUENTIAL);
-        System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), SequenceKnife.SAMPLING_STOCHASTIC);
-        knife.forceSeed(12345);
-        System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStates(), SequenceKnife.SAMPLING_LINEAR);
-        System.out.println(Arrays.toString(knife.getMerOrder()));
-        
-        QueryWord w=null;
-        while ((w=knife.getNextWord())!=null) {
-            System.out.println(w);
-            List<QueryWord> mutatedWords = w.getMutatedWords(new DNAStates());
-            for (int i = 0; i < mutatedWords.size(); i++) {
-                System.out.println("   "+ mutatedWords.get(i));
-                
-            }
-        }
-    }
+
     
 }

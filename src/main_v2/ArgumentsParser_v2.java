@@ -5,10 +5,8 @@
 
 package main_v2;
 
-import main.*;
 import etc.Environement;
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;

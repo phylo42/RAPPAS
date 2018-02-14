@@ -8,8 +8,6 @@ package core.algos;
 import core.DNAStates;
 import core.States;
 import inputs.Fasta;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -53,15 +51,6 @@ public class RandomSeqGenerator {
         }
         counter++;
         return new Fasta("rand"+counter, sb.toString());         
-    }
-    
-    
-    public static void main(String[] args) {
-        RandomSeqGenerator rs=new RandomSeqGenerator(new DNAStates(),20);
-        for (int i = 0; i < 10; i++) {
-            Fasta f=rs.generateSequence();
-            System.out.println(f.getFormatedFasta());
-        }
     }
     
 }

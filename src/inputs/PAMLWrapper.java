@@ -6,22 +6,17 @@
 package inputs;
 
 import alignement.Alignment;
-import core.older.PProbas;
 import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
 import etc.Infos;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -150,81 +145,6 @@ public class PAMLWrapper implements ARWrapper {
         this.tree=firstTree;
         return this.tree;
     }
-    
-    @Deprecated
-    public PProbas parseProbas(InputStream input, float sitePPThreshold, boolean asLog10) throws IOException {
-        
-        PProbas matrix=new PProbas(tree.getNodeCount(), align.getLength(), states.getNonAmbiguousStatesCount());
-        
-        BufferedReader br=new BufferedReader(new InputStreamReader(input,"UTF-8"));
-        String line=null;
-        boolean start=false;
-        int currentPP=0;
-        int lineNumber=0;
-        String currentNode=null;
-        
-        while ((line=br.readLine())!=null) {
-            lineNumber++;
-            if (line.startsWith("Prob distribs at nodes,")) { //start of section
-                start=true;
-                continue;
-            }
-            if (line.trim().equals("") || line.trim().equals("site  Freq   Data")) { //useless lines
-                continue;
-            }
-            if (line.equals("Prob of best state at each node, listed by site")) { //end of section
-                break;
-            }
-            if (start) {
-                
-                if (line.startsWith("Prob distribution at node ")) {
-                    currentNode=line.split(" ")[4].replaceAll(",", "");
-                    //System.out.println("Current node: "+currentNode);
-                    continue;
-                }
-                
-                String[] infos=line.split("[ ]+");
-                
-                int nodeId=tree.getByName(currentNode).getId();
-                int site=Integer.parseInt(infos[1])-1;
-                
-                try {
-                    for (int i=4;i<infos.length;i++) {
-                        int stateIndex=states.stateToInt(infos[i].split("\\(")[0].charAt(0));
-                        //substring(2,length-1) to remove A( and last )
-                        float val= Float.parseFloat(infos[i].substring(2, infos[i].length()-1)); //substring(2,length-1) to remove last )
-                        //System.out.println("Infos parsed: "+nodeId+","+site+","+stateIndex+","+val);
-                        if (val<sitePPThreshold)
-                            val=sitePPThreshold;
-                        if (asLog10)
-                            matrix.setState(nodeId, site, stateIndex, (float)Math.log10(val));
-                        else
-                            matrix.setState(nodeId, site, stateIndex, val);
-                    }
-                } catch (java.lang.NumberFormatException ex) {
-                    Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states.getNonAmbiguousStatesCount()));
-                    //for now, simple hack, set probabilities to 1/states (DNA)
-                    for (int i=0;i<states.getNonAmbiguousStatesCount();i++) {
-                        if (asLog10)
-                            matrix.setState(nodeId, site, i, (float)Math.log10(1.0/states.getNonAmbiguousStatesCount()));
-                        else
-                            matrix.setState(nodeId, site, i, (1.0f/states.getNonAmbiguousStatesCount()));
-                    }
-                    //ex.printStackTrace();
-                    //br.close();
-                    //System.exit(1);
-                }
-                
-                currentPP++;
-            }
-        }
-        Infos.println( "Number of (site x nodes) for which pp were parsed: "+currentPP);
-        Infos.println( "Number of (sites) for which pp were parsed: "+(0.0+currentPP/(tree.getNodeCount()-tree.getLeavesCount())));
-        br.close();
-        return matrix;
-    }
-    
-    
     
     /**
      * parse the posterior probas themselves

@@ -9,13 +9,12 @@ import alignement.Alignment;
 import core.DNAStates;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
-import core.hash.CustomHash;
 import core.States;
+import core.hash.CustomHash_v2;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
-import inputs.PAMLWrapper;
 import inputs.PHYMLWrapper;
 import java.io.File;
 import java.io.FileInputStream;
@@ -209,163 +208,6 @@ public class WordExplorer_v2 {
         currentLogSum-=ppSet.getPP(nodeId, i, j);
     }
     
-    
-    
-    public static void main(String[] args) {
-        
-        System.setProperty("debug.verbose", "1");
-        
-        try {
-            String HOME = System.getenv("HOME");
-            
-            String a=HOME+"/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced.fasta";
-            String ARTree=HOME+"/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_tree.txt";
-            String ARStats=HOME+"/Dropbox/viromeplacer/test_datasets/mod_matK.fasta.linsi.aln.reduced_phyml_ancestral_seq.txt";
-            
-            int k=8;
-            float sitePPThreshold=Float.MIN_VALUE;
-            int thresholdFactor=10;
-            
-            Infos.println("k="+k);
-            Infos.println("factor="+thresholdFactor);
-            float wordPPStarThreshold=(float)(thresholdFactor*Math.pow(0.25,k));
-            Infos.println("wordPPStarThreshold="+wordPPStarThreshold);
-            float thresholdAsLog=(float)Math.log10(wordPPStarThreshold);
-            Infos.println("wordPPStarThreshold(log10)="+thresholdAsLog);
-            
-            //////////////////////
-            //States: DNA or AA
-            States s=new DNAStates();
-            //////////////////////
-            //LOAD ORIGINAL ALIGNMENT
-            Infos.println("Loading Alignment...");
-            FASTAPointer fp=new FASTAPointer(new File(a), false);
-            Fasta fasta=null;
-            ArrayList<Fasta> fastas=new ArrayList<>();
-            while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
-                fastas.add(fasta);
-            }
-            Alignment align=new Alignment(fastas);
-            Infos.println(align.describeAlignment(false));
-            fp.closePointer();
-            //////////////////////////////////////////////
-            //LOAD THE POSTERIOR PROBAS AND PAML TREE IDS
-            Infos.println("Loading PAML tree ids and Posterior Probas...");
-            double startParsingTime=System.currentTimeMillis();
-            PHYMLWrapper pw=new PHYMLWrapper(align, s);
-            //PAMLWrapper pw=new PAMLWrapper(align, s); //align extended or not by the relaxed bloc
-            FileInputStream input = null;
-            //input = new FileInputStream(new File(pp));
-            input = new FileInputStream(new File(ARTree));
-            //input = new FileInputStream(new File(ARPath+"tree"));
-            PhyloTree tree= pw.parseTree(input, false);
-            Infos.println("Parsing posterior probas..");
-            input = new FileInputStream(new File(ARStats));
-            PProbasSorted pprobas = pw.parseSortedProbas(input,sitePPThreshold,true,Integer.MAX_VALUE); //parse less nodes for debug
-            input.close();
-            double endParsingTime=System.currentTimeMillis();
-            Infos.println("Word search took "+(endParsingTime-startParsingTime)+" ms");
-    
-    
-            //positions for which word are checked
-            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, SequenceKnife.SAMPLING_LINEAR);
-            int[] refPositions=knife.getMerOrder();     
-            
-            
-            //to raidly check that sorted probas are OK
-            Infos.println("NodeId=0, 5 first PP:"+Arrays.deepToString(pprobas.getPPSet(0, 0, 5)));
-            Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
-            //to rapidly check gap intervals
-            ArrayList<Integer>[] gapIntervals1 = align.getGapIntervals();
-            for (int i = 0; i < 107; i++) {
-                ArrayList<Integer> arrayList = gapIntervals1[i];
-                Infos.println("Gap interval i="+i+" (pos="+i+1+") : "+gapIntervals1[i]);
-            }
-           
-            
-            //prepare simplified hash
-            CustomHash hash=new CustomHash();
-
-            Infos.println("Word generator threshold will be:"+thresholdAsLog);
-            //Word Explorer
-            int totalWordsInHash=0;
-            double startHashBuildTime=System.currentTimeMillis();
-            for (int nodeId:tree.getInternalNodesByDFS()) {
-                Infos.println("NodeId: "+nodeId+" "+tree.getById(nodeId).toString() );
-                
-                
-                double startMerScanTime=System.currentTimeMillis();
-                WordExplorer_v2 wd =null;
-                int totalWordsInNode=0;
-                for (int pos:knife.getMerOrder()) {
-
-                    if(pos+k-1>align.getLength()-1)
-                        continue;
-                    //DEBUG
-//                    if(pos<79 || pos>107)
-//                        continue;
-                    //DEBUG
-                    System.setProperty("debug.verbose", "1");
-                    
-                    //double startScanTime=System.currentTimeMillis();
-                    wd =new WordExplorer_v2(   k,
-                                            pos,
-                                            nodeId,
-                                            pprobas,
-                                            align,
-                                            thresholdAsLog,
-                                            false,
-                                            s,
-                                            true,
-                                            true
-                                        );
-                    
-                    for (int j = 0; j < pprobas.getStateCount(); j++) {
-                        wd.exploreWords(pos, j);
-                    }
-                    
-                    //register the words in the hash
-                    wd.words.stream().forEach((w)-> {hash.addTuple(w, w.getPpStarValue(), nodeId, w.getOriginalPosition());});
-                    totalWordsInNode+=wd.words.size();
-                    
-                    //Infos.println("Words in this position:"+wd.words.size());
-                    
-                    //double endScanTime=System.currentTimeMillis();
-                    //Infos.println("Word search took "+(endScanTime-startScanTime)+" ms");
-                    
-                    wd=null;
-                }
-                totalWordsInHash+=totalWordsInNode;
-                
-                
-                //register all words in the hash
-                Infos.println("Words in this node:"+totalWordsInNode);
-                double endMerScanTime=System.currentTimeMillis();
-                Infos.println("Word search took "+(endMerScanTime-startMerScanTime)+" ms");
-                Environement.printMemoryUsageDescription();
-                
-            }
-
-            
-            Infos.println("Resorting hash components...");
-            hash.sortTuples();
-            
-            double endHashBuildTime=System.currentTimeMillis();
-            Infos.println("Overall, hash built took: "+(endHashBuildTime-startHashBuildTime)+" ms");
-            
-            Infos.println("Words in the hash:"+totalWordsInHash);
-                
-            Infos.println("FINISHED.");
-            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(WordExplorer_v2.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(WordExplorer_v2.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
-        
-    }
     
     
 }

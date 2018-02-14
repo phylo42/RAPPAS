@@ -8,8 +8,6 @@ package main_v2;
 import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
-import core.hash.CustomHash_v2;
-import core.hash.CustomHash_v3_Trove303;
 import core.hash.CustomHash_v4_FastUtil81;
 import etc.Infos;
 import inputs.ARResults;

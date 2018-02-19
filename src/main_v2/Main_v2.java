@@ -24,11 +24,13 @@ public class Main_v2 {
     public static void main (String[] args) {
         try {
             long startTime=System.currentTimeMillis();
-            System.out.println("#############################################################");
-            System.out.println("## RApid Phylogenetic Placement via Ancestral Sequences");
-            System.out.println("## (RAPPAS) v"+consoleVersion);
-            System.out.println("## Authors: benjamin.linard, fabio.pardi (LIRMM-CNRS, Montpellier)");
-            System.out.println("#############################################################");
+            System.out.println("################################################");
+            System.out.println("## \"Rapid Alignment-free Phylogenetic Placement ");
+            System.out.println("##  via Ancestral Sequences\"");
+            System.out.println("## RAPPAS v"+consoleVersion);
+            System.out.println("## benjamin.linard, fabio.pardi ([at].lirmm.fr)");
+            System.out.println("## LIRMM, Univ. of Montpellier, CNRS");
+            System.out.println("################################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
@@ -44,11 +46,6 @@ public class Main_v2 {
             
             //parse program arguments
             ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
-            //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/baseml");
-            //argsParser.ARBinary=new File(HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml");
-            
-            //HACK FOR SIMPLIFIYING CURRENT PRUNING EXPERIMENTS, avoids check if it exists or not (done by ArgumentsParser)
-            //argsParser.ARBinary=new File("baseml");
             
             
             //set verbosity to null, if required

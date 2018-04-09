@@ -48,9 +48,9 @@ sudo apt-get install ant
 #download git repository
 git clone -b master https://gite.lirmm.fr/linard/RAPPAS.git
 #compile
-ant -f build-cli.xml
+cd RAPPAS && ant -f build-cli.xml
 ```
-The RAPPAS jar can then be found in the ./dist directory.
+The executable RAPPAS.jar can then be found in the ./dist directory.
 
 
 
@@ -69,9 +69,9 @@ Such reference marker gene datasets can be found, for instance, via:
 - The curated database of Eukref : <http://eukref.org/databases/>
 - Or built internally in the lab.
 
-### RAPPAS Database build 
+### RAPPAS database build 
 
-The basic command is 
+__Basic command__
 
 ```
 java -jar RAPPAS.jar -m b -s [nucl|prot] -b ARbinary -w workdir -r reference_alignment.fasta -t reference_tree.newick
@@ -79,16 +79,21 @@ java -jar RAPPAS.jar -m b -s [nucl|prot] -b ARbinary -w workdir -r reference_ali
 
 where
 
-option | expected value | is used for
+option | expected value | description
 --- | --- | ---
 `-s (--states)` | "nucl" or "prot" | Set if we plan a nucleotide or protein analysis.
-`-b (--arbinary)` | an integer >=3 | Set the path to the AR binary used for ancestral sequence reconstruction (see note below).
+`-b (--arbinary)` | a binary of PhyML or PAML | Set the path to the AR binary used for ancestral sequence reconstruction (see note below).
 `-w (--workdir)` | a directory | Set the directory in which will be saved the database.
 `-r (--refalign)` | a file | The reference alignment, in fasta format.
 `-t (--reftree)̀` | a file | The reference tree, in newick format.
 
-Currently, PhyML (fastest, strongly recommended) or PAML (slower, but requires less RAM) are the binary called for ancestral sequeunce reconstruction and fully supported by RAPPAS. You can use the versions used on the authors websites, but we recommand the HACKED VERSIONS available in the /depbin directory.
-This are based on slightly modified sources of PhyML and PAML, mostly for removing many useless outputs not used by RAPPAS.
+__Note on PhyML and PAML binaries__:
+Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
+- PhyML : Fastest & strongly recommended but may require lots of RAM.
+- PAML  : Slower,  but requires less memory.
+
+You can use the last versions provided by the authors websites, but we recommand the HACKED VERSIONS available in this git repository in the /depbin directory.
+This are based on slightly modified sources of PhyML and PAML: no change in ML computations, but many useless outputs are skipped making the reconstruction process faster.
 
 The reconstruction will result to the production of a directory struture and a database file in the set "workdir":
 
@@ -102,8 +107,8 @@ file/directory | description
 
 ### Queries placement
 
-Once the database is built, a placement command can be called numerous times on different query sequence datasets. v1.00 of RAPPAS places around 1,000,000 metagenomic reads in 40 minutes using a single core of a normal desktop PC. Only the database file and the query sequences are used as parameters.
-
+After building the RAPPAS DB, placement commands can be called numerous times on different query sequence datasets.
+v1.00 of RAPPAS places 1,000,000 metagenomic of 150bp in ~40 minutes, using only a single core of a normal desktop PC.
 
 ```
 java -jar RAPPAS.jar -m p -d database.union -q queries.fasta 
@@ -111,16 +116,29 @@ java -jar RAPPAS.jar -m p -d database.union -q queries.fasta
 
 where
 
-option | expected value | is used for
+option | expected value | description
 --- | --- | ---
 `-d (--database)` | a file | the *.union file created at previous DB build step.
 `-q (--queries)` | a file | The query reads, in fasta format.
 
-The *.jplace describing the placements will be in the workdir/logs directory.
+The *.jplace describing the placements of all queries will be written in the ./workdir/logs directory.
 
 To know more about the [jplace format](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009).
 To know more about the [exploitation of phylogenetic placement results](https://matsen.github.io/pplacer/generated_rst/guppy.html#introduction) (OTU alpha diversity, Unifrac-like measures...).
 
+### Other options
+
+__Normal options:__
+
+option | expected value | description
+--- | --- | ---
+`-k` | integer >=3 | The k-mer length used at DB build (default=8)
+
+
+__Debug options:__
+
+Avoid debug options if you are not involved in RAPPAS developpement !!!
+Description coming soon...
 
 ## License
 

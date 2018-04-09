@@ -87,18 +87,16 @@ option | expected value | is used for
 `-r (--refalign)` | a file | The reference alignment, in fasta format.
 `-t (--reftree)̀` | a file | The reference tree, in newick format.
 
-Currently, PhyML or PAML are the binary called for ancestral sequeunce reconstruction and fully supported by RAPPAS.
-You can use the versions used on the authors websites, but we recommand the following stable and hacked versions which are faster and require less disk space:
-[link to hacked PhyML]() (faster, strongly recommended)
-[link to hacked PAML]()  (require less RAM, but much slower)
+Currently, PhyML (fastest, strongly recommended) or PAML (slower, but requires less RAM) are the binary called for ancestral sequeunce reconstruction and fully supported by RAPPAS. You can use the versions used on the authors websites, but we recommand the HACKED VERSIONS available in the /depbin directory.
+This are based on slightly modified sources of PhyML and PAML, mostly for removing many useless outputs not used by RAPPAS.
 
---> The reconstruction will result to the production of a directory struture and a database file in the "workdir":
+The reconstruction will result to the production of a directory struture and a database file in the set "workdir":
 
 file/directory | description
 --- | --- 
 `*.union` | The RAPPAS database itself.
-`workdir/extended_tree` | Temp files used at DB construction, allow to explore the phantom nodes.
-`workdir/AR` | Temp files used at DB construction, the raw outputs of PhyML or PAML.
+`workdir/extended_tree` | Temporary files used at DB construction, allow to explore the phantom nodes.
+`workdir/AR` | Temporary files used at DB construction, the raw outputs of PhyML or PAML.
 `workdir/logs` | As the name says.
 
 

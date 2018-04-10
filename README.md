@@ -123,8 +123,9 @@ option | expected value | description
 
 The *.jplace describing the placements of all queries will be written in the ./workdir/logs directory.
 
-To know more about the [jplace format](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009).
-To know more about the [exploitation of phylogenetic placement results](https://matsen.github.io/pplacer/generated_rst/guppy.html#introduction) (OTU alpha diversity, Unifrac-like measures...).
+__To know more about :__
+- the [jplace format](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009).
+- the [exploitation of phylogenetic placement results](https://matsen.github.io/pplacer/generated_rst/guppy.html#introduction) (OTU alpha diversity, Unifrac-like measures...).
 
 ### Other options
 

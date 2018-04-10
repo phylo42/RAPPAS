@@ -77,9 +77,10 @@ public class TEST_Alignment {
         
         
         System.out.println("END");
+        System.out.println("-----------------------------------------------------");
         
         Infos.println("Loading Alignment...");
-        FASTAPointer fp=new FASTAPointer(new File("/home/ben/Dropbox/viromeplacer/test_datasets/accuracy_tests/R_analysis/BOLD_matk_v0.95/A14_older.mfa"), false);
+        FASTAPointer fp=new FASTAPointer(new File("/home/ben/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/bv_refs_aln_stripped_99.5.fasta"), false);
         Fasta fasta=null;
         ArrayList<Fasta> fastas=new ArrayList<>();
         while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
@@ -88,18 +89,20 @@ public class TEST_Alignment {
         a=new Alignment(fastas);
         System.out.println(a.describeAlignment(true));
         double[] gapProportions1 = a.getGapProportions();
-//        for (int i = 0; i < gapProportions1.length; i++) {
-//            double d = gapProportions1[i];
-//            System.out.println("i:"+i+ " prop="+d);
-//        }
-        a.reduceAlignment(1.0);
-        gapProportions1 = a.getGapProportions();
+        for (int i = 0; i < gapProportions1.length; i++) {
+            double d = gapProportions1[i];
+            System.out.println("i:"+i+ " prop="+d);
+        }
+        a.reduceAlignment(0.97);
+//        gapProportions1 = a.getGapProportions();
 //        for (int i = 0; i < gapProportions1.length; i++) {
 //            double d = gapProportions1[i];
 //            System.out.println("i:"+i+ " prop="+d);
 //        }
         System.out.println(a.describeAlignment(true));
         fp.closePointer();
+        
+        System.exit(1);
         
         try {
             a.writeAlignmentAsFasta(new File("/home/ben/test.fasta"));

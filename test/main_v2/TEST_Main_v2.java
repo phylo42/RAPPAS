@@ -73,42 +73,44 @@ public class TEST_Main_v2 {
 //            String db=HOME+"/Dropbox/viromeplacer/test_datasets/WD2/DB_session_k8_a1.5_t3.9106607E-4.full";
 
             //pplacer benchmark queries 
-            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
+//            String q=inputsPath+File.separator+"mod_p4z1r36_query_only2.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_1st_seq_expanded.fasta";
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
+            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
             //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_f1_t-3.40775.union";
             
             //String db=workDir+File.separator+"DB_session_k10_a0.75_f1_t-7.269987.union";
-            String db=workDir+File.separator+"DB_session_k10_a1.0_f1_t-6.0206.union";
-            //String db=workDir+File.separator+"DB_session_k8_a1.0_f1_t-4.81648.union";
+            //String db=workDir+File.separator+"DB_session_k10_a1.0_f1_t-6.0206.union";
+            String db=workDir+File.separator+"DB_session_k8_a1.0_f1_t-4.81648.union";
             
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
 
             //db build launch
             String arguments=
-                              "-m B "
+                              "-m b "
                             + "-w "+workDir+" "
                             + "-r "+a+" "
                             + "-t "+t+" "
-                            + "-k "+String.valueOf(10)+" "
-                            + "-a "+String.valueOf(1.0)+" "
-                            + "-v 1 "
+                            //+ "-k "+String.valueOf(8)+" "
+                            //+ "-a "+String.valueOf(1.0)+" "
+                            //+ "-v 1 "
                             + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            + "--ardir "+arDir+" "
+                            //+ "--ardir "+arDir+" "
+                            + "--states nucl "
                             //+ "--extree "+exTree+" "
                             //+ "--forceroot"
                             //+ "--dbinram "
 //                            + "-q "+q+" "
-                            + "--nsbound -10000000.0 "
+                            //+ "--nsbound -10000000.0 "
                             //+ "--do-gap-jumps "
-                            //+ "--only-1-jump"
+                            //+ "--only-1-jump "
+                            //+ "--ratio-reduction 0.95"
                             ;
             
             
@@ -123,7 +125,8 @@ public class TEST_Main_v2 {
 //                            + "-v 0 "
 //                            //+ "--nsbound -1000.0 "  -Infinity if not given
 //                            + "--keep-at-most 7 "
-//                            + "--keep-factor 0.01"
+//                            + "--keep-factor 0.01 "
+//                            + "--states nucl"
 //                            ;            
                             
                             
@@ -213,29 +216,29 @@ public class TEST_Main_v2 {
 //  FOR PROTEIN ANALYSIS TESTS
 /////////////////////////////////
 //
-            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML";
-            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml_prot";
-            a=inputsPath+File.separator+"cox1_euka_oma.mfa";
-            t=inputsPath+File.separator+"RAxML_bestTree.test";
-            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
-            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
-
-            q=inputsPath+File.separator+"queries.fasta";
-            db=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/DB_session_k6_a1.0_f1_t-3.61236.union";
+//            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML";
+//            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml_prot";
+//            a=inputsPath+File.separator+"cox1_euka_oma.mfa";
+//            t=inputsPath+File.separator+"RAxML_bestTree.test";
+//            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/AR";
+//            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+//
+//            q=inputsPath+File.separator+"queries.fasta";
+//            db=HOME+"/Dropbox/viromeplacer/test_datasets/WD_PROT_PAML/DB_session_k6_a1.0_f1_t-3.61236.union";
 
             //db build launch
-            arguments=
-                              "-m B "
-                            + "-s amino "
-                            + "-w "+workDir+" "
-                            + "-r "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(3)+" "
-                            + "-a "+String.valueOf(1.0)+" "
-                            + "-v 1 "
-                            //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            + "--ardir "+arDir+" "
+//            arguments=
+//                              "-m B "
+//                            + "-s amino "
+//                            + "-w "+workDir+" "
+//                            + "-r "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(3)+" "
+//                            + "-a "+String.valueOf(1.0)+" "
+//                            + "-v 1 "
+//                            //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
+//                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+//                            + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--dbfull "
                             //+ "--froot"
@@ -264,29 +267,29 @@ public class TEST_Main_v2 {
 //  FOR PROTEIN ANALYSIS TESTS, large dataset
 ///////////////////////////////////////////////
 //
-            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140";
-            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140";
-            a=inputsPath+File.separator+"mod_140.phy.fasta";
-            t=inputsPath+File.separator+"RAxML_bipartitions.140.BEST.WITH";
-            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140/AR";
-            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
-
-            q=inputsPath+File.separator+"R2_nx5_la20_r300.fasta";
-            db=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140/DB_session_k3_a1.0_f1_t-3.90309.union";
-
-            //db build launch
-            arguments=
-                              "-m B "
-                            + "-s amino "
-                            + "-w "+workDir+" "
-                            + "-r "+a+" "
-                            + "-t "+t+" "
-                            + "-k "+String.valueOf(6)+" "
-                            + "-a "+String.valueOf(5.0)+" "
-                            + "-v 1 "
-                            //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            + "--ardir "+arDir+" "
+//            workDir=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140";
+//            inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140";
+//            a=inputsPath+File.separator+"mod_140.phy.fasta";
+//            t=inputsPath+File.separator+"RAxML_bipartitions.140.BEST.WITH";
+//            arDir=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140/AR";
+//            //String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+//
+//            q=inputsPath+File.separator+"R2_nx5_la20_r300.fasta";
+//            db=HOME+"/Dropbox/viromeplacer/test_datasets/accuracy_tests/DATA/D140/DB_session_k3_a1.0_f1_t-3.90309.union";
+//
+//            //db build launch
+//            arguments=
+//                              "-m B "
+//                            + "-s amino "
+//                            + "-w "+workDir+" "
+//                            + "-r "+a+" "
+//                            + "-t "+t+" "
+//                            + "-k "+String.valueOf(6)+" "
+//                            + "-a "+String.valueOf(5.0)+" "
+//                            + "-v 1 "
+//                            //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/paml4.9b_hacked/bin/codeml "
+//                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+//                            + "--ardir "+arDir+" "
                             //+ "--extree "+exTree+" "
                             //+ "--dbfull "
                             //+ "--froot"
@@ -297,15 +300,15 @@ public class TEST_Main_v2 {
                             ;
 //
 ////            // placement launch
-            arguments=
-                              "-m p "
-                            + "-s amino "
-                            + "-w "+workDir+" "
-                            + "-q "+q+" "
-                            + "-d "+db+" "
-                            + "-v 0 "
-                            + "--nsbound -100000.0"
-                            ;   
+//            arguments=
+//                              "-m p "
+//                            + "-s amino "
+//                            + "-w "+workDir+" "
+//                            + "-q "+q+" "
+//                            + "-d "+db+" "
+//                            + "-v 0 "
+//                            + "--nsbound -100000.0"
+//                            ;   
 
 
 

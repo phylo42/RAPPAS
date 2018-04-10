@@ -97,6 +97,7 @@ public class Main_DBBUILD_3 {
      * @param keepRatio 
      * @param doGapJumps 
      * @param limitTo1Jump 
+     * @param gapJumpThreshold 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -127,15 +128,10 @@ public class Main_DBBUILD_3 {
                                         int keepAtMost,
                                         float keepRatio,
                                         boolean doGapJumps,
-                                        boolean limitTo1Jump
+                                        boolean limitTo1Jump,
+                                        float gapJumpThreshold
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
-        
-
-        
-        
-            
-
 
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -232,6 +228,26 @@ public class Main_DBBUILD_3 {
                 }
                 align.writeAlignmentAsFasta(reducedAlign);
                 Infos.println("Reduced alignment written to: "+reducedAlign.getAbsolutePath());
+                
+            }
+            
+            //check gap ratio in reference alignment
+            //if >= to gapJumpThreshold, activate gap jumps
+            boolean gapJumpsActivated=false;
+            if (doGapJumps) { //if false, the user explicitely deactivated jumps
+                
+                double[] gapProportions = align.getGapProportions();
+                double gap=0.0; double nonGap=0.0;
+                for (int i = 0; i < gapProportions.length; i++) {
+                    gap+=gapProportions[i];
+                    nonGap+=(1.0-gapProportions[i]);
+                }
+                double gapRatio=gap/nonGap;
+                Infos.println("Gap ratio: "+gapRatio);
+                if (gapRatio>=gapJumpThreshold) {
+                    gapJumpsActivated=true;
+                    Infos.println(">="+gapJumpThreshold+", gap jumps activated.");
+                }
             }
 
 
@@ -411,11 +427,11 @@ public class Main_DBBUILD_3 {
             //   and the modification in ARTree operated by the AR software
             //   (which renames internal nodes/labels in its own way...)
             System.out.println("Parsing Ancestral reconstruction results...");
-            arpr=new ARResults(    arpl,
-                                        align,
-                                        originalTree,
-                                        extendedTree,
-                                        s
+            arpr=new ARResults(     arpl,
+                                    align,
+                                    originalTree,
+                                    extendedTree,
+                                    s
                                     );
             //output in the AR directory the mapping of the nodes for debugging
             File map=new File(arpl.ARPath.getAbsolutePath()+File.separator+"ARtree_id_mapping.tsv");
@@ -629,7 +645,7 @@ public class Main_DBBUILD_3 {
                                             pos,
                                             nodeId,
                                             wordCompression,
-                                            doGapJumps,
+                                            gapJumpsActivated,
                                             limitTo1Jump
                                         );
                     
@@ -764,7 +780,7 @@ public class Main_DBBUILD_3 {
             File dbmedium=new File(db.getAbsoluteFile()+".medium");
             File dbsmall=new File(db.getAbsoluteFile()+".small");
             File dbunion=new File(db.getAbsoluteFile()+".union");
-            File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
+            //File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
             
             
             
@@ -868,18 +884,18 @@ public class Main_DBBUILD_3 {
                         placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio);
                     }
                     //reduction to small DB
-                    System.out.println("Reduction to small union DB...");
-                    session.hash.reducetoSmallHash_v2(100);
-                    System.gc();
+                    //System.out.println("Reduction to small union DB...");
+                    //session.hash.reducetoSmallHash_v2(100);
+                    //System.gc();
                     //calibration to small DB
                     //NOTE: not done, we keep medium DB calibration as the basis.
                     //now do placements on small DB
-                    System.out.println("Starting placement on small union DB...");
-                    placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    for (int i = 0; i < queries.size(); i++) {
-                        File query = queries.get(i);
-                        placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound,keepAtMost,keepRatio);
-                    }                    
+                    //System.out.println("Starting placement on small union DB...");
+                    //placer=new Main_PLACEMENT_v07(session,dbInRAM);
+                    //for (int i = 0; i < queries.size(); i++) {
+                    //File query = queries.get(i);
+                    //    placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound,keepAtMost,keepRatio);
+                    //}                    
                 }
                 
                 System.out.println("DBINRAM OPERATIONS FINISHED.");
@@ -1101,30 +1117,30 @@ public class Main_DBBUILD_3 {
                 session.hash.reducetoSmallHash_v2(100);
                 System.gc();
                 //calibration
-                float calibrationNormScoreSmallUnion=Float.NEGATIVE_INFINITY;
-                if (!noCalibration) {
-                    if (writeTSVCalibrationLog) {
-                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
-                    }
-                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
-                    //do the placement and calculate score quantiles
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                    calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                    System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
-                    //closes the calibration log  
-                    if (writeTSVCalibrationLog){
-                        bwTSVCalibration.close();
-                    }
-                }
+                //float calibrationNormScoreSmallUnion=Float.NEGATIVE_INFINITY;
+                //if (!noCalibration) {
+                //    if (writeTSVCalibrationLog) {
+                //        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+                //    }
+                //    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
+                //    //do the placement and calculate score quantiles
+                //    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                //    calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                //    System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
+                //    //closes the calibration log  
+                //    if (writeTSVCalibrationLog){
+                //        bwTSVCalibration.close();
+                //    }
+                //}
                 //associate medium calibration
-                session.associateCalibrationScore(calibrationNormScoreSmallUnion);
+                //session.associateCalibrationScore(calibrationNormScoreSmallUnion);
                 //store in DB
-                System.out.println("Serialization of the database (small union)...");
-                session.storeHash(dbsmallunion);
+                //System.out.println("Serialization of the database (small union)...");
+                //session.storeHash(dbsmallunion);
 
                 //serialization finished, output some log infos
                 Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
-                Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
+                //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
                 System.out.println("\"Union\" database saved.");
             }
             

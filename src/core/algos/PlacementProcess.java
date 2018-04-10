@@ -8,7 +8,6 @@ package core.algos;
 import charts.ChartsForNodes;
 import com.google.common.math.Quantiles;
 import core.DNAStatesShifted;
-import core.DiagSum;
 import core.hash.Pair;
 import etc.Infos;
 import inputs.Fasta;
@@ -16,7 +15,6 @@ import inputs.SequencePointer;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import java.awt.GridLayout;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,7 +54,7 @@ public class PlacementProcess {
     //int queryLimit=1000000;
     //graph of words alignment
     boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
-    boolean merStats=false;
+    boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
     //test different way to select best score
     boolean useTopTwo=false; //score only searcing top 2 values
     boolean useSelectionAlgo=true; // score using Hoare's selection algorithm
@@ -397,7 +395,6 @@ public class PlacementProcess {
                                 ) throws IOException {
         
         
-        System.out.println("Starting to place queries...");
         
         
         
@@ -410,9 +407,10 @@ public class PlacementProcess {
         //,reset at each read
         ArrayList<Integer> selectedNodes=new ArrayList<>(10);
         //instanciated once
-        int[] nodeOccurences=new int[session.ARTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
-        float[] nodeScores=new float[session.ARTree.getNodeCount()]; // tab[score] --> index=nodeId
-        float[] nodeScoresCopy=new float[session.ARTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
+        int[] nodeOccurences=new int[session.originalTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
+        float[] nodeScores=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
+        float[] nodeScoresCopy=new float[session.originalTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
+        //System.out.println("S/C size: "+nodeOccurences.length);
         float kthLargestValue=-1;
         int numberOfBestScoreToConsiderForOutput=-1;
         Score[] bestScoreList=new Score[keepAtMost]; //in ascending order
@@ -429,20 +427,6 @@ public class PlacementProcess {
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Main_PLACEMENT_v07.class.getName()).log(Level.SEVERE, null, ex);
         }
-        //map to associate seqeunce checksums to Fasta headers
-        //map(checksum)=List of headers corresponding to identical sequences
-//        Object2ObjectOpenCustomHashMap<byte[],Integer> identicalSeqsRegistry=new Object2ObjectOpenCustomHashMap(new Hash.Strategy<byte[]>() {
-//            @Override
-//            public int hashCode(byte[] o) {
-//                return Arrays.hashCode(o);
-//            }
-//
-//            @Override
-//            public boolean equals(byte[] a, byte[] b) {
-//                return Arrays.equals(a, b);
-//            }
-//        });
-
         //map to associate sequence checksums to JSONObject
         //map(checksum)=JSON placement object to which identical reads
         //              are associated (same score and placement)
@@ -481,16 +465,20 @@ public class PlacementProcess {
         ////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////
         long startTotalPlacementTime=System.currentTimeMillis();
-
+        System.out.println("Starting to place queries...");
 
         int queryCounter=0;
         int placedQueryCounter=0;
-        long totalAlignTime=0;
-        long totalScoringTime=0;
-        long totalWritingTime=0;
-        long totalResetTime=0;
-        long totalChecksumTime=0;
-
+        int selectedNodeSize=0;
+//        long totalKnifeTime=0;
+//        long totalAlignTime=0;
+//        long totalScoringTime=0;
+//        long totalWritingTime=0;
+//        long totalResetTime=0;
+//        long totalChecksumTime=0;
+//        long totalT1Time=0;
+//        long totalT2Time=0;
+        
         int totalQueries=fp.getContentSize();
         Fasta fasta=null;
         while ((fasta=fp.nextSequenceAsFastaObject())!=null) {  //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
@@ -499,7 +487,11 @@ public class PlacementProcess {
             
             //console display to follow the process
             if ((queryCounter%10000)==0) {
-                System.out.println(queryCounter+"/"+totalQueries+" queries placed ("+(((0.0+queryCounter)/totalQueries)*100)+"%)");
+                System.out.println(queryCounter+"/"+totalQueries+
+                " queries placed ("+
+                (((0.0+queryCounter)/totalQueries)*100)+
+                "%)  --  Time elapsed: "+
+                ((0.0+(System.currentTimeMillis()-startTotalPlacementTime))/1000)+" s");
             }
             
             //debug
@@ -511,7 +503,7 @@ public class PlacementProcess {
             //if already present do not compute placement
             //again. this might need compression if fasta sequences headers
             //are too heavy in memory
-            long startChecksumTime=System.currentTimeMillis();
+//            long startChecksumTime=System.currentTimeMillis();
             checksumGenerator.reset(); //make it ready before next checksum computation
             checksumGenerator.update(fasta.getSequence(true).getBytes());
             byte[] checksum = checksumGenerator.getByteArray();
@@ -551,8 +543,8 @@ public class PlacementProcess {
                 //a.add(subHeader);
                 //identicalSeqsRegistry.put(checksum,1);
             }
-            long endChecksumTime=System.currentTimeMillis();
-            totalChecksumTime+=endChecksumTime-startChecksumTime;
+//            long endChecksumTime=System.currentTimeMillis();
+//            totalChecksumTime+=endChecksumTime-startChecksumTime;
 
             placedQueryCounter++;
 
@@ -560,23 +552,22 @@ public class PlacementProcess {
             Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
             Infos.println("#######################################################################");
             //fw.append(fasta.getFormatedFasta()+"\n");
-            long startAlignTime=System.currentTimeMillis();
             int queryLength=fasta.getSequence(false).length();
             Infos.println("Query length: "+queryLength);
 
 
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
-            byte[] qw=null;
+//            long startKnifeTime=System.currentTimeMillis();
             SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
             int queryKmerCount=0;
             int queryKmerMatchingDB=0;
-
+//            long endKnifeTime=System.currentTimeMillis();
+//            totalKnifeTime+=(endKnifeTime-startKnifeTime);
 
 
 
             //if alignment graph are required
-            DiagSum bestPPStarsDiagsum=null;
             double[][] graphDataForTopTuples =null;
             int xSize=-1;
             if (graphAlignment) {
@@ -598,19 +589,24 @@ public class PlacementProcess {
             ////////////////////////////////////////////////////////////////
             // BUILD THE ALIGNMENT AND SCORE IN A SINGLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
+//            long startAlignTime=System.currentTimeMillis();
             Infos.println("Launching scoring on candidate nodes...");
             boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
+            byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
                 
                 //get Pairs associated to this word
+//                long startT1Time=System.currentTimeMillis();
                 Char2FloatMap.FastEntrySet allPairs =null;
                 if (session.states instanceof DNAStatesShifted) {
                     allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
                 } else {
                     allPairs = session.hash.getPairsOfTopPosition2(qw);
                 }
+//                long endT1Time=System.currentTimeMillis();
+//                totalT1Time+=(endT1Time-startT1Time);
                 
 
                 //word is not present in hash
@@ -620,40 +616,24 @@ public class PlacementProcess {
                 }
                 queryKmerMatchingDB++;
                 
-                //System.out.println("Pairs: "+allPairs);
-                
-                for (ObjectIterator<Char2FloatMap.Entry> iterator = allPairs.fastIterator(); iterator.hasNext();) {
-                    Char2FloatMap.Entry p = iterator.next();
-                    int nodeId=(int)p.getCharKey();
-                    
+                //stream version, 5-10% faster than allPairs.fastIterator()
+                allPairs.stream().forEach((Char2FloatMap.Entry entry) -> {
+                    int nodeId=entry.getCharKey();
                     //we will score only encountered nodes, originalNode registered
                     //at 1st encouter
-                    if (nodeOccurences[p.getCharKey()]==0) {
+                    if (nodeOccurences[nodeId]==0) {
                         selectedNodes.add(nodeId);
                     }
                     //count # times originalNode encountered
                     nodeOccurences[nodeId]+=1;
                     //score associated to originalNode x for current read
-                    nodeScores[nodeId]+=p.getFloatValue();
-
-                    if (merStats) {
-                        merFound[nodeId][queryKmerCount]=true;
-                        int extendedTreeId=session.nodeMapping.get(nodeId);
-                        int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
-                        PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
-                        PhyloNode origNode = session.originalTree.getById(originalNodeId);
-                        bwMerStats.append(fasta.getHeader()+";");
-                        bwMerStats.append(nodeId+";"+session.ARTree.getById(nodeId).getLabel()+";");
-                        bwMerStats.append(extendedTreeId+";"+extNode.getLabel()+";");
-                        bwMerStats.append(originalNodeId+";"+origNode.getLabel()+";");
-                        bwMerStats.append(queryKmerCount+";");
-                        bwMerStats.append(String.valueOf(p.getFloatValue())+";");
-                        bwMerStats.append("present");
-                        bwMerStats.append("\n");
-
-                    }
-                    
-                }
+                    nodeScores[nodeId]+=entry.getFloatValue();
+                });
+                
+                
+//                long endT2Time=System.currentTimeMillis();
+//                totalT2Time+=(endT2Time-startT2Time);
+                
                 //graph of alignment, if asked
                 if(graphAlignment) {
                    int topPosition =session.hash.getTopPosition(qw);
@@ -706,10 +686,10 @@ public class PlacementProcess {
             }
 
 
-            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
-            long endAlignTime=System.currentTimeMillis();
-            totalAlignTime+=(endAlignTime-startAlignTime);
-            Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      
+            //Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
+//            long endAlignTime=System.currentTimeMillis();
+//            totalAlignTime+=(endAlignTime-startAlignTime);
+            //Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      
 
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
@@ -717,8 +697,10 @@ public class PlacementProcess {
                 Infos.println("Read cannot be placed.");
                 //report queries that could not be placed because
                 //none of its kmers found in DB
-                bwNotPLaced.append(fasta.getHeader());
-                bwNotPLaced.newLine();
+                if (bwNotPLaced != null) {
+	            bwNotPLaced.append(fasta.getHeader());
+	            bwNotPLaced.newLine();
+                }
                 continue; //to next query
             }
             
@@ -848,7 +830,7 @@ public class PlacementProcess {
             //System.out.println("  AFTER SCORING");
             //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
             //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
-            Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+            //Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
             //Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
             //System.out.println("allLikelihoodSums: "+allLikelihoodSums);
 //            if (useSelectionAlgo) {
@@ -927,8 +909,8 @@ public class PlacementProcess {
             }
 
 
-            long endScoringTime=System.currentTimeMillis();
-            totalScoringTime+=endScoringTime-startScoringTime;
+//            long endScoringTime=System.currentTimeMillis();
+//            totalScoringTime+=endScoringTime-startScoringTime;
 
 
             //TO DEBUG
@@ -940,7 +922,7 @@ public class PlacementProcess {
 //                System.out.println("nodeOccurences:"+Arrays.toString(nodeOccurences));
 //                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
 
-            long startWritingTime=System.currentTimeMillis();
+//            long startWritingTime=System.currentTimeMillis();
             
             //write result in file if a originalNode was hit
             if (csvLog && (bwTSV!=null) ) {
@@ -1041,8 +1023,8 @@ public class PlacementProcess {
                 checksumToJSONObject.put(checksum, placement); 
             }
 
-            long endWritingTime=System.currentTimeMillis();
-            totalWritingTime+=endWritingTime-startWritingTime;
+//            long endWritingTime=System.currentTimeMillis();
+//            totalWritingTime+=endWritingTime-startWritingTime;
 
 
             //push the stringbuffer to the CSV bufferedwriter every 25000 sequences
@@ -1067,9 +1049,10 @@ public class PlacementProcess {
             for (int i = 0; i < bestScoreList.length; i++) {
                 bestScoreList[i]=new Score(-1, Float.NEGATIVE_INFINITY);
             }
+            selectedNodeSize+=selectedNodes.size();
             selectedNodes.clear();
-            long endResetTime=System.currentTimeMillis();
-            totalResetTime+=endResetTime-startResetTime;
+//            long endResetTime=System.currentTimeMillis();
+//            totalResetTime+=endResetTime-startResetTime;
             
 
         }
@@ -1079,25 +1062,35 @@ public class PlacementProcess {
         }
         
         //flush to disk the last CSV buffer
-        bwTSV.append(sb);
+        if (bwTSV != null) {
+            bwTSV.append(sb);
+        }
+
             
-        long endTotalPlacementTime=System.currentTimeMillis();
-        System.out.println("############################################################");
-        System.out.println("Checksum registry took in total: "+totalChecksumTime+" ms");
-        System.out.println("kmer matching took in total: "+totalAlignTime+" ms");
-        System.out.println("Scoring took in total: "+totalScoringTime+" ms");
-        System.out.println("Writing .csv and .jplace took in total: "+totalWritingTime+" ms");
-        System.out.println("Reset took in total: "+totalResetTime+" ms");
-        System.out.println("------------------------------------------------------------");
-        System.out.println("(per placement average)");
-        System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/placedQueryCounter)+" ms");
-        System.out.println("k-mer match/score took on average: "+((0.0+totalAlignTime)/placedQueryCounter)+" ms");
-        System.out.println("Score correction/ratio took on average: "+((0.0+totalScoringTime)/placedQueryCounter)+" ms");
-        System.out.println("Writing .jplace and/or .csv took on average: "+((0.0+totalWritingTime)/placedQueryCounter)+" ms");
-        System.out.println("Reset took on average: "+((0.0+totalResetTime)/placedQueryCounter)+" ms");
-        System.out.println("------------------------------------------------------------");
-        System.out.println("Placement Process (without DB load) took: "+(endTotalPlacementTime-startTotalPlacementTime)+" ms");
-        System.out.println("############################################################");
+//        long endTotalPlacementTime=System.currentTimeMillis();
+//        System.out.println("############################################################");
+//        System.out.println("Checksum registry took in total: "+totalChecksumTime+" ms");
+//        System.out.println("Knife took in total: "+totalKnifeTime+" ms");
+//        System.out.println("kmer matching took in total: "+totalAlignTime+" ms");
+//        System.out.println(" T1 took in total: "+totalT1Time+" ms");
+//        System.out.println(" T2 took in total: "+totalT2Time+" ms");
+//        System.out.println("Scoring took in total: "+totalScoringTime+" ms");
+//        System.out.println("Writing .csv and .jplace took in total: "+totalWritingTime+" ms");
+//        System.out.println("Reset took in total: "+totalResetTime+" ms");
+//        System.out.println("------------------------------------------------------------");
+//        System.out.println("(per placement average)");
+//        System.out.println("Checksum registry took on average: "+((0.0+totalChecksumTime)/placedQueryCounter)+" ms");
+//        System.out.println("Knife took on average: "+((0.0+totalKnifeTime)/placedQueryCounter)+" ms");
+//        System.out.println("k-mer match/score took on average: "+((0.0+totalAlignTime)/placedQueryCounter)+" ms");
+//        System.out.println(" T1 took on average: "+((0.0+totalT1Time)/placedQueryCounter)+" ms");
+//        System.out.println(" T2 took on average: "+((0.0+totalT2Time)/placedQueryCounter)+" ms");
+//        System.out.println("Score correction/ratio took on average: "+((0.0+totalScoringTime)/placedQueryCounter)+" ms");
+//        System.out.println("Writing .jplace and/or .csv took on average: "+((0.0+totalWritingTime)/placedQueryCounter)+" ms");
+//        System.out.println("Reset took on average: "+((0.0+totalResetTime)/placedQueryCounter)+" ms");
+//        System.out.println("L average: "+((0.0+selectedNodeSize)/placedQueryCounter)+" nodes");
+//        System.out.println("------------------------------------------------------------");
+//        System.out.println("Placement Process (without DB load) took: "+(endTotalPlacementTime-startTotalPlacementTime)+" ms");
+//        System.out.println("############################################################");
         
         return queryCounter;
     }

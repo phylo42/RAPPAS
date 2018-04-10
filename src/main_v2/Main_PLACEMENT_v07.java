@@ -98,14 +98,15 @@ public class Main_PLACEMENT_v07 {
             //DEBUG PARAMETERS
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
-              
+            
+            //minOverlap is currently deprecated !
             //minimum read/ref overlap,in bp. When not respected, read not reported
             int minOverlap=100;
             //word sampling method
             int queryWordSampling=SequenceKnife.SAMPLING_LINEAR;
 
             //debug 
-            int queryLimit=100000000;
+            int queryLimit=50000;
             
 
             ////////////////////////////////////////////////////////////////////

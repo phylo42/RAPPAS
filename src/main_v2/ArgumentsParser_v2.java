@@ -42,10 +42,10 @@ public class ArgumentsParser_v2 {
     //parameters for alignment reduction
     public boolean reduction=true;
     public File reducedAlignFile=null;
-    double reductionRatio=1.0;
+    double reductionRatio=0.999;
     
     //parameters for DB build
-    public int k=10; //default=10
+    public int k=8; //default=8
     public float alpha=1.0f; //default=1.0
     public int fakeBranchAmount=1;  //default =1
     public File alignmentFile=null;
@@ -60,8 +60,9 @@ public class ArgumentsParser_v2 {
     public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
     public boolean unionHash=true; //if false, use old positionnal hash
     public boolean onlyFakeNodes=true; //if false, uses ancestral kmers of original nodes
-    public boolean doGapJumps=false; //take gap jumps into account when building kmers
-    public boolean limitTo1Jump=false; //only allow a 1st jump, not jump combinations
+    public boolean doGapJumps=true; //take gap jumps into account when building kmers
+    public boolean limitTo1Jump=true; //only allow a 1st jump, not jump combinations
+    public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
     
     //parameters for placement
     public int minOverlap=100; //deprecated, was used for diagsums coordinates
@@ -126,14 +127,14 @@ public class ArgumentsParser_v2 {
             }
             
             //check verbosity
-            if (argsMap.get(index).equals("-v") || argsMap.get(index).equals("--verbose")) {
+            if (argsMap.get(index).equals("-v") || argsMap.get(index).equals("--verbosity")) {
                 try {
                     this.verbose=Integer.parseInt(argsMap.get(index+1));
                     if (verbose>0) { //for now, only one verbosity level
                         System.setProperty("debug.verbose", "1");
                     }
                 } catch (NumberFormatException ex) {
-                    System.out.println("Cannot parse '-v (--verbose)' as an integer value.");
+                    System.out.println("Cannot parse '-v (--verbosity)' as an integer value.");
                     System.exit(1);
                 }
             }
@@ -293,13 +294,13 @@ public class ArgumentsParser_v2 {
                     //////////////////////////////////////
                     //DEBUG OPTIONS
                     
-                    //test --skipredu
+                    //test --no-reduction
                     if (argsMap.get(index).equals("--no-reduction")) {
                         System.out.println("Original alignment will be used (no gapped columns removed).");
                         this.reduction=false;
                     }
                     
-                    //test --writeredu
+                    //test --write-reduction
                     if (argsMap.get(index).equals("--write-reduction")) {
                         File f=new File(argsMap.get(index+1));
                         if (f.isFile() && f.canWrite()) {
@@ -310,7 +311,7 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     
-                    //test --ratioredu
+                    //test --ratio-reduction
                     if (argsMap.get(index).equals("--ratio-reduction")) {
                         String alphaVal=argsMap.get(index+1);
                         try {
@@ -340,7 +341,7 @@ public class ArgumentsParser_v2 {
                     }
                    
                     
-                    //test --extendedtree parameter
+                    //test --extree parameter
                     if (argsMap.get(index).equals("--extree")) {
                         File exTreeDir=new File(argsMap.get(index+1));
                         System.out.println("Using extended trees provided by user: "+exTreeDir.getAbsolutePath());
@@ -354,12 +355,12 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     
-                    //test --builddbfull parameter
+                    //test --dbfull parameter
                     if (argsMap.get(index).equals("--dbfull")) {
                         this.builddbfull=true;
                     }
                     
-                    //test --froot parameter
+                    //test --force-root parameter
                     if (argsMap.get(index).equals("--force-root")) {
                         this.forceRooting=true;
                     }
@@ -404,14 +405,14 @@ public class ArgumentsParser_v2 {
                         this.noCalibration=false;
                     }
                     
-                    //test --unihash parameter
+                    //test --poshash parameter
                     if (argsMap.get(index).equals("--poshash")) {
                         this.unionHash=false;
                     }
                     
-                    //test --onlyfake
+                    //test --original-nodes
                     if (argsMap.get(index).equals("--original-nodes")) {
-                        System.out.println("DB will alse contain ancestral kmers associated to original nodes (--orinodes).");
+                        System.out.println("DB will also contain ancestral kmers associated to original nodes (--original-nodes).");
                         this.onlyFakeNodes=false;
                     }
                     
@@ -444,17 +445,34 @@ public class ArgumentsParser_v2 {
                         }
                         
                     }
-                    //test --do-gap-jumps
-                    if (argsMap.get(index).equals("--do-gap-jumps")) {
-                        this.doGapJumps=true;
-                        System.out.println("Gap intervals activated.");
+                    //test --no-gap-jumps
+                    if (argsMap.get(index).equals("--no-gap-jumps")) {
+                        this.doGapJumps=false;
+                        System.out.println("Gap jumps deactivated.");
                     }
-                    //test --only-1-jump
-                    if (argsMap.get(index).equals("--only-1-jump")) {
-                        this.limitTo1Jump=true;
-                        System.out.println("1st interval considered.");
+                    //test --do-n-jumps
+                    if (argsMap.get(index).equals("--do-n-jumps")) {
+                        this.limitTo1Jump=false;
+                        System.out.println("N gaps interval will be considered.");
                     }
-                    //////////////////////////////////////
+                    //test --gap-jump-thresh
+                    if (argsMap.get(index).equals("--gap-jump-thresh")) {
+                        String val=argsMap.get(index+1);
+                        try {
+                            this.gapJumpThreshold=Float.parseFloat(val);
+                            if (this.gapJumpThreshold>1.0f) {
+                                this.gapJumpThreshold=1.0f;
+                                System.out.println("--gap-jump-thresh set to 1.0");
+                            }
+                            if (this.gapJumpThreshold<0.0f) {
+                                this.gapJumpThreshold=0.0f;
+                                System.out.println("--gap-jump-thresh set to 0.0");
+                            }
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '--gap-jump-thresh' as a float value.");
+                            System.exit(1);
+                        }
+                    }                    //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
                     
@@ -597,74 +615,88 @@ public class ArgumentsParser_v2 {
     private void showHelpAndExit() {
         System.out.print(
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
-        " Minimum usage,\n"+
-        " 1.For building the ancestral kmers database:\n"+
-        "   java -jar viromplacer.jar -m B -b ARbinary -w workdir \\ \n"+
-        "   -s nucl -r alignment.fasta -t tree.newick\n" +
-        " 2.For placing the query reads, using the database built in 1. :\n"+
-        "   java -jar viromplacer.jar -m P -q queries.fasta \n"+ 
-        "\n"+ 
+        " Minimum usage:\n"+
+        " 1. For building the ancestral kmers database:\n"+
+        "    java -jar viromplacer.jar -m b -s [nucl|prot] -b ARbinary \n" +
+        "    -w workdir -s nucl -r alignment.fasta -t tree.newick\n" +
+        "   \n" + 
+        " 2. For placing the query reads, using the database built in 1. :\n"+
+        "    java -jar viromplacer.jar -m p -q queries.fasta \n"+ 
+        "    \n"+ 
         " Note1:Default values are reported in []. \n"+ 
         " Note2:Do not hesistate to allocate lots of memory at the first step,\n" +
         "       as increasing k rapidly brings to large requirements.\n"+
         "       ex: java -jar -Xms1024m -Xmx16g viromplacer.jar [...] \n"+
         "       -Xms -> memory allocated at startup. (m=MegaByte, g=GigaByte)\n"+
         "       -Xmx -> maximum allocation allowed.  \n"+
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"+
-        "-a (--alpha)      [1.0] Alpha modifier levelling the proba threshold \n"+
-        "                  used in ancestral words filtering. (B mode only)\n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "\n" +
+        "Main options:     Default values are in [].\n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "-b (--arbinary)   [file] Binary for marginal AR, currently 'phyml' and \n" +
-        "                  'baseml' (from PAML) are supported. (B mode only)\n" +
-        "-d (--database)   [file] The database of ancestral kmers. (B/P mode) \n"+
-        "-f (--fakebranch) [1] # fake nodes to add along ref tree branches. \n"+
-        "-k (--k)          [10] Word length used for the DB build. (B mode only)\n" +
-        "-m (--mode)       One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
-        "                   * B: Build DB of ancestral words and associated \n"+
-        "                        probabilites. \n" +
-        "                   * P: Placement of query sequences, using a DB of\n"+
-        "                        ancestral words prevously built with mode B.\n" +
-        "-r (--refalign)   [file] Ref. sequences, fasta file. When building the \n"+
-        "                  database (-d mode), it is the multiple alignment from\n"+
-        "                  which was inferred the phylogenetic tree. \n"+        
-        "-s (--states)     ['nucl'|'amino'] States used in analysis. (B mode) \n" +    
+        "                  'baseml' (from PAML) are supported. (b mode only)\n" +
+        "-d (--database)   [file] The database of ancestral kmers. (b|p mode) \n"+
+        "-m (--mode)       ['b'|'p'] One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
+        "                   * b: Build DB of ancestral k-mers and associated \n"+
+        "                        probabilites (done 1 time). \n" +
+        "                   * p: Placement operation itself (done n times).\n"+
+        "                        Requires k-mer DB prevously built with mode b.\n" +
+        "-r (--refalign)   [file] Reference alignment in fasta format.\n" +
+        "                  It must be the multiple alignment from which was \n" +
+        "                  inferred the reference tree (option -t). (b mode) \n"+        
+        "-s (--states)     ['nucl'|'amino'] States used in analysis. (b mode) \n" +    
         "-t (--reftree)    [file] Reference tree, in newick format.\n"+
-        "                  reconstruction and DB build (B mode only).\n" +
+        "                  reconstruction and DB build (b mode only).\n" +
         "-q (--queries)    [file[,file,...]] Fasta queries to place on the tree.\n" +
-        "                  Can be a list of files separated by ','. (B/P mode)\n"+
+        "                  Can be a list of files separated by ','. (b|p modes)\n"+
         "                  be placed if filenames are separated by ','.\n" +
-        "-v (--verbose)    [0] Verbosity level: -1=null ; 0=low ; 1=high\n" +
-        "-w (--workdir)    [dir] Path to the working directory (B/P mode).\n\n" +
+        "-v (--verbosity)  [0] Verbosity level: -1=null ; 0=low ; 1=high\n" +  
+        "-w (--workdir)    [.] Path to the working directory (b|p modes).\n" +  
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
-        "Debug options: Use only if you know what you are doing...    \n" +
+        "\n" +
+        "Outputs options:  Jplace, log files...  \n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+     
+        "--keep-at-most    [7] Max number of placement per query kept in \n" +
+        "                  the jplace output. (p mode)\n" +
+        "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
+        "                  than (factor x best_likelihood_ratio). (p mode)\n" +      
+        "--write-reduction [file] Write reduced alignment to file. (b mode)\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
-        "--ardir           [dir] Skip AR reconstruction, searching its results\n"+
-        "                  in the specified directory (B mode only)\n" +
-        "--extree          [dir] Skip fake nodes injection, and use files present\n"+
-        "                  in the specified directory instead (B mode only)\n" +
-        "--dbfull          [] Save full DB (unused in algo). (B mode only)\n" +      
-        "--force-root      [] Root input tree, if non rooted. (B mode only)\n" +
-        "--nsbound         [float] Force normalized score bound. (P mode only)\n" +
+        "\n" +
+        "Algo options:     Use only if you know what you are doing...    \n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "-a (--alpha)      [1.0] Alpha modifier levelling the proba threshold \n"+
+        "                  used in ancestral words filtering. (b mode)\n" +
+        "-f (--fakebranch) [1] # phantom nodes to add on reference tree branches. \n"+
+        "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +
+        "--force-root      [] Root input tree if non rooted. (b mode)\n" +
+        "--ratio-reduction [0.999] Ratio for alignment reduction, i.e. sites \n" +
+        "                  holding >99.9% gaps are ignored. (b mode)\n" +
+        "--no-reduction    [] Do not operate alignment reduction. This will \n" +
+        "                  keep all sites of input reference alignment and \n" +
+        "                  may produce erroneous ancestral k-mers. (b mode)\n" +
+        "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "\n" +
+        "Debug options:    Use only if you know what you are doing...    \n" +
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+     
+        "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
+        "                  uses outputs of the specified directory. (b mode)\n" +
+        "--extree          [dir] Skip phantom nodes injection, and use already\n"+
+        "                  injected trees of the specified directory. (b mode)\n" +
+        "--dbfull          [] Save full DB (unused in algo). (b mode)\n" +      
+        "--nsbound         [float] Force normalized score bound. (p mode)\n" +
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +
-        "--calibration     [] Prototype calib. on random anc. kmers. (B mode only).\n" +
-        "--poshash         [] Places using older deprecated hash. (B mode only)\n" +
-        "--no-reduction    [] Do not operate alignment reduction. By default,\n" +
-        "                  reference alignment columns with more than 'ratio'\n" +
-        "                  gaps are ignored (see --ratio-redu). (B mode only)\n" +
-        "--write-reduction [file] Write reduced alignment to file. (B mode only)\n" +
-        "--ratio-reduction [0.999] Ratio for alignment reduction, i.e. sites \n" +
-        "                  with >99.9% gaps are ignored. (B mode only)\n" +
+        "--calibration     [] Prototype calib. on random anc. kmers. (b mode).\n" +
+        "--poshash         [] Places using older deprecated hash. (b mode)\n" +
         "--original-nodes  [] Also compute ancestral kmers for original nodes,\n" +
-        "                  produces heavier (unused) computations. (B mode only)\n" +
-        "--keep-at-most    [7] Max number of placement per query we keep in\n" +
-        "                  the jplace output. (B/P mode)\n" +
-        "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
-        "                  than (factor x best_likelihood_ratio). (B/P mode)\n" +
-        "--do-gap-jumps    [] k-mers jump over gaps. (B mode) \n" +
-        "--only-1-jump     [] Limit to 1 jump per kmer. (B mode) \n" +
-        "\n\n"
+        "                  produces heavier (unused) computations. (b mode)\n" +
+        "--do-n-jumps      [] Shifts from 1 to n jumps. (b mode) \n" +
+        "--no-gap-jumps    [] Deactivate k-mer gap jumps. (b mode) \n" +
+        "\n"
         );
-       System.exit(1);
+       System.exit(0);
     }  
 
     @Override

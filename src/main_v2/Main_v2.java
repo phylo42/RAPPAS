@@ -19,14 +19,14 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.00";
+    private final static String consoleVersion="1.01";
 
     public static void main (String[] args) {
         try {
             long startTime=System.currentTimeMillis();
             System.out.println("################################################");
-            System.out.println("## \"Rapid Alignment-free Phylogenetic Placement ");
-            System.out.println("##  via Ancestral Sequences\"");
+            System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
+            System.out.println("## via Ancestral Sequences");
             System.out.println("## RAPPAS v"+consoleVersion);
             System.out.println("## benjamin.linard, fabio.pardi ([at].lirmm.fr)");
             System.out.println("## LIRMM, Univ. of Montpellier, CNRS");
@@ -105,7 +105,8 @@ public class Main_v2 {
                                             argsParser.keepAtMost,
                                             argsParser.keepFactor,
                                             argsParser.doGapJumps,
-                                            argsParser.limitTo1Jump
+                                            argsParser.limitTo1Jump,
+                                            argsParser.gapJumpThreshold
                         
                                             );
                 
@@ -138,7 +139,8 @@ public class Main_v2 {
             
             
             long endTime=System.currentTimeMillis();
-            System.out.println("Total execution time: "+(endTime-startTime)+" ms");
+            System.out.println("Total execution time: "+(endTime-startTime)+" ms ("+((endTime-startTime)/60000)+" min)");
+            System.out.println("Have a coffee, you \"placed\" your world.");
             //System.exit(0);
             
         } catch (Exception ex) {

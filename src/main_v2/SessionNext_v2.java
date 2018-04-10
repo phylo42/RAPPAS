@@ -41,6 +41,8 @@ public class SessionNext_v2 {
     public float alpha=1.0f;
     
     
+    
+    
     public States states=null;
     public Alignment align=null;
     public PhyloTree originalTree=null;

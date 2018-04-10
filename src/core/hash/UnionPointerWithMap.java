@@ -7,8 +7,6 @@ package core.hash;
 
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.chars.Char2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2FloatMap;
-import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;

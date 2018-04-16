@@ -624,6 +624,7 @@ public class PlacementProcess {
                 //get Pairs associated to this word
 //                long startT1Time=System.currentTimeMillis();
                 Char2FloatMap.FastEntrySet allPairs =null;
+                //TODO: what is this DNAStatesShifted
                 if (session.states instanceof DNAStatesShifted) {
                     allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
                 } else {

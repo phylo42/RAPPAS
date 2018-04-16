@@ -840,6 +840,7 @@ public class PlacementProcess {
                 
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
+                //TODO: second best is not updated here, is this a problem?
 
             //System.out.println("bestScoreList:"+Arrays.toString(bestScoreList));
             //System.out.println("numberOfBestScoreToConsiderForOutput: "+numberOfBestScoreToConsiderForOutput);

@@ -391,6 +391,46 @@ public class PlacementProcess {
         }
     }
     
+    public static int selectionAlgo(
+    		int keepAtMost,
+    		float [] nodeScores, float [] nodeScoresCopy, 
+    		Score[] bestScoreList,
+    		ArrayList<Integer> selectedNodes) {
+    	System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
+        int numberOfBestScoreToConsiderForOutput=keepAtMost;
+        //level down keepAtMost is less nodes were selected
+        if(selectedNodes.size()<keepAtMost) {
+            numberOfBestScoreToConsiderForOutput=selectedNodes.size();
+        }
+        //selection algo, on average O(n)
+        //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
+        // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
+        //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
+        float kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
+        //System.out.println("kthLargestValue:"+kthLargestValue);
+        //search all node scores larger than this kth value
+        int i=0;
+        for (int nodeId:selectedNodes) {
+            if (i==numberOfBestScoreToConsiderForOutput) { 
+                break;
+                //we already got the nth best scores,
+                //no need to iterate more because nothing more will be
+                //output to the jplace 
+            }
+            if (nodeScores[nodeId]>=kthLargestValue) {
+                //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
+                //division by kmer count to normalize
+                bestScoreList[i].score=nodeScores[nodeId];
+                bestScoreList[i].nodeId=nodeId;
+                i++;
+            }
+        }
+        //finally do a sort of bestScoreList, O(k.log(k))
+        Arrays.sort(bestScoreList);
+        
+        return numberOfBestScoreToConsiderForOutput;
+    }
+    
     public static double computeWeightRatioShift(Score lowest) {
         float weightRatioShift=0.0f; 
         if ( -308f >= lowest.score ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
@@ -791,37 +831,13 @@ public class PlacementProcess {
             double weightRatioShift = 0.0;
             double allLikelihoodSums = 0.0;
             if (useSelectionAlgo) {
-                System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
-                numberOfBestScoreToConsiderForOutput=keepAtMost;
-                //level down keepAtMost is less nodes were selected
-                if(selectedNodes.size()<keepAtMost) {
-                    numberOfBestScoreToConsiderForOutput=selectedNodes.size();
-                }
-                //selection algo, on average O(n)
-                //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
-                // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
-                //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
-                float kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
-                //System.out.println("kthLargestValue:"+kthLargestValue);
-                //search all node scores larger than this kth value
-                int i=0;
-                for (int nodeId:selectedNodes) {
-                    if (i==numberOfBestScoreToConsiderForOutput) { 
-                        break;
-                        //we already got the nth best scores,
-                        //no need to iterate more because nothing more will be
-                        //output to the jplace 
-                    }
-                    if (nodeScores[nodeId]>=kthLargestValue) {
-                        //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
-                        //division by kmer count to normalize
-                        bestScoreList[i].score=nodeScores[nodeId];
-                        bestScoreList[i].nodeId=nodeId;
-                        i++;
-                    }
-                }
-                //finally do a sort of bestScoreList, O(k.log(k))
-                Arrays.sort(bestScoreList);
+            	numberOfBestScoreToConsiderForOutput = 
+            		selectionAlgo(
+                		keepAtMost,
+                		nodeScores, nodeScoresCopy, 
+                		bestScoreList,
+                		selectedNodes);
+                
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
 

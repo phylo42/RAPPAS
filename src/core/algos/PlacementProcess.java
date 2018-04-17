@@ -447,7 +447,10 @@ public class PlacementProcess {
 		return allLikelihoodSums;
     }
     
-
+    public static double computeWeightRatio(Score s, double weightRatioShift, double allLikelihoodSums) {
+    	return Math.pow(10.0, (double)(s.score-weightRatioShift))/allLikelihoodSums;
+    }
+    
     /**
      * 
      * @param fp
@@ -998,7 +1001,7 @@ public class PlacementProcess {
                     //System.out.println("bestScoreList[i].score : "+bestScoreList[i].score);
                     //System.out.println("bestScoreList[i].score-weightRatioShift : "+(bestScoreList[i].score-weightRatioShift));
                     //System.out.println("Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift)):"+ Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift)));
-                    weigth_ratio=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift))/allLikelihoodSums;
+                    weigth_ratio=computeWeightRatio(bestScoreList[i], weightRatioShift, allLikelihoodSums);
                     
                     //if best score, memorize this ratio
                     if (i==bestScoreList.length-1) {

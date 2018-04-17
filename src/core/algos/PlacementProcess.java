@@ -1174,7 +1174,7 @@ public class PlacementProcess {
     /**
      * simple class to wrap the score and likelihood_weight_ratio associated to the n best nodes
      */
-    private class Score implements Comparable<Score>{
+    static class Score implements Comparable<Score>{
         public int nodeId;
         public float score=Float.NEGATIVE_INFINITY;
 

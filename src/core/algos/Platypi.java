@@ -1,4 +1,4 @@
-package core;
+package core.algos;
 
 import java.io.BufferedWriter;
 import java.io.File;

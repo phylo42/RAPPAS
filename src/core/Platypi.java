@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.EvictingQueue;
 
 import core.algos.PlacementProcess;
 import core.algos.SequenceKnife;
@@ -13,86 +16,176 @@ import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import main_v2.SessionNext_v2;
 
 public class Platypi {
-	public static void place(SessionNext_v2 session, Fasta fasta, int queryWordSampling, int keepAtMost, File logDir) {
-		boolean merStats = false;
-
-		ArrayList<Integer> selectedNodes = new ArrayList<>(10);
+	class NodeStats {
 		// tab[#times_encoutered] --> index=nodeId
-		int[] nodeOccurences = new int[session.originalTree.getNodeCount()];
+		int[] nodeOccurences;
 		// tab[score] --> index=nodeId
-		float[] nodeScores = new float[session.originalTree.getNodeCount()];
+		float[] nodeScores;
 		// copy that will be consumed in the Hoare's selection algorithm
-		float[] nodeScoresCopy = new float[session.originalTree.getNodeCount()];
-
-		// System.out.println("S/C size: "+nodeOccurences.length);
-		float kthLargestValue = -1;
-		int numberOfBestScoreToConsiderForOutput = -1;
-		Score[] bestScoreList = new Score[keepAtMost]; // in ascending order
-		for (int i = 0; i < bestScoreList.length; i++) {
-			bestScoreList[i] = new Score(-1, Float.NEGATIVE_INFINITY);
+		float[] nodeScoresCopy; 
+		
+		PlacementProcess.Score[] bestScoreList;
+		
+		public NodeStats(SessionNext_v2 session, int keepAtMost) {
+			nodeOccurences = new int[session.originalTree.getNodeCount()];
+			nodeScores = new float[session.originalTree.getNodeCount()];
+			nodeScoresCopy = new float[session.originalTree.getNodeCount()]; 
+			bestScoreList = new PlacementProcess.Score[keepAtMost];
 		}
+		
+		public void init() {
+			for (int i = 0; i < bestScoreList.length; i++) {
+				bestScoreList[i] = new PlacementProcess.Score(-1, Float.NEGATIVE_INFINITY);
+			}
+		}
+	}
+	
+	class History {
+		int[] nodeOccurences;
+		float[] nodeScores;
+		
+		public History(SessionNext_v2 session) {
+			nodeOccurences = new int[session.originalTree.getNodeCount()];
+			nodeScores = new float[session.originalTree.getNodeCount()];
+		}
+	}
+	
+	public static class Score {
+		int nodeId;
+		double weightRatio;
+		
+		public Score(int nodeId, double weightRatio) {
+			this.nodeId = nodeId;
+			this.weightRatio = weightRatio;
+		}
+	}
+	
+	public static class Placement {
+		List<Score> global;
+		List<List<Score>> windows;
+		
+		public Placement(List<Score> global, List<List<Score>> windows) {
+			this.global = global;
+			this.windows = windows;
+		}
+	}
+	
+	private NodeStats global;
+	private NodeStats window;
+	
+	private SessionNext_v2 session;
+	private int keepAtMost;
+	
+	public Platypi(SessionNext_v2 session, int keepAtMost) {
+		this.session = session;
+		this.keepAtMost = keepAtMost;
+		
+		global = new NodeStats(session, keepAtMost);
+		window = new NodeStats(session, keepAtMost);
+	}
+	
+	public Placement place(Fasta fasta, File logDir, int s, int w) throws IOException {
+		boolean merStats = false;
+		
+		global.init();
+		window.init();
 
 		BufferedWriter bwMerStats = null;
 		if (merStats) {
 			File fileMerStats = new File(logDir + File.separator + "merStats.csv");
-			try {
-				bwMerStats = Files.newBufferedWriter(fileMerStats.toPath());
-				PlacementProcess.merStatsHeader(bwMerStats);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			bwMerStats = Files.newBufferedWriter(fileMerStats.toPath());
+			PlacementProcess.merStatsHeader(bwMerStats);
 		}
 
-		SequenceKnife sk = new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
-		int queryKmerCount = 0;
-		int queryKmerMatchingDB = 0;
+		SequenceKnife sk = new SequenceKnife(fasta, session.k, session.minK, session.states, SequenceKnife.SAMPLING_LINEAR);
 
-		// TODO: perhaps this loop can be shared between vanilla rappas and
-		// platypi
+		//TODO: room for optimization
+		EvictingQueue<History> windowQueue = EvictingQueue.create(w);
+		
+		List<List<Score>> windowScores = new ArrayList<List<Score>>((fasta.getSequence(false).length()/w)+1);
+		
 		// merFound[nodeId][merPos]
 		boolean[][] merFound = new boolean[session.ARTree.getNodeCount()][sk.getMerCount()];
 		// loop on words
 		byte[] qw = null;
+		//TODO: queryKmerCount is just the amount of positions considered?
+		int pos = 0;
+		
 		while ((qw = sk.getNextByteWord()) != null) {
 			// get Pairs associated to this word
-			Char2FloatMap.FastEntrySet allPairs = null;
-			// TODO: what is this DNAStatesShifted
-			if (session.states instanceof DNAStatesShifted) {
-				allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
-			} else {
-				allPairs = session.hash.getPairsOfTopPosition2(qw);
-			}
+			Char2FloatMap.FastEntrySet allPairs = session.hash.getPairsOfTopPosition2(qw);
 
-			// word is not present in hash
-			if (allPairs == null) {
-				queryKmerCount++;
-				continue;
-			}
-			queryKmerMatchingDB++;
-
+			History h = new History(session);
+			
 			// stream version, 5-10% faster than allPairs.fastIterator()
 			allPairs.stream().forEach((Char2FloatMap.Entry entry) -> {
 				int nodeId = entry.getCharKey();
-				// we will score only encountered nodes, originalNode registered
-				// at 1st encouter
-				if (nodeOccurences[nodeId] == 0) {
-					selectedNodes.add(nodeId);
-				}
 				// count # times originalNode encountered
-				nodeOccurences[nodeId] += 1;
+				global.nodeOccurences[nodeId] += 1;
 				// score associated to originalNode x for current read
-				nodeScores[nodeId] += entry.getFloatValue();
+				global.nodeScores[nodeId] += entry.getFloatValue();
+				
+				window.nodeOccurences[nodeId] += 1;
+				window.nodeScores[nodeId] += entry.getFloatValue();
+				
+				h.nodeOccurences[nodeId] += 1;
+				h.nodeScores[nodeId] += entry.getFloatValue();				
 			});
-
-			queryKmerCount++;
-		}
-
-		if (merStats) {
-			try {
-				PlacementProcess.merStats(session, merFound, fasta, bwMerStats);
-			} catch (IOException e) {
-				e.printStackTrace();
+			
+			windowQueue.add(h);
+			
+			//we reached a slice of the sliding window
+			if (pos >= w && (pos + 1) % s == 0) {
+				//score the slice
+				List<Score> scores = score(window, keepAtMost);
+				windowScores.add(scores);
+				
+				//shift the window
+				for (int i = 0; i < session.originalTree.getNodeCount(); i++) {
+					for (int j = 0; j < s; j++) {
+						History hh = windowQueue.poll();
+						window.nodeOccurences[i] -= hh.nodeOccurences[i];
+						window.nodeScores[i] -= hh.nodeScores[i];
+					}
+				}
 			}
+			
+			pos++;
 		}
+		
+		if (merStats) {
+			PlacementProcess.merStats(session, merFound, fasta, bwMerStats);
+		}
+		
+		List<Score> scores = score(global, keepAtMost);
+
+		return new Placement(scores, windowScores);
+	}
+	
+	private static List<Score> score(NodeStats stats, int keepAtMost) {
+		//TODO: take into account keepFactor
+		
+		//TODO: define selectedNodes to be all the nodes
+		//TODO: we need to keep the selectedNodes explicitly
+		ArrayList<Integer> selectedNodes_ = new ArrayList<Integer>();
+		for (int n = 0; n < stats.nodeOccurences.length; n++) {
+			selectedNodes_.add(n);
+		}
+		int numberOfBestScoreToConsiderForOutput 
+			= PlacementProcess.selectionAlgo(
+			                		keepAtMost,
+			                		stats.nodeScores, stats.nodeScoresCopy, 
+			                		stats.bestScoreList,
+			                		selectedNodes_);
+            
+        double weightRatioShift = PlacementProcess.computeWeightRatioShift(stats.bestScoreList[0]);
+        double allLikelihoodSums = PlacementProcess.computeLikelihoodSum(stats.bestScoreList, numberOfBestScoreToConsiderForOutput, weightRatioShift);
+	
+        List<Score> scores = new ArrayList<Score>();
+        for (int i = stats.bestScoreList.length-1; i>stats.bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {
+            double weigth_ratio=PlacementProcess.computeWeightRatio(stats.bestScoreList[i], weightRatioShift, allLikelihoodSums);
+            scores.add(new Score(stats.bestScoreList[i].nodeId, weigth_ratio));
+        }
+        return scores;
 	}
 }

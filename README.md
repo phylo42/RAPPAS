@@ -82,7 +82,7 @@ where
 option | expected value | description
 --- | --- | ---
 `-s (--states)` | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
-`-b (--arbinary)` | a binary of PhyML or PAML | Set the path to the binary used for ancestral sequence reconstruction (see note below).
+`-b (--arbinary)` | a binary of PhyML (>=v3.3) or PAML | Set the path to the binary used for ancestral sequence reconstruction (see note below).
 `-w (--workdir)` | a directory | Set the directory to save the database in.
 `-r (--refalign)` | a file | The reference alignment, in fasta format.
 `-t (--reftree)̀` | a file | The reference tree, in newick format.
@@ -92,8 +92,8 @@ Currently, the following programs are fully supported by RAPPAS for generating a
 - PhyML : Fastest & strongly recommended but may require lots of RAM.
 - PAML  : Slower,  but requires less memory.
 
-You can use the latest versions provided on the authors' websites, but we recommand the _HACKED VERSIONS_ available in this git repository in the /depbin directory.
-These are based on slightly modified sources of PhyML and PAML: no change in ML computations, but useless output is skipped, making the reconstruction process faster.
+You can use the latest versions provided on the authors' websites. PhyML requires at least version 3.3 (see [PhyML GIT](https://github.com/stephaneguindon/phyml) ), but we recommand the _HACKED VERSIONS_ available in this git repository in the /depbin directory.
+These are based on slightly modified sources of PhyML and PAML: no change in ML computations, but useless outputs are skipped, making the ancestral reconstruction process faster (in particular for PAML).
 
 The reconstruction will result in the production of a directory structure and a database file in the given "workdir":
 
@@ -134,6 +134,7 @@ __Normal options:__
 option | expected value | description
 --- | --- | ---
 `-k` | integer >=3 | The k-mer length used at DB build (default=8)
+`-xxx` | xxx | More coming soon
 
 
 __Debug options:__

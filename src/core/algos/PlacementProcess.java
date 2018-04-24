@@ -431,10 +431,10 @@ public class PlacementProcess {
         return numberOfBestScoreToConsiderForOutput;
     }
     
-    public static double computeWeightRatioShift(Score lowest) {
+    public static double computeWeightRatioShift(Score lowest, Score best) {
         float weightRatioShift=0.0f; 
-        if ( -308f >= lowest.score ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
-            weightRatioShift=lowest.score;
+        if ( -308f >= lowest.score && lowest.score < 0 ) { // -308f is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
+            weightRatioShift=best.score;
         }
         return weightRatioShift;
     }
@@ -830,7 +830,7 @@ public class PlacementProcess {
             //here keep track of the nth best node scores using selection algorithm
             //this should be on average O(k.log(k) + n)
             
-            int numberOfBestScoreToConsiderForOutput = 0;
+            int numberOfBestScoreToConsiderForOutput = -1;
             double weightRatioShift = 0.0;
             double allLikelihoodSums = 0.0;
             if (useSelectionAlgo) {
@@ -848,7 +848,7 @@ public class PlacementProcess {
             //System.out.println("bestScoreList:"+Arrays.toString(bestScoreList));
             //System.out.println("numberOfBestScoreToConsiderForOutput: "+numberOfBestScoreToConsiderForOutput);
             	
-            	weightRatioShift = computeWeightRatioShift(bestScoreList[0]);
+            	weightRatioShift = computeWeightRatioShift(bestScoreList[0], bestScoreList[bestScoreList.length-1]);
             	allLikelihoodSums = computeLikelihoodSum(bestScoreList, numberOfBestScoreToConsiderForOutput, weightRatioShift);
             }    
             

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="RAPPAS_browser.jnlp">
+  <information>
+    <title>RAPPAS</title>
+    <vendor>Benjamin Linard</vendor>
+    <description>Rapid Alignment-free Phylogenetic Placement via Ancestral Reconstruction</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="ViromePlacer.jar" size="200763" download="eager" />
+    <jar href="lib/Jacksum.jar" size="410345" download="eager" />
+    <jar href="lib/fastutil-8.1.0.jar" size="18707272" download="eager" />
+    <jar href="lib/fxgraphics2d-1.3.jar" size="17072" download="eager" />
+    <jar href="lib/grad.jar" size="11058" download="eager" />
+    <jar href="lib/guava-21.0.jar" size="2521113" download="eager" />
+    <jar href="lib/hamcrest-core-1.3.jar" size="45024" download="eager" />
+    <jar href="lib/jcommon-1.0.23.jar" size="330246" download="eager" />
+    <jar href="lib/jfreechart-1.5.0-SNAPSHOT.jar" size="1632537" download="eager" />
+    <jar href="lib/jfreesvg-3.0.jar" size="37950" download="eager" />
+    <jar href="lib/json_simple-1.1.jar" size="16053" download="eager" />
+    <jar href="lib/orsonpdf-1.7.jar" size="68247" download="eager" />
+    <jar href="lib/servlet.jar" size="80054" download="eager" />
+  </resources>
+  <applet-desc  width="0" height="0" main-class="main_v2.Main_v2"  name="RAPPAS" >
+  </applet-desc>
+  <update check="background"/>
+</jnlp>

@@ -1114,7 +1114,7 @@ public class PlacementProcess {
      * @param k th element to return
      * @return 
      */
-    public float selectKthLargestValue(float[] arr, int k) {
+    public static float selectKthLargestValue(float[] arr, int k) {
         if (arr == null || arr.length <= k) {
             throw new Error();
         }

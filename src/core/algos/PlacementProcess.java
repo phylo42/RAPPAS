@@ -366,6 +366,30 @@ public class PlacementProcess {
     }
     
     
+    public static void merStatsHeader(BufferedWriter bw) throws IOException {
+    	bw.append("Query;ARNodeId;ARNodeName;ExtendedNodeId;ExtendedNodeName;OriginalNodeId;OriginalNodeName;MerPos;PPStar;Hash\n");
+    }
+    
+    public static void merStats(SessionNext_v2 session, boolean[][] merFound, Fasta fasta, BufferedWriter bw) throws IOException {
+        for (int nodeId = 0; nodeId < merFound.length; nodeId++) {
+            for (int merPos = 0; merPos < merFound[nodeId].length; merPos++) {
+                if ((merFound[nodeId][merPos]==false) && (!session.ARTree.getById(nodeId).isLeaf())) {
+                    int extendedTreeId=session.nodeMapping.get(nodeId);
+                    int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
+                    PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
+                    PhyloNode origNode = session.originalTree.getById(originalNodeId);
+                    bw.append(fasta.getHeader()+";");
+                    bw.append(nodeId+";"+session.ARTree.getById(nodeId).getLabel()+";");
+                    bw.append(extendedTreeId+";"+extNode.getLabel()+";");
+                    bw.append(originalNodeId+";"+origNode.getLabel()+";");
+                    bw.append(merPos+";");
+                    bw.append(session.PPStarThresholdAsLog10+";");
+                    bw.append("absent");
+                    bw.append("\n");
+                }
+            }
+        }
+    }
     
 
     /**
@@ -454,7 +478,7 @@ public class PlacementProcess {
         if (merStats) {
             File fileMerStats=new File(logDir+File.separator+"merStats.csv");
             bwMerStats = Files.newBufferedWriter(fileMerStats.toPath());
-            bwMerStats.append("Query;ARNodeId;ARNodeName;ExtendedNodeId;ExtendedNodeName;OriginalNodeId;OriginalNodeName;MerPos;PPStar;Hash\n");
+            merStatsHeader(bwMerStats);
         }
         
 
@@ -648,24 +672,7 @@ public class PlacementProcess {
 //            System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,0,nodeOccurences.length)));
 //            System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,0,nodeOccurences.length)));
             if (merStats) {
-                for (int nodeId = 0; nodeId < merFound.length; nodeId++) {
-                    for (int merPos = 0; merPos < merFound[nodeId].length; merPos++) {
-                        if ((merFound[nodeId][merPos]==false) && (!session.ARTree.getById(nodeId).isLeaf())) {
-                            int extendedTreeId=session.nodeMapping.get(nodeId);
-                            int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
-                            PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
-                            PhyloNode origNode = session.originalTree.getById(originalNodeId);
-                            bwMerStats.append(fasta.getHeader()+";");
-                            bwMerStats.append(nodeId+";"+session.ARTree.getById(nodeId).getLabel()+";");
-                            bwMerStats.append(extendedTreeId+";"+extNode.getLabel()+";");
-                            bwMerStats.append(originalNodeId+";"+origNode.getLabel()+";");
-                            bwMerStats.append(merPos+";");
-                            bwMerStats.append(session.PPStarThresholdAsLog10+";");
-                            bwMerStats.append("absent");
-                            bwMerStats.append("\n");
-                        }
-                    }
-                }
+            	merStats(session, merFound, fasta, bwMerStats);
             }
             
 

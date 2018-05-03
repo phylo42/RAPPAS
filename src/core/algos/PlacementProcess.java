@@ -392,6 +392,79 @@ public class PlacementProcess {
     }
     
 
+    public static float computeWeightRatioShift(float lowest, float best) {
+    	float weightRatioShift = 0.0f;
+    	if ( -308f >= lowest ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
+            weightRatioShift=best;
+    	}
+    	return weightRatioShift;
+    }
+    
+    public static double fillBestScoreList(float[] nodeScores, float[] nodeScoresCopy, List<Integer> selectedNodes, Score[] bestScoreList, int numberOfBestScoreToConsiderForOutput) {
+    	double allLikelihoodSums = 0.0;
+    	
+    	System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
+        
+    	//selection algo, on average O(n)
+        //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
+        // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
+        //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
+        float kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
+    	
+        float lowest = 0.0f;
+        float best = -Float.MAX_VALUE;
+        
+        //System.out.println("kthLargestValue:"+kthLargestValue);
+        //search all node scores larger than this kth value
+        int i=0;
+        for (int nodeId:selectedNodes) {
+            if (i==numberOfBestScoreToConsiderForOutput) { 
+                break;
+                //we already got the nth best scores,
+                //no need to iterate more because nothing more will be
+                //output to the jplace 
+            }
+            if (nodeScores[nodeId]>=kthLargestValue) {
+                //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
+                //division by kmer count to normalize
+                bestScoreList[i].score=nodeScores[nodeId];
+                bestScoreList[i].nodeId=nodeId;
+                
+                //build the total likelihood sum (for the likelihood weight ratio)
+                //before the power of ten, divide by #words, to use the normalized score
+                allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score));
+
+                //remind lower power of 10, if goes below double limit, 
+                //will need to shift the values
+                if (bestScoreList[i].score<lowest) {
+                	lowest=bestScoreList[i].score;
+                }
+                if (bestScoreList[i].score > best) {
+                	best=bestScoreList[i].score;
+                }
+                i++;
+            }
+        }
+        
+        //finally do a sort of bestScoreList, O(k.log(k))
+        Arrays.sort(bestScoreList);
+        
+        //if necessary
+        //prepare variable weightRatioShift for allowing
+        //weight-ratio computations when proba is < to "double" primitive boundary
+        float weightRatioShift = computeWeightRatioShift(lowest, best);
+        if (weightRatioShift != 0.0f) {
+            //System.out.println("weightRatioShift set to: "+weightRatioShift);
+            //rebuild allLikelihoodSums using the shift
+            allLikelihoodSums=0.0;
+            for (int ii=bestScoreList.length-numberOfBestScoreToConsiderForOutput;ii<bestScoreList.length;ii++) {
+                allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[ii].score-weightRatioShift));
+            }
+        }
+        
+        return allLikelihoodSums;
+    }
+    
     /**
      * 
      * @param fp
@@ -435,7 +508,6 @@ public class PlacementProcess {
         float[] nodeScores=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
         float[] nodeScoresCopy=new float[session.originalTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
         //System.out.println("S/C size: "+nodeOccurences.length);
-        float kthLargestValue=-1;
         int numberOfBestScoreToConsiderForOutput=-1;
         Score[] bestScoreList=new Score[keepAtMost]; //in ascending order
         for (int i = 0; i < bestScoreList.length; i++) {
@@ -754,11 +826,6 @@ public class PlacementProcess {
             }
             
             
-            //now add the score corresponding to the words not found,
-            // query.e. threshold*#_words_not_scored (because no in hash)
-            //sum of all scores of all nodes, used later for the score ratio
-            double allLikelihoodSums=0.0;
-            double lowestPowerOfTen=0.0;
             //to check what is the real ordering
 //            float[] copyOf = new float[selectedNodes.size()];
 //            int c=0;
@@ -773,64 +840,22 @@ public class PlacementProcess {
 
             //here keep track of the nth best node scores using selection algorithm
             //this should be on average O(k.log(k) + n)
+            double allLikelihoodSums = 0.0;
             if (useSelectionAlgo) {
-                System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
                 numberOfBestScoreToConsiderForOutput=keepAtMost;
                 //level down keepAtMost is less nodes were selected
                 if(selectedNodes.size()<keepAtMost) {
                     numberOfBestScoreToConsiderForOutput=selectedNodes.size();
                 }
-                //selection algo, on average O(n)
-                //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
-                // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
-                //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
-                kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
-                //System.out.println("kthLargestValue:"+kthLargestValue);
-                //search all node scores larger than this kth value
-                int i=0;
-                for (int nodeId:selectedNodes) {
-                    if (i==numberOfBestScoreToConsiderForOutput) { 
-                        break;
-                        //we already got the nth best scores,
-                        //no need to iterate more because nothing more will be
-                        //output to the jplace 
-                    }
-                    if (nodeScores[nodeId]>=kthLargestValue) {
-                        //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
-                        //division by kmer count to normalize
-                        bestScoreList[i].score=nodeScores[nodeId];
-                        bestScoreList[i].nodeId=nodeId;
-                        //build the total likelihood sum (for the likelihood weight ratio)
-                        //before the power of ten, divide by #words, to use the normalized score
-                        allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score));
-                        //remind lower power of 10, if goes below double limit, 
-                        //will need to shift the values
-                        if (bestScoreList[i].score<lowestPowerOfTen) {lowestPowerOfTen=bestScoreList[i].score;}
-                        i++;
-                    }
-                }
-                //finally do a sort of bestScoreList, O(k.log(k))
-                Arrays.sort(bestScoreList);
+            	
+                allLikelihoodSums = fillBestScoreList(nodeScores, nodeScoresCopy, selectedNodes, bestScoreList, numberOfBestScoreToConsiderForOutput);
+
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
             }
             //System.out.println("bestScoreList:"+Arrays.toString(bestScoreList));
             //System.out.println("numberOfBestScoreToConsiderForOutput: "+numberOfBestScoreToConsiderForOutput);
             
-            //if necessary
-            //prepare variable weightRatioShift for allowing
-            //weight-ratio computations when proba is < to "double" primitive boundary
-            float weightRatioShift=0.0f; 
-            if ( -308f >= lowestPowerOfTen ) { // this is Double.MIN_NORMAL=2.2250738585072014E-308 as reported by javadoc
-                weightRatioShift=bestScore;
-                //System.out.println("weightRatioShift set to: "+weightRatioShift);
-                //rebuild allLikelihoodSums using the shift
-                allLikelihoodSums=0.0;
-                for (int i=bestScoreList.length-numberOfBestScoreToConsiderForOutput;i<bestScoreList.length;i++) {
-                    allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift));
-                }
-
-            }
             
             
             
@@ -974,6 +999,11 @@ public class PlacementProcess {
             if (bestScoreList[bestScoreList.length-1].score>=nsBound) {
                 //first we build the "p" array, containing the position/scores of all reads
                 JSONArray pMetadata=new JSONArray();
+                
+                float best = bestScoreList[bestScoreList.length-1].score;
+                float lowest = bestScoreList[bestScoreList.length-numberOfBestScoreToConsiderForOutput].score;
+                float weightRatioShift = computeWeightRatioShift(lowest, best);
+                
                 //we create as many lines in "p" block as asked by --keep-at-most and --keep-ratio
                 double bestRatio=-1;
                 for (int i = bestScoreList.length-1; i>bestScoreList.length-numberOfBestScoreToConsiderForOutput-1; i--) {

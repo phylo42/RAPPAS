@@ -1,5 +1,4 @@
-RAPPAS
-# Rapid Alignment-free Phylogenetic PLacement via Ancestral Sequences
+# RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
 ## Description
 
@@ -8,6 +7,10 @@ RAPPAS (Rapid Alignment-free Phylogenetic PLacement via Ancestral Sequences) is 
 The main advantage of RAPPAS is that it is alignment free, which means that after step (a) (the DB build) is performed, metagenomic reads can be directly placed on a referene tree _WITHOUT_ aligning them to the reference alignment on which the tree was built (as required by other approaches).
 
 The second advantage of RAPPAS is its algorithm based on ancestal k-mer matches, making its execution time linear with respect to the length of the placed sequences.
+
+![EU_flag](http://52.43.194.9/images/fc3849b.jpg) ![virogenesis_logo](http://52.43.194.9/images/32a5f46.png)
+RAPPAS was funded from  the European Union’s Horizon 2020 research and innovation programme under grant agreement No 634650. (Virogenesis.eu)
+
 
 ## Installation
 
@@ -63,9 +66,10 @@ For RAPPAS, the reference dataset is composed of:
 1. A reference alignment of all sequences of this marker gene
 2. A phylogenetic tree inferred from this reference alignment
 
-Such reference marker gene datasets can be found, for instance, via:
+Such reference marker gene datasets can be found, for instance from:
 - "The All-Species Living Tree" Project (LTP, eukaryote rRNAs) :  <https://www.arb-silva.de/projects/living-tree/>,
 - Greengenes (bacterial 16S) : <http://greengenes.secondgenome.com/>,
+- Any marker database from EukRef: <http://eukref.org/databases/>,
 - The curated database of Eukref : <http://eukref.org/databases/>,
 - Or built internally in the lab.
 
@@ -81,11 +85,12 @@ where
 
 option | expected value | description
 --- | --- | ---
-`-s (--states)` | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
-`-b (--arbinary)` | a binary of PhyML (>=v3.3) or PAML | Set the path to the binary used for ancestral sequence reconstruction (see note below).
-`-w (--workdir)` | a directory | Set the directory to save the database in.
-`-r (--refalign)` | a file | The reference alignment, in fasta format.
-`-t (--reftree)̀` | a file | The reference tree, in newick format.
+**-m (--mode)** | "b" | Invokes the "database build" process.
+**-s (--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
+**-b (--arbinary)** | binary of PhyML (>=v3.3) or PAML (>=4.9) | Set the path to the binary used for ancestral sequence reconstruction (see note below).
+**-w (--workdir)** | directory | Set the directory to save the database in.
+**-r (--refalign)** | file | The reference alignment, in fasta format.
+**-t (--reftree)̀** | file | The reference tree, in newick format.
 
 __Note on PhyML and PAML binaries__:
 Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
@@ -97,29 +102,32 @@ These are based on slightly modified sources of PhyML and PAML: no change in ML 
 
 The reconstruction will result in the production of a directory structure and a database file in the given "workdir":
 
-file/directory | description
+file or directory | description
 --- | --- 
-`*.union` | The RAPPAS database itself.
-`workdir/extended_tree` | Temporary files used at DB construction, allowing the exploration of the phantom nodes.
-`workdir/AR` | Temporary files used at DB construction, the raw output of PhyML or PAML.
-`workdir/logs` | As the name says.
+**[DBname].union** | The RAPPAS database itself.
+**[workdir]/extended_tree** | Temporary files used at DB construction, allowing the exploration of ghost nodes.
+**[workdir]/AR** | Temporary files used at DB construction, the raw output of PhyML or PAML.
+**[workdir]/logs** | As the name says.
 
 
 ### Query placement
 
 After building the RAPPAS DB, placement commands can be called numerous times on different query sequence datasets.
-v1.00 of RAPPAS places 1,000,000 metagenomic of 150bp in ~40 minutes, using only a single core of a normal desktop PC.
+v1.00 of RAPPAS places 1,000,000 metagenomic of 150bp in ~30-40 minutes, using only a single core of a normal desktop PC.
 
 ```
-java -jar RAPPAS.jar -m p -d database.union -q queries.fasta 
+java -jar RAPPAS.jar -m p -s [nucl|prot] -w workdir -d database.union -q queries.fasta 
 ```
 
 where
 
 option | expected value | description
 --- | --- | ---
-`-d (--database)` | a file | the *.union file created at previous DB build step.
-`-q (--queries)` | a file | The query reads, in fasta format.
+**-m (--mode)** | "p" | Invokes the "placement" process.
+**-s (--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
+**-w (--workdir)** | directory | Set the directory to save the database in.
+**-d (--database)** | file | the *.union file created at previous DB build step.
+**-q (--queries)** | file | The query reads, in fasta format.
 
 The *.jplace describing the placements of all queries will be written in the ./workdir/logs directory.
 
@@ -129,18 +137,45 @@ __To know more about :__
 
 ### Other options
 
-__Normal options:__
+__Outputs  options:__
+Options are related to the Jplace file outputs which resumes the placement results.
+They are analogs to PPlacer options. 
+option | expected value {default} | description
+--- | --- | ---
+**--keep-at-most** | integer>=1  {7} | Maximum number of placements reported per query in the jplace output. (p mode)
+**--keep-factor** | float in ]0;1]  {0.01} | Report placement with likelihood_ratio higher than (factor x best_likelihood_ratio). (p mode)
+**--write-reduction** | file | Write reduced alignment to a file (see --ratio-reduction). (b mode)
+
+__Algorithm  options:__
+Options are related to the Jplace file outputs which resumes the placement results.
+They are analogs to PPlacer options. 
 
 option | expected value | description
 --- | --- | ---
-`-k` | integer >=3 | The k-mer length used at DB build (default=8)
-`-xxx` | xxx | More coming soon
+**-k** | integer>=3 {8} | The k-mer length used at DB build.
+**-a (--alpha)** | float in ]0,#states] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
+**-f (--fakebranch)** | integer>=1 {1} | Number of ghost nodes injected on each reference tree branches. (b mode)
+**--force-root**  | none | Root input tree if non rooted. (b mode)
+**--ratio-reduction** | float in ]0,1] {0.999} |Ratio for alignment reduction, i.e. sites holding >99.9% gaps are ignored. (b mode)
+**--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b mode)
+**--gap-jump-thresh** | float in ]0,1] {0.3}| Gap ratio above which gap jumps are activated, for instance if the reference alignment hold more than 30% of gaps.
 
 
 __Debug options:__
+Avoid using debug options if you are not involved in RAPPAS development.
+option | expected value | description
+--- | --- | ---
+**--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b mode)
+**--extree**  | directory |  Skips ghost nodes injection, and use injected trees present in the specified directory. (b mode)
+**--dbfull**  | none | Save "full" DB (unused in current algo). (b mode)
+**--nsbound** | float in ]-Inf,O[ | Forces score bound. (p mode)
+**--dbinram** | none | Operate "b" followed by "p" mode, without saving DB to files and placing directly queries given via -q .
+**--calibration** | none |  Prototype score calibration on random anc. kmers. (b mode).
+**--poshash** | none  |  Places using deprecated hash. (b mode)
+**--original-nodes** | none |  Also compute ancestral kmers at original nodes, produces results unused in current algo. (b mode)
+**--do-n-jumps** | none |   Shifts to n jumps. (b mode) 
+**--no-gap-jumps** | none |  Deactivate k-mer gap jumps, even if reference alignment has a proportion of gaps higher than "--gap-jump-thresh". (b mode) 
 
-Avoid debug options if you are not involved in RAPPAS developpement !!!
-Description coming soon...
 
 ## License
 

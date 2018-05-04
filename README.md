@@ -151,7 +151,7 @@ __Algorithm  options:__
 Options are related to the Jplace file outputs which resumes the placement results.
 They are analogs to PPlacer options. 
 
-option | expected value | description
+option | expected value {default} | description
 --- | --- | ---
 **-k** | integer>=3 {8} | The k-mer length used at DB build.
 **-a (--alpha)** | float in ]0,#states] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
@@ -165,7 +165,7 @@ option | expected value | description
 __Debug options:__
 Avoid using debug options if you are not involved in RAPPAS development.
 
-option | expected value | description
+option | expected value {default} | description
 --- | --- | ---
 **--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b mode)
 **--extree**  | directory |  Skips ghost nodes injection, and use injected trees present in the specified directory. (b mode)

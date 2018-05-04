@@ -27,9 +27,10 @@ public class Main_v2 {
             System.out.println("################################################");
             System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
             System.out.println("## via Ancestral Sequences");
-            System.out.println("## RAPPAS v"+consoleVersion);
-            System.out.println("## benjamin.linard, fabio.pardi ([at].lirmm.fr)");
-            System.out.println("## LIRMM, Univ. of Montpellier, CNRS");
+            System.out.println("## (RAPPAS v"+consoleVersion+")");
+            System.out.println("## Linard B, Swenson K, Pardi F. 2018 BioRxiv");
+            System.out.println("## Univ Montpellier, LIRMM, CNRS, France");
+            System.out.println("## benjamin.linard[at]lirm[dot]fr)");
             System.out.println("################################################");
             //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);

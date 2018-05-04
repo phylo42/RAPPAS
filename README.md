@@ -140,6 +140,7 @@ __To know more about :__
 __Outputs  options:__
 Options are related to the Jplace file outputs which resumes the placement results.
 They are analogs to PPlacer options. 
+
 option | expected value {default} | description
 --- | --- | ---
 **--keep-at-most** | integer>=1  {7} | Maximum number of placements reported per query in the jplace output. (p mode)
@@ -163,6 +164,7 @@ option | expected value | description
 
 __Debug options:__
 Avoid using debug options if you are not involved in RAPPAS development.
+
 option | expected value | description
 --- | --- | ---
 **--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b mode)

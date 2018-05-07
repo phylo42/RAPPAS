@@ -118,6 +118,14 @@ public class Alignment implements Serializable {
             char previousChar='n';
             //fill matrix
             for (int j = 0; j < f.getSequence(false).length(); j++) {
+                // Check if sequences contains same number of sites
+                if(f.getSequence(false).length()==fastas.get(0).getSequence(false).length()){
+                    continue;
+                }
+                else {
+                    System.out.println("Error: Sequences don't have same number of sites!");
+                    System.exit(1);
+                }
                 char c=f.getSequence(false).charAt(j);
                 charMatrix[i][j]=c;
                 if (c=='-') {

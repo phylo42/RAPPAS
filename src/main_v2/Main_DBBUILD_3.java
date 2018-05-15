@@ -209,7 +209,7 @@ public class Main_DBBUILD_3 {
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                 fastas.add(fasta);
             }
-            Alignment align=new Alignment(fastas);
+            Alignment align=new Alignment(s,fastas);
             Infos.println("Alignment read: "+align.describeAlignment(false));
             fp.closePointer();
 

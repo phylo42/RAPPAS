@@ -84,7 +84,7 @@ public class TEST_CustomHash_v2 {
             while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
                 fastas.add(fasta);
             }
-            Alignment align=new Alignment(fastas);
+            Alignment align=new Alignment(s,fastas);
             Infos.println(align.describeAlignment(false));
             fp.closePointer();
             //////////////////////////////////////////////

@@ -6,6 +6,7 @@
 package core;
 
 import etc.Infos;
+import etc.exceptions.NonIUPACStateException;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 
@@ -38,51 +39,51 @@ public class AAStates extends AbstractStates implements States,Serializable {
     public AAStates() {
        
         //positives
-        s.put((byte)0, 'R');
-        s.put((byte)1, 'H');
-        s.put((byte)2, 'K');
+        s.put((byte)0, 'R');s.put((byte)0, 'r');
+        s.put((byte)1, 'H');s.put((byte)1, 'h');
+        s.put((byte)2, 'K');s.put((byte)2, 'k');
         //Negatives
-        s.put((byte)3, 'D');
-        s.put((byte)4, 'E');
+        s.put((byte)3, 'D');s.put((byte)3, 'd');
+        s.put((byte)4, 'E');s.put((byte)4, 'e');
         //Polar uncharged
-        s.put((byte)5, 'S');
-        s.put((byte)6, 'T');
-        s.put((byte)7, 'N');
-        s.put((byte)8, 'Q');
+        s.put((byte)5, 'S');s.put((byte)5, 's');
+        s.put((byte)6, 'T');s.put((byte)6, 't');
+        s.put((byte)7, 'N');s.put((byte)7, 'n');
+        s.put((byte)8, 'Q');s.put((byte)8, 'q');
         //Other
-        s.put((byte)9, 'C');
-        s.put((byte)10, 'G');
-        s.put((byte)11, 'P');
+        s.put((byte)9, 'C');s.put((byte)9, 'c');
+        s.put((byte)10, 'G');s.put((byte)10, 'g');
+        s.put((byte)11, 'P');s.put((byte)11, 'p');
         //Hydrophobic
-        s.put((byte)12, 'A');
-        s.put((byte)13, 'I');
-        s.put((byte)14, 'L');
-        s.put((byte)15, 'M');
-        s.put((byte)16, 'F');
-        s.put((byte)17, 'W');
-        s.put((byte)18, 'Y');
-        s.put((byte)19, 'V');
+        s.put((byte)12, 'A');s.put((byte)12, 'a');
+        s.put((byte)13, 'I');s.put((byte)13, 'i');
+        s.put((byte)14, 'L');s.put((byte)14, 'l');
+        s.put((byte)15, 'M');s.put((byte)15, 'm');
+        s.put((byte)16, 'F');s.put((byte)16, 'f');
+        s.put((byte)17, 'W');s.put((byte)17, 'w');
+        s.put((byte)18, 'Y');s.put((byte)18, 'y');
+        s.put((byte)19, 'V');s.put((byte)19, 'v');
         
-        b.put('R',(byte)0);
-        b.put('H',(byte)1);
-        b.put('K',(byte)2);
-        b.put('D',(byte)3);
-        b.put('E',(byte)4);
-        b.put('S',(byte)5);
-        b.put('T',(byte)6);
-        b.put('N',(byte)7);
-        b.put('Q',(byte)8);
-        b.put('C',(byte)9);
-        b.put('G',(byte)10);
-        b.put('P',(byte)11);
-        b.put('A',(byte)12);
-        b.put('I',(byte)13);
-        b.put('L',(byte)14);
-        b.put('M',(byte)15);
-        b.put('F',(byte)16);
-        b.put('W',(byte)17);
-        b.put('Y',(byte)18);
-        b.put('V',(byte)19);
+        b.put('R',(byte)0);b.put('r',(byte)0);
+        b.put('H',(byte)1);b.put('h',(byte)1);
+        b.put('K',(byte)2);b.put('k',(byte)2);
+        b.put('D',(byte)3);b.put('d',(byte)3);
+        b.put('E',(byte)4);b.put('e',(byte)4);
+        b.put('S',(byte)5);b.put('s',(byte)5);
+        b.put('T',(byte)6);b.put('t',(byte)6);
+        b.put('N',(byte)7);b.put('n',(byte)7);
+        b.put('Q',(byte)8);b.put('q',(byte)8);
+        b.put('C',(byte)9);b.put('c',(byte)9);
+        b.put('G',(byte)10);b.put('g',(byte)10);
+        b.put('P',(byte)11);b.put('p',(byte)11);
+        b.put('A',(byte)12);b.put('a',(byte)12);
+        b.put('I',(byte)13);b.put('i',(byte)13);
+        b.put('L',(byte)14);b.put('l',(byte)14);
+        b.put('M',(byte)15);b.put('m',(byte)15);
+        b.put('F',(byte)16);b.put('f',(byte)16);
+        b.put('W',(byte)17);b.put('w',(byte)17);
+        b.put('Y',(byte)18);b.put('y',(byte)18);
+        b.put('V',(byte)19);b.put('v',(byte)19);
         //ambigous states which are allowed
         ambigousStates=1;
         s.put((byte)20, '-');
@@ -104,14 +105,14 @@ public class AAStates extends AbstractStates implements States,Serializable {
     }
     
     @Override
-    public byte stateToByte(char c) {
+    public byte stateToByte(char c) throws NonIUPACStateException {
         try {
             return bytes[charToByte(c)];
         } catch (NullPointerException ex) {
             //ex.printStackTrace();
-            Infos.println("Unexpected (not ATUCGN) state in the sequence, replaced with N. (char='"+String.valueOf(c)+"')");
+            //mettre une erreur
+            throw new NonIUPACStateException(this, c);
         }
-        return 'N';
     }
     
 
@@ -129,7 +130,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
     public int getStateCount() {
         return states.length;
     }
-    
+        
     @Override
     public int getNonAmbiguousStatesCount() {
         return states.length-ambigousStates;

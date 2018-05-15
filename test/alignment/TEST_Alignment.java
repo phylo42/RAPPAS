@@ -6,6 +6,9 @@
 package alignment;
 
 import alignement.Alignment;
+import core.AAStates;
+import core.DNAStatesShifted;
+import core.States;
 import etc.Infos;
 import inputs.FASTAPointer;
 import inputs.Fasta;
@@ -26,6 +29,9 @@ public class TEST_Alignment {
     
     public static void main(String[] args) {
         
+        States s=new DNAStatesShifted();
+        System.setProperty("debug.verbose", "1"); // Print Infos.out
+        
         Fasta f1=new Fasta("1", "-ATC-TG--GT---");
         Fasta f2=new Fasta("2", "-A-C-T---GT---");
         Fasta f3=new Fasta("3", "-AT--T-C-GT---");
@@ -37,7 +43,7 @@ public class TEST_Alignment {
         
         System.out.println("HERE !");
         
-        Alignment a=new Alignment(align);
+        Alignment a=new Alignment(s,align);
         
         System.out.println(a.describeAlignment(true));
         System.out.println("ORIGINAL:");
@@ -78,7 +84,7 @@ public class TEST_Alignment {
         
         System.out.println("END");
         System.out.println("-----------------------------------------------------");
-        
+
         Infos.println("Loading Alignment...");
         FASTAPointer fp=new FASTAPointer(new File("/home/ben/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/bv_refs_aln_stripped_99.5.fasta"), false);
         Fasta fasta=null;
@@ -86,7 +92,7 @@ public class TEST_Alignment {
         while ((fasta=fp.nextSequenceAsFastaObject())!=null) {
             fastas.add(fasta);
         }
-        a=new Alignment(fastas);
+        a=new Alignment(s,fastas);
         System.out.println(a.describeAlignment(true));
         double[] gapProportions1 = a.getGapProportions();
         for (int i = 0; i < gapProportions1.length; i++) {

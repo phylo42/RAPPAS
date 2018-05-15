@@ -10,6 +10,7 @@ import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
 import etc.Infos;
+import etc.exceptions.NonIUPACStateException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -287,6 +288,8 @@ public class PAMLWrapper implements ARWrapper {
             ex.printStackTrace();
             System.exit(1);
         } catch (IOException ex) {
+            Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NonIUPACStateException ex) {
             Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {

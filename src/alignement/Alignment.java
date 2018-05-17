@@ -5,8 +5,6 @@
  */
 package alignement;
 
-import etc.Infos;
-import inputs.FASTAPointer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,10 +15,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import core.States;
+import etc.exceptions.NonIUPACStateException;
 
 /**
  *
@@ -30,6 +27,9 @@ public class Alignment implements Serializable {
     
     private static final long serialVersionUID = 1000L;
 
+    //states associated to this object
+    States s=null;
+    
     //base def of the alignment
     private char[][] charMatrix=null; //char[row][column]
     private int[] colPartitionIds=null;
@@ -52,7 +52,8 @@ public class Alignment implements Serializable {
      * @param colLabels
      * @param rowLabels 
      */
-    private Alignment(char[][] charMatrix, String[] rowLabels, int [] colPartitionIds, boolean reduced,int reducedColumnCount, double[] gapProportions, double reductionThreshold,ArrayList<Integer>[] gapIntervals) {
+    private Alignment(States s, char[][] charMatrix, String[] rowLabels, int [] colPartitionIds, boolean reduced,int reducedColumnCount, double[] gapProportions, double reductionThreshold,ArrayList<Integer>[] gapIntervals) {
+        this.s=s;
         this.charMatrix=charMatrix;
         this.rowLabels=rowLabels;
         this.colPartitionIds=colPartitionIds;
@@ -68,7 +69,7 @@ public class Alignment implements Serializable {
      * @return 
      */
     public Alignment copy(){
-        return new Alignment(charMatrix, rowLabels,colPartitionIds,reduced,reducedColumnCount,gapProportions,reductionThreshold,gapIntervals);
+        return new Alignment(s,charMatrix, rowLabels,colPartitionIds,reduced,reducedColumnCount,gapProportions,reductionThreshold,gapIntervals);
     }
 
     /**
@@ -76,7 +77,8 @@ public class Alignment implements Serializable {
      * order is kept 
      * @param fastas 
      */
-    public Alignment(List<Fasta> fastas) {
+    public Alignment(States s, List<Fasta> fastas) {
+        this.s=s;
         fillAlignment(fastas);
     }
 
@@ -86,7 +88,8 @@ public class Alignment implements Serializable {
      * @param fastas 
      */
     @Deprecated
-    public Alignment(List<Fasta> fastas, ArrayList<Partition> partitions) {
+    public Alignment(States s, List<Fasta> fastas, ArrayList<Partition> partitions) {
+        this.s=s;
         fillAlignment(fastas);
         this.partitions=partitions;
         //fill column names with partitions
@@ -98,6 +101,10 @@ public class Alignment implements Serializable {
         }
     }
 
+    /**
+     * fills alignment at instanciation
+     * @param fastas 
+     */
     private void fillAlignment(List<Fasta> fastas) {
         //to calculate gaps proportions in all columns
         gapProportions=new double[fastas.get(0).getSequence(false).length()];
@@ -113,12 +120,21 @@ public class Alignment implements Serializable {
                 colPartitionIds=new int[f.getSequence(false).length()];
                 rowLabels=new String[fastas.size()];
             }
+            //test seq length, should be the same
+            checkLength(f.getHeader(),f.getSequence(false).toCharArray());
             //prepare interval def
             int firstGapIndex=-1;
             char previousChar='n';
             //fill matrix
             for (int j = 0; j < f.getSequence(false).length(); j++) {
                 char c=f.getSequence(false).charAt(j);
+                //test char per char at read
+                try {
+                    s.stateToByte(c);
+                } catch (NonIUPACStateException ex) {
+                    ex.printStackTrace(System.err);
+                    System.exit(1);
+                }
                 charMatrix[i][j]=c;
                 if (c=='-') {
                     gapProportions[j]++;
@@ -157,6 +173,24 @@ public class Alignment implements Serializable {
             gapProportions[j]/=0.0+fastas.size();
         }
     }
+    
+    /**
+     * test if new seq is same length as alignment seqs
+     * @param label
+     * @param seq 
+     */
+    private void checkLength(String label, char[] seq){
+        //if has already at least 1 seq
+        if (rowLabels[0]!=null) {
+            // Check if sequences contains same number of sites
+            if(seq.length!=charMatrix[0].length){
+                System.err.println("Error: Sequences in the input alignment don't have same number of sites!");
+                System.err.println("This sequence has a length different from 1st sequence: "+label+" (1st is "+rowLabels[0]+")");
+                System.exit(1);
+            }
+        }
+    }
+    
     
     /**
      * fill the gapInterval table
@@ -256,6 +290,9 @@ public class Alignment implements Serializable {
      * @param seq 
      */
     public void addSequence(String label, char[] seq) {
+        //test if new seq length is correct
+        checkLength(label, seq);
+        
         //reinstantiate table with a new line
         char[][] newCharMatrix=new char[charMatrix.length+1][charMatrix[0].length];
         for(int i=0; i<charMatrix.length; i++) {
@@ -314,6 +351,12 @@ public class Alignment implements Serializable {
      * @param seqs 
      */
     public void addAllSequences(String[] labels, ArrayList<char[]> seqs) {
+        
+        //test if new seq length is correct
+        for (int i = 0; i < labels.length; i++) {
+            checkLength(labels[i], seqs.get(i));
+        }
+        
         //reinstantiate sequence table with a new line
         char[][] newCharMatrix=new char[charMatrix.length+labels.length][charMatrix[0].length];
         for(int i=0; i<charMatrix.length; i++)

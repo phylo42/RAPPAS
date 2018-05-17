@@ -6,6 +6,7 @@
 package core;
 
 import etc.Infos;
+import etc.exceptions.NonIUPACStateException;
 import java.io.Serializable;
 
 /**
@@ -23,8 +24,9 @@ public abstract class AbstractStates implements States,Serializable {
      * important method to implement to effectively match char and byte
      * @param c
      * @return 
+     * @throws etc.exceptions.NonIUPACStateException 
      */
-    protected byte charToByte(char c) {
+    protected byte charToByte(char c) throws NonIUPACStateException {
         return -1;
     }
 
@@ -37,8 +39,6 @@ public abstract class AbstractStates implements States,Serializable {
     public char[] expandMer(byte[] mer, int k) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    
 
     
 }

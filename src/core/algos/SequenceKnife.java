@@ -10,10 +10,13 @@ import core.QueryWord;
 import core.States;
 import core.Word;
 import etc.Infos;
+import etc.exceptions.NonIUPACStateException;
 import inputs.Fasta;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * to easily derive mers from a query sequence,\n
@@ -63,7 +66,11 @@ public class SequenceKnife {
         this.minK=minK;
         this.s=s;
         String seq = f.getSequence(false);
-        initTables(seq, SAMPLING_LINEAR);
+        try {
+            initTables(seq, SAMPLING_LINEAR);
+        } catch (NonIUPACStateException ex) {
+            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
    
     /**
@@ -77,7 +84,11 @@ public class SequenceKnife {
         this.k=k;
         this.minK=minK;
         this.s=s;
-        initTables(seq, SAMPLING_LINEAR);
+        try {
+            initTables(seq, SAMPLING_LINEAR);
+        } catch (NonIUPACStateException ex) {
+            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
@@ -92,7 +103,11 @@ public class SequenceKnife {
         this.k=k;
         this.minK=minK;
         this.s=s;
-        initTables(seq, samplingMode);
+        try {
+            initTables(seq, samplingMode);
+        } catch (NonIUPACStateException ex) {
+            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
@@ -108,10 +123,15 @@ public class SequenceKnife {
         this.minK=minK;
         this.s=s;
         String seq = f.getSequence(false);
-        initTables(seq, samplingMode);
+        try {
+            initTables(seq, samplingMode);
+        } catch (NonIUPACStateException ex) {
+            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
     
-    private void initTables(String seq, int samplingMode) {
+    private void initTables(String seq, int samplingMode) throws NonIUPACStateException {
         sequence=new byte[seq.length()];
         for (int i = 0; i < seq.length(); i++) {
             sequence[i]=s.stateToByte(seq.charAt(i));

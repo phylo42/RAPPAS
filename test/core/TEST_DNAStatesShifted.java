@@ -5,6 +5,8 @@
  */
 package core;
 
+import etc.exceptions.NonIUPACStateException;
+
 /**
  *
  * @author ben
@@ -12,18 +14,15 @@ package core;
 public class TEST_DNAStatesShifted {
 
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NonIUPACStateException {
         
+        //tests affichage
         char[] stat = {'A','T','C','G','N','-'};
         for (int i = 0; i < stat.length; i++) {
             char state = stat[i];
             System.out.println((int)state);
         }
-        
-
         DNAStates states=new DNAStates();
-        
-        
         //print test
         byte[] t= { (byte)0, (byte)1, (byte)2, (byte)3};
         System.out.println(printBytes(t));
@@ -121,7 +120,6 @@ public class TEST_DNAStatesShifted {
         System.out.println("RESULT: "+sb.toString());
         System.out.println("SIZE  : "+sb.toString().length());
         System.out.println("QUERY EQUALS RESULT ? : "+tested.equals(sb.toString()));
-        
         
     }
     

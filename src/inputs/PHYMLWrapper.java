@@ -6,15 +6,12 @@
 package inputs;
 
 import alignement.Alignment;
-import core.DNAStates;
 import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
 import etc.Infos;
+import etc.exceptions.NonIUPACStateException;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -236,6 +233,8 @@ public class PHYMLWrapper implements ARWrapper {
             System.exit(1);
         } catch (IOException ex) {
             Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NonIUPACStateException ex) {
+            Logger.getLogger(PHYMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 br.close();

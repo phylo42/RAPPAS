@@ -1,0 +1,9 @@
+v1.02
++ support of platypi interactions
+
+v1.01
++ makes clear that gap jumps are activated by default when gap ratio >=30%
+* rewrote the command help (-h) to make it more clear
+
+v1.00
++ Initial public release

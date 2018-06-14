@@ -7,6 +7,7 @@ package main_v2;
 
 import core.AAStates;
 import core.DNAStatesShifted;
+import core.DNAStates;
 import core.States;
 import etc.NullPrintStream;
 import java.io.File;
@@ -60,7 +61,8 @@ public class Main_v2 {
             //type of Analysis, DNA or AA
             States s=null; 
             if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
-                s=new DNAStatesShifted();
+                //s=new DNAStatesShifted();
+                s=new DNAStates();
                 System.out.println("Set analysis for DNA");
             } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
                 s=new AAStates();
@@ -79,6 +81,7 @@ public class Main_v2 {
 
 
                 Main_DBBUILD_3.DBGeneration(argsParser.analysisType,
+                //Main_DBBUILD_HashTriplet.DBGeneration(argsParser.analysisType,
                                             null,
                                             argsParser.k,
                                             argsParser.alpha,

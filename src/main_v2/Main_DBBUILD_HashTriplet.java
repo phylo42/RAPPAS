@@ -8,18 +8,18 @@ package main_v2;
 import inputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.AAStates;
-import core.QueryWord;
-import core.DNAStatesShifted;
 import core.DNAStates;
 import core.ProbabilisticWord;
 import core.States;
 import core.algos.PlacementProcess;
+import core.algos.PlacementProcess_Triplet;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
 import core.algos.WordExplorer_v2;
-import core.algos.WordExplorer_v3;
+//import core.algos.WordExplorer_v3;
+import core.algos.WordExplorer_Triplet;
 import core.hash.CustomHash_v2;
-import core.hash.CustomHash_v4_FastUtil81;
+import core.hash.CustomHash_Triplet;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -63,7 +63,7 @@ import tree.PhyloTreeModel;
  *
  * @author ben
  */
-public class Main_DBBUILD_3 {
+public class Main_DBBUILD_HashTriplet {
     
     public static final int TYPE_DNA=1;
     public static final int TYPE_PROT=1;
@@ -134,7 +134,7 @@ public class Main_DBBUILD_3 {
                                         float gapJumpThreshold
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
-            //System.setProperty("debug.verbose", "1");
+
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             //PARAMETERS 
@@ -162,8 +162,8 @@ public class Main_DBBUILD_3 {
             float sitePPThreshold=Float.MIN_VALUE;
             float PPStarThreshold=(float)Math.pow((0.0+alpha/s.getNonAmbiguousStatesCount()),k);
             float PPStarThresholdAsLog=(float)Math.log10(PPStarThreshold);
-            boolean wordCompression=true;
-            //boolean wordCompression=false;
+            //boolean wordCompression=true;
+            boolean wordCompression=false;
             Infos.println("k="+k);
             Infos.println("factor="+alpha);
             Infos.println("PPStarThreshold="+PPStarThreshold);
@@ -463,7 +463,7 @@ public class Main_DBBUILD_3 {
             //session.sitePPThreshold
             //session.PPStarProbaThreshold
             //session.PPStarProbaThresholdAsLog10
-            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
+            SessionNext_Triplet session=new SessionNext_Triplet(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
             //are set after instanciation
             //session.states
             session.associateStates(s);
@@ -542,13 +542,12 @@ public class Main_DBBUILD_3 {
             SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
             
             //if this is DNA, will use kmer compression
-            if (session.states instanceof DNAStatesShifted) {
-                //DNAStates
-                System.out.println("Using kmer compression.");
-                wordCompression=true;
-            } else {
-                wordCompression=false;
-            }
+//            if (session.states instanceof DNAStates) {
+//                System.out.println("Using kmer compression.");
+//                wordCompression=true;
+//            } else {
+//                wordCompression=false;
+//            }
             
             //prepare hash and associate it to session
             //session.hash
@@ -557,10 +556,10 @@ public class Main_DBBUILD_3 {
             Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
             if (unionHash) {
                     System.out.println("Union hash used.");
-                    session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_UNION),onlyFakeNodes);
+                    session.associateHash(new CustomHash_Triplet(k, s),onlyFakeNodes);
             } else {
                     System.out.println("Positional hash used.");
-                    session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_POSITION),onlyFakeNodes);
+                    session.associateHash(new CustomHash_Triplet(k, s),onlyFakeNodes);
             }
             
             //prepare batches for ancestral k-mer generation
@@ -633,7 +632,8 @@ public class Main_DBBUILD_3 {
                 //Word Explorer used to buildDBFull ancestral words
                 //with a branch and bound approach
                 //WordExplorer_v2 wd =null;
-                WordExplorer_v3 wd=null;
+                //WordExplorer_v3 wd=null;
+                WordExplorer_Triplet wd=null;
                 int totaTuplesInNode=0;
                 //IMPORTANT LOOP, GENERATE kmers pour chaque position
                 for (int pos:knife.getMerOrder()) {
@@ -646,7 +646,14 @@ public class Main_DBBUILD_3 {
                     //DEBUG
                     //double startScanTime=System.currentTimeMillis();
                     //Infos.println("---- Current align pos: "+pos +" to "+(pos+(k-1)));
-                    wd =new WordExplorer_v3(session,
+//                    wd =new WordExplorer_v3(session,
+//                                            pos,
+//                                            nodeId,
+//                                            wordCompression,
+//                                            gapJumpsActivated,
+//                                            limitTo1Jump
+//                                        );
+                    wd =new WordExplorer_Triplet(session,
                                             pos,
                                             nodeId,
                                             wordCompression,
@@ -691,7 +698,7 @@ public class Main_DBBUILD_3 {
             System.out.println("Node: LAST (100%)" );
             
             Infos.println("Sorting hash components...");
-            session.hash.sortData();
+            //session.hash.sortData();
             
             double endHashBuildTime=System.currentTimeMillis();
             System.out.println("Hash construction took: "+(endHashBuildTime-startHashBuildTime)+" ms");
@@ -704,35 +711,22 @@ public class Main_DBBUILD_3 {
             }
             
             
-            //byte[] word={0, 1, 0, 0, 2, 2, 3, 3};
             //byte[] word={2, 2, 2, 2};
             //byte[] word={0, 1, 2, 3};
             //byte[] word={3, 2, 1, 0};
-            //byte[] word={2, 0, 3, 0};
-//                System.out.println("###########################################");
-//                System.out.println("#TEST DB");
-//                System.out.println("Word: "+Arrays.toString(word));
-//                System.out.println("word: "+session.hash.getPairs(word).toString().replaceAll(",", "\n")+" --> "+session.hash.getHash().get(word).getPairCountInTopPosition());
-                //System.out.println("word: "+session.hash.getPairs(word));
-                //System.out.println("Word: "+Arrays.toString(session.hash.getHash().keySet().stream().toArray()));
-//                System.out.println("-----");
-//                int[] positions=session.hash.getPositions(word);
-//                System.out.println("positions: "+positions);
-//                for (int p:positions) {
-//                    System.out.println(p+":\n"+session.hash.getPairs(word, p).toString().replaceAll(",", "\n"));
-//                }
-                //session.hash.getHash().entrySet().stream().forEach(e->{System.out.println(Arrays.toString(e.getKey())+" --> "+e.getValue().getPairCountInTopPosition()+" --> "+e.getValue().map);});
-//                session.hash.getHash().entrySet().stream().forEach(e->{System.out.println(Arrays.toString(e.getKey()));});
-//                //QueryWord queryWord = new QueryWord(word, 0);
-//                int[] positions=session.hash.getPositions(word);
-//                System.out.println("Positions: "+Arrays.toString(positions));
-//                System.out.println("Top position: "+session.hash.getTopPosition(word));
-//                System.out.println("Pairs top position: "+session.hash.getPairsOfTopPosition2(word));
-//                for (int i=1;i<positions.length;i++) {
-//                    System.out.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(word, positions[i]));
-//                }
+            byte[] word={2, 0, 3, 0};
+                System.out.println("###########################################");
+                System.out.println("#TEST DB");
+                System.out.println("Word: "+Arrays.toString(word));
+                //all words in hash
+                //session.hash.getHash().keySet().stream().forEach(key->{System.out.println(Arrays.toString(key));});
+                System.out.println(session.hash.getTriplets(word).size());
+                System.out.println("word: "+session.hash.getTriplets(word).toString().replaceAll(",", "\n")+" --> "+session.hash.getTriplets(word).size());
+
+            
             
             //System.exit(1);
+            
             ////////////////////////////////////////////////////////////////////
             //OUTPUT SOME STATS IN THE WORKDIR
             
@@ -774,7 +768,7 @@ public class Main_DBBUILD_3 {
                     ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Npositions_per_word.png"), chart, width, height);
                 } catch (IOException e) {}
             }
-            
+//                
             if (hitsogramNumberNodesPerFirstPosition) {
                 Infos.println("Building #nodes_per_1stposition histogram...");
                 double[] values=new double[session.hash.keySet().size()];
@@ -782,7 +776,7 @@ public class Main_DBBUILD_3 {
                 double max=0;
                 for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
                     byte[] next = iterator.next();
-                    values[i]=new Double(session.hash.getPairsOfTopPosition2(next).size());
+                    values[i]=new Double(session.hash.getTriplets(next).size());
                     if (values[i]>max) {
                         max=values[i];
                     }
@@ -808,134 +802,135 @@ public class Main_DBBUILD_3 {
                     ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
                 } catch (IOException e) {}
             }
-            
-            //keep filenames here, used even in dbInRAM mode
-            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);
-            File dbfull=new File(db.getAbsoluteFile()+".full");
-            File dbmedium=new File(db.getAbsoluteFile()+".medium");
-            File dbsmall=new File(db.getAbsoluteFile()+".small");
-            File dbunion=new File(db.getAbsoluteFile()+".union");
-            //File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
-            
-            
-            
-            ////////////////////////////////////////////////////////////////////
-            //OPTIONNAL: DO NOT SAVE DB TO FILES AND OPERATE DIRECTLY SOME
-            //PLACEMENTS
-            if (dbInRAM) {
-                System.out.println("#############################");
-                System.out.println("## dbInRAM mode !");
-                System.out.println("## DB kept in memory and not exported in flat files");
-                System.out.println("## queries: ");
-                for (int i = 0; i < queries.size(); i++) {
-                    File query = queries.get(i);
-                    System.out.println("## "+queries.get(i).getAbsolutePath());
-                }
-                System.out.println("#############################");
-                BufferedWriter bwTSVCalibration=null;
-                int bufferSize=2097152; // buffer of 2mo
-                //generate random sequences
-                RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
-                
-                if (session.hash.getHashType()==CustomHash_v2.NODES_POSITION) {
-                    System.out.println("POSITIONAL DB SELECTED");
-                    //reduction to medium DB
-                    System.out.println("Reduction to medium DB...");
-                    session.hash.reduceToMediumHash();
-                    System.gc();
-
-                    Float calibrationNormScoreMedium =-1.0f;
-                    if (nsBound==null) {
-                        //calibration to medium DB
-                        if (writeTSVCalibrationLog) {
-                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
-                        }
-                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
-                        //generate random sequences
-                        rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
-                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                        //do the placement and calculate score quantiles
-                        calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                        System.out.println("Score bound: "+calibrationNormScoreMedium);
-                        //closes the calibration log  
-                        if (writeTSVCalibrationLog){
-                            bwTSVCalibration.close();
-                        }
-                    } else {
-                        System.out.println("Using nsbound: "+nsBound.toString());
-                        calibrationNormScoreMedium=nsBound;
-                    }
-                    //associate calibration
-                    session.associateCalibrationScore(calibrationNormScoreMedium);
-                    //now do placements on medium DB
-                    System.out.println("Starting placement on medium DB...");
-                    Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    for (int i = 0; i < queries.size(); i++) {
-                        File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
-                    }
-                    //reduction to small DB
-                    System.out.println("Reduction to small DB...");
-                    session.hash.reducetoSmallHash_v2(100);
-                    System.gc();
-                    //calibration to small DB
-                    //NOTE: not done, we keep medium DB calibration as the basis.
-                    //now do placements on small DB
-                    System.out.println("Starting placement on small DB...");
-                    placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    for (int i = 0; i < queries.size(); i++) {
-                        File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
-                    }
-                    
-                } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
-                    System.out.println("UNION DB SELECTED");
-                    //calibration
-                    float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
-                    if (nsBound==null) {
-                        if (writeTSVCalibrationLog) {
-                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
-                        }
-                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
-                        //do the placement and calculate score quantiles
-                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                        calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                        System.out.println("Score bound: "+calibrationNormScoreUnion);
-                        //closes the calibration log  
-                        if (writeTSVCalibrationLog){
-                            bwTSVCalibration.close();
-                        }
-                    } else {
-                        System.out.println("Using nsbound: "+nsBound.toString());
-                        calibrationNormScoreUnion=nsBound;
-                    }
-                    //associate medium calibration
-                    session.associateCalibrationScore(calibrationNormScoreUnion);
-                    //now do placements on normal union DB
-                    System.out.println("Starting placement on union DB...");
-                    Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    for (int i = 0; i < queries.size(); i++) {
-                        File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio);
-                    }
-                    //reduction to small DB
-                    //System.out.println("Reduction to small union DB...");
-                    //session.hash.reducetoSmallHash_v2(100);
-                    //System.gc();
-                    //calibration to small DB
-                    //NOTE: not done, we keep medium DB calibration as the basis.
-                    //now do placements on small DB
-                    //System.out.println("Starting placement on small union DB...");
-                    //placer=new Main_PLACEMENT_v07(session,dbInRAM);
-                    //for (int i = 0; i < queries.size(); i++) {
-                    //File query = queries.get(i);
-                    //    placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound,keepAtMost,keepRatio);
-                    //}                    
-                }
-                
-                System.out.println("DBINRAM OPERATIONS FINISHED.");
-                return;
-            }
+//            
+//            //keep filenames here, used even in dbInRAM mode
+//            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);
+//            File dbfull=new File(db.getAbsoluteFile()+".full");
+//            File dbmedium=new File(db.getAbsoluteFile()+".medium");
+//            File dbsmall=new File(db.getAbsoluteFile()+".small");
+//            File dbunion=new File(db.getAbsoluteFile()+".union");
+//            //File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
+//            
+//            
+//            
+//            ////////////////////////////////////////////////////////////////////
+//            //OPTIONNAL: DO NOT SAVE DB TO FILES AND OPERATE DIRECTLY SOME
+//            //PLACEMENTS
+//            if (dbInRAM) {
+//                System.out.println("#############################");
+//                System.out.println("## dbInRAM mode !");
+//                System.out.println("## DB kept in memory and not exported in flat files");
+//                System.out.println("## queries: ");
+//                for (int i = 0; i < queries.size(); i++) {
+//                    File query = queries.get(i);
+//                    System.out.println("## "+queries.get(i).getAbsolutePath());
+//                }
+//                System.out.println("#############################");
+//                BufferedWriter bwTSVCalibration=null;
+//                int bufferSize=2097152; // buffer of 2mo
+//                //generate random sequences
+//                RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
+//                
+//                if (session.hash.getHashType()==CustomHash_v2.NODES_POSITION) {
+//                    System.out.println("POSITIONAL DB SELECTED");
+//                    //reduction to medium DB
+//                    System.out.println("Reduction to medium DB...");
+//                    session.hash.reduceToMediumHash();
+//                    System.gc();
+//
+//                    Float calibrationNormScoreMedium =-1.0f;
+//                    if (nsBound==null) {
+//                        //calibration to medium DB
+//                        if (writeTSVCalibrationLog) {
+//                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+//                        }
+//                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
+//                        //generate random sequences
+//                        rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
+//                        //PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                        PlacementProcess_Triplet asp=new PlacementProcess_Triplet(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                        //do the placement and calculate score quantiles
+//                        calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                        System.out.println("Score bound: "+calibrationNormScoreMedium);
+//                        //closes the calibration log  
+//                        if (writeTSVCalibrationLog){
+//                            bwTSVCalibration.close();
+//                        }
+//                    } else {
+//                        System.out.println("Using nsbound: "+nsBound.toString());
+//                        calibrationNormScoreMedium=nsBound;
+//                    }
+//                    //associate calibration
+//                    session.associateCalibrationScore(calibrationNormScoreMedium);
+//                    //now do placements on medium DB
+//                    System.out.println("Starting placement on medium DB...");
+//                    Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
+//                    for (int i = 0; i < queries.size(); i++) {
+//                        File query = queries.get(i);
+//                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
+//                    }
+//                    //reduction to small DB
+//                    System.out.println("Reduction to small DB...");
+//                    session.hash.reducetoSmallHash_v2(100);
+//                    System.gc();
+//                    //calibration to small DB
+//                    //NOTE: not done, we keep medium DB calibration as the basis.
+//                    //now do placements on small DB
+//                    System.out.println("Starting placement on small DB...");
+//                    placer=new Main_PLACEMENT_v07(session,dbInRAM);
+//                    for (int i = 0; i < queries.size(); i++) {
+//                        File query = queries.get(i);
+//                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
+//                    }
+//                    
+//                } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+//                    System.out.println("UNION DB SELECTED");
+//                    //calibration
+//                    float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
+//                    if (nsBound==null) {
+//                        if (writeTSVCalibrationLog) {
+//                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+//                        }
+//                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
+//                        //do the placement and calculate score quantiles
+//                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                        calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                        System.out.println("Score bound: "+calibrationNormScoreUnion);
+//                        //closes the calibration log  
+//                        if (writeTSVCalibrationLog){
+//                            bwTSVCalibration.close();
+//                        }
+//                    } else {
+//                        System.out.println("Using nsbound: "+nsBound.toString());
+//                        calibrationNormScoreUnion=nsBound;
+//                    }
+//                    //associate medium calibration
+//                    session.associateCalibrationScore(calibrationNormScoreUnion);
+//                    //now do placements on normal union DB
+//                    System.out.println("Starting placement on union DB...");
+//                    Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
+//                    for (int i = 0; i < queries.size(); i++) {
+//                        File query = queries.get(i);
+//                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio);
+//                    }
+//                    //reduction to small DB
+//                    //System.out.println("Reduction to small union DB...");
+//                    //session.hash.reducetoSmallHash_v2(100);
+//                    //System.gc();
+//                    //calibration to small DB
+//                    //NOTE: not done, we keep medium DB calibration as the basis.
+//                    //now do placements on small DB
+//                    //System.out.println("Starting placement on small union DB...");
+//                    //placer=new Main_PLACEMENT_v07(session,dbInRAM);
+//                    //for (int i = 0; i < queries.size(); i++) {
+//                    //File query = queries.get(i);
+//                    //    placer.doPlacements(query, dbsmallunion, workDir, callString, nsBound,keepAtMost,keepRatio);
+//                    //}                    
+//                }
+//                
+//                System.out.println("DBINRAM OPERATIONS FINISHED.");
+//                return;
+//            }
             
             
             ////////////////////////////////////////////////////////////////////
@@ -944,240 +939,240 @@ public class Main_DBBUILD_3 {
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             //buffer writer for optionnalTSV output
-            BufferedWriter bwTSVCalibration=null;
-            int bufferSize=2097152; // buffer of 2mo
-            //generate random sequences for calibrations
-            PlacementProcess asp=null;
-            RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
-            
-            
-            
-            ////////////////////////////////////////////////////////////////////
-            // SAVE LARGE/MEDIUM/SMALL IF HASH BASED ON POSITION NODES
-            
-            if (session.hash.getHashType()==CustomHash_v2.NODES_POSITION) {
-            
-            
-                ////////////////////////////////////////////////////////////////////
-                // CALIBRATION: LARGE
-                if (buildDBFull) {
-                    //calibration
-                    if (!noCalibration) {
-                        if (writeTSVCalibrationLog) {
-                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
-                        }
-                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
-                        asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                        //do the placement and calculate score quantiles
-                        float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                        System.out.println("Score bound: "+calibrationNormScoreLarge);
-                        //closes the calibration log  
-                        if (writeTSVCalibrationLog){
-                            bwTSVCalibration.close();
-                        }
-                        //associate calibration
-                        session.associateCalibrationScore(calibrationNormScoreLarge);
-                    } else {
-                        session.associateCalibrationScore(Float.NEGATIVE_INFINITY);
-                    }
-                    //store the DB
-                    System.out.println("Serialization of the database (full)...");
-                    session.storeHash(dbfull);
-                }
-                //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
-                //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
-
-                /////////////////////////////////////////////////:
-                //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+//            BufferedWriter bwTSVCalibration=null;
+//            int bufferSize=2097152; // buffer of 2mo
+//            //generate random sequences for calibrations
+//            PlacementProcess asp=null;
+//            RandomSeqGenerator rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
 //            
-    //            byte[] word={1,3,0,2,1,1,3,0};
-    //            Infos.println("###########################################");
-    //            Infos.println("#TEST DB FULL");
-    //            Infos.println("Word: "+Arrays.toString(word));
-    //            QueryWord queryWord = new QueryWord(word, 0);
-    //            int[] positions=session.hash.getPositions(queryWord);
-    //            Infos.println("Positions: "+Arrays.toString(positions));
-    //            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
-    //            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
-    //            for (int i=1;i<positions.length;i++) {
-    //                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
-    //            }
-    //            Infos.println("###########################################");
-
-
-
-                ////////////////////////////////////////////////////////////////////
-                //REDUCTION AND CALIBRATION: MEDIUM
-                ////////////////////////////////////////////////////////////////////
-                //1. REDUCE HASH CONTENT TO ONLY BEST POSITION ASSOCIATED TO EACH
-                //KMER IN THE DATABASE
-                //2. DO  PLACEMENT of N RANDOM SEQUENCES ON THE CREATED DATABASE 
-                //THIS WILL BE USED TO CALCULTE QUANTILES and USE LAST QUANTILE
-                //AS THE SCORE BOUND UNDER WHICH PLACEMENTS WILL NOT BE REPORTED
-                //IN THE JPLACE OUPTUT.
-
-                //reduction 
-                session.hash.reduceToMediumHash();
-                System.gc();
-                //calibration
-                float calibrationNormScoreMedium=Float.NEGATIVE_INFINITY;
-                if (!noCalibration) {
-                    if (writeTSVCalibrationLog) {
-                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
-                    }
-                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                    //do the placement and calculate score quantiles
-                    calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                    System.out.println("Score bound: "+calibrationNormScoreMedium);
-                    //closes the calibration log  
-                    if (writeTSVCalibrationLog){
-                        bwTSVCalibration.close();
-                    }
-                }
-                //associate medium calibration
-                session.associateCalibrationScore(calibrationNormScoreMedium);
-                //store in DB
-                System.out.println("Serialization of the database (medium)...");
-                session.storeHash(dbmedium);
-
-
-                /////////////////////////////////////////////////:
-                //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
 //            
-    //            Infos.println("###########################################");
-    //            Infos.println("#TEST DB MEDIUM");
-    //            Infos.println("Word: "+Arrays.toString(word));
-    //            queryWord = new QueryWord(word, 0);
-    //            positions=session.hash.getPositions(queryWord);
-    //            Infos.println("Positions: "+Arrays.toString(positions));
-    //            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
-    //            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
-    //            for (int i=1;i<positions.length;i++) {
-    //                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
-//            }
-    //            Infos.println("###########################################");
-
-
-
-                ////////////////////////////////////////////////////////////////////
-                //REDUCTION AND CALIBRATION: SMALL
-                ////////////////////////////////////////////////////////////////////
-                //1. REDUCE HASH CONTENT TO ONLY BEST POSITION ASSOCIATED TO EACH
-                //KMER IN THE DATABASE AND 10 NODES AT EACH POSITION
-                //2. DO  PLACEMENT of N RANDOM SEQUENCES ON THE CREATED DATABASE 
-                //THIS WILL BE USED TO CALCULTE QUANTILES and USE LAST QUANTILE
-                //AS THE SCORE BOUND UNDER WHICH PLACEMENTS WILL NOT BE REPORTED
-                //IN THE JPLACE OUPTUT.
-
-                //reduction 
-                //session.hash.reducetoSmallHash(10);
-                session.hash.reducetoSmallHash_v2(100);
-                System.gc();
-                //calibration
-                float calibrationNormScoreSmall=Float.NEGATIVE_INFINITY;
-                if (!noCalibration) {
-                    if (writeTSVCalibrationLog) {
-                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
-                    }
-                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
-                    //do the placement and calculate score quantiles
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                    calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                    System.out.println("Score bound: "+calibrationNormScoreSmall);
-                    //closes the calibration log  
-                    if (writeTSVCalibrationLog){
-                        bwTSVCalibration.close();
-                    }
-                }
-                //associate medium calibration
-                session.associateCalibrationScore(calibrationNormScoreSmall);
-                //store in DB
-                System.out.println("Serialization of the database (small)...");
-                session.storeHash(dbsmall);
-
-
-                /////////////////////////////////////////////////:
-                //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+//            
+//            ////////////////////////////////////////////////////////////////////
+//            // SAVE LARGE/MEDIUM/SMALL IF HASH BASED ON POSITION NODES
+//            
+//            if (session.hash.getHashType()==CustomHash_v2.NODES_POSITION) {
+//            
+//            
+//                ////////////////////////////////////////////////////////////////////
+//                // CALIBRATION: LARGE
+//                if (buildDBFull) {
+//                    //calibration
+//                    if (!noCalibration) {
+//                        if (writeTSVCalibrationLog) {
+//                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
+//                        }
+//                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
+//                        asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                        //do the placement and calculate score quantiles
+//                        float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                        System.out.println("Score bound: "+calibrationNormScoreLarge);
+//                        //closes the calibration log  
+//                        if (writeTSVCalibrationLog){
+//                            bwTSVCalibration.close();
+//                        }
+//                        //associate calibration
+//                        session.associateCalibrationScore(calibrationNormScoreLarge);
+//                    } else {
+//                        session.associateCalibrationScore(Float.NEGATIVE_INFINITY);
+//                    }
+//                    //store the DB
+//                    System.out.println("Serialization of the database (full)...");
+//                    session.storeHash(dbfull);
+//                }
+//                //System.out.println(ClassLayout.parseClass(hash.getClass()).toPrintable());
+//                //System.out.println(ClassLayout.parseClass(CustomNode.class).toPrintable());
 //
-    //            Infos.println("###########################################");
-    //            Infos.println("Word: "+Arrays.toString(word));
-    //            Infos.println("#TEST DB SMALL");
-    //            queryWord = new QueryWord(word, 0);
-    //            positions=session.hash.getPositions(queryWord);
-    //            Infos.println("Positions: "+Arrays.toString(positions));
-    //            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
-    //            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
-    //            for (int i=1;i<positions.length;i++) {
-    //                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//                /////////////////////////////////////////////////:
+//                //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+//                //
+//    //            byte[] word={1,3,0,2,1,1,3,0};
+//    //            Infos.println("###########################################");
+//    //            Infos.println("#TEST DB FULL");
+//    //            Infos.println("Word: "+Arrays.toString(word));
+//    //            QueryWord queryWord = new QueryWord(word, 0);
+//    //            int[] positions=session.hash.getPositions(queryWord);
+//    //            Infos.println("Positions: "+Arrays.toString(positions));
+//    //            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//    //            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//    //            for (int i=1;i<positions.length;i++) {
+//    //                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//    //            }
+//    //            Infos.println("###########################################");
+//
+//
+//
+//                ////////////////////////////////////////////////////////////////////
+//                //REDUCTION AND CALIBRATION: MEDIUM
+//                ////////////////////////////////////////////////////////////////////
+//                //1. REDUCE HASH CONTENT TO ONLY BEST POSITION ASSOCIATED TO EACH
+//                //KMER IN THE DATABASE
+//                //2. DO  PLACEMENT of N RANDOM SEQUENCES ON THE CREATED DATABASE 
+//                //THIS WILL BE USED TO CALCULTE QUANTILES and USE LAST QUANTILE
+//                //AS THE SCORE BOUND UNDER WHICH PLACEMENTS WILL NOT BE REPORTED
+//                //IN THE JPLACE OUPTUT.
+//
+//                //reduction 
+//                session.hash.reduceToMediumHash();
+//                System.gc();
+//                //calibration
+//                float calibrationNormScoreMedium=Float.NEGATIVE_INFINITY;
+//                if (!noCalibration) {
+//                    if (writeTSVCalibrationLog) {
+//                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+//                    }
+//                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
+//                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                    //do the placement and calculate score quantiles
+//                    calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                    System.out.println("Score bound: "+calibrationNormScoreMedium);
+//                    //closes the calibration log  
+//                    if (writeTSVCalibrationLog){
+//                        bwTSVCalibration.close();
+//                    }
+//                }
+//                //associate medium calibration
+//                session.associateCalibrationScore(calibrationNormScoreMedium);
+//                //store in DB
+//                System.out.println("Serialization of the database (medium)...");
+//                session.storeHash(dbmedium);
+//
+//
+//                /////////////////////////////////////////////////:
+//                //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+//                //
+//    //            Infos.println("###########################################");
+//    //            Infos.println("#TEST DB MEDIUM");
+//    //            Infos.println("Word: "+Arrays.toString(word));
+//    //            queryWord = new QueryWord(word, 0);
+//    //            positions=session.hash.getPositions(queryWord);
+//    //            Infos.println("Positions: "+Arrays.toString(positions));
+//    //            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//    //            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//    //            for (int i=1;i<positions.length;i++) {
+//    //                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//    //            }
+//    //            Infos.println("###########################################");
+//
+//
+//
+//                ////////////////////////////////////////////////////////////////////
+//                //REDUCTION AND CALIBRATION: SMALL
+//                ////////////////////////////////////////////////////////////////////
+//                //1. REDUCE HASH CONTENT TO ONLY BEST POSITION ASSOCIATED TO EACH
+//                //KMER IN THE DATABASE AND 10 NODES AT EACH POSITION
+//                //2. DO  PLACEMENT of N RANDOM SEQUENCES ON THE CREATED DATABASE 
+//                //THIS WILL BE USED TO CALCULTE QUANTILES and USE LAST QUANTILE
+//                //AS THE SCORE BOUND UNDER WHICH PLACEMENTS WILL NOT BE REPORTED
+//                //IN THE JPLACE OUPTUT.
+//
+//                //reduction 
+//                //session.hash.reducetoSmallHash(10);
+//                session.hash.reducetoSmallHash_v2(100);
+//                System.gc();
+//                //calibration
+//                float calibrationNormScoreSmall=Float.NEGATIVE_INFINITY;
+//                if (!noCalibration) {
+//                    if (writeTSVCalibrationLog) {
+//                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+//                    }
+//                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
+//                    //do the placement and calculate score quantiles
+//                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                    calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                    System.out.println("Score bound: "+calibrationNormScoreSmall);
+//                    //closes the calibration log  
+//                    if (writeTSVCalibrationLog){
+//                        bwTSVCalibration.close();
+//                    }
+//                }
+//                //associate medium calibration
+//                session.associateCalibrationScore(calibrationNormScoreSmall);
+//                //store in DB
+//                System.out.println("Serialization of the database (small)...");
+//                session.storeHash(dbsmall);
+//
+//
+//                /////////////////////////////////////////////////:
+//                //SOME DEBUG TEST TO COMPARE MEDIUM/SMALL DBs
+//                //
+//    //            Infos.println("###########################################");
+//    //            Infos.println("Word: "+Arrays.toString(word));
+//    //            Infos.println("#TEST DB SMALL");
+//    //            queryWord = new QueryWord(word, 0);
+//    //            positions=session.hash.getPositions(queryWord);
+//    //            Infos.println("Positions: "+Arrays.toString(positions));
+//    //            Infos.println("Top position: "+session.hash.getTopPosition(queryWord));
+//    //            Infos.println("Pairs top position: "+session.hash.getPairsOfTopPosition(queryWord));
+//    //            for (int i=1;i<positions.length;i++) {
+//    //                Infos.println("Pairs "+positions[i]+"th position: "+session.hash.getPairs(queryWord, positions[i]));
+//    //            }
+//    //            Infos.println("###########################################");
+//
+//                //serialization finished, output some log infos
+//                if (buildDBFull)
+//                    Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
+//                Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
+//                Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
+//                System.out.println("\"Positional\" databases saved.");
+//
+//                
+//            ////////////////////////////////////////////////////////////////////
+//            // CALIBRATE AND SAVE UNION HASH BASED ON UNION NODES
+//            
+//            } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+//                
+//                //calibration
+//                float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
+//                if (!noCalibration) {
+//                    if (writeTSVCalibrationLog) {
+//                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+//                    }
+//                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
+//                    //do the placement and calculate score quantiles
+//                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                    calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                    System.out.println("Score bound: "+calibrationNormScoreUnion);
+//                    //closes the calibration log  
+//                    if (writeTSVCalibrationLog){
+//                        bwTSVCalibration.close();
+//                    }
+//                }
+//                //associate medium calibration
+//                session.associateCalibrationScore(calibrationNormScoreUnion);
+//                //store in DB
+//                System.out.println("Serialization of the database (normal union)...");
+//                session.storeHash(dbunion);
+//                
+//                //reduction 
+//                session.hash.reducetoSmallHash_v2(100);
+//                System.gc();
+//                //calibration
+//                //float calibrationNormScoreSmallUnion=Float.NEGATIVE_INFINITY;
+//                //if (!noCalibration) {
+//                //    if (writeTSVCalibrationLog) {
+//                //        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+//                //    }
+//                //    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
+//                //    //do the placement and calculate score quantiles
+//                //    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                //    calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                //    System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
+//                //    //closes the calibration log  
+//                //    if (writeTSVCalibrationLog){
+//                //        bwTSVCalibration.close();
+//                //    }
+//                //}
+//                //associate medium calibration
+//                //session.associateCalibrationScore(calibrationNormScoreSmallUnion);
+//                //store in DB
+//                //System.out.println("Serialization of the database (small union)...");
+//                //session.storeHash(dbsmallunion);
+//
+//                //serialization finished, output some log infos
+//                Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
+//                //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
+//                System.out.println("\"Union\" database saved.");
 //            }
-    //            Infos.println("###########################################");
-            
-                //serialization finished, output some log infos
-                if (buildDBFull)
-                    Infos.println("DB FULL: "+Environement.getFileSize(dbfull)+" Mb saved");
-                Infos.println("DB MEDIUM: "+Environement.getFileSize(dbmedium)+" Mb saved");
-                Infos.println("DB SMALL: "+Environement.getFileSize(dbsmall)+" Mb saved");
-                System.out.println("\"Positional\" databases saved.");
-
-                
-            ////////////////////////////////////////////////////////////////////
-            // CALIBRATE AND SAVE UNION HASH BASED ON UNION NODES
-            
-            } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
-                
-                //calibration
-                float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
-                if (!noCalibration) {
-                    if (writeTSVCalibrationLog) {
-                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
-                    }
-                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
-                    //do the placement and calculate score quantiles
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                    calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                    System.out.println("Score bound: "+calibrationNormScoreUnion);
-                    //closes the calibration log  
-                    if (writeTSVCalibrationLog){
-                        bwTSVCalibration.close();
-                    }
-                }
-                //associate medium calibration
-                session.associateCalibrationScore(calibrationNormScoreUnion);
-                //store in DB
-                System.out.println("Serialization of the database (normal union)...");
-                session.storeHash(dbunion);
-                
-                //reduction 
-                session.hash.reducetoSmallHash_v2(100);
-                System.gc();
-                //calibration
-                //float calibrationNormScoreSmallUnion=Float.NEGATIVE_INFINITY;
-                //if (!noCalibration) {
-                //    if (writeTSVCalibrationLog) {
-                //        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
-                //    }
-                //    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
-                //    //do the placement and calculate score quantiles
-                //    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                //    calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                //    System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
-                //    //closes the calibration log  
-                //    if (writeTSVCalibrationLog){
-                //        bwTSVCalibration.close();
-                //    }
-                //}
-                //associate medium calibration
-                //session.associateCalibrationScore(calibrationNormScoreSmallUnion);
-                //store in DB
-                //System.out.println("Serialization of the database (small union)...");
-                //session.storeHash(dbsmallunion);
-
-                //serialization finished, output some log infos
-                Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
-                //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
-                System.out.println("\"Union\" database saved.");
-            }
             
             //closing some stuff
             arpr=null;

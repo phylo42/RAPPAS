@@ -8,8 +8,8 @@ package main_v2;
 import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
-import core.hash.CustomHash_v4_FastUtil81;
-//import core.hash.CustomHash_Triplet;
+//import core.hash.CustomHash_v4_FastUtil81;
+import core.hash.CustomHash_Triplet;
 import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;
@@ -28,7 +28,7 @@ import tree.PhyloTree;
  *
  * @author ben
  */
-public class SessionNext_v2 {
+public class SessionNext_Triplet {
     
     private final static int bufferSize=2097152; // buffer of 2mo
     
@@ -54,8 +54,8 @@ public class SessionNext_v2 {
      */
     public HashMap<Integer,Integer> nodeMapping=null;
     public PProbasSorted parsedProbas=null;    
-    public CustomHash_v4_FastUtil81 hash=null;
-    //public CustomHash_Triplet hash=null;
+    //public CustomHash_v4_FastUtil81 hash=null;
+    public CustomHash_Triplet hash=null;
     public boolean onlyFakes=false;
     public Float calibrationNormScore=null;
     
@@ -69,7 +69,7 @@ public class SessionNext_v2 {
      * @param PPStarThreshold the value of PPStarThreshold
      * @param PPStarThresholdAsLog10 the value of PPStarThresholdAsLog10
      */
-    public SessionNext_v2(int k, int mink, float alpha, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
+    public SessionNext_Triplet(int k, int mink, float alpha, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
         this.k=k;
         this.minK=mink;
         this.alpha=alpha;
@@ -92,14 +92,14 @@ public class SessionNext_v2 {
         this.parsedProbas=arpl.getPProbas();
     }
     
-    public void associateHash(CustomHash_v4_FastUtil81 hash, boolean onlyFakes) {
-        this.hash=hash;
-        this.onlyFakes=onlyFakes;
-    }
-//    public void associateHash(CustomHash_Triplet hash, boolean onlyFakes) {
+//    public void associateHash(CustomHash_v4_FastUtil81 hash, boolean onlyFakes) {
 //        this.hash=hash;
 //        this.onlyFakes=onlyFakes;
 //    }
+    public void associateHash(CustomHash_Triplet hash, boolean onlyFakes) {
+        this.hash=hash;
+        this.onlyFakes=onlyFakes;
+    }
     
     public void associateCalibrationScore(float score) {
         this.calibrationNormScore=score;
@@ -153,7 +153,7 @@ public class SessionNext_v2 {
     
     
     
-    public static SessionNext_v2 load(File f,boolean loadHash) {
+    public static SessionNext_Triplet load(File f,boolean loadHash) {
         try {
             long startTime = System.currentTimeMillis();
             FileInputStream fis = new FileInputStream(f);
@@ -165,7 +165,7 @@ public class SessionNext_v2 {
             float stateThreshold=ois.readFloat();
             float PPStarThreshold=ois.readFloat();
             float PPStarThresholdAsLog10=ois.readFloat();
-            SessionNext_v2 s=new SessionNext_v2(k, minK, alpha, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
+            SessionNext_Triplet s=new SessionNext_Triplet(k, minK, alpha, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
             Infos.println("Loading States");
             s.states = (States)ois.readObject();
             Infos.println("Loading Alignment");
@@ -190,8 +190,8 @@ public class SessionNext_v2 {
                 } else {
                     System.out.println("Loaded DB only also contain ancestral kmers associated to original nodes.");
                 }
-                s.hash = (CustomHash_v4_FastUtil81)ois.readObject();
-                //s.hash = (CustomHash_Triplet)ois.readObject();
+                //s.hash = (CustomHash_v4_FastUtil81)ois.readObject();
+                s.hash = (CustomHash_Triplet)ois.readObject();
             }
 
             ois.close();

@@ -36,6 +36,9 @@ public class TEST_PHYMLWrapper {
             File a=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.fasta");
             File t=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.phylip_phyml_tree.txt");
             File p=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.phylip_phyml_ancestral_seq");
+//              File a=new File("/home/yann/Bureau/Data/test_220518/extended_align.fasta");
+//              File t=new File("/home/yann/Bureau/Data/test_220518/extended_align.phylip_phyml_ancestral_tree.txt");
+//              File p=new File("/home/yann/Bureau/Data/test_220518/extended_align.phylip_phyml_ancestral_seq.txt");
             
             //////////////////////
             //LOAD ORIGINAL ALIGNMENT
@@ -57,9 +60,11 @@ public class TEST_PHYMLWrapper {
             //probas
             PProbasSorted probas = pw.parseSortedProbas(new FileInputStream(p),Float.MIN_VALUE,true,Integer.MAX_VALUE);
             System.out.println(probas.getStateCount());
+            //System.out.println(probas.getState(0, 0, 3)+" ; "+probas.getPP(0, 0, 3));
             System.out.println(probas.getSiteCount());
 
             int nodeId=tree.getByName("x5").getId();
+            //int nodeId=tree.getByName("38").getId();
             System.out.println("nodeId:"+nodeId );
             
             for (int i = 0; i < probas.getSiteCount(); i++) {
@@ -78,6 +83,7 @@ public class TEST_PHYMLWrapper {
                 System.out.print(i+":");
                 for (int j = 0; j < probas.getStateCount(); j++) {
                     System.out.print(s.byteToState(probas.getState(nodeId, i, j))+"="+Math.pow(10,probas.getPP(tree.getByName("x5").getId(), i, j)));
+                    //System.out.print(s.byteToState(probas.getState(nodeId, i, j))+"="+Math.pow(10,probas.getPP(tree.getByName("38").getId(), i, j)));
                     System.out.print("\t");
                     
                 }

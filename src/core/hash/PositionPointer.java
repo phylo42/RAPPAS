@@ -85,7 +85,7 @@ public class PositionPointer implements HashPointer,Serializable {
         
         return this.positionPointerList.get(0).size();
     }
-
+    
     /**
      * get best (nodeId;PP*).
      * @return 

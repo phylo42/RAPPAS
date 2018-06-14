@@ -41,8 +41,10 @@ public class TEST_WordExplorer_v2 {
         try {
             
             
-            String a="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/relaxed_trees/relaxed_align_BrB_minbl0.001_1peredge.fasta";
-            String rst="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/AR/finished/rst";
+            //String a="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/relaxed_trees/relaxed_align_BrB_minbl0.001_1peredge.fasta";
+            String a="/home/yann/Bureau/Data/test_CustomHash_v4_23052018/aln.fasta";
+            //String rst="/media/ben/STOCK/SOURCES/NetBeansProjects/ViromePlacer/WD/AR/finished/rst";
+            String rst="/home/yann/Bureau/Data/test_CustomHash_v4_23052018/AR/rst";
             
             
             int k=8;

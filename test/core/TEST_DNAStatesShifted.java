@@ -37,7 +37,7 @@ public class TEST_DNAStatesShifted {
         //00110000 mask for position 2
         //11000000 mask for position 3
         byte[] maskArray={(byte)0x03,(byte)0x0C,(byte)0x30,(byte)0xC0};
-        
+        // maskArray: [ 00000011 00001100 00110000 11000000 ]
         
         System.out.println("------------------------------");
         String s3="ATCGATCGGCTAGCTAGCATCA";

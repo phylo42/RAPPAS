@@ -38,12 +38,16 @@ public class TEST_Main_v2 {
 //            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
             
             //DATASET LARGER SET --PAML--
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML";
-            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
-            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
-            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
-            String arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/AR";
-            String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML";
+//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL";
+//            String a=inputsPath+File.separator+"bv_refs_aln_stripped_99.5.fasta";
+//            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
+//            String arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/AR";
+//            String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
+            String workDir=HOME+"/Bureau/Data/test_DB_04062018/";
+            String inputsPath=HOME+"/Bureau/Data/test_DB_04062018/";
+            String a=inputsPath+"aln.fasta";
+            String t=inputsPath+"ref_rooted2.tre";
 
             //--------------------------------
 
@@ -97,10 +101,11 @@ public class TEST_Main_v2 {
                             + "-w "+workDir+" "
                             + "-r "+a+" "
                             + "-t "+t+" "
-                            //+ "-k "+String.valueOf(8)+" "
+                            //+ "-k "+String.valueOf(4)+" "
                             //+ "-a "+String.valueOf(1.0)+" "
                             //+ "-v 1 "
-                            + "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+                            //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
+                            + "--arbinary "+HOME+"/Bureau/RAPPAS_last_version/bindep/phyml_x64 "
                             //+ "--ardir "+arDir+" "
                             + "--states nucl "
                             //+ "--extree "+exTree+" "

@@ -40,7 +40,7 @@ public interface HashPointer {
      * @return 
      */
     public int getPairCountInTopPosition();
-
+    
     /**
      * get best (nodeId;PP*).
      * @return 

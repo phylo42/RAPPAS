@@ -44,7 +44,7 @@ public class Main_PLACEMENT_v07 {
 
     
     //related to debug operation --dbinram
-    SessionNext_v2 session=null;
+    SessionNext session=null;
     boolean dbInRAM=false;
     
     /**
@@ -59,7 +59,7 @@ public class Main_PLACEMENT_v07 {
      * @param session 
      * @param dbInRAM 
      */
-    public Main_PLACEMENT_v07(SessionNext_v2 session, boolean dbInRAM) {
+    public Main_PLACEMENT_v07(SessionNext session, boolean dbInRAM) {
         this.session=session;
         this.dbInRAM=dbInRAM;
     }
@@ -102,7 +102,7 @@ public class Main_PLACEMENT_v07 {
             int queryWordSampling=SequenceKnife.SAMPLING_LINEAR;
 
             //debug 
-            int queryLimit=50000;
+            int queryLimit=1;
             
 
             ////////////////////////////////////////////////////////////////////
@@ -224,18 +224,31 @@ public class Main_PLACEMENT_v07 {
             //NORMALIZED SCORE BELOW THE CALIBRATION RESULT WILL NOT BE OUTPUT
             //IN THE JPLACE OUPUT
             //TODO: HERE EXTEND WITH PARALLELISM
-            PlacementProcess asp=null;
+            
+            //original version 
+//            PlacementProcess asp=null;
+//            if (nsBound!=null) {  //norm score bound was set manually via command line
+//                System.out.println("User provided nsBound !");
+//                asp=new PlacementProcess(session,nsBound, queryLimit);
+//            } else {
+//                asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
+//            }
+            PlacementProcess aspt=null;
             if (nsBound!=null) {  //norm score bound was set manually via command line
                 System.out.println("User provided nsBound !");
-                asp=new PlacementProcess(session,nsBound, queryLimit);
+                aspt=new PlacementProcess(session,nsBound, queryLimit);
             } else {
-                asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
-            }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);
+                aspt=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
+            }            
+            
+            int queryCounter=aspt.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);
             //close TSV logs
             bwTSVPlacement.close();
             bwNotPlaced.close();
             fp.closePointer();
+            
+            
+            
 
             
             ////////////////////////////////////////////////////////////////////

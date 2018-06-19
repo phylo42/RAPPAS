@@ -8,13 +8,15 @@ package core.algos;
 import charts.ChartsForNodes;
 import com.google.common.math.Quantiles;
 import core.DNAStatesShifted;
-import core.hash.Pair;
+import core.hash.CustomHash;
+import core.hash.Triplet_16_32_16_bit;
 import etc.Infos;
 import inputs.Fasta;
 import inputs.SequencePointer;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import java.awt.GridLayout;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,14 +26,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import jonelo.jacksum.JacksumAPI;
 import jonelo.jacksum.algorithm.AbstractChecksum;
 import main_v2.Main_PLACEMENT_v07;
-import main_v2.SessionNext_v2;
+import main_v2.SessionNext;
 import org.jfree.data.xy.DefaultXYZDataset;
 import org.jfree.ui.RefineryUtilities;
 import org.json.simple.JSONArray;
@@ -53,7 +56,7 @@ public class PlacementProcess {
     int queryLimit=Integer.MAX_VALUE;
     //int queryLimit=1000000;
     //graph of words alignment
-    boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
+    boolean graphAlignment=true; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
     //test different way to select best score
     boolean useTopTwo=false; //score only searcing top 2 values
@@ -62,7 +65,7 @@ public class PlacementProcess {
     
     
     //parameters asked when program launched
-    SessionNext_v2 session=null;
+    SessionNext session=null;
     Float nsBound=Float.NEGATIVE_INFINITY;
     
     //elements related to fil outputs
@@ -77,297 +80,12 @@ public class PlacementProcess {
      * @param nsBound
      * @param queryLimit the value of queryLimit
      */
-    public PlacementProcess(SessionNext_v2 session, Float nsBound, int queryLimit) {
+    public PlacementProcess(SessionNext session, Float nsBound, int queryLimit) {
         this.session=session;
         this.nsBound=nsBound;
         this.queryLimit=queryLimit;
     }
     
-    /**
-     * 
-     * @param rs
-     * @param samplingAmount
-     * @param bwTSV
-     * @param queryWordSampling
-     * @param minOverlap
-     * @param q_quantile
-     * @param n_quantile
-     * @return 
-     * @throws java.io.IOException 
-     */
-    public float processCalibration(RandomSeqGenerator rs, int samplingAmount,BufferedWriter bwTSV, int queryWordSampling, int minOverlap, int q_quantile, int n_quantile) throws IOException {
-
-        //list of bestNormalizedScore
-        ArrayList<Float> normalizedScores=new ArrayList<>(samplingAmount);
-
-        ///////////////////////////////////////////////////////            
-        // PREPARE VECTORS USED TO ALIGN AND SCORE NODES
-
-        //list of nodes encountered during matches search in the hash
-        //variable size, expanded only at 1st encounter with the node
-        //when nodeOccurences[nodeId]==0
-        //,reset at each read
-        ArrayList<Integer> selectedNodes=new ArrayList<>(session.ARTree.getNodeCount());
-        //instanciated once
-        int[] nodeOccurences=new int[session.ARTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
-        float[] nodeScores=new float[session.ARTree.getNodeCount()]; // tab[score] --> index=nodeId
-        //Arrays.fill(nodeOccurences, 0);
-        //Arrays.fill(nodeScores, 0.0f);     
-
-        
-        
-        //////////////////////////////////////////////////////////////////
-        // PREPARE TSV OUTPUT
-        //header of CSV output
-        if (bwTSV!=null) {
-            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
-        }
-   
-        
-        ////////////////////////////////////////////////////////////////////
-        // MAIN ALGORITHM LOOP BELOW !!!
-        // DO KMERS ALIGNMENT AND SCORING FOR ALL SEQUENCE QUERIES
-        ////////////////////////////////////////////////////////////////////
-        ////////////////////////////////////////////////////////////////////
-
-        int queryCounter=0;
-        int queryPlacedCounter=0;
-        for (int query = 0; query < samplingAmount; query++) { //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
-
-            queryCounter++;
-
-            //console display to follow the process
-            if ((queryCounter%200000)==0) {
-                System.out.println(queryCounter+"/"+samplingAmount+" queries placed ("+(((0.0+queryCounter)/samplingAmount)*100)+"%)");
-            }
-            
-            //debug
-            if (queryCounter>queryLimit)
-                break;
-            
-            
-            ///////////////////////////////////
-            //GENERATE RANDOM SEQ
-            Fasta fasta=rs.generateSequence();
-
-//            Infos.println("#######################################################################");
-//            Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
-//            Infos.println("#######################################################################");
-            //fw.append(fasta.getFormatedFasta()+"\n");
-
-            ///////////////////////////////////
-            // PREPARE QUERY K-MERS
-            byte[] qw=null;
-            SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
-
-            
-            ////////////////////////////////////////////////////////////////
-            // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
-            ////////////////////////////////////////////////////////////////
-//            Infos.println("Launching scoring on candidate nodes...");
-            int queryWordFoundCounter=0;
-            int queryWordCounter=0;
-
-            //loop on words
-            while ((qw=sk.getNextByteWord())!=null) {
-                queryWordCounter++;
-                //Infos.println("Query mer: "+qw.toString());
-                
-                //get Pairs associated to this word
-                List<Pair> allPairs = session.hash.getPairsOfTopPosition(qw);
-                //if this word is not registered in the hash
-                if (allPairs==null) {
-                    continue;
-                }
-                queryWordFoundCounter++;
-                //System.out.println("Pairs: "+allPairs);
-                for (int i = 0; i < allPairs.size(); i++) {
-                    Pair p = allPairs.get(i);
-                    //we will score only encountered nodes, originalNode registered
-                    //at 1st encouter
-                    if (nodeOccurences[p.getNodeId()]==0) {
-                        selectedNodes.add(p.getNodeId());
-                    }
-                    //count # times originalNode encountered
-                    nodeOccurences[p.getNodeId()]+=1;
-                    //score associated to originalNode x for current read
-                    nodeScores[p.getNodeId()]+=p.getPPStar();
-                }
-                //System.out.println("  nodeOccurences:"+Arrays.toString(nodeOccurences));
-                //System.out.println("  nodeScores:"+Arrays.toString(nodeScores));
-
-            }
-
-//            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
-//            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
-
-            //if selectedNodes is empty (no node could be associated)
-            //for instance when no query words could be found in the hash
-            if (selectedNodes.size()<1) {
-                //Infos.println("Read cannot be placed.");
-                //TODO: currently this query will not be in output csv 
-                //and jplace... put them in special output ?
-                continue; //to next query
-            }
-            
-            queryPlacedCounter++;
-
-
-            // NOW CORRECTING SCORING BY UNMATCHED WORDS
-            ///////////////////////////////////////////////////////
-            //now add the score corresponding to the words not found,
-            // query.e. threshold*#_words_not_scored (because no in hash)
-            int maxWords=sk.getMerCount();
-            int bestNodeId=-1;
-            float bestScore=Float.NEGATIVE_INFINITY;
-            int secondBest=-1;
-            float secondScore=Float.NEGATIVE_INFINITY;
-            for (Integer nodeId:selectedNodes) {
-                //System.out.println("Scoring originalNode:"+nodeId);
-                //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
-                //int extendedTreeId=session.nodeMapping.get(nodeId);
-                //System.out.println("extendedTreeId:"+extendedTreeId);
-                //Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
-                //System.out.println("originalNodeId:"+originalNodeId);
-                //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
-                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
-                if (nodeScores[nodeId]>bestScore) {
-                    secondBest=bestNodeId;
-                    secondScore=bestScore;
-                    bestNodeId=nodeId;
-                    bestScore=nodeScores[nodeId];
-                } else if (nodeScores[nodeId]>secondScore) {
-                    secondBest=nodeId;
-                    secondScore=nodeScores[nodeId];
-                }
-            }
-
-//            Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
-//            Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
-
-            //simple debug test
-            if (session.nodeMapping.get(bestNodeId)==null) { //simple test
-                System.out.println("bestNode not found: "+bestNodeId+" "+String.valueOf(session.ARTree.getById(bestNodeId).getLabel()));
-                System.exit(1);
-            }
-
-            // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
-            ////////////////////////////////////////////////////////////////
-            //check if this was a fake originalNode or not
-            //to do that, retromapping from ARTree to extended tree 
-            int extendedTreeId=session.nodeMapping.get(bestNodeId);
-            int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
-            PhyloNode nodeToTest = session.extendedTree.getById(extendedTreeId);
-            //if this is an original originalNode, select adjacent branch 
-            //leading to 2nd best PP*, if 2nd best PP* is original, do the same
-            //for 3rd and so on...
-            if (!nodeToTest.isFakeNode()) {
-                //System.out.println("############### change best node to neighboors !");                    
-//                Infos.println("Current best node is an original node...");
-                PhyloNode firstNode = null;
-                PhyloNode secondNode = null;
-                //if there was no other scored nodes ? this case happened when a single query mer was found in the DB
-                if (secondBest<0) {
-                    //arbitrary choice, take FAKE node which is left son.
-                    firstNode = session.ARTree.getById(bestNodeId);
-                    secondNode = firstNode.getChildAt(0);
-                    bestNodeId =secondNode.getId();
-
-                } else {
-                    firstNode = session.ARTree.getById(bestNodeId);
-                    //select node of 2nd best score
-                    secondNode = session.ARTree.getById(secondBest);
-                    //get path from this node to bestNodeId
-                    //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
-                    PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
-                    //System.out.println("Path to second: "+shortestPath.path);
-                    //path will be as:
-                    //firstNode-X0-...-secondNode
-                    //or nodeToTest-secondNode(X0) if immediate neighboor
-                    //in all case the 2nd elt of the path is the X0 chosen 
-                    //for the placement
-                    bestNodeId=shortestPath.path.get(1).getId();
-                  
-                }
-                extendedTreeId=session.nodeMapping.get(bestNodeId);
-                originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);         
-                //System.out.println("NEW Selected node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
-                //System.out.println("mapping: ARTree="+ARTree.getById(bestNodeId)+" ExtendedTree="+extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
-
-                if (!session.extendedTree.getById(extendedTreeId).isFakeNode()) {
-                    System.out.println("Something went wrong in neighboor node search !!!!");
-                    System.exit(1);
-                }
-
-            } 
-
-
-            //basic normalization, divide score by number of words present
-            //in the query
-            float normalizedScore=bestScore/maxWords;
-            normalizedScores.add(normalizedScore);
-//            Infos.println("Normalized score: "+bestNormalizedScore);
-
-
-
-
-            //TO DEBUG
-//                System.out.println(fasta.getHeader());
-//                System.out.print("bestNodeId:"+bestNodeId);
-//                System.out.print("\t\tbestScore:"+bestScore);
-//                System.out.println("\t\tbestSCore (normalized by #mers):"+(bestScore/sk.getMaxMerCount()));
-//                System.out.println("nodeScores:"+Arrays.toString(nodeScores));
-//                System.out.println("nodeOccurences:"+Arrays.toString(nodeOccurences));
-//                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
-
-
-            //write result in file if a originalNode was hit
-            if (bwTSV!=null) {
-                //OUTPUT n°1: the CSV report of placement
-                //allow in particular to check that nodes were correclty
-                //mappes at every step (original tree, extended tree,
-                //AR modified tree)
-                sb.append(fasta.getHeader().split(" ")[0]).append("\t");
-                sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
-                sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
-                sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
-                sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
-                sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
-                sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-                sb.append(String.valueOf(normalizedScore)).append("\n");
-                
-                //push the stringbuffer to the CSV bufferedwriter every 10000 sequences
-                if ((queryCounter%10000)==0) {
-                    int size=sb.length();
-                    bwTSV.append(sb);
-                    bwTSV.flush();
-                    sb=null;
-                    sb=new StringBuffer(size);
-                }
-            }
-            //reset the scoring vectors
-            for(Integer nodeId:selectedNodes) {
-                nodeScores[nodeId]=0.0f;
-                nodeOccurences[nodeId]=0;
-            }
-            selectedNodes.clear();
-
-        }
-        
-        //flush to disk the last CSV buffer
-        if (bwTSV!=null) {
-            bwTSV.append(sb);
-        }
-        System.out.println("Queries actually placed:"+queryPlacedCounter);
-
-        //use the normalized scores to define quantile
-        return new Double(Quantiles.scale(q_quantile).index(n_quantile).compute(normalizedScores)).floatValue();        
-        
-    }
-    
-    
-    
-
     /**
      * 
      * @param fp
@@ -599,46 +317,71 @@ public class PlacementProcess {
                 
                 //get Pairs associated to this word
 //                long startT1Time=System.currentTimeMillis();
-                Char2FloatMap.FastEntrySet allPairs =null;
+                Set allTuples =null;
                 if (session.states instanceof DNAStatesShifted) {
-                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
+                    allTuples = session.hash.getTuples(session.states.compressMer(qw));
                 } else {
-                    allPairs = session.hash.getPairsOfTopPosition2(qw);
+                    allTuples = session.hash.getTuples(qw);
                 }
 //                long endT1Time=System.currentTimeMillis();
 //                totalT1Time+=(endT1Time-startT1Time);
                 
 
                 //word is not present in hash
-                if (allPairs==null) {
+                if (allTuples==null) {
                     queryKmerCount++;
                     continue;
                 }
                 queryKmerMatchingDB++;
                 
-                //stream version, 5-10% faster than allPairs.fastIterator()
-                allPairs.stream().forEach((Char2FloatMap.Entry entry) -> {
-                    int nodeId=entry.getCharKey();
-                    //we will score only encountered nodes, originalNode registered
-                    //at 1st encouter
-                    if (nodeOccurences[nodeId]==0) {
-                        selectedNodes.add(nodeId);
-                    }
-                    //count # times originalNode encountered
-                    nodeOccurences[nodeId]+=1;
-                    //score associated to originalNode x for current read
-                    nodeScores[nodeId]+=entry.getFloatValue();
-                });
+                //SET  HERE DIFFERENCE BETWEEN CustomHash_v4 and CustomHash_Triplet
                 
+                //nature of Set depends on hash type
+                if (session.hash.getHashType()==CustomHash.NODES_UNION) {
+                    //stream version, 5-10% faster than allPairs.fastIterator()
+                    ((Char2FloatMap.FastEntrySet)allTuples).stream().forEach((Char2FloatMap.Entry entry) -> {
+                        int nodeId=entry.getCharKey();
+                        //we will score only encountered nodes, originalNode registered
+                        //at 1st encouter
+                        if (nodeOccurences[nodeId]==0) {
+                            selectedNodes.add(nodeId);
+                        }
+                        //count # times originalNode encountered
+                        nodeOccurences[nodeId]+=1;
+                        //score associated to originalNode x for current read
+                        nodeScores[nodeId]+=entry.getFloatValue();
+                        
+                    });
+                    
+                } else if (session.hash.getHashType()==CustomHash.NODES_TRIPLET) {
+                    for (Iterator<Triplet_16_32_16_bit> iterator = allTuples.iterator(); iterator.hasNext();) {
+                        Triplet_16_32_16_bit triplet = iterator.next();
+                        
+                        int nodeId=triplet.getNodeId();
+                        //we will score only encountered nodes, originalNode registered
+                        //at 1st encouter
+                        if (nodeOccurences[nodeId]==0) {
+                            selectedNodes.add(nodeId);
+                        }
+                        //count # times originalNode encountered
+                        nodeOccurences[nodeId]+=1;
+                        //score associated to originalNode x for current read
+                        nodeScores[nodeId]+=triplet.getPPStar();
+                        if(graphAlignment) {
+                            graphDataForTopTuples[2][queryKmerCount*xSize+triplet.getRefPosition()]= new Double(triplet.getPPStar());   
+                        }
+                    }
+                    
+                }
                 
 //                long endT2Time=System.currentTimeMillis();
 //                totalT2Time+=(endT2Time-startT2Time);
                 
                 //graph of alignment, if asked
                 if(graphAlignment) {
-                   int topPosition =session.hash.getTopPosition(qw);
+                   //int topPosition =session.hash.getTopPosition(qw);
                    //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
-                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allPairs.toArray()[0]);                        
+                   //graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allTuples.toArray()[0]);                        
                 }
 
                 queryKmerCount++;
@@ -1102,8 +845,7 @@ public class PlacementProcess {
     
     /**
      * get kth largest element in average O(n) linear time (Hoare's selection algorithm)
-     * @param arr
-     * @param data 
+     * @param arr 
      * @param k th element to return
      * @return 
      */
@@ -1111,9 +853,7 @@ public class PlacementProcess {
         if (arr == null || arr.length <= k) {
             throw new Error();
         }
-
         int from = 0, to = arr.length - 1;
-
         // if from == to we reached the kth element
         while (from < to) {
             int r = from, w = to;
@@ -1132,7 +872,6 @@ public class PlacementProcess {
         // if we stepped up (r++) we need to step one down
         if (arr[r] > mid)
             r--;
-
         // the r pointer is on the end of the first k elements
             if (k <= r) {
                 to = r;
@@ -1158,8 +897,6 @@ public class PlacementProcess {
             this.score = score;
         }
         
-        
-        
         @Override
         public int compareTo(Score o) {
             return Float.compare(this.score, o.score);
@@ -1174,19 +911,324 @@ public class PlacementProcess {
     }
     
     private class ScoreComparator implements Comparator<Score> {
-
-//        float[] nodeScores=null;
-//        
-//        public ScoreComparator(float[] nodeScores) {
-//            
-//        
-//        }
         @Override
         public int compare(Score o1, Score o2) {
             return Float.compare(o1.score, o2.score);
         }
     }
     
+    
+    
+    
+    
+    /**
+     * 
+     * @param rs
+     * @param samplingAmount
+     * @param bwTSV
+     * @param queryWordSampling
+     * @param minOverlap
+     * @param q_quantile
+     * @param n_quantile
+     * @return 
+     * @throws java.io.IOException 
+     */
+    @Deprecated
+    public float processCalibration(RandomSeqGenerator rs, int samplingAmount,BufferedWriter bwTSV, int queryWordSampling, int minOverlap, int q_quantile, int n_quantile) throws IOException {
+
+        //list of bestNormalizedScore
+        ArrayList<Float> normalizedScores=new ArrayList<>(samplingAmount);
+
+        ///////////////////////////////////////////////////////            
+        // PREPARE VECTORS USED TO ALIGN AND SCORE NODES
+
+        //list of nodes encountered during matches search in the hash
+        //variable size, expanded only at 1st encounter with the node
+        //when nodeOccurences[nodeId]==0
+        //,reset at each read
+        ArrayList<Integer> selectedNodes=new ArrayList<>(session.ARTree.getNodeCount());
+        //instanciated once
+        int[] nodeOccurences=new int[session.ARTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
+        float[] nodeScores=new float[session.ARTree.getNodeCount()]; // tab[score] --> index=nodeId
+        //Arrays.fill(nodeOccurences, 0);
+        //Arrays.fill(nodeScores, 0.0f);     
+
+        
+        
+        //////////////////////////////////////////////////////////////////
+        // PREPARE TSV OUTPUT
+        //header of CSV output
+        if (bwTSV!=null) {
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+        }
+   
+        
+        ////////////////////////////////////////////////////////////////////
+        // MAIN ALGORITHM LOOP BELOW !!!
+        // DO KMERS ALIGNMENT AND SCORING FOR ALL SEQUENCE QUERIES
+        ////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////
+
+        int queryCounter=0;
+        int queryPlacedCounter=0;
+        for (int query = 0; query < samplingAmount; query++) { //<-- MAIN LOOP: QUERY PER QUERY, TODO PARALLELIZED VERSION
+
+            queryCounter++;
+
+            //console display to follow the process
+            if ((queryCounter%200000)==0) {
+                System.out.println(queryCounter+"/"+samplingAmount+" queries placed ("+(((0.0+queryCounter)/samplingAmount)*100)+"%)");
+            }
+            
+            //debug
+            if (queryCounter>queryLimit)
+                break;
+            
+            
+            ///////////////////////////////////
+            //GENERATE RANDOM SEQ
+            Fasta fasta=rs.generateSequence();
+
+//            Infos.println("#######################################################################");
+//            Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
+//            Infos.println("#######################################################################");
+            //fw.append(fasta.getFormatedFasta()+"\n");
+
+            ///////////////////////////////////
+            // PREPARE QUERY K-MERS
+            byte[] qw=null;
+            SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
+
+            
+            ////////////////////////////////////////////////////////////////
+            // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
+            ////////////////////////////////////////////////////////////////
+//            Infos.println("Launching scoring on candidate nodes...");
+            int queryKmerMatchingDB=0;
+            int queryKmerCount=0;
+
+            //loop on words
+            while ((qw=sk.getNextByteWord())!=null) {
+                
+                Set allTuples =null;
+                if (session.states instanceof DNAStatesShifted) {
+                    allTuples = session.hash.getTuples(session.states.compressMer(qw));
+                } else {
+                    allTuples = session.hash.getTuples(qw);
+                }
+
+                //word is not present in hash
+                if (allTuples==null) {
+                    queryKmerCount++;
+                    continue;
+                }
+                queryKmerMatchingDB++;
+                
+                //SET  HERE DIFFERENCE BETWEEN CustomHash_v4 and CustomHash_Triplet
+                
+                //nature of Set depends on hash type
+                if (session.hash.getHashType()==CustomHash.NODES_UNION) {
+                    //stream version, 5-10% faster than allPairs.fastIterator()
+                    ((Char2FloatMap.FastEntrySet)allTuples).stream().forEach((Char2FloatMap.Entry entry) -> {
+                        int nodeId=entry.getCharKey();
+                        //we will score only encountered nodes, originalNode registered
+                        //at 1st encouter
+                        if (nodeOccurences[nodeId]==0) {
+                            selectedNodes.add(nodeId);
+                        }
+                        //count # times originalNode encountered
+                        nodeOccurences[nodeId]+=1;
+                        //score associated to originalNode x for current read
+                        nodeScores[nodeId]+=entry.getFloatValue();
+                    });
+                    
+                } else if (session.hash.getHashType()==CustomHash.NODES_TRIPLET) {
+                    //stream version, 5-10% faster than allPairs.fastIterator()
+                    ((ObjectOpenHashSet<Triplet_16_32_16_bit>)allTuples).stream().forEach((Triplet_16_32_16_bit triplet) -> {
+                        int nodeId=triplet.getNodeId();
+                        //we will score only encountered nodes, originalNode registered
+                        //at 1st encouter
+                        if (nodeOccurences[nodeId]==0) {
+                            selectedNodes.add(nodeId);
+                        }
+                        //count # times originalNode encountered
+                        nodeOccurences[nodeId]+=1;
+                        //score associated to originalNode x for current read
+                        nodeScores[nodeId]+=triplet.getPPStar();
+                    });
+                    
+                }
+                
+                queryKmerCount++;
+
+            }
+
+//            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
+//            Infos.println("Candidate nodes: ("+selectedNodes.size()+") ");      
+
+            //if selectedNodes is empty (no node could be associated)
+            //for instance when no query words could be found in the hash
+            if (selectedNodes.size()<1) {
+                //Infos.println("Read cannot be placed.");
+                //TODO: currently this query will not be in output csv 
+                //and jplace... put them in special output ?
+                continue; //to next query
+            }
+            
+            queryPlacedCounter++;
+
+
+            // NOW CORRECTING SCORING BY UNMATCHED WORDS
+            ///////////////////////////////////////////////////////
+            //now add the score corresponding to the words not found,
+            // query.e. threshold*#_words_not_scored (because no in hash)
+            int maxWords=sk.getMerCount();
+            int bestNodeId=-1;
+            float bestScore=Float.NEGATIVE_INFINITY;
+            int secondBest=-1;
+            float secondScore=Float.NEGATIVE_INFINITY;
+            for (Integer nodeId:selectedNodes) {
+                //System.out.println("Scoring originalNode:"+nodeId);
+                //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
+                //int extendedTreeId=session.nodeMapping.get(nodeId);
+                //System.out.println("extendedTreeId:"+extendedTreeId);
+                //Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
+                //System.out.println("originalNodeId:"+originalNodeId);
+                //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
+                nodeScores[nodeId]+=session.PPStarThresholdAsLog10*(maxWords-nodeOccurences[nodeId]);
+                if (nodeScores[nodeId]>bestScore) {
+                    secondBest=bestNodeId;
+                    secondScore=bestScore;
+                    bestNodeId=nodeId;
+                    bestScore=nodeScores[nodeId];
+                } else if (nodeScores[nodeId]>secondScore) {
+                    secondBest=nodeId;
+                    secondScore=nodeScores[nodeId];
+                }
+            }
+
+//            Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+//            Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
+
+            //simple debug test
+            if (session.nodeMapping.get(bestNodeId)==null) { //simple test
+                System.out.println("bestNode not found: "+bestNodeId+" "+String.valueOf(session.ARTree.getById(bestNodeId).getLabel()));
+                System.exit(1);
+            }
+
+            // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
+            ////////////////////////////////////////////////////////////////
+            //check if this was a fake originalNode or not
+            //to do that, retromapping from ARTree to extended tree 
+            int extendedTreeId=session.nodeMapping.get(bestNodeId);
+            int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
+            PhyloNode nodeToTest = session.extendedTree.getById(extendedTreeId);
+            //if this is an original originalNode, select adjacent branch 
+            //leading to 2nd best PP*, if 2nd best PP* is original, do the same
+            //for 3rd and so on...
+            if (!nodeToTest.isFakeNode()) {
+                //System.out.println("############### change best node to neighboors !");                    
+//                Infos.println("Current best node is an original node...");
+                PhyloNode firstNode = null;
+                PhyloNode secondNode = null;
+                //if there was no other scored nodes ? this case happened when a single query mer was found in the DB
+                if (secondBest<0) {
+                    //arbitrary choice, take FAKE node which is left son.
+                    firstNode = session.ARTree.getById(bestNodeId);
+                    secondNode = firstNode.getChildAt(0);
+                    bestNodeId =secondNode.getId();
+
+                } else {
+                    firstNode = session.ARTree.getById(bestNodeId);
+                    //select node of 2nd best score
+                    secondNode = session.ARTree.getById(secondBest);
+                    //get path from this node to bestNodeId
+                    //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
+                    PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
+                    //System.out.println("Path to second: "+shortestPath.path);
+                    //path will be as:
+                    //firstNode-X0-...-secondNode
+                    //or nodeToTest-secondNode(X0) if immediate neighboor
+                    //in all case the 2nd elt of the path is the X0 chosen 
+                    //for the placement
+                    bestNodeId=shortestPath.path.get(1).getId();
+                  
+                }
+                extendedTreeId=session.nodeMapping.get(bestNodeId);
+                originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);         
+                //System.out.println("NEW Selected node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+                //System.out.println("mapping: ARTree="+ARTree.getById(bestNodeId)+" ExtendedTree="+extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
+
+                if (!session.extendedTree.getById(extendedTreeId).isFakeNode()) {
+                    System.out.println("Something went wrong in neighboor node search !!!!");
+                    System.exit(1);
+                }
+
+            } 
+
+
+            //basic normalization, divide score by number of words present
+            //in the query
+            float normalizedScore=bestScore/maxWords;
+            normalizedScores.add(normalizedScore);
+//            Infos.println("Normalized score: "+bestNormalizedScore);
+
+
+
+
+            //TO DEBUG
+//                System.out.println(fasta.getHeader());
+//                System.out.print("bestNodeId:"+bestNodeId);
+//                System.out.print("\t\tbestScore:"+bestScore);
+//                System.out.println("\t\tbestSCore (normalized by #mers):"+(bestScore/sk.getMaxMerCount()));
+//                System.out.println("nodeScores:"+Arrays.toString(nodeScores));
+//                System.out.println("nodeOccurences:"+Arrays.toString(nodeOccurences));
+//                System.out.println("selectedNodes:"+selectedNodes.keySet().toString());
+
+
+            //write result in file if a originalNode was hit
+            if (bwTSV!=null) {
+                //OUTPUT n°1: the CSV report of placement
+                //allow in particular to check that nodes were correclty
+                //mappes at every step (original tree, extended tree,
+                //AR modified tree)
+                sb.append(fasta.getHeader().split(" ")[0]).append("\t");
+                sb.append(String.valueOf(bestNodeId)).append("\t"); //ARTree nodeID
+                sb.append(String.valueOf(session.ARTree.getById(bestNodeId).getLabel())).append("\t"); //ARTree nodeName
+                sb.append(String.valueOf(extendedTreeId)).append("\t"); //extended Tree nodeID
+                sb.append(String.valueOf(session.extendedTree.getById(extendedTreeId).getLabel())).append("\t"); //extended Tree nodeName
+                sb.append(String.valueOf(originalNodeId)).append("\t"); //edge of original tree (original nodeId)
+                sb.append(String.valueOf(session.originalTree.getById(originalNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
+                sb.append(String.valueOf(normalizedScore)).append("\n");
+                
+                //push the stringbuffer to the CSV bufferedwriter every 10000 sequences
+                if ((queryCounter%10000)==0) {
+                    int size=sb.length();
+                    bwTSV.append(sb);
+                    bwTSV.flush();
+                    sb=null;
+                    sb=new StringBuffer(size);
+                }
+            }
+            //reset the scoring vectors
+            for(Integer nodeId:selectedNodes) {
+                nodeScores[nodeId]=0.0f;
+                nodeOccurences[nodeId]=0;
+            }
+            selectedNodes.clear();
+
+        }
+        
+        //flush to disk the last CSV buffer
+        if (bwTSV!=null) {
+            bwTSV.append(sb);
+        }
+        System.out.println("Queries actually placed:"+queryPlacedCounter);
+
+        //use the normalized scores to define quantile
+        return new Double(Quantiles.scale(q_quantile).index(n_quantile).compute(normalizedScores)).floatValue();        
+        
+    }
     
     
     

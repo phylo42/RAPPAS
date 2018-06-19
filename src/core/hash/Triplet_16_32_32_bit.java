@@ -32,9 +32,12 @@ public class Triplet_16_32_32_bit implements Triplet,Serializable {
     private float PPStar=Float.NEGATIVE_INFINITY;
     private int refPosition=0; //init to 0
     
-    TripletList list=new TripletList(0);
 
     public Triplet_16_32_32_bit(int nodeId, float PPStar, int refPosition) {
+        if (nodeId>='\uFFFF') {
+            System.out.println("Extended tree node number reached unsigned short limit (2^16-1). RAPPAS currently not designed to handle such big trees.");
+            System.exit(1);
+        }
         this.nodeId=(char)nodeId;
         this.PPStar=PPStar;
         this.refPosition=refPosition;
@@ -69,67 +72,6 @@ public class Triplet_16_32_32_bit implements Triplet,Serializable {
     public void setRefPosition(int refPosition) {
         this.refPosition = refPosition;
     }
-    
-    @Override
-    public void registerTuple(int nodeId, int refPosition, float PPStar) {
-        boolean found=false;
-        for (Triplet t:list) {
-            //nodeid already registered
-            //if (t.getNodeId()==nodeId && t.getRefPosition()==refPosition) {
-            if (t.getNodeId()==nodeId) {
-                found=true;
-                //replace previous triplet if better PP*
-                if (PPStar > t.getPPStar()) {
-                    t.setPPStar(PPStar);
-                    // replace position associated to better PP*
-                    t.setRefPosition(refPosition);
-                }
-                break;
-            }
-        }
-        //node not yet registered, do it
-        if (!found) {
-            list.add(new Triplet_16_32_32_bit(nodeId, PPStar, refPosition));
-        }
-
-    }
-    
-    @Override
-    public ArrayList<Triplet> getTripletList(byte[] w) {
-        return list;
-    }
-    
-    @Override
-    public int[] getNode() {
-        int[] node=new int[list.size()];
-        for (int i=0;i<list.size();i++) {
-            node[i]=list.get(i).getNodeId();
-        }
-        return node;
-    }
-    
-    @Override
-    public int[] getPositions() {
-        int[] pos=new int[list.size()];
-        for (int i=0;i<list.size();i++) {
-            pos[i]=list.get(i).getRefPosition();
-        }
-        return pos;
-    }
-    
-    /**
-     * get best reference position.
-     * @return 
-     */
-    @Override
-    public int getBestPosition() {
-        return list.get(0).getRefPosition();
-    }
-    
-    @Override
-    public Triplet getBestTriplet() {
-        return list.get(0);
-    }
 
     /**
      * the comparator is inversed to put highest values first
@@ -145,32 +87,6 @@ public class Triplet_16_32_32_bit implements Triplet,Serializable {
         return "nodeId="+(int)nodeId+" PPStar="+PPStar+" refPosition="+(int)refPosition;
     }
     
-//    private class TripletList extends ArrayList<Triplet> extends Comparable<TripletList>,Serializable {
-//        private static final long serialVersionUID = 7210L;
-//        
-//        public TripletList() {
-//            super(1);
-//        }
-//    }
-    
-    // mettre dans une classe 
-    private class TripletList extends ArrayList<Triplet> implements Comparable<Triplet>, Serializable {
-        private int refPosition=-1;
-        
-        public TripletList(int refPosition) {
-            super(1);
-            this.refPosition=refPosition;
-            
-        }
-        
-        public int getRefPosition() {
-            return refPosition;
-        }
 
-        @Override
-        public int compareTo(Triplet o) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-    }
   
 }

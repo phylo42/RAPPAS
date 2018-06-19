@@ -20,20 +20,10 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.02";
+    private final static String consoleVersion="1.03";
 
     public static void main (String[] args) {
         try {
-            long startTime=System.currentTimeMillis();
-            System.out.println("################################################");
-            System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
-            System.out.println("## via Ancestral Sequences");
-            System.out.println("## RAPPAS v"+consoleVersion);
-            System.out.println("## benjamin.linard, fabio.pardi ([at].lirmm.fr)");
-            System.out.println("## LIRMM, Univ. of Montpellier, CNRS");
-            System.out.println("################################################");
-            //System.out.println(VM.current().details());
-            System.setProperty("viromeplacer_version", consoleVersion);
             
             //hack related to Problems under MAC OS implementation of
             //the Aqua (mac Look and feel)
@@ -48,7 +38,6 @@ public class Main_v2 {
             //parse program arguments
             ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
             
-            
             //set verbosity to null, if required
             if (argsParser.verbose<0) {
                 //PrintStream original = System.out;
@@ -57,6 +46,16 @@ public class Main_v2 {
                 //System.setOut(original); //to get back output stream
             }
             
+            long startTime=System.currentTimeMillis();
+            System.out.println("################################################");
+            System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
+            System.out.println("## via Ancestral Sequences");
+            System.out.println("## RAPPAS v"+consoleVersion);
+            System.out.println("## benjamin.linard, fabio.pardi ([at].lirmm.fr)");
+            System.out.println("## LIRMM, Univ. of Montpellier, CNRS");
+            System.out.println("################################################");
+            //System.out.println(VM.current().details());
+            System.setProperty("viromeplacer_version", consoleVersion);
             
             //type of Analysis, DNA or AA
             States s=null; 
@@ -109,7 +108,8 @@ public class Main_v2 {
                                             argsParser.keepFactor,
                                             argsParser.doGapJumps,
                                             argsParser.limitTo1Jump,
-                                            argsParser.gapJumpThreshold
+                                            argsParser.gapJumpThreshold,
+                                            argsParser.hashType
                         
                                             );
                 
@@ -121,7 +121,10 @@ public class Main_v2 {
                 //load session itself (i.e the DB)
                 System.out.println("Loading ancestral words DB... ("+argsParser.databaseFile.getName()+")");
                 long startLoadTime=System.currentTimeMillis();
-                SessionNext_v2 session= SessionNext_v2.load(argsParser.databaseFile,true);
+                
+                SessionNext session= new SessionNext();
+                session.load(argsParser.databaseFile,true);
+                
                 long endLoadTime=System.currentTimeMillis();
                 System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
             

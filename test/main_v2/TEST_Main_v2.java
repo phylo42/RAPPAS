@@ -44,19 +44,21 @@ public class TEST_Main_v2 {
 //            String t=inputsPath+File.separator+"RAxML_result.bv_refs_aln";
 //            String arDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/AR";
 //            String exTree=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PAML/extended_trees";
-            String workDir=HOME+"/Bureau/Data/test_DB_04062018/";
-            String inputsPath=HOME+"/Bureau/Data/test_DB_04062018/";
-            String a=inputsPath+"aln.fasta";
-            String t=inputsPath+"ref_rooted2.tre";
+
+//            String workDir=HOME+"/Bureau/Data/test_DB_04062018/";
+//            String inputsPath=HOME+"/Bureau/Data/test_DB_04062018/";
+//            String a=inputsPath+"aln.fasta";
+//            String t=inputsPath+"ref_rooted2.tre";
 
             //--------------------------------
 
             //DATASET BASIC RAPID TESTS --PHYML--
-//            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
-//            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-//            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-//            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
-
+            HOME="/media/STOCK";
+            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
+            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
+            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+            String ARBinary="/home/benclaff/software/phyml-AR/bin/phyml";
 
             //DATASET LARGER SET --PHYML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PHYML";
@@ -82,7 +84,8 @@ public class TEST_Main_v2 {
 //          String q=inputsPath+"mod_p4z1r36_query_ancestrals.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
-            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
+//            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
+            String q=workDir+"/test_read.fasta";
             //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
@@ -101,12 +104,12 @@ public class TEST_Main_v2 {
                             + "-w "+workDir+" "
                             + "-r "+a+" "
                             + "-t "+t+" "
-                            //+ "-k "+String.valueOf(4)+" "
+                            + "-k "+String.valueOf(8)+" "
                             //+ "-a "+String.valueOf(1.0)+" "
-                            //+ "-v 1 "
+                            + "-v 1 "
                             //+ "--arbinary "+HOME+"/Dropbox/viromeplacer/test_datasets/software/phyml-AR/bin/phyml "
-                            + "--arbinary "+HOME+"/Bureau/RAPPAS_last_version/bindep/phyml_x64 "
-                            //+ "--ardir "+arDir+" "
+                            + "--arbinary "+ARBinary+" "
+                            + "--ardir "+workDir+"/AR "
                             + "--states nucl "
                             //+ "--extree "+exTree+" "
                             //+ "--forceroot"
@@ -116,23 +119,24 @@ public class TEST_Main_v2 {
                             //+ "--do-gap-jumps "
                             //+ "--only-1-jump "
                             //+ "--ratio-reduction 0.95"
+                            +"--hashtriplets "
                             ;
             
             
             
             
             // placement launch
-//            arguments=
-//                              "-m p "
-//                            + "-w "+workDir+" "
-//                            + "-q "+q+" "
-//                            + "-d "+db+" "
-//                            + "-v 0 "
-//                            //+ "--nsbound -1000.0 "  -Infinity if not given
-//                            + "--keep-at-most 7 "
-//                            + "--keep-factor 0.01 "
-//                            + "--states nucl"
-//                            ;            
+            arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 1 "
+                            //+ "--nsbound -1000.0 "  -Infinity if not given
+                            + "--keep-at-most 7 "
+                            + "--keep-factor 0.01 "
+                            + "--states nucl "
+                            ;            
                             
                             
 /////////FOR TESTS CORRECTION: HCV, A34, k8_a1.0, R500bp  --> case where our algo cannot fails compared to EPA/PPlacer          

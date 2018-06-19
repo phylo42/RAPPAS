@@ -8,16 +8,14 @@ package main_v2;
 import inputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.AAStates;
-import core.QueryWord;
 import core.DNAStatesShifted;
-import core.DNAStates;
-import core.ProbabilisticWord;
 import core.States;
 import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
-import core.algos.WordExplorer_v2;
 import core.algos.WordExplorer_v3;
+import core.hash.CustomHash;
+import core.hash.CustomHash_Triplet;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;
 import etc.Environement;
@@ -100,6 +98,7 @@ public class Main_DBBUILD_3 {
      * @param doGapJumps 
      * @param limitTo1Jump 
      * @param gapJumpThreshold 
+     * @param hashType 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -131,7 +130,8 @@ public class Main_DBBUILD_3 {
                                         float keepRatio,
                                         boolean doGapJumps,
                                         boolean limitTo1Jump,
-                                        float gapJumpThreshold
+                                        float gapJumpThreshold,
+                                        int hashType
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
             //System.setProperty("debug.verbose", "1");
@@ -463,7 +463,8 @@ public class Main_DBBUILD_3 {
             //session.sitePPThreshold
             //session.PPStarProbaThreshold
             //session.PPStarProbaThresholdAsLog10
-            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
+            SessionNext session=new SessionNext();
+            session.associateParameters(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
             //are set after instanciation
             //session.states
             session.associateStates(s);
@@ -538,8 +539,6 @@ public class Main_DBBUILD_3 {
             ////////////////////////////////////////////////////////////////////
             // GENERATION OF ANCESTRAL WORDS
             
-            //positions for which word are built
-            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
             
             //if this is DNA, will use kmer compression
             if (session.states instanceof DNAStatesShifted) {
@@ -555,12 +554,17 @@ public class Main_DBBUILD_3 {
             //session.onlyFakes
             System.out.println("Building hash...");
             Infos.println("Word generator threshold will be:"+PPStarThresholdAsLog);
-            if (unionHash) {
-                    System.out.println("Union hash used.");
-                    session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_UNION),onlyFakeNodes);
-            } else {
-                    System.out.println("Positional hash used.");
-                    session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_POSITION),onlyFakeNodes);
+            if (hashType==CustomHash.NODES_UNION) {
+                if (unionHash) {
+                        System.out.println("Union hash used.");
+                        session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_UNION),onlyFakeNodes,hashType);
+                } else {
+                        System.out.println("Positional hash used.");
+                        session.associateHash(new CustomHash_v4_FastUtil81(k, s, CustomHash_v2.NODES_POSITION),onlyFakeNodes,hashType);
+                }
+            } else if (hashType==CustomHash.NODES_TRIPLET) {
+                System.out.println("Triplet hash used.");
+                session.associateHash(new CustomHash_Triplet(k, s), onlyFakeNodes,hashType);
             }
             
             //prepare batches for ancestral k-mer generation
@@ -589,11 +593,15 @@ public class Main_DBBUILD_3 {
             Infos.println("# node tested: "+nodesTested.size());
             Infos.println("Batch size: "+nodeBatchSize);
                     
+            
+            //positions for which word are built
+            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
                     
             Infos.println("Building all PP* probas...");
             long totalTuplesBuiltForHash=0;
             int nodeCounter=0;
             boolean warnedAboutMemory=false;
+            
             for (int nodeId:nodesTested) {
                 
                 //double startMerScanTime=System.currentTimeMillis();
@@ -741,73 +749,73 @@ public class Main_DBBUILD_3 {
             //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"), k, alpha);
             
             //output some stats as histograms:
-            if (histogramNumberPositionsPerNode && session.hash.keySet().size()>0) {
-                Infos.println("Building #positions_per_word histogram...");
-                double[] values=new double[session.hash.keySet().size()];
-                int i=0;
-                double max=0;
-                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    byte[] next = iterator.next();
-                    values[i]=new Double(session.hash.getPositions(next).length);
-                    if (values[i]>max) {
-                        max=values[i];
-                    }
-                    i++;
-                }
-                //jfreechat histogram construction and output as image
-                HistogramDataset dataset = new HistogramDataset();
-                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-                int bins=50;
-                dataset.addSeries("Big",values,bins,0,max);
-                String plotTitle = "#positions_per_word"; 
-                String xaxis = "#positions";
-                String yaxis = "proportion"; 
-                PlotOrientation orientation = PlotOrientation.VERTICAL; 
-                boolean show = false; 
-                boolean toolTips = false;
-                boolean urls = false; 
-                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
-                        dataset, orientation, show, toolTips, urls);
-                int width = 500;
-                int height = 300; 
-                try {
-                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Npositions_per_word.png"), chart, width, height);
-                } catch (IOException e) {}
-            }
-            
-            if (hitsogramNumberNodesPerFirstPosition) {
-                Infos.println("Building #nodes_per_1stposition histogram...");
-                double[] values=new double[session.hash.keySet().size()];
-                int i=0;
-                double max=0;
-                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    byte[] next = iterator.next();
-                    values[i]=new Double(session.hash.getPairsOfTopPosition2(next).size());
-                    if (values[i]>max) {
-                        max=values[i];
-                    }
-                    i++;
-                }
-                //jfreechat histogram construction and output as image
-                HistogramDataset dataset = new HistogramDataset();
-                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-                int bins=50;
-                dataset.addSeries("Big",values,bins,0,max);
-                String plotTitle = "#nodes_per_kmers"; 
-                String xaxis = "#nodes";
-                String yaxis = "proportion"; 
-                PlotOrientation orientation = PlotOrientation.VERTICAL; 
-                boolean show = false; 
-                boolean toolTips = false;
-                boolean urls = false; 
-                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
-                        dataset, orientation, show, toolTips, urls);
-                int width = 500;
-                int height = 300; 
-                try {
-                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
-                } catch (IOException e) {}
-            }
+//            if (histogramNumberPositionsPerNode && session.hash.keySet().size()>0) {
+//                Infos.println("Building #positions_per_word histogram...");
+//                double[] values=new double[session.hash.keySet().size()];
+//                int i=0;
+//                double max=0;
+//                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+//                    byte[] next = iterator.next();
+//                    values[i]=new Double(session.hash.getPositions(next).length);
+//                    if (values[i]>max) {
+//                        max=values[i];
+//                    }
+//                    i++;
+//                }
+//                //jfreechat histogram construction and output as image
+//                HistogramDataset dataset = new HistogramDataset();
+//                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+//                int bins=50;
+//                dataset.addSeries("Big",values,bins,0,max);
+//                String plotTitle = "#positions_per_word"; 
+//                String xaxis = "#positions";
+//                String yaxis = "proportion"; 
+//                PlotOrientation orientation = PlotOrientation.VERTICAL; 
+//                boolean show = false; 
+//                boolean toolTips = false;
+//                boolean urls = false; 
+//                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+//                        dataset, orientation, show, toolTips, urls);
+//                int width = 500;
+//                int height = 300; 
+//                try {
+//                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Npositions_per_word.png"), chart, width, height);
+//                } catch (IOException e) {}
+//            }
+//            
+//            if (hitsogramNumberNodesPerFirstPosition) {
+//                Infos.println("Building #nodes_per_1stposition histogram...");
+//                double[] values=new double[session.hash.keySet().size()];
+//                int i=0;
+//                double max=0;
+//                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+//                    byte[] next = iterator.next();
+//                    values[i]=new Double(session.hash.getPairsOfTopPosition2(next).size());
+//                    if (values[i]>max) {
+//                        max=values[i];
+//                    }
+//                    i++;
+//                }
+//                //jfreechat histogram construction and output as image
+//                HistogramDataset dataset = new HistogramDataset();
+//                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+//                int bins=50;
+//                dataset.addSeries("Big",values,bins,0,max);
+//                String plotTitle = "#nodes_per_kmers"; 
+//                String xaxis = "#nodes";
+//                String yaxis = "proportion"; 
+//                PlotOrientation orientation = PlotOrientation.VERTICAL; 
+//                boolean show = false; 
+//                boolean toolTips = false;
+//                boolean urls = false; 
+//                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+//                        dataset, orientation, show, toolTips, urls);
+//                int width = 500;
+//                int height = 300; 
+//                try {
+//                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
+//                } catch (IOException e) {}
+//            }
             
             //keep filenames here, used even in dbInRAM mode
             File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);
@@ -841,7 +849,7 @@ public class Main_DBBUILD_3 {
                     System.out.println("POSITIONAL DB SELECTED");
                     //reduction to medium DB
                     System.out.println("Reduction to medium DB...");
-                    session.hash.reduceToMediumHash();
+                    ((CustomHash_v4_FastUtil81)session.hash).reduceToMediumHash();
                     System.gc();
 
                     Float calibrationNormScoreMedium =-1.0f;
@@ -876,7 +884,7 @@ public class Main_DBBUILD_3 {
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
-                    session.hash.reducetoSmallHash_v2(100);
+                    ((CustomHash_v4_FastUtil81)session.hash).reducetoSmallHash_v2(100);
                     System.gc();
                     //calibration to small DB
                     //NOTE: not done, we keep medium DB calibration as the basis.
@@ -955,7 +963,7 @@ public class Main_DBBUILD_3 {
             ////////////////////////////////////////////////////////////////////
             // SAVE LARGE/MEDIUM/SMALL IF HASH BASED ON POSITION NODES
             
-            if (session.hash.getHashType()==CustomHash_v2.NODES_POSITION) {
+            if (session.hash.getHashType()==CustomHash.NODES_POSITION) {
             
             
                 ////////////////////////////////////////////////////////////////////
@@ -1017,7 +1025,7 @@ public class Main_DBBUILD_3 {
                 //IN THE JPLACE OUPTUT.
 
                 //reduction 
-                session.hash.reduceToMediumHash();
+                ((CustomHash_v4_FastUtil81)session.hash).reduceToMediumHash();
                 System.gc();
                 //calibration
                 float calibrationNormScoreMedium=Float.NEGATIVE_INFINITY;
@@ -1072,7 +1080,7 @@ public class Main_DBBUILD_3 {
 
                 //reduction 
                 //session.hash.reducetoSmallHash(10);
-                session.hash.reducetoSmallHash_v2(100);
+                ((CustomHash_v4_FastUtil81)session.hash).reducetoSmallHash_v2(100);
                 System.gc();
                 //calibration
                 float calibrationNormScoreSmall=Float.NEGATIVE_INFINITY;
@@ -1124,7 +1132,7 @@ public class Main_DBBUILD_3 {
             ////////////////////////////////////////////////////////////////////
             // CALIBRATE AND SAVE UNION HASH BASED ON UNION NODES
             
-            } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
+            } else  if (session.hash.getHashType()==CustomHash.NODES_UNION) {
                 
                 //calibration
                 float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
@@ -1148,35 +1156,39 @@ public class Main_DBBUILD_3 {
                 System.out.println("Serialization of the database (normal union)...");
                 session.storeHash(dbunion);
                 
-                //reduction 
-                session.hash.reducetoSmallHash_v2(100);
-                System.gc();
-                //calibration
-                //float calibrationNormScoreSmallUnion=Float.NEGATIVE_INFINITY;
-                //if (!noCalibration) {
-                //    if (writeTSVCalibrationLog) {
-                //        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
-                //    }
-                //    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small union DB)...");
-                //    //do the placement and calculate score quantiles
-                //    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                //    calibrationNormScoreSmallUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                //    System.out.println("Score bound: "+calibrationNormScoreSmallUnion);
-                //    //closes the calibration log  
-                //    if (writeTSVCalibrationLog){
-                //        bwTSVCalibration.close();
-                //    }
-                //}
-                //associate medium calibration
-                //session.associateCalibrationScore(calibrationNormScoreSmallUnion);
-                //store in DB
-                //System.out.println("Serialization of the database (small union)...");
-                //session.storeHash(dbsmallunion);
-
                 //serialization finished, output some log infos
+                Infos.println("DB UNION saved in "+dbunion.getAbsolutePath());
                 Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
                 //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
-                System.out.println("\"Union\" database saved.");
+                System.out.println("Database saved.");
+                
+            } else if (session.hashType==CustomHash.NODES_TRIPLET) {
+                //calibration
+                float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
+                if (!noCalibration) {
+                    if (writeTSVCalibrationLog) {
+                        bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
+                    }
+                    System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
+                    //do the placement and calculate score quantiles
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+                    System.out.println("Score bound: "+calibrationNormScoreUnion);
+                    //closes the calibration log  
+                    if (writeTSVCalibrationLog){
+                        bwTSVCalibration.close();
+                    }
+                }
+                //associate medium calibration
+                session.associateCalibrationScore(calibrationNormScoreUnion);
+                //store in DB
+                System.out.println("Serialization of the database (triplets)...");
+                session.storeHash(dbunion);
+                //serialization finished, output some log infos
+                Infos.println("DB UNION saved in "+dbunion.getAbsolutePath());
+                Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
+                //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
+                System.out.println("Database saved.");
             }
             
             //closing some stuff

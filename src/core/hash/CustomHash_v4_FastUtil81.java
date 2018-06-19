@@ -5,32 +5,16 @@
  */
 package core.hash;
 
-import alignement.Alignment;
-import core.DNAStates;
-import core.PProbasSorted;
 import core.States;
-import core.algos.SequenceKnife;
-import core.algos.WordExplorer;
 import etc.Infos;
-import inputs.FASTAPointer;
-import inputs.Fasta;
-import inputs.PAMLWrapper;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import tree.PhyloTree;
 
 /**
  * In this second hash version, the Nodes composing the buckets contain a table
@@ -38,14 +22,12 @@ import tree.PhyloTree;
  * (nodeId, PP*)
  * @author ben
  */
-public class CustomHash_v4_FastUtil81 implements Serializable{
+public class CustomHash_v4_FastUtil81 implements Serializable,CustomHash {
     
     private static final long serialVersionUID = 7000L;
     
-    public static final int NODES_POSITION=1;
-    public static final int NODES_UNION=2;
     
-    int nodeType=NODES_UNION;
+    int nodeType=CustomHash.NODES_UNION;
     
     Object2ObjectOpenCustomHashMap<byte[],UnionPointerWithMap> hash;
 
@@ -101,11 +83,12 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
     
     /**
      * to know which type of nodes is backing this hash, 
-     * one of CustomHash_v2.NODES_UNION or CustomHash_v2.NODES_POSITION
+     * one of CustomHash.NODES_XXX
      * @return 
      */
+    @Override
     public int getHashType() {
-        return this.nodeType;
+        return CustomHash.NODES_UNION;
     }
 
     /**
@@ -139,7 +122,8 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
         }
     }  
     
-    public Char2FloatMap.FastEntrySet getPairsOfTopPosition2(byte[] w) {
+    @Override
+    public Char2FloatMap.FastEntrySet getTuples(byte[] w) {
         UnionPointerWithMap up=null;
         if ((up=hash.get(w))!=null) {
             return hash.get(w).getPairs();
@@ -227,16 +211,6 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
      * empty all the positions which where not associated to the best PP*
      */
     public void reduceToMediumHash() {
-        return;
-    }
-
-    /**
-     * in top position, empties all the positions which where not associated to the best PP*,
-     * and retains only X pairs at the best position
-     * @param X
-     */
-    @Deprecated
-    public void reducetoSmallHash(int X) {
         return;
     }
     

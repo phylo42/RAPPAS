@@ -90,6 +90,6 @@ public class TEST_CustomHash_Triplet {
         [1, 0, 0, 0, 3, 1, 2, 1] --> 1    
         */
         
-        System.out.println("test: "+ht.getTriplets(word2));
+        System.out.println("test: "+ht.getTuples(word2));
     }    
 }

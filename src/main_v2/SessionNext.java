@@ -8,8 +8,10 @@ package main_v2;
 import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
-//import core.hash.CustomHash_v4_FastUtil81;
+import core.hash.CustomHash;
 import core.hash.CustomHash_Triplet;
+import core.hash.CustomHash_v4_FastUtil81;
+//import core.hash.CustomHash_Triplet;
 import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;
@@ -28,7 +30,7 @@ import tree.PhyloTree;
  *
  * @author ben
  */
-public class SessionNext_Triplet {
+public class SessionNext {
     
     private final static int bufferSize=2097152; // buffer of 2mo
     
@@ -41,9 +43,6 @@ public class SessionNext_Triplet {
     public float PPStarThresholdAsLog10=Float.NEGATIVE_INFINITY;
     public float alpha=1.0f;
     
-    
-    
-    
     public States states=null;
     public Alignment align=null;
     public PhyloTree originalTree=null;
@@ -54,10 +53,45 @@ public class SessionNext_Triplet {
      */
     public HashMap<Integer,Integer> nodeMapping=null;
     public PProbasSorted parsedProbas=null;    
-    //public CustomHash_v4_FastUtil81 hash=null;
-    public CustomHash_Triplet hash=null;
+    public CustomHash hash=null;
+    //public CustomHash_Triplet hash=null;
     public boolean onlyFakes=false;
+    public int hashType=CustomHash.NODES_UNION;
     public Float calibrationNormScore=null;
+    
+    /**
+     *
+     */
+    public SessionNext() {}
+
+    public int getK() {
+        return this.k;
+    }
+
+    public int getMinK() {
+        return this.minK;
+    }
+
+    public float getAlpha() {
+        return this.alpha;
+    }
+
+    public int getBranchPerEdge() {
+        return this.branchPerEdge;
+    }
+
+    public float getStateThreshold() {
+        return this.stateThreshold;
+    }
+
+    public float getPPStarThreshold() {
+        return this.PPStarThreshold;
+    }
+
+    public float getPPStarThresholdAsLog10() {
+        return this.PPStarThresholdAsLog10;
+    }
+    
     
     /**
      *
@@ -69,7 +103,7 @@ public class SessionNext_Triplet {
      * @param PPStarThreshold the value of PPStarThreshold
      * @param PPStarThresholdAsLog10 the value of PPStarThresholdAsLog10
      */
-    public SessionNext_Triplet(int k, int mink, float alpha, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
+    public void associateParameters(int k, int mink, float alpha, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
         this.k=k;
         this.minK=mink;
         this.alpha=alpha;
@@ -92,13 +126,10 @@ public class SessionNext_Triplet {
         this.parsedProbas=arpl.getPProbas();
     }
     
-//    public void associateHash(CustomHash_v4_FastUtil81 hash, boolean onlyFakes) {
-//        this.hash=hash;
-//        this.onlyFakes=onlyFakes;
-//    }
-    public void associateHash(CustomHash_Triplet hash, boolean onlyFakes) {
+    public void associateHash(CustomHash hash, boolean onlyFakes, int hashType) {
         this.hash=hash;
         this.onlyFakes=onlyFakes;
+        this.hashType=hashType;
     }
     
     public void associateCalibrationScore(float score) {
@@ -109,9 +140,9 @@ public class SessionNext_Triplet {
         try {
             long startTime = System.currentTimeMillis();
             
-            Infos.println("Storing of hash");
             FileOutputStream fos = new FileOutputStream(f);
             ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,bufferSize));
+            oos.writeInt(hashType);
             oos.writeInt(k);
             oos.writeInt(minK);
             oos.writeFloat(alpha);
@@ -151,57 +182,63 @@ public class SessionNext_Triplet {
         return true;
     }
     
-    
-    
-    public static SessionNext_Triplet load(File f,boolean loadHash) {
+    /**
+     *
+     * @param f
+     * @param loadHash
+     */
+    public void load(File f,boolean loadHash) {
         try {
             long startTime = System.currentTimeMillis();
             FileInputStream fis = new FileInputStream(f);
             ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(fis,bufferSize));
-            int k=ois.readInt();
-            int minK=ois.readInt();
-            float alpha=ois.readFloat();
-            int branchPerEdge=ois.readInt();
-            float stateThreshold=ois.readFloat();
-            float PPStarThreshold=ois.readFloat();
-            float PPStarThresholdAsLog10=ois.readFloat();
-            SessionNext_Triplet s=new SessionNext_Triplet(k, minK, alpha, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
+            this.hashType=ois.readInt();
+            this.k=ois.readInt();
+            this.minK=ois.readInt();
+            this.alpha=ois.readFloat();
+            this.branchPerEdge=ois.readInt();
+            this.stateThreshold=ois.readFloat();
+            this.PPStarThreshold=ois.readFloat();
+            this.PPStarThresholdAsLog10=ois.readFloat();
+            associateParameters(k, minK, alpha, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
             Infos.println("Loading States");
-            s.states = (States)ois.readObject();
+            states = (States)ois.readObject();
             Infos.println("Loading Alignment");
-            s.align = (Alignment)ois.readObject();
+            align = (Alignment)ois.readObject();
             Infos.println("Loading Original Tree");
-            s.originalTree = (PhyloTree)ois.readObject();
+            originalTree = (PhyloTree)ois.readObject();
             Infos.println("Loading Extended Tree");
-            s.extendedTree = (ExtendedTree)ois.readObject();
+            extendedTree = (ExtendedTree)ois.readObject();
             Infos.println("Loading AR Tree");
-            s.ARTree = (PhyloTree)ois.readObject();
+            ARTree = (PhyloTree)ois.readObject();
             Infos.println("Loading of AR node mappings");
-            s.nodeMapping = (HashMap<Integer,Integer>)ois.readObject();
+            nodeMapping = (HashMap<Integer,Integer>)ois.readObject();
 //            Infos.println("Loading of PPStats");
 //            s.parsedProbas = (PProbasSorted)ois.readObject();
             Infos.println("Loading of calibration");
-            s.calibrationNormScore=ois.readFloat();
+            calibrationNormScore=ois.readFloat();
             if (loadHash) {
                 Infos.println("Loading Hash");
-                s.onlyFakes=ois.readBoolean();
-                if (s.onlyFakes) {
+                onlyFakes=ois.readBoolean();
+                if (onlyFakes) {
                     //System.out.println("Loaded DB only contain ancestral kmers associated to fake nodes.");
                 } else {
                     System.out.println("Loaded DB only also contain ancestral kmers associated to original nodes.");
                 }
-                //s.hash = (CustomHash_v4_FastUtil81)ois.readObject();
-                s.hash = (CustomHash_Triplet)ois.readObject();
+                hash = (CustomHash)ois.readObject();
+                if (hash instanceof CustomHash_v4_FastUtil81) {
+                    Infos.println("HashType: NODES_UNION");
+                } else if (hash instanceof CustomHash_Triplet) {
+                    Infos.println("HashType: NODES_TRIPLET");
+                }
             }
 
             ois.close();
             fis.close();
             long endTime = System.currentTimeMillis();
             Infos.println("Complete session loading " + (endTime - startTime) + " ms");
-            return s;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            return null;
         }
     }
     

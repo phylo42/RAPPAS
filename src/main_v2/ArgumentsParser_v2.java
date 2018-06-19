@@ -5,6 +5,7 @@
 
 package main_v2;
 
+import core.hash.CustomHash;
 import etc.Environement;
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class ArgumentsParser_v2 {
     
     public static final int TYPE_DNA=1;
     public static final int TYPE_PROTEIN=2;
-
+    
     
     private HashMap<Integer,String> argsMap=null;
     
@@ -45,6 +46,7 @@ public class ArgumentsParser_v2 {
     double reductionRatio=0.999;
     
     //parameters for DB build
+    public int hashType=CustomHash.NODES_UNION;
     public int k=8; //default=8
     public float alpha=1.0f; //default=1.0
     public int fakeBranchAmount=1;  //default =1
@@ -404,12 +406,7 @@ public class ArgumentsParser_v2 {
                     if (argsMap.get(index).equals("--calibration")) {
                         this.noCalibration=false;
                     }
-                    
-                    //test --poshash parameter
-                    if (argsMap.get(index).equals("--poshash")) {
-                        this.unionHash=false;
-                    }
-                    
+                   
                     //test --original-nodes
                     if (argsMap.get(index).equals("--original-nodes")) {
                         System.out.println("DB will also contain ancestral kmers associated to original nodes (--original-nodes).");
@@ -472,7 +469,22 @@ public class ArgumentsParser_v2 {
                             System.out.println("Cannot parse '--gap-jump-thresh' as a float value.");
                             System.exit(1);
                         }
-                    }                    //////////////////////////////////////
+                    }
+                    
+                    
+                    //BELOW ARE DEV RELATED OPTIONS, not displayed in help
+
+                    //test --poshash parameter
+                    if (argsMap.get(index).equals("--poshash")) {
+                        this.unionHash=false;
+                    }
+                    
+                    //test --hashtriplets parameter
+                    if (argsMap.get(index).equals("--hashtriplets")) {
+                        this.hashType=CustomHash.NODES_TRIPLET;
+                    }
+
+                    //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
                     
@@ -689,7 +701,6 @@ public class ArgumentsParser_v2 {
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +
         "--calibration     [] Prototype calib. on random anc. kmers. (b mode).\n" +
-        "--poshash         [] Places using older deprecated hash. (b mode)\n" +
         "--original-nodes  [] Also compute ancestral kmers for original nodes,\n" +
         "                  produces heavier (unused) computations. (b mode)\n" +
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b mode) \n" +

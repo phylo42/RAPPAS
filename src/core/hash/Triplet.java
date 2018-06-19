@@ -29,16 +29,7 @@ public interface Triplet extends Comparable<Triplet> {
     public void setNodeId(int nodeId);
     public void setPPStar(float PPStar);
     public void setRefPosition(int refPostition);
-    public void registerTuple(int nodeId, int refPosition, float PPStar);
-    public ArrayList<Triplet> getTripletList(byte[] w);
-    //public ArrayList<Triplet> getTripletList(int refPosition);
-    public Triplet getBestTriplet();
-    public int[] getNode();
-    public int[] getPositions();
-    public int getBestPosition();
-    
-    
-    
+
     @Override
     public default int compareTo(Triplet o) {
         return -Float.compare(this.getPPStar(),o.getPPStar());

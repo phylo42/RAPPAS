@@ -7,7 +7,8 @@ package core.algos;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import main_v2.SessionNext_v2;
+import main_v2.SessionNext;
+import main_v2.SessionNext;
 
 /**
  * third version of word explorer
@@ -33,7 +34,7 @@ public class WordExplorer_v3 {
 
      
     //external data used in the recursion
-    SessionNext_v2 session=null;
+    SessionNext session=null;
     int extTreeId=-1;
     int originalId=-1;    
     
@@ -65,7 +66,7 @@ public class WordExplorer_v3 {
      * @param doGapJumps
      * @param limitTo1Jump
      */
-    public WordExplorer_v3( SessionNext_v2 session,
+    public WordExplorer_v3( SessionNext session,
                             int refPosition,
                             int nodeId,
                             boolean wordCompression,

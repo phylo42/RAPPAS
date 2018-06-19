@@ -19,10 +19,8 @@ package core.hash;
 import core.States;
 import etc.Infos;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,17 +30,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * (nodeId, PP*,refPosition)
  * @author yann
  */
-public class CustomHash_Triplet implements Serializable {
+public class CustomHash_Triplet implements Serializable,CustomHash {
     
-    public static final int NODES_POSITION=1;
-    public static final int NODES_UNION=2;
+    public static final int nodeType=CustomHash.NODES_TRIPLET;
     
-    int nodeType=NODES_UNION;
-    
-    Object2ObjectOpenCustomHashMap<byte[],Triplet_16_32_32_bit> hash;
-    
-    ArrayList<Triplet> tripletsBuffer =new ArrayList(1024);
-    
+    Object2ObjectOpenCustomHashMap<byte[],ObjectOpenHashSet<Triplet_16_32_16_bit>> hash;
+        
     //TripletList list=new TripletList(0);
     
     int maxCapacitySize=-1;
@@ -69,15 +62,32 @@ public class CustomHash_Triplet implements Serializable {
      * @param nodeId
      * @param refPos 
      */
+    @Override
     public void addTuple(byte[] word, float PPStar,int nodeId,int refPos) {
-        Triplet_16_32_32_bit t = null;
-        if (!hash.containsKey(word)) {
-            t = new Triplet_16_32_32_bit(nodeId, PPStar, refPos);
-            t.registerTuple(nodeId, refPos, PPStar);
-            hash.put(word, t);
+        ObjectOpenHashSet<Triplet_16_32_16_bit> set = hash.get(word);
+        if (set==null) {
+            set =new ObjectOpenHashSet<>();
+            set.add(new Triplet_16_32_16_bit(nodeId, PPStar, refPos));
+            hash.put(word, set);  
         } else {
-            //update list of triplets
-            hash.get(word).registerTuple(nodeId, refPos, PPStar);
+            boolean found=false;
+            for (Triplet t:set) {
+                //nodeid already registered
+                if (t.getNodeId()==nodeId) {
+                    found=true;
+                    //replace previous triplet if better PP*
+                    if (PPStar > t.getPPStar()) {
+                        t.setPPStar(PPStar);
+                        // replace position associated to better PP*
+                        t.setRefPosition(refPos);
+                    }
+                    break;
+                }
+            }
+            //node not yet registered, do it
+            if (!found) {
+                set.add(new Triplet_16_32_16_bit(nodeId, PPStar, refPos));
+            }
         }
         
     }
@@ -86,66 +96,37 @@ public class CustomHash_Triplet implements Serializable {
      * for debug purposes only (access to CustomHashMap hashtable)
      * @return 
      */
-    public Object2ObjectOpenCustomHashMap<byte[],Triplet_16_32_32_bit> getHash() {
+    @Deprecated
+    public Object2ObjectOpenCustomHashMap<byte[],ObjectOpenHashSet<Triplet_16_32_16_bit>> getHash() {
         return hash;
 
     }
     
     /**
      * to know which type of nodes is backing this hash, 
-     * one of CustomHash_v2.NODES_UNION or CustomHash_v2.NODES_POSITION
+     * one of CustomHash.NODES_XXX
      * @return 
      */
+    @Override
     public int getHashType() {
-        return this.nodeType;
+        return CustomHash_Triplet.nodeType;
     }
 
-    /**
-     * best (nodeId,PP*,refPos) associated to this word
-     * @param w
-     * @return 
-     */
-    public Triplet getTopTriplet(byte[] w) {
-        Triplet tp=null;
-        if ((tp=hash.get(w))!=null) {
-            hash.trim();
-            return tp.getBestTriplet();
-        } else {
-            return null;
-        }
+    
+    @Override
+    public ObjectOpenHashSet<Triplet_16_32_16_bit> getTuples(byte[] w) {
+        return hash.get(w);
     }
     
-    public int getTopPosition(byte[] w) {
-        Triplet tp=null;
-        if ((tp=hash.get(w))!=null) {
-            return tp.getBestPosition();
-        } else {
-            return -1;
-        }
-    }
-    
-    public List<Triplet> getTriplets(byte[] w) {
-        tripletsBuffer.clear();
-        tripletsBuffer.addAll(hash.get(w).getTripletList(w));
-        return tripletsBuffer;
-    }
-    
-    public List<Triplet> getBestTriplets(byte[] w) {
-        tripletsBuffer.clear();
-        for (Triplet p: hash.get(w).getTripletList(w)) {
-            if (p.getPPStar()>hash.get(w).getPPStar()) {
-                tripletsBuffer.add(p);
-            }           
-        }
-        return tripletsBuffer;
-    }
+ 
     
     public void sort() {
-        //No need for sorting in Union DB
+        //No need for sorting
         //but will use this step to trim the hash
         hash.trim();
     }
     
+    @Override
     public void sortData() {
         //trim hash to max size
         this.hash.trim(maxCapacitySize);
@@ -162,18 +143,6 @@ public class CustomHash_Triplet implements Serializable {
         return hash.keySet();
     }
     
-    /**
-     * reference alignment positions associated to a word
-     * @param w
-     * @return 
-     */
-    public int[] getPositions(byte[] w) {
-        Triplet_16_32_32_bit tp=null;
-        if ((tp=hash.get(w))!=null) {
-            return tp.getPositions();
-        } else {
-            return null;
-        }
-    }
+    
 
 }

@@ -19,20 +19,13 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.02";
+    private final static String consoleVersion="1.03";
 
     public static void main (String[] args) {
         try {
             long startTime=System.currentTimeMillis();
-            System.out.println("################################################");
-            System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
-            System.out.println("## via Ancestral Sequences");
-            System.out.println("## (RAPPAS v"+consoleVersion+")");
-            System.out.println("## Linard B, Swenson K, Pardi F. 2018 BioRxiv");
-            System.out.println("## Univ Montpellier, LIRMM, CNRS, France");
-            System.out.println("## benjamin.linard[at]lirm[dot]fr)");
-            System.out.println("################################################");
-            //System.out.println(VM.current().details());
+            
+	    //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
             //hack related to Problems under MAC OS implementation of
@@ -56,6 +49,18 @@ public class Main_v2 {
                 //System.out.println("Message not shown.");
                 //System.setOut(original); //to get back output stream
             }
+            
+            System.out.println("################################################");
+            System.out.println("## RAPPAS v"+consoleVersion);
+            System.out.println("## ---------------------------------------------");
+            System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
+            System.out.println("## via Ancestral Sequences");
+            System.out.println("## Linard B, Swenson KM, Pardi F");
+            System.out.println("## LIRMM, Univ. of Montpellier, CNRS, France");
+            System.out.println("## https://doi.org/10.1101/328740");
+            System.out.println("## benjamin/dot/linard/at/lirmm/dot/fr");
+            System.out.println("################################################");
+            
             
             
             //type of Analysis, DNA or AA

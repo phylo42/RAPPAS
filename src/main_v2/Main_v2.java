@@ -64,7 +64,7 @@ public class Main_v2 {
                 s=new DNAStatesShifted();
                 System.out.println("Set analysis for DNA");
             } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
-                s=new AAStates();
+                s=new AAStates(argsParser.convertUOX);
                 System.out.println("Set analysis for PROTEIN");
             }
 

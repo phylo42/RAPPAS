@@ -38,6 +38,7 @@ public class ArgumentsParser_v2 {
     public File workingDir=null;//current directory by default, see below
     int verbose=0; //default, no verbosity
     int analysisType=TYPE_DNA;
+    boolean convertUOX=false; //must be true so that U/O/X are converted in C/L/-
     
     //parameters for alignment reduction
     public boolean reduction=true;
@@ -163,6 +164,10 @@ public class ArgumentsParser_v2 {
                     System.out.println("Unexpected -s (--states) value, must be one of [nucl|amino].");
                     System.exit(1);
                 }
+            }
+            //test --convertUOX parameter
+            if (argsMap.get(index).equals("--convertUOX")) {
+                this.convertUOX=true;
             }
             
             
@@ -669,6 +674,7 @@ public class ArgumentsParser_v2 {
         "                  used in ancestral words filtering. (b mode)\n" +
         "-f (--fakebranch) [1] # phantom nodes to add on reference tree branches. \n"+
         "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +
+        "--convertUOX      [] U,O,X amino acids become C,L,- (b mode).\n"+        
         "--force-root      [] Root input tree if non rooted. (b mode)\n" +
         "--ratio-reduction [0.999] Ratio for alignment reduction, i.e. sites \n" +
         "                  holding >99.9% gaps are ignored. (b mode)\n" +

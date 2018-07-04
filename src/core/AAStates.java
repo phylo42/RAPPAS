@@ -36,7 +36,11 @@ public class AAStates extends AbstractStates implements States,Serializable {
     LinkedHashMap<Byte,Character> s =new LinkedHashMap<>();
     LinkedHashMap<Character, Byte> b =new LinkedHashMap<>();
     
-    public AAStates() {
+    /**
+     *
+     * @param convertUOX the value of convertUOX
+     */
+    public AAStates(boolean convertUOX) {
        
         //positives
         s.put((byte)0, 'R');s.put((byte)0, 'r');
@@ -84,10 +88,21 @@ public class AAStates extends AbstractStates implements States,Serializable {
         b.put('W',(byte)17);b.put('w',(byte)17);
         b.put('Y',(byte)18);b.put('y',(byte)18);
         b.put('V',(byte)19);b.put('v',(byte)19);
+        
         //ambigous states which are allowed
         ambigousStates=1;
         s.put((byte)20, '-');
         b.put('-',(byte)20);
+        
+        //special AA and unknown
+        if (convertUOX) {
+            s.put((byte)9, 'U');s.put((byte)9, 'u'); // U to C
+            s.put((byte)14, 'O');s.put((byte)14, 'o'); // O to L
+            s.put((byte)20, 'X');s.put((byte)20, 'x'); // X to -
+            b.put('U',(byte)9);b.put('u',(byte)9);
+            b.put('O',(byte)14);b.put('o',(byte)14);
+            b.put('X',(byte)20);b.put('x',(byte)20);
+        }
         
     }
 

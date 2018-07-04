@@ -34,9 +34,10 @@ public class NonIUPACStateException extends Exception {
         super("The non-IUPAC state "+c+" is not allowed.");
         this.c=c;
         if ( (s instanceof DNAStates) || (s instanceof DNAStatesShifted)) {
-            System.err.println("You selected a nucleotide analysis (-s 'nucl'), but this state is not in IUPAC allowed nucleotides.");
+            System.err.println("You selected a nucleotide analysis (-s 'nucl'), but this state is not an IUPAC allowed nucleotides.");
         } else {
-            System.err.println("You selected an amino acid analysis (-s 'amino'), but this state is not in IUPAC allowed amino acids.");
+            System.err.println("You selected an amino acid analysis (-s 'amino'), but this state is not regular amino acids.");
+            System.err.println("Note that U,O,X amino acids can be converted to C,L,-(gap) explicitely with option '--convertUOX'.");
         }
     }
     

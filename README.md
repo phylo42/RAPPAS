@@ -78,7 +78,7 @@ Such reference marker gene datasets can be found, for instance from:
 __Basic command__
 
 ```
-java -jar RAPPAS.jar -m b -s [nucl|prot] -b ARbinary -w workdir -r reference_alignment.fasta -t reference_tree.newick
+java -Xmx8G -jar RAPPAS.jar -m b -s [nucl|prot] -b ARbinary -w workdir -r reference_alignment.fasta -t reference_tree.newick
 ```
 
 where
@@ -96,6 +96,12 @@ __Note on PhyML and PAML binaries__:
 Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
 - PhyML : Fastest & strongly recommended but may require lots of RAM.
 - PAML  : Slower,  but requires less memory.
+
+__Note on -Xm[x]G option__:
+The process of database build can be memory intensive for values of k>=10.
+To make RAPPAS run smoothly, allocate more memory (more heap) to the java process using the option -Xm[x]G where [x] is replaced by an integer value.
+For instance, -Xm8G will extend the java heap to a maximum of 8Gb of memory, -Xmx16G will extend it to a maximum of 16Gb ... 
+
 
 You can use the latest versions provided on the authors' websites. PhyML requires at least version 3.3 (see [PhyML GIT](https://github.com/stephaneguindon/phyml) ), but we recommand the _HACKED VERSIONS_ available in this git repository in the /depbin directory.
 These are based on slightly modified sources of PhyML and PAML: no change in ML computations, but useless outputs are skipped, making the ancestral reconstruction process faster (in particular for PAML).
@@ -116,7 +122,7 @@ After building the RAPPAS DB, placement commands can be called numerous times on
 v1.00 of RAPPAS places 1,000,000 metagenomic of 150bp in ~30-40 minutes, using only a single core of a normal desktop PC.
 
 ```
-java -jar RAPPAS.jar -m p -s [nucl|prot] -w workdir -d database.union -q queries.fasta 
+java -Xmx8G -jar RAPPAS.jar -m p -s [nucl|prot] -w workdir -d database.union -q queries.fasta 
 ```
 
 where
@@ -128,6 +134,9 @@ option | expected value | description
 **-w (--workdir)** | directory | Set the directory to save the database in.
 **-d (--database)** | file | the *.union file created at previous DB build step.
 **-q (--queries)** | file | The query reads, in fasta format.
+
+__Note on -Xm[x]G option__:
+Reuse the value used in the database build phase, as loading the database will basically require the same amount of memory.
 
 The *.jplace describing the placements of all queries will be written in the ./workdir/logs directory.
 
@@ -156,6 +165,7 @@ option | expected value {default} | description
 **-k** | integer>=3 {8} | The k-mer length used at DB build.
 **-a (--alpha)** | float in ]0,#states] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
 **-f (--fakebranch)** | integer>=1 {1} | Number of ghost nodes injected on each reference tree branches. (b mode)
+**--convertUOX** | none | U,O,X amino acids are converted to C,L,- to allow correct ancestral reconstruction (b mode)
 **--force-root**  | none | Root input tree if non rooted. (b mode)
 **--ratio-reduction** | float in ]0,1] {0.999} |Ratio for alignment reduction, i.e. sites holding >99.9% gaps are ignored. (b mode)
 **--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b mode)

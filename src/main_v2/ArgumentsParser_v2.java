@@ -618,6 +618,14 @@ public class ArgumentsParser_v2 {
      * print help and exit execution
      */
     private void showHelpAndExit() {
+        System.out.println("################################################");
+        System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
+        System.out.println("## via Ancestral Sequences");
+        System.out.println("## Linard B, Swenson KM, Pardi F");
+        System.out.println("## LIRMM, Univ. of Montpellier, CNRS, France");
+        System.out.println("## https://doi.org/10.1101/328740");
+        System.out.println("## benjamin/dot/linard/at/lirmm/dot/fr");
+        System.out.println("################################################");
         System.out.print(
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
         " Minimum usage:\n"+

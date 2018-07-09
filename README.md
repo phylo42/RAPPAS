@@ -49,7 +49,7 @@ sudo apt-get install ant
 
 ```
 #download git repository
-git clone -b master https://gite.lirmm.fr/linard/RAPPAS.git
+git clone -b master https://github.com/blinard-BIOINFO/RAPPAS.git
 #compile
 cd RAPPAS && ant -f build-cli.xml
 ```

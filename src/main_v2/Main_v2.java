@@ -104,13 +104,14 @@ public class Main_v2 {
                                             argsParser.reducedAlignFile,
                                             argsParser.reductionRatio,
                                             argsParser.onlyFakeNodes,
-                                            argsParser.keepAtMost,
+                                            argsParser.keepAtMost,                                        
                                             argsParser.keepFactor,
+                                            argsParser.minOverlap,
                                             argsParser.doGapJumps,
                                             argsParser.limitTo1Jump,
                                             argsParser.gapJumpThreshold,
                                             argsParser.hashType
-                        
+                                            
                                             );
                 
             //////////////////////
@@ -137,7 +138,8 @@ public class Main_v2 {
                                                 argsParser.callString,
                                                 argsParser.nsBound,
                                                 argsParser.keepAtMost,
-                                                argsParser.keepFactor
+                                                argsParser.keepFactor,
+                                                argsParser.minOverlap
                                                 );
                 }
                 

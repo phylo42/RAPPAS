@@ -67,7 +67,7 @@ public class ArgumentsParser_v2 {
     public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
     
     //parameters for placement
-    public int minOverlap=100; //deprecated, was used for diagsums coordinates
+    public int minOverlap=100; //default, was used for diagsums coordinates
     public List<File> queriesFiles=null;
     public File databaseFile=null;
     public Float nsBound=Float.NEGATIVE_INFINITY; //do not consider score threshold determined at calibration but this particular threshold
@@ -552,7 +552,16 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     
-                    
+                    //test --minOverlap parameter
+                    if (argsMap.get(index).equals("--minOverlap")) {
+                        String minOverlapVal=argsMap.get(index+1);
+                        try {
+                            this.minOverlap=Integer.parseInt(minOverlapVal);
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '--minOverlap' as a int value.");
+                            System.exit(1);
+                        }
+                    }
 
                     
                     //////////////////////////////////////
@@ -688,6 +697,7 @@ public class ArgumentsParser_v2 {
         "                  keep all sites of input reference alignment and \n" +
         "                  may produce erroneous ancestral k-mers. (b mode)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
+        "--minOverlap [100] a number of minimum read overlap.\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Debug options:    Use only if you know what you are doing...    \n" +

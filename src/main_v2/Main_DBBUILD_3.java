@@ -128,6 +128,7 @@ public class Main_DBBUILD_3 {
                                         boolean onlyFakeNodes,
                                         int keepAtMost,
                                         float keepRatio,
+                                        int minOverlap,
                                         boolean doGapJumps,
                                         boolean limitTo1Jump,
                                         float gapJumpThreshold,
@@ -861,7 +862,7 @@ public class Main_DBBUILD_3 {
                         System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
                         //generate random sequences
                         rs=new RandomSeqGenerator(session.states,meanCalibrationSequenceSize);
-                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                         //do the placement and calculate score quantiles
                         calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                         System.out.println("Score bound: "+calibrationNormScoreMedium);
@@ -880,7 +881,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,minOverlap);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
@@ -893,7 +894,7 @@ public class Main_DBBUILD_3 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,minOverlap);
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
@@ -906,7 +907,7 @@ public class Main_DBBUILD_3 {
                         }
                         System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
                         //do the placement and calculate score quantiles
-                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                         calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                         System.out.println("Score bound: "+calibrationNormScoreUnion);
                         //closes the calibration log  
@@ -924,7 +925,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,minOverlap);
                     }
                     //reduction to small DB
                     //System.out.println("Reduction to small union DB...");
@@ -975,7 +976,7 @@ public class Main_DBBUILD_3 {
                             bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_large.tsv")),bufferSize);
                         }
                         System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (large DB)...");
-                        asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                        asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                         //do the placement and calculate score quantiles
                         float calibrationNormScoreLarge = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                         System.out.println("Score bound: "+calibrationNormScoreLarge);
@@ -1034,7 +1035,7 @@ public class Main_DBBUILD_3 {
                         bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_medium.tsv")),bufferSize);
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (medium DB)...");
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                     //do the placement and calculate score quantiles
                     calibrationNormScoreMedium = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreMedium);
@@ -1090,7 +1091,7 @@ public class Main_DBBUILD_3 {
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (small DB)...");
                     //do the placement and calculate score quantiles
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                     calibrationNormScoreSmall = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreSmall);
                     //closes the calibration log  
@@ -1142,7 +1143,7 @@ public class Main_DBBUILD_3 {
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
                     //do the placement and calculate score quantiles
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                     calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreUnion);
                     //closes the calibration log  
@@ -1171,7 +1172,7 @@ public class Main_DBBUILD_3 {
                     }
                     System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (normal union DB)...");
                     //do the placement and calculate score quantiles
-                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+                    asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize, minOverlap);
                     calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
                     System.out.println("Score bound: "+calibrationNormScoreUnion);
                     //closes the calibration log  

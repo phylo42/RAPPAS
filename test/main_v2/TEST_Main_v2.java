@@ -53,12 +53,12 @@ public class TEST_Main_v2 {
             //--------------------------------
 
             //DATASET BASIC RAPID TESTS --PHYML--
-            HOME="/media/STOCK";
-            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_SMALL_PHYML";
-            String inputsPath=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/alpha_RNApol/model_GTRnuc/";
-            String a=inputsPath+"mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-            String t=inputsPath+"RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
-            String ARBinary="/home/benclaff/software/phyml-AR/bin/phyml";
+            HOME="/home/yann";
+            String workDir=HOME+"/Bureau/Data/WD_SMALL_PHYML";
+            String inputsPath=HOME+"/Bureau/Data/WD_SMALL_PHYML";
+            String a=inputsPath+"/mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+            String t=inputsPath+"/RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+            String ARBinary="/home/yann/Bureau/RAPPAS_last_version/bindep/phyml_x64";
 
             //DATASET LARGER SET --PHYML--
 //            String workDir=HOME+"/Dropbox/viromeplacer/test_datasets/WD_LARGE_PHYML";
@@ -85,7 +85,7 @@ public class TEST_Main_v2 {
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
-            String q=workDir+"/test_read.fasta";
+            String q=workDir+"/alphaTest1";
             //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
@@ -136,6 +136,7 @@ public class TEST_Main_v2 {
                             + "--keep-at-most 7 "
                             + "--keep-factor 0.01 "
                             + "--states nucl "
+                            //+"--minOverlap 90 "
                             ;            
                             
                             

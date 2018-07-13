@@ -21,10 +21,12 @@ import java.awt.GridLayout;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Float.NaN;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -67,6 +69,8 @@ public class PlacementProcess {
     //parameters asked when program launched
     SessionNext session=null;
     Float nsBound=Float.NEGATIVE_INFINITY;
+    int minOverlap=-1; //TODO: ici ramener minoverlap depuis les arguments
+    int v=-1;
     
     //elements related to fil outputs
     //filled while the placement process is running
@@ -79,11 +83,14 @@ public class PlacementProcess {
      * @param session
      * @param nsBound
      * @param queryLimit the value of queryLimit
+     * @param minOverlap
      */
-    public PlacementProcess(SessionNext session, Float nsBound, int queryLimit) {
+    public PlacementProcess(SessionNext session, Float nsBound, int queryLimit, int minOverlap) {
         this.session=session;
         this.nsBound=nsBound;
         this.queryLimit=queryLimit;
+        this.minOverlap=minOverlap;//TODO valeur du parametre minoverLap
+        this.v=this.minOverlap-session.k+1;
     }
     
     /**
@@ -124,10 +131,16 @@ public class PlacementProcess {
         //when nodeOccurences[nodeId]==0
         //,reset at each read
         ArrayList<Integer> selectedNodes=new ArrayList<>(10);
-        //instanciated once
+        //instanciated once, tables for pass 1
         int[] nodeOccurences=new int[session.originalTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
         float[] nodeScores=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
         float[] nodeScoresCopy=new float[session.originalTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
+        //instanciated once, tables for pass 2
+        float[] D=new float[10000]; // this table stores the sum of the PPStar for each diagonal
+        int[] O=new int[10000]; // this table stores the number of k-mers for each diagonal
+        float sum = 0;
+        ArrayList<Integer> listOfDiag=new ArrayList<>(10);
+        
         //System.out.println("S/C size: "+nodeOccurences.length);
         float kthLargestValue=-1;
         int numberOfBestScoreToConsiderForOutput=-1;
@@ -135,6 +148,7 @@ public class PlacementProcess {
         for (int i = 0; i < bestScoreList.length; i++) {
             bestScoreList[i]=new Score(-1, Float.NEGATIVE_INFINITY);
         }
+        
 
         ///////////////////////////////////////////////////////////////////       
         // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
@@ -312,7 +326,7 @@ public class PlacementProcess {
             boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
             byte[] qw=null;
-            while ((qw=sk.getNextByteWord())!=null) {
+            while ((qw=sk.getNextByteWord())!=null) {  // FOR EACH K-MERS IN QUERY
                 //Infos.println("Query mer: "+qw.toString());
                 
                 //get Pairs associated to this word
@@ -354,6 +368,7 @@ public class PlacementProcess {
                     });
                     
                 } else if (session.hash.getHashType()==CustomHash.NODES_TRIPLET) {
+                    
                     for (Iterator<Triplet_16_32_16_bit> iterator = allTuples.iterator(); iterator.hasNext();) {
                         Triplet_16_32_16_bit triplet = iterator.next();
                         
@@ -361,15 +376,16 @@ public class PlacementProcess {
                         //we will score only encountered nodes, originalNode registered
                         //at 1st encouter
                         if (nodeOccurences[nodeId]==0) {
-                            selectedNodes.add(nodeId);
+                            selectedNodes.add(nodeId); // list of nodeId
                         }
                         //count # times originalNode encountered
                         nodeOccurences[nodeId]+=1;
                         //score associated to originalNode x for current read
                         nodeScores[nodeId]+=triplet.getPPStar();
-                        if(graphAlignment) {
-                            graphDataForTopTuples[2][queryKmerCount*xSize+triplet.getRefPosition()]= new Double(triplet.getPPStar());   
-                        }
+                        
+//                        if(graphAlignment) {
+//                            graphDataForTopTuples[2][queryKmerCount*xSize+triplet.getRefPosition()]= new Double(triplet.getPPStar());   
+//                        }
                     }
                     
                 }
@@ -377,12 +393,7 @@ public class PlacementProcess {
 //                long endT2Time=System.currentTimeMillis();
 //                totalT2Time+=(endT2Time-startT2Time);
                 
-                //graph of alignment, if asked
-                if(graphAlignment) {
-                   //int topPosition =session.hash.getTopPosition(qw);
-                   //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
-                   //graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allTuples.toArray()[0]);                        
-                }
+
 
                 queryKmerCount++;
 
@@ -412,21 +423,6 @@ public class PlacementProcess {
             }
             
 
-            //display alignment result of requested
-            if (graphAlignment) {
-                //graph for topTuplePerPos
-                DefaultXYZDataset datasetForGraph=new DefaultXYZDataset();
-                //datasetForGraph.addSeries(0, graphDataForTopTuples);
-                datasetForGraph.addSeries(0, graphDataForTopTuples);
-                JFrame infos=new JFrame();
-                infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                infos.setLayout(new GridLayout(1, 1));
-                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
-                infos.setSize(1024, 250);
-                infos.pack();
-                RefineryUtilities.centerFrameOnScreen(infos);
-                infos.setVisible(true);
-            }
 
 
             //Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
@@ -436,7 +432,7 @@ public class PlacementProcess {
 
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
-            if ( (selectedNodes.size()<1) ) {
+            if ( (selectedNodes.size()<1) ) {  // selectedNodes = list of nodes
                 Infos.println("Read cannot be placed.");
                 //report queries that could not be placed because
                 //none of its kmers found in DB
@@ -472,7 +468,7 @@ public class PlacementProcess {
 //                System.out.print("maxWords:"+queryKmerCount);
 //                System.out.print(" nodeId:"+nodeId);
 //                System.out.print("\tscore:"+nodeScores[nodeId]);
-//                System.out.print("\toccur:"+nodeOccurences[nodeId]);
+//                System.out.print("\toccur:"+nodeOccurences[nodeId]+"\t");
                 nodeScores[nodeId]+=(session.PPStarThresholdAsLog10*(queryKmerCount-nodeOccurences[nodeId]));
                 
                 //here keep track of the 2 best scores
@@ -550,8 +546,108 @@ public class PlacementProcess {
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
             }
-            //System.out.println("bestScoreList:"+Arrays.toString(bestScoreList));
-            //System.out.println("numberOfBestScoreToConsiderForOutput: "+numberOfBestScoreToConsiderForOutput);
+//            System.out.println("bestScoreList:"+Arrays.toString(bestScoreList));
+//            System.out.println("numberOfBestScoreToConsiderForOutput: "+numberOfBestScoreToConsiderForOutput);
+//            System.out.println("bestNodeId: "+bestNodeId);
+//            System.out.println("bestScore: "+bestScore);
+            //System.out.println("minOverlap: "+minOverlap);
+            //System.out.println("v: "+v);
+            
+            
+            //######################################
+            
+            
+            queryKmerCount=0;
+            queryKmerMatchingDB=0;
+            
+            sk.reset();//reset kmer pointer to 1st kmer
+            
+            int qMax=sk.getMerCount();
+            int mMax=session.align.getLength()-session.k+1;
+            
+            while ((qw=sk.getNextByteWord())!=null) {  // FOR EACH K-MERS IN QUERY LOOP 2
+                Set allTuples =null;
+                if (session.states instanceof DNAStatesShifted) {
+                    allTuples = session.hash.getTuples(session.states.compressMer(qw));
+                } else {
+                    allTuples = session.hash.getTuples(qw);
+                } 
+
+                //word is not present in hash
+                if (allTuples==null) {
+                    queryKmerCount++;
+                    continue;
+                }
+                queryKmerMatchingDB++;
+                
+                for (Iterator<Triplet_16_32_16_bit> iterator = allTuples.iterator(); iterator.hasNext();) {
+                    Triplet_16_32_16_bit triplet = iterator.next();
+                    int nodeId=triplet.getNodeId();
+                    
+                    if (nodeId != bestNodeId) { // Scan the triplets until we find b*
+                        continue;
+                    }
+                    else {
+                        int p = triplet.getRefPosition()-queryKmerCount+qMax-v;
+                        if ((p > -1) && (triplet.getRefPosition() < mMax + qMax - 2*v)) {
+                            float val=(bestScore - session.PPStarThresholdAsLog10)*(qMax/f(p,v,qMax,mMax));
+                            D[p] += val;
+                            sum += val;
+                            if (O[p]==0) {
+                                listOfDiag.add(p);
+                            }
+                            O[p] += 1;
+                        }
+                        
+                        if(graphAlignment) {
+                            graphDataForTopTuples[2][queryKmerCount*xSize+triplet.getRefPosition()]= new Double(triplet.getPPStar());   
+                        }
+                        
+                        
+                    }
+                }
+                queryKmerCount++;
+            }
+            System.out.println("kmer found for b* : "+queryKmerMatchingDB+"/"+queryKmerCount);
+            System.out.println("L:"+listOfDiag);
+            
+            float H=NaN;
+            if (listOfDiag.size()>0)
+                H=0;
+            for (int i = 0; i < listOfDiag.size(); i++) {
+                int index = listOfDiag.get(i);
+                D[index]=D[index]/sum;
+                H+=-D[index]*(Math.log(D[index])/Math.log(2));
+                System.out.println("Occ in p_ieme="+index+" : "+O[index]);
+
+                D[index]=0;
+                O[index]=0;
+            }
+            
+            System.out.println("H:"+H);
+
+            
+            
+            //######################################
+
+            
+            //display alignment result of requested
+            if (graphAlignment) {
+                //graph for topTuplePerPos
+                DefaultXYZDataset datasetForGraph=new DefaultXYZDataset();
+                //datasetForGraph.addSeries(0, graphDataForTopTuples);
+                datasetForGraph.addSeries(0, graphDataForTopTuples);
+                JFrame infos=new JFrame();
+                infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                infos.setLayout(new GridLayout(1, 1));
+                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
+                infos.setSize(1024, 250);
+                infos.pack();
+                RefineryUtilities.centerFrameOnScreen(infos);
+                infos.setVisible(true);
+            }
+            
+            
             
             //if necessary
             //prepare variable weightRatioShift for allowing
@@ -794,6 +890,7 @@ public class PlacementProcess {
             }
             selectedNodeSize+=selectedNodes.size();
             selectedNodes.clear();
+            listOfDiag.clear();
 //            long endResetTime=System.currentTimeMillis();
 //            totalResetTime+=endResetTime-startResetTime;
             
@@ -844,12 +941,34 @@ public class PlacementProcess {
     }
     
     /**
+     * function returning max number of kmers contributing to a diagonal
+     * of index p
+     * @param p diagonal index
+     * @param v min overlap
+     * @param qMax # kmers query
+     * @param mMax # kmers ref
+     * @return 
+     */
+    private int f(int p,int v, int qMax, int mMax) {
+        if ( (p>=0) && (p<=qMax-v-1) ) {
+            return v + p;
+        }
+        else if ((p>=mMax+v+1) && (p<=qMax+mMax-(2*v))) {
+            return mMax+qMax-v-p;
+        }
+        else {
+            return qMax;
+        }
+    }
+    
+    
+    /**
      * get kth largest element in average O(n) linear time (Hoare's selection algorithm)
      * @param arr 
      * @param k th element to return
      * @return 
      */
-    public float selectKthLargestValue(float[] arr, int k) {
+    private float selectKthLargestValue(float[] arr, int k) {
         if (arr == null || arr.length <= k) {
             throw new Error();
         }

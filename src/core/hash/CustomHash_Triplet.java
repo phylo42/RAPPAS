@@ -35,7 +35,7 @@ public class CustomHash_Triplet implements Serializable,CustomHash {
     public static final int nodeType=CustomHash.NODES_TRIPLET;
     
     Object2ObjectOpenCustomHashMap<byte[],ObjectOpenHashSet<Triplet_16_32_16_bit>> hash;
-        
+    
     //TripletList list=new TripletList(0);
     
     int maxCapacitySize=-1;
@@ -139,6 +139,7 @@ public class CustomHash_Triplet implements Serializable,CustomHash {
         Infos.println("Triplet sorting took "+(endTime-startTime)+" ms");
     }
     
+    @Override
     public Set<byte[]> keySet() {
         return hash.keySet();
     }

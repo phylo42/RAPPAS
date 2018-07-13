@@ -5,15 +5,12 @@
  */
 package core.algos;
 
-import core.DNAStates;
 import core.QueryWord;
 import core.States;
-import core.Word;
 import etc.Infos;
 import etc.exceptions.NonIUPACStateException;
 import inputs.Fasta;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -207,6 +204,13 @@ public class SequenceKnife {
      */
     public int getMaxMerCount() {
         return (this.sequence.length-this.k+1)/this.step;
+    }
+    
+    /**
+     * reset word pointer to 1st word
+     */
+    public void reset() {
+        iterator=0;
     }
     
     

@@ -77,6 +77,7 @@ public class Main_PLACEMENT_v07 {
      * @param nsBound
      * @param keepAtMost
      * @param keepRatio
+     * @param minOverlap
      * @return 
      */
     public int doPlacements(    File q,
@@ -85,7 +86,8 @@ public class Main_PLACEMENT_v07 {
                                 String callString,
                                 Float nsBound,
                                 int keepAtMost,
-                                float keepRatio) {
+                                float keepRatio,
+                                int minOverlap) {
 
         try {
                         
@@ -97,12 +99,12 @@ public class Main_PLACEMENT_v07 {
             
             //minOverlap is currently deprecated !
             //minimum read/ref overlap,in bp. When not respected, read not reported
-            int minOverlap=100;
+            //int minOverlap=100;
             //word sampling method
             int queryWordSampling=SequenceKnife.SAMPLING_LINEAR;
 
             //debug 
-            int queryLimit=1;
+            int queryLimit=10;
             
 
             ////////////////////////////////////////////////////////////////////
@@ -136,6 +138,9 @@ public class Main_PLACEMENT_v07 {
             Infos.println("# nodes in the tree: "+session.ARTree.getNodeCount());
             Infos.println("# leaves in the tree: "+session.ARTree.getLeavesCount());
             Infos.println("# internal nodes in the tree: "+session.ARTree.getInternalNodesByDFS().size());
+            
+            //Size of minOverlap
+            Infos.println("minOverlap="+minOverlap);
             
             //LOAD THE POSTERIOR PROBAS/////////////////////////////////////////
 //            PProbasSorted pprobas = session.parsedProbas;
@@ -236,9 +241,9 @@ public class Main_PLACEMENT_v07 {
             PlacementProcess aspt=null;
             if (nsBound!=null) {  //norm score bound was set manually via command line
                 System.out.println("User provided nsBound !");
-                aspt=new PlacementProcess(session,nsBound, queryLimit);
+                aspt=new PlacementProcess(session,nsBound, queryLimit, minOverlap);
             } else {
-                aspt=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
+                aspt=new PlacementProcess(session,session.calibrationNormScore, queryLimit, minOverlap);
             }            
             
             int queryCounter=aspt.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);

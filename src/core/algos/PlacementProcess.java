@@ -24,9 +24,10 @@ import java.io.IOException;
 import static java.lang.Float.NaN;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -53,12 +54,12 @@ public class PlacementProcess {
     
     //debug/////////////////////////////////////////////////////////////
     //csv log
-    boolean csvLog=false;
+    boolean csvLog=true;
     //max number of queries treated 
     int queryLimit=Integer.MAX_VALUE;
     //int queryLimit=1000000;
     //graph of words alignment
-    boolean graphAlignment=true; //NOTE: This will work only if hash is based on PositionNodes
+    boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
     //test different way to select best score
     boolean useTopTwo=false; //score only searcing top 2 values
@@ -75,8 +76,9 @@ public class PlacementProcess {
     //elements related to fil outputs
     //filled while the placement process is running
     JSONArray placements=null;
-    BufferedWriter bwTSV=null;
     StringBuffer sb=null;
+    NumberFormat nb=NumberFormat.getInstance();
+    
     
     /**
      *
@@ -91,6 +93,10 @@ public class PlacementProcess {
         this.queryLimit=queryLimit;
         this.minOverlap=minOverlap;//TODO valeur du parametre minoverLap
         this.v=this.minOverlap-session.k+1;
+        
+        nb.setMaximumFractionDigits(12);
+        nb.setMinimumFractionDigits(12);
+        
     }
     
     /**
@@ -179,7 +185,7 @@ public class PlacementProcess {
         // PREPARE TSV OUTPUT
         //header of CSV output
         if (bwTSV!=null) {
-            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tExtendedTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tExtendedTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\tentropy\n");
         }
         //debug file of mers stats
         BufferedWriter bwMerStats =null;
@@ -559,7 +565,7 @@ public class PlacementProcess {
             
             queryKmerCount=0;
             queryKmerMatchingDB=0;
-            
+            sum=0;
             sk.reset();//reset kmer pointer to 1st kmer
             
             int qMax=sk.getMerCount();
@@ -609,20 +615,26 @@ public class PlacementProcess {
                 queryKmerCount++;
             }
             System.out.println("kmer found for b* : "+queryKmerMatchingDB+"/"+queryKmerCount);
-            System.out.println("L:"+listOfDiag);
+            //System.out.println("L:"+listOfDiag);
             
-            float H=NaN;
+            float H=-1;
             if (listOfDiag.size()>0)
                 H=0;
+            System.out.println("listOfDiag:"+listOfDiag);
             for (int i = 0; i < listOfDiag.size(); i++) {
                 int index = listOfDiag.get(i);
+                System.out.println("D in p_ieme="+index+" : "+D[index]);
+                System.out.println("sum in p_ieme="+index+" : "+sum);
                 D[index]=D[index]/sum;
+                System.out.println("D' in p_ieme="+index+" : "+D[index]);
                 H+=-D[index]*(Math.log(D[index])/Math.log(2));
                 System.out.println("Occ in p_ieme="+index+" : "+O[index]);
-
+                
                 D[index]=0;
                 O[index]=0;
+                
             }
+            
             
             System.out.println("H:"+H);
 
@@ -787,7 +799,13 @@ public class PlacementProcess {
                         sb.append("").append("\t"); //extended Tree nodeName
                         sb.append(String.valueOf(bestNodeId)).append("\t"); //edge of original tree (original nodeId)
                         sb.append(String.valueOf(session.originalTree.getById(bestNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-                        sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\n");
+                        sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\t");
+                        if (H>0) {
+                            sb.append(String.valueOf(nb.format(H)));
+                        } else {
+                            sb.append("NaN");
+                        }
+                        sb.append("\n");
                     }
                 }
             }
@@ -1078,7 +1096,7 @@ public class PlacementProcess {
         // PREPARE TSV OUTPUT
         //header of CSV output
         if (bwTSV!=null) {
-            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\n");
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tARTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\tentropy\n");
         }
    
         

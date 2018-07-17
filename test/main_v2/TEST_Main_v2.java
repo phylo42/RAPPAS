@@ -52,12 +52,20 @@ public class TEST_Main_v2 {
 
             //--------------------------------
 
-            //DATASET BASIC RAPID TESTS --PHYML--
+//            //DATASET BASIC RAPID TESTS --PHYML--
+//            HOME="/home/yann";
+//            String workDir=HOME+"/Bureau/Data/WD_SMALL_PHYML";
+//            String inputsPath=HOME+"/Bureau/Data/WD_SMALL_PHYML";
+//            String a=inputsPath+"/mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
+//            String t=inputsPath+"/RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+//            String ARBinary="/home/yann/Bureau/RAPPAS_last_version/bindep/phyml_x64";
+
+            //DATASET FOR OVERLAP TESTS --PHYML--
             HOME="/home/yann";
-            String workDir=HOME+"/Bureau/Data/WD_SMALL_PHYML";
-            String inputsPath=HOME+"/Bureau/Data/WD_SMALL_PHYML";
-            String a=inputsPath+"/mod_mafft_centroids.derep_prefix.Coronovirinae_alpha_RNApol_all_VIPR_20-07-2016_CdsFastaResults_CORRECTED.fasta";
-            String t=inputsPath+"/RAxML_bipartitionsBranchLabels.result_alpha_RNApol_REROOTED.tree";
+            String workDir=HOME+"/Bureau/Data/Data_for_tests";
+            String inputsPath=HOME+"/Bureau/Data/Data_for_tests";
+            String a=inputsPath+"/bv_refs_aln_stripped_99.5.fasta";
+            String t=inputsPath+"/RAxML_result.bv_refs_aln";
             String ARBinary="/home/yann/Bureau/RAPPAS_last_version/bindep/phyml_x64";
 
             //DATASET LARGER SET --PHYML--
@@ -85,7 +93,9 @@ public class TEST_Main_v2 {
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/ancestral_reconstruct_tests/paml/pplacer_refpkg/vaginal_16s_ORIGINAL/mod_p4z1r36_query_only2.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta";
 //            String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB.qc.fasta_1000000_reads_only.fasta";
-            String q=workDir+"/alphaTest1";
+            String q=workDir+"/EMP_92_studies_100000.fasta"; // Test with 100,000 reads
+            //String q=workDir+"/EMP_92_studies_100.fasta"; // Test with 50 reads
+            //String q=workDir+"/EMP_92_studies_test_score_entropy.fasta"; // Test score entropy
             //String q=HOME+"/Dropbox/viromeplacer/test_datasets/mod_2VGB_100000.qc.fasta";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.medium";
             //String db=workDir+File.separator+"DB_session_k8_a1.5_t3.9106607E-4.small";
@@ -94,7 +104,7 @@ public class TEST_Main_v2 {
             //String db=workDir+File.separator+"DB_session_k10_a0.75_f1_t-7.269987.union";
             //String db=workDir+File.separator+"DB_session_k10_a1.0_f1_t-6.0206.union";
             String db=workDir+File.separator+"DB_session_k8_a1.0_f1_t-4.81648.union";
-            
+            //String db=workDir+File.separator+"DB_session_k8_a2.0_f1_t-2.40824.union";
 //            String q="/home/ben/Downloads/R5_nx648_la_r150.fasta";
 //            String db=workDir+File.separator+"DB_session_k5_a1.0_t9.765625E-4.medium";
 
@@ -138,7 +148,7 @@ public class TEST_Main_v2 {
                             + "--states nucl "
                             //+"--minOverlap 90 "
                             ;            
-                            
+//                            
                             
 /////////FOR TESTS CORRECTION: HCV, A34, k8_a1.0, R500bp  --> case where our algo cannot fails compared to EPA/PPlacer          
 //            arguments=

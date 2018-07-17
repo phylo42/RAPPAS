@@ -104,7 +104,7 @@ public class Main_PLACEMENT_v07 {
             int queryWordSampling=SequenceKnife.SAMPLING_LINEAR;
 
             //debug 
-            int queryLimit=10;
+            int queryLimit=Integer.MAX_VALUE;
             
 
             ////////////////////////////////////////////////////////////////////

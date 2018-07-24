@@ -1,5 +1,9 @@
 # RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
+**This README basic instructions to build and launch RAPPAS.**
+**You will find more detailed intructions and tutorials on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
+
+
 ## Description
 
 RAPPAS (Rapid Alignment-free Phylogenetic PLacement via Ancestral Sequences) is a program dedicated to "Phylogenetic Placement" (PP) of metagenomic reads on a reference tree. As apposed to previous PP programs, RAPPAS uses a 2 step approach divided into a) the database build, and b) the placement itself.
@@ -10,7 +14,6 @@ The second advantage of RAPPAS is its algorithm based on ancestal k-mer matches,
 
 ![EU_flag](http://52.43.194.9/images/fc3849b.jpg) ![virogenesis_logo](http://52.43.194.9/images/32a5f46.png)
 RAPPAS was funded from  the European Union’s Horizon 2020 research and innovation programme under grant agreement No 634650. (Virogenesis.eu)
-
 
 ## Installation
 

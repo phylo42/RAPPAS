@@ -1,7 +1,8 @@
 # RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
-**This README basic instructions to build and launch RAPPAS.**
-**You will find more detailed intructions and tutorials on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
+
+**This README contains short instructions to build and launch RAPPAS.**
+**You will find more detailed intructions, tutorials and links related to phylogenetic placement on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
 
 
 ## Description

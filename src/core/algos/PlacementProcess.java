@@ -422,8 +422,10 @@ public class PlacementProcess {
         // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
         AbstractChecksum checksumGenerator=null;
         try {
-            checksumGenerator = JacksumAPI.getChecksumInstance("crc32");
-            checksumGenerator.setEncoding(AbstractChecksum.BASE32);
+            //128bits checksum should be enough to avoid collision over
+            //millions of queries (with 32bits, 4 collisions over 10^6 reads)
+            checksumGenerator = JacksumAPI.getChecksumInstance("md5"); 
+            checksumGenerator.setEncoding(AbstractChecksum.BIN);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Main_PLACEMENT_v07.class.getName()).log(Level.SEVERE, null, ex);
         }

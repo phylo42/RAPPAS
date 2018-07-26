@@ -21,10 +21,8 @@ import java.awt.GridLayout;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import static java.lang.Float.NaN;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,8 +158,10 @@ public class PlacementProcess {
         // PREPARE CHECKSUM FOR IDENTICAL READS REGISTER
         AbstractChecksum checksumGenerator=null;
         try {
-            checksumGenerator = JacksumAPI.getChecksumInstance("crc32");
-            checksumGenerator.setEncoding(AbstractChecksum.BASE32);
+            //128bits checksum should be enough to avoid collision over
+            //millions of queries (with 32bits, 4 collisions over 10^6 reads)
+            checksumGenerator = JacksumAPI.getChecksumInstance("md5"); 
+            checksumGenerator.setEncoding(AbstractChecksum.BIN);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Main_PLACEMENT_v07.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -614,21 +614,21 @@ public class PlacementProcess {
                 }
                 queryKmerCount++;
             }
-            System.out.println("kmer found for b* : "+queryKmerMatchingDB+"/"+queryKmerCount);
+            //System.out.println("kmer found for b* : "+queryKmerMatchingDB+"/"+queryKmerCount);
             //System.out.println("L:"+listOfDiag);
             
             float H=-1;
             if (listOfDiag.size()>0)
                 H=0;
-            System.out.println("listOfDiag:"+listOfDiag);
+            //System.out.println("listOfDiag:"+listOfDiag);
             for (int i = 0; i < listOfDiag.size(); i++) {
                 int index = listOfDiag.get(i);
-                System.out.println("D in p_ieme="+index+" : "+D[index]);
-                System.out.println("sum in p_ieme="+index+" : "+sum);
+                //System.out.println("D in p_ieme="+index+" : "+D[index]);
+                //System.out.println("sum in p_ieme="+index+" : "+sum);
                 D[index]=D[index]/sum;
-                System.out.println("D' in p_ieme="+index+" : "+D[index]);
+                //System.out.println("D' in p_ieme="+index+" : "+D[index]);
                 H+=-D[index]*(Math.log(D[index])/Math.log(2));
-                System.out.println("Occ in p_ieme="+index+" : "+O[index]);
+                //System.out.println("Occ in p_ieme="+index+" : "+O[index]);
                 
                 D[index]=0;
                 O[index]=0;
@@ -636,7 +636,7 @@ public class PlacementProcess {
             }
             
             
-            System.out.println("H:"+H);
+            //System.out.println("H:"+H);
 
             
             

@@ -118,9 +118,10 @@ public class Main_PLACEMENT_v07 {
             
             //LOAD SESSION//////////////////////////////////////////////////////
             //logs
-            String logPath=workDir+File.separator+"logs"+File.separator;
-
-
+            String logPath=workDir.getAbsolutePath()+File.separator+"logs"+File.separator;
+            //prepare directories
+            if (!workDir.exists()) {workDir.mkdir();}
+            if (!new File(logPath).exists()) {new File(logPath).mkdir();}
             //mers size
             Infos.println("k="+session.k);
             Infos.println("min_k="+session.minK);
@@ -281,7 +282,7 @@ public class Main_PLACEMENT_v07 {
             out=out.replaceAll("\"nm\":\\[\\[","\"nm\":\n\t\\[\\[");
             //out=out.replace("]},", "]},"); //]}
             
-            FileWriter fwJSON =new FileWriter(new File(logPath+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));
+            FileWriter fwJSON =new FileWriter(new File(workDir.getAbsoluteFile()+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));
             fwJSON.append(out);
             fwJSON.close();
             

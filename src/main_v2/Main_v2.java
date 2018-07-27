@@ -19,7 +19,7 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.03";
+    private final static String consoleVersion="1.04";
 
     public static void main (String[] args) {
         try {
@@ -65,10 +65,10 @@ public class Main_v2 {
             
             //type of Analysis, DNA or AA
             States s=null; 
-            if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
+            if (argsParser.states==ArgumentsParser_v2.STATES_DNA) {
                 s=new DNAStatesShifted();
                 System.out.println("Set analysis for DNA");
-            } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+            } else if (argsParser.states==ArgumentsParser_v2.STATES_PROTEIN) {
                 s=new AAStates(argsParser.convertUOX);
                 System.out.println("Set analysis for PROTEIN");
             }
@@ -78,17 +78,17 @@ public class Main_v2 {
             //////////////////////
             //DB_BUILD MODE
             
-            if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
+            if (argsParser.phase==ArgumentsParser_v2.DBBUILD_PHASE) {
                 System.out.println("Starting db_build pipeline...");
                 
 
 
 
-                Main_DBBUILD_3.DBGeneration(argsParser.analysisType,
+                Main_DBBUILD_3.DBGeneration(argsParser.states,
                                             null,
                                             argsParser.k,
-                                            argsParser.alpha,
-                                            argsParser.fakeBranchAmount,
+                                            argsParser.omega,
+                                            argsParser.ghostsAmount,
                                             s,
                                             argsParser.alignmentFile,
                                             argsParser.treeFile,
@@ -119,7 +119,7 @@ public class Main_v2 {
             //////////////////////
             //PLACEMENT MODE
                 
-            } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
+            } else if (argsParser.phase==ArgumentsParser_v2.PLACEMENT_PHASE) {
                 System.out.println("Starting placement pipeline...");
                 //load session itself (i.e the DB)
                 System.out.println("Loading ancestral words DB... ("+argsParser.databaseFile.getName()+")");

@@ -20,42 +20,67 @@ import java.util.logging.Logger;
  */
 public class ArgumentsParser_v2 {
 
-    public static final int DBBUILD_MODE=0;
-    public static final int PLACEMENT_MODE=1;
+    public static final int DBBUILD_PHASE=0;
+    public static final int PLACEMENT_PHASE=1;
     
     public static final int DB_FULL=0;
     public static final int DB_MEDIUM=0;
     public static final int DB_SMALL=0;
     
-    public static final int TYPE_DNA=1;
-    public static final int TYPE_PROTEIN=2;
-
+    public static final int STATES_DNA=1;
+    public static final int STATES_PROTEIN=2;
     
     private HashMap<Integer,String> argsMap=null;
+
     
-    //general parameters
-    public int mode=DBBUILD_MODE;
+    //parameters related to AR models
+    //note only models supported by both phyml and paml are supported in RAPPAS
+    //nucl models: 7 commons
+    public static final int MODEL_JC69=1; //phyml=JC69 ; baseml=JC69
+    public static final int MODEL_K80=2; //phyml=K80  ; baseml=K80
+    public static final int MODEL_F81=3; //phyml=F81  ; baseml=F81
+    public static final int MODEL_F84=4; //phyml=F84  ; baseml=F84
+    public static final int MODEL_HKY85=5; //phyml=HKY85  ; baseml=HKY85
+    public static final int MODEL_TN93=6; //phyml=TN93  ; baseml=TN93
+    public static final int MODEL_GTR=7;  //phyml=GTR  ; baseml=REV
+    //prot models 9 commons
+    public static final int MODEL_LG=11; //phyml=LG ; baseml=lg.dat
+    public static final int MODEL_WAG=12; //phyml=WAG  ; baseml=wag.dat
+    public static final int MODEL_JTT=13; //phyml=JTT  ; baseml=jones.dat
+    public static final int MODEL_DAYHOFF=14; //phyml=Dayhoff  ; baseml=dayhoff.dat
+    public static final int MODEL_DCMUT=15; //phyml=DCMut  ; baseml=dayhoff_dimut.dat
+    public static final int MODEL_CPREV=16; //phyml=CpREV  ; baseml=cpREV10.dat
+    public static final int MODEL_MTMAM=17;  //phyml=MtMam  ; baseml=mtmam.dat
+    public static final int MODEL_MTREV=18;  //phyml=mMtREV  ; baseml=mtREV24.dat
+    public static final int MODEL_MTART=19;  //phyml=MtArt  ; baseml=mtart.dat
+    //gamma parameters
+    public int model=MODEL_GTR;
+    public float alpha=1.0f;
+    public int categories=4;
+    
+    //RAPPAS general parameters
+    public int phase=DBBUILD_PHASE;
     public File workingDir=null;//current directory by default, see below
-    int verbose=0; //default, no verbosity
-    int analysisType=TYPE_DNA;
+    public int verbose=0; //default, no verbosity
+    public int states=STATES_DNA;
     boolean convertUOX=false; //must be true so that U/O/X are converted in C/L/-
     
-    //parameters for alignment reduction
+    //RAPPAS parameters for alignment reduction
     public boolean reduction=true;
     public File reducedAlignFile=null;
-    double reductionRatio=0.999;
+    public double reductionRatio=0.999;
     
-    //parameters for DB build
+    //RAPPAS parameters for DB build
     public int k=8; //default=8
-    public float alpha=1.0f; //default=1.0
-    public int fakeBranchAmount=1;  //default =1
+    public float omega=1.0f; //default=1.0, quantity allowing to modulate the threshold
+    public int ghostsAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
     public boolean forceRooting=false;
     //passed for debugging in DB_build
     public File ARBinary=new File("phyml"); //default = phyml command line
-    public File ARDirToUse=null;
-    public File exTreeDir=null;
+    public File ARDirToUse=null;  // used to load directly an already computed AR
+    public File exTreeDir=null; //not functionnal anymore
     public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
     public boolean noCalibration=true; //skip calibration step
     public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
@@ -65,13 +90,13 @@ public class ArgumentsParser_v2 {
     public boolean limitTo1Jump=true; //only allow a 1st jump, not jump combinations
     public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
     
-    //parameters for placement
-    public int minOverlap=100; //deprecated, was used for diagsums coordinates
+    //RAPPAS parameters for placement
+    public int minOverlap=100; //used in entropy computation
     public List<File> queriesFiles=null;
     public File databaseFile=null;
-    public Float nsBound=Float.NEGATIVE_INFINITY; //do not consider score threshold determined at calibration but this particular threshold
-    public int keepAtMost=7;
-    public float keepFactor=0.01f;
+    public Float nsBound=Float.NEGATIVE_INFINITY; //do not consider threshold calculated by formula but this particular threshold
+    public int keepAtMost=7; //as in pplacer
+    public float keepFactor=0.01f; //as in pplacer
     
     //call string
     public String callString=null;
@@ -89,9 +114,9 @@ public class ArgumentsParser_v2 {
         callString=sb.toString();
         sb=null;
         
-        //if no mode, bad
-        if ((!argsMap.containsValue("-m")) && (!argsMap.containsValue("--mode")) ) {
-            System.out.println("Cannot find 'mode' (option -m). See help (-h) for details.");
+        //if no phase, bad
+        if ((!argsMap.containsValue("-p")) && (!argsMap.containsValue("--phase")) ) {
+            System.out.println("Cannot find 'phase' (option -p). See help (-h) for details.");
             System.exit(1);
         }
         
@@ -115,16 +140,16 @@ public class ArgumentsParser_v2 {
      */
     private void loadParameters() throws Exception {
 
-        //general loop, must pass a 1st time on all arguments to set the mode for sure
+        //general loop, must pass a 1st time on all arguments to set the phase for sure
         boolean wGiven=false;
         boolean statesGiven=false;
         for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
             int index=it.next();
             
-            //check if --mode associated to correct minimum values
-            if (argsMap.get(index).equals("-m") || argsMap.get(index).equals("--mode")) {
-                if (argsMap.get(index+1).equalsIgnoreCase("b")) {this.mode=DBBUILD_MODE;}
-                if (argsMap.get(index+1).equalsIgnoreCase("p")) {this.mode=PLACEMENT_MODE;}
+            //check if --phase associated to correct minimum values
+            if (argsMap.get(index).equals("-m") || argsMap.get(index).equals("--phase")) {
+                if (argsMap.get(index+1).equalsIgnoreCase("b")) {this.phase=DBBUILD_PHASE;}
+                if (argsMap.get(index+1).equalsIgnoreCase("p")) {this.phase=PLACEMENT_PHASE;}
             }
             
             //check verbosity
@@ -156,10 +181,10 @@ public class ArgumentsParser_v2 {
             if (argsMap.get(index).equals("--states") || argsMap.get(index).equals("-s")) {
                 if (argsMap.get(index+1).equalsIgnoreCase("nucl")) {
                     statesGiven=true;
-                    this.analysisType=TYPE_DNA;
+                    this.states=STATES_DNA;
                 } else if (argsMap.get(index+1).equalsIgnoreCase("amino")) {
                     statesGiven=true;
-                    this.analysisType=TYPE_PROTEIN;
+                    this.states=STATES_PROTEIN;
                 } else {
                     System.out.println("Unexpected -s (--states) value, must be one of [nucl|amino].");
                     System.exit(1);
@@ -173,8 +198,8 @@ public class ArgumentsParser_v2 {
             
             
         }
-        if ( !(mode==DBBUILD_MODE) && !(mode==PLACEMENT_MODE) ) {
-            System.out.println("Unexpected -m (--mode) value, must be 'b' (build_db) or 'p' (place) !");
+        if ( !(phase==DBBUILD_PHASE) && !(phase==PLACEMENT_PHASE) ) {
+            System.out.println("Unexpected -p (--phase) value, must be 'b' (build_db) or 'p' (place) !");
             System.exit(1);
         }
         
@@ -192,15 +217,15 @@ public class ArgumentsParser_v2 {
         
         
         
-        ////from here, we know in which mode the program will be launched///////
+        ////from here, we know in which phase the program will be launched///////
         ////////////////////////////////////////////////////////////////////////
-        //check if -a ,-t, -k given when mode=b
-        switch (mode) {
+        //check if -a ,-t, -k given when phase=b
+        switch (phase) {
             
-            case DBBUILD_MODE:
+            case DBBUILD_PHASE:
                 
                 boolean kGiven=false;
-                boolean alphaGiven=false;
+                boolean omegaGiven=false;
                 boolean fGiven=false;
                 boolean alignGiven=false;
                 boolean treeGiven=false;
@@ -239,7 +264,7 @@ public class ArgumentsParser_v2 {
                             kGiven=true;
                             if (this.k<3) {
                                 this.k=3;
-                                System.out.println("--alpha set to 3 (minimum allowed values) .");
+                                System.out.println("--k set to 3 (minimum authorised values) .");
                             }
                         } catch (NumberFormatException ex ) {
                             System.out.println("Cannot parse '-k (--k)' as an integer value.");
@@ -248,17 +273,17 @@ public class ArgumentsParser_v2 {
                         
                     }
                     //test -a parameter
-                    if (argsMap.get(index).equals("--alpha") || argsMap.get(index).equals("-a")) {
-                        String alphaVal=argsMap.get(index+1);
+                    if (argsMap.get(index).equals("--omega")) {
+                        String omegaVal=argsMap.get(index+1);
                         try {
-                            this.alpha=Float.parseFloat(alphaVal);
-                            alphaGiven=true;
-                            if (this.alpha<0) {
-                                this.alpha=1.0f;
-                                System.out.println("--alpha set to 1.0 .");
+                            this.omega=Float.parseFloat(omegaVal);
+                            omegaGiven=true;
+                            if (this.omega<0) {
+                                this.omega=1.0f;
+                                System.out.println("--omega set to 1.0 .");
                             }
                         } catch (NumberFormatException ex ) {
-                            System.out.println("Cannot parse '-a (--alpha)' as an integer value.");
+                            System.out.println("Cannot parse '--omega' as an integer value.");
                             System.exit(1);
                         }
                         
@@ -266,17 +291,17 @@ public class ArgumentsParser_v2 {
                     
                     
                     //test -f parameter
-                    if (argsMap.get(index).equals("--fakebranch") || argsMap.get(index).equals("-f")) {
+                    if (argsMap.get(index).equals("--ghosts") || argsMap.get(index).equals("-g")) {
                         String fVal=argsMap.get(index+1);
                         try {
-                            this.fakeBranchAmount=Integer.parseInt(fVal);
+                            this.ghostsAmount=Integer.parseInt(fVal);
                             fGiven=true;
-                            if (this.fakeBranchAmount<1) {
-                                this.fakeBranchAmount=1;
-                                System.out.println("--fakebranch set to 1.");
+                            if (this.ghostsAmount<1) {
+                                this.ghostsAmount=1;
+                                System.out.println("--ghosts set to 1.");
                             }
                         } catch (NumberFormatException ex ) {
-                            System.out.println("Cannot parse '-f (--fakebranch)' as an integer value.");
+                            System.out.println("Cannot parse '-g (--ghosts)' as an integer value.");
                             System.exit(1);
                         }
                        
@@ -294,6 +319,102 @@ public class ArgumentsParser_v2 {
                         }
                     }
                     
+                    //test -a parameter
+                    if (argsMap.get(index).equals("--alpha") || argsMap.get(index).equals("-a")) {
+                        String fVal=argsMap.get(index+1);
+                        try {
+                            this.alpha=Float.parseFloat(fVal);
+                            if (this.alpha<0.0) {
+                                this.alpha=1.0f;
+                                System.out.println("--alpha set to 1.0 .");
+                            }
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '-a (--alpha)' as a float value.");
+                            System.exit(1);
+                        }
+                       
+                    }
+                    
+                    //test -c parameter
+                    if (argsMap.get(index).equals("--categories") || argsMap.get(index).equals("-c")) {
+                        String fVal=argsMap.get(index+1);
+                        try {
+                            this.categories=Integer.parseInt(fVal);
+                            if (this.categories<0) {
+                                this.categories=4;
+                                System.out.println("--categories set to 4 .");
+                            }
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '-c (--categories)' as an integer value.");
+                            System.exit(1);
+                        }
+                       
+                    }
+                    
+                    //test -m model
+                    if (argsMap.get(index).equals("--model") || argsMap.get(index).equals("-m")) {
+                        String fVal=argsMap.get(index+1);
+                        try {
+                            switch (fVal) {
+                                //nucleotidic models: 
+                                case "JC69":
+                                    this.model=MODEL_JC69;
+                                    break;
+                                case "HKY85":
+                                    this.model=MODEL_HKY85;
+                                    break;
+                                case "K80":
+                                    this.model=MODEL_K80;
+                                    break;
+                                case "F81":
+                                    this.model=MODEL_F81;
+                                    break;
+                                case "TN93":
+                                    this.model=MODEL_TN93;
+                                    break;
+                                case "GTR":
+                                    this.model=MODEL_GTR;
+                                    break;
+                                //proteic models
+                                case "LG":
+                                    this.model=MODEL_LG;
+                                    break;
+                                case "WAG":
+                                    this.model=MODEL_WAG;
+                                    break;
+                                case "JTT":
+                                    this.model=MODEL_JTT;
+                                    break;
+                                case "Dayhoff":
+                                    this.model=MODEL_DAYHOFF;
+                                    break;
+                                case "DCMut":
+                                    this.model=MODEL_DCMUT;
+                                    break;
+                                case "CpREV":
+                                    this.model=MODEL_CPREV;
+                                    break;
+                                case "MtMam":
+                                    this.model=MODEL_MTMAM;
+                                    break;
+                                case "MtREV":
+                                    this.model=MODEL_MTREV;
+                                    break;
+                                case "MtArt":
+                                    this.model=MODEL_MTART;
+                                    break;   
+                                default:
+                                    System.out.println("Model name not recognized. Please use one of:");
+                                    System.out.println("-nucleotides: JC69, HKY85, K80, F81, TN93, GTR");
+                                    System.out.println("-amino acids: LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt");  
+                                    System.exit(1);
+                            }
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '-m (--model)' as a string value.");
+                            System.exit(1);
+                        }
+                       
+                    }
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
@@ -321,7 +442,7 @@ public class ArgumentsParser_v2 {
                         String alphaVal=argsMap.get(index+1);
                         try {
                             this.reductionRatio=Double.parseDouble(alphaVal);
-                            alphaGiven=true;
+                            omegaGiven=true;
                             if (this.reductionRatio>1) {
                                 this.reductionRatio=1;
                                 System.out.println("--ratio-reduction set to 1.0 .");
@@ -494,15 +615,15 @@ public class ArgumentsParser_v2 {
                 //use defaults if -k,-a,-f not set
                 ///////////////////////////////////////////////
                 if (!kGiven) {System.out.println("Default k="+this.k+" will be used.");}
-                if (!alphaGiven) {System.out.println("Default alpha="+this.alpha+" will be used.");}
+                if (!omegaGiven) {System.out.println("Default alpha="+this.omega+" will be used.");}
                 if (!fGiven) {
-                    System.out.println("Default injectionPerBranch="+this.fakeBranchAmount+" will be used.");
+                    System.out.println("Default injectionPerBranch="+this.ghostsAmount+" will be used.");
                 }
                 
                 break;
                 
-            //check if -q given when mode=p    
-            case PLACEMENT_MODE:
+            //check if -q given when phase=p    
+            case PLACEMENT_PHASE:
                 
                 boolean dGiven=false;
                 boolean qGiven=false;
@@ -628,17 +749,15 @@ public class ArgumentsParser_v2 {
         System.out.println("################################################");
         System.out.print(
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
-        " Minimum usage:\n"+
-        " 1. For building the ancestral kmers database:\n"+
-        "    java -jar viromplacer.jar -m b -s [nucl|prot] -b ARbinary \n" +
+        " Minimum usage:\n\n"+
+        " 1. For building the phylo-kmers database:\n"+
+        "    java -jar viromplacer.jar -p b -s [nucl|prot] -b ARbinary \n" +
         "    -w workdir -s nucl -r alignment.fasta -t tree.newick\n" +
         "   \n" + 
         " 2. For placing the query reads, using the database built in 1. :\n"+
-        "    java -jar viromplacer.jar -m p -q queries.fasta \n"+ 
+        "    java -jar viromplacer.jar -p p -d database.union -q queries.fasta \n"+ 
         "    \n"+ 
-        " Note1:Default values are reported in []. \n"+ 
-        " Note2:Do not hesistate to allocate lots of memory at the first step,\n" +
-        "       as increasing k rapidly brings to large requirements.\n"+
+        " Note: For larger alignments or values of k, allocate more memory:\n" +
         "       ex: java -jar -Xms1024m -Xmx16g viromplacer.jar [...] \n"+
         "       -Xms -> memory allocated at startup. (m=MegaByte, g=GigaByte)\n"+
         "       -Xmx -> maximum allocation allowed.  \n"+
@@ -647,67 +766,72 @@ public class ArgumentsParser_v2 {
         "Main options:     Default values are in [].\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "-b (--arbinary)   [file] Binary for marginal AR, currently 'phyml' and \n" +
-        "                  'baseml' (from PAML) are supported. (b mode only)\n" +
-        "-d (--database)   [file] The database of ancestral kmers. (b|p mode) \n"+
-        "-m (--mode)       ['b'|'p'] One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
-        "                   * b: Build DB of ancestral k-mers and associated \n"+
-        "                        probabilites (done 1 time). \n" +
-        "                   * p: Placement operation itself (done n times).\n"+
-        "                        Requires k-mer DB prevously built with mode b.\n" +
+        "                  'baseml' (from PAML) are supported. (b phase)\n" +
+        "-d (--database)   [file] The database of ancestral kmers. (b|p phase) \n"+
+        "-p (--phase)       ['b'|'p'] One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
+        "                   * b: Build DB of phylo-kmers (done 1 time). \n" +
+        "                   * p: Phylogenetic placement itself (done n times)\n"+
+        "                        requires the DB generated during 'build' phase.\n" +
         "-r (--refalign)   [file] Reference alignment in fasta format.\n" +
         "                  It must be the multiple alignment from which was \n" +
-        "                  inferred the reference tree (option -t). (b mode) \n"+        
-        "-s (--states)     ['nucl'|'amino'] States used in analysis. (b mode) \n" +    
+        "                  inferred the reference tree (option -t). (b phase) \n"+        
+        "-s (--states)     ['nucl'|'amino'] States used in analysis. (b|p phase) \n" +    
         "-t (--reftree)    [file] Reference tree, in newick format.\n"+
-        "                  reconstruction and DB build (b mode only).\n" +
+        "                  reconstruction and DB build (b phase).\n" +
         "-q (--queries)    [file[,file,...]] Fasta queries to place on the tree.\n" +
-        "                  Can be a list of files separated by ','. (b|p modes)\n"+
+        "                  Can be a list of files separated by ','. (b|p phase)\n"+
         "                  be placed if filenames are separated by ','.\n" +
         "-v (--verbosity)  [0] Verbosity level: -1=null ; 0=low ; 1=high\n" +  
-        "-w (--workdir)    [.] Path to the working directory (b|p modes).\n" +  
+        "-w (--workdir)    [.] Path to the working directory (b|p phase).\n" +  
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Outputs options:  Jplace, log files...  \n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+     
         "--keep-at-most    [7] Max number of placement per query kept in \n" +
-        "                  the jplace output. (p mode)\n" +
+        "                  the jplace output. (p phase)\n" +
         "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
-        "                  than (factor x best_likelihood_ratio). (p mode)\n" +      
-        "--write-reduction [file] Write reduced alignment to file. (b mode)\n" +
+        "                  than (factor x best_likelihood_ratio). (p phase)\n" +      
+        "--write-reduction [file] Write reduced alignment to file. (b phase)\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Algo options:     Use only if you know what you are doing...    \n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
-        "-a (--alpha)      [1.0] Alpha modifier levelling the proba threshold \n"+
-        "                  used in ancestral words filtering. (b mode)\n" +
-        "-f (--fakebranch) [1] # phantom nodes to add on reference tree branches. \n"+
-        "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +
-        "--convertUOX      [] U,O,X amino acids become C,L,- (b mode).\n"+        
-        "--force-root      [] Root input tree if non rooted. (b mode)\n" +
-        "--ratio-reduction [0.999] Ratio for alignment reduction, i.e. sites \n" +
-        "                  holding >99.9% gaps are ignored. (b mode)\n" +
+        "-a (--alpha)      [1.0] Shape parameter, used in AR . (b phase)\n" +     
+        "-c (--categories) [4] # categories, used in AR . (b phase)\n" +   
+        "-g (--ghosts)     [1] # ghost nodes injected per branches. (b phase)\n"+
+        "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +   
+        "-m (--model)      [GTR|LG] Model used in AR, one of the following:\n" +   
+        "                  - nucleotides: JC69, HKY85, K80, F81, TN93, GTR \n" +  
+        "                  - amino acids: LG, WAG, JTT, Dayhoff, DCMut, CpREV,\n" +
+        "                                 mMtREV, MtMam, MtArt \n" +  
+        "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
+        "--force-root      [] Root input tree if non rooted. (b phase)\n" +
+        "--ratio-reduction [0.999] Ratio for alignment reduction, e.g. sites \n" +
+        "                  holding >99.9% gaps are ignored. (b phase)\n" +
         "--no-reduction    [] Do not operate alignment reduction. This will \n" +
         "                  keep all sites of input reference alignment and \n" +
-        "                  may produce erroneous ancestral k-mers. (b mode)\n" +
+        "                  may produce erroneous ancestral k-mers. (b phase)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
+        "--omega           [1.0] Modifier levelling the threshold used in\n"+
+        "                  phylo-kmers filtering, (omega/#states)^k . (b phase)\n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Debug options:    Use only if you know what you are doing...    \n" +
         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+     
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
-        "                  uses outputs of the specified directory. (b mode)\n" +
+        "                  uses outputs of the specified directory. (b phase)\n" +
         "--extree          [dir] Skip phantom nodes injection, and use already\n"+
-        "                  injected trees of the specified directory. (b mode)\n" +
-        "--dbfull          [] Save full DB (unused in algo). (b mode)\n" +      
-        "--nsbound         [float] Force normalized score bound. (p mode)\n" +
+        "                  injected trees of the specified directory. (b phase)\n" +
+        "--dbfull          [] Save full DB (unused in algo). (b phase)\n" +      
+        "--nsbound         [float] Force normalized score bound. (p phase)\n" +
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +
-        "--calibration     [] Prototype calib. on random anc. kmers. (b mode).\n" +
-        "--poshash         [] Places using older deprecated hash. (b mode)\n" +
+        "--calibration     [] Prototype calib. on random anc. kmers. (b phase).\n" +
+        "--poshash         [] Places using older deprecated hash. (b phase)\n" +
         "--original-nodes  [] Also compute ancestral kmers for original nodes,\n" +
-        "                  produces heavier (unused) computations. (b mode)\n" +
-        "--do-n-jumps      [] Shifts from 1 to n jumps. (b mode) \n" +
-        "--no-gap-jumps    [] Deactivate k-mer gap jumps. (b mode) \n" +
+        "                  produces heavier (unused) computations. (b phase)\n" +
+        "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +
+        "--no-gap-jumps    [] Deactivate k-mer gap jumps. (b phase) \n" +
         "\n"
         );
        System.exit(0);

@@ -36,7 +36,7 @@ public class ARProcessLauncher {
     public File alignPath=null;
     public File treePath=null;
     boolean verboseAR=true;
-    int analysisType=ArgumentsParser_v2.TYPE_DNA;
+    int analysisType=ArgumentsParser_v2.STATES_DNA;
     
     /**
      * prepare the marginal AR launcher
@@ -44,7 +44,7 @@ public class ARProcessLauncher {
      * ARProcessLauncher.AR_PHYML ...etc...
      * @param ARBinary
      * @param verboseAR
-     * @param analysisType One of ArgumentsParser_v2.TYPE_DNA, ArgumentsParser_v2.TYPE_PROTEIN
+     * @param analysisType One of ArgumentsParser_v2.STATES_DNA, ArgumentsParser_v2.STATES_PROTEIN
      */
     public ARProcessLauncher(File ARBinary, boolean verboseAR, int analysisType) {
         this.ARBinary=ARBinary;
@@ -201,7 +201,7 @@ public class ARProcessLauncher {
         com.add(alignPath.getAbsolutePath());
         com.add("-u"); //tree
         com.add(treePath.getAbsolutePath());
-        if (this.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+        if (this.analysisType==ArgumentsParser_v2.STATES_PROTEIN) {
             com.add("-m"); //model
             com.add("LG");
             com.add("-d"); //analysis type
@@ -266,7 +266,7 @@ public class ARProcessLauncher {
             
             switch(analysisType) {
                 
-                case ArgumentsParser_v2.TYPE_DNA:
+                case ArgumentsParser_v2.STATES_DNA:
                     
                     sb.append("seqfile = "+alignPath.getAbsolutePath()+"\n");
                     sb.append("treefile = "+treePath.getAbsolutePath()+"\n");
@@ -299,7 +299,7 @@ public class ARProcessLauncher {
                     fw.close();
                     com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
                     
-                case ArgumentsParser_v2.TYPE_PROTEIN:
+                case ArgumentsParser_v2.STATES_PROTEIN:
                     
                     sb.append("      seqfile = "+alignPath.getAbsolutePath()+"\n");
                     sb.append("     treefile = "+treePath.getAbsolutePath()+"\n");
@@ -401,7 +401,7 @@ public class ARProcessLauncher {
             com.add(alignPath.getAbsolutePath());
             com.add("-u"); //tree
             com.add(treePath.getAbsolutePath());
-            if (this.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+            if (this.analysisType==ArgumentsParser_v2.STATES_PROTEIN) {
                 com.add("-m"); //model
                 com.add("LG");
                 com.add("-d"); //analysis type
@@ -498,7 +498,7 @@ public class ARProcessLauncher {
 
             switch(analysisType) {
                 
-                case ArgumentsParser_v2.TYPE_DNA:
+                case ArgumentsParser_v2.STATES_DNA:
                     
                     sb.append("seqfile = "+alignPath.getAbsolutePath()+"\n");
                     sb.append("treefile = "+treePath.getAbsolutePath()+"\n");
@@ -530,7 +530,7 @@ public class ARProcessLauncher {
                     fw.append(sb);
                     fw.close();
                     
-                case ArgumentsParser_v2.TYPE_PROTEIN:
+                case ArgumentsParser_v2.STATES_PROTEIN:
                     
                     sb.append("      seqfile = "+alignPath.getAbsolutePath()+"\n");
                     sb.append("     treefile = "+treePath.getAbsolutePath()+"\n");

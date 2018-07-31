@@ -147,7 +147,32 @@ public class TEST_Main_v2 {
                             + "--keep-factor 0.01 "
                             + "--states nucl "
                             //+"--minOverlap 90 "
-                            ;            
+                            ;           
+            
+            
+            // test 50%_50% 16S_18S
+            workDir="/home/ben/Dropbox/STAGIAIRES/yannick_antoine_M2_2018/resultats_entropy/test_netbeans_16S_18S";
+            q= workDir+"/50percent_16S_and_18S_100000_reads.fasta";
+            q= workDir+"/reads_H0.8.fasta";
+            q= workDir+"/reads_H_between_0_and_1_step_0.1.fasta";
+            q= workDir+"/extreme_cases.fasta";
+            db= workDir+"/DB_session_k8_a1.0_f1_t-4.81648.union";
+            
+            arguments=
+                              "-m p "
+                            + "-w "+workDir+" "
+                            + "-q "+q+" "
+                            + "-d "+db+" "
+                            + "-v 0 "
+                            //+ "--nsbound -1000.0 "  -Infinity if not given
+                            + "--keep-at-most 7 "
+                            + "--keep-factor 0.01 "
+                            + "--states nucl "
+                            //+"--minOverlap 90 "
+                            ;    
+            
+            
+            
 //                            
                             
 /////////FOR TESTS CORRECTION: HCV, A34, k8_a1.0, R500bp  --> case where our algo cannot fails compared to EPA/PPlacer          

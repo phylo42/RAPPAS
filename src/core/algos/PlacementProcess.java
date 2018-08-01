@@ -11,13 +11,16 @@ import core.DNAStatesShifted;
 import core.hash.CustomHash;
 import core.hash.Triplet_16_32_16_bit;
 import etc.Infos;
+import etc.ScreenImage;
 import inputs.Fasta;
 import inputs.SequencePointer;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import java.awt.AWTException;
 import java.awt.GridLayout;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +35,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import jonelo.jacksum.JacksumAPI;
 import jonelo.jacksum.algorithm.AbstractChecksum;
 import main_v2.Main_PLACEMENT_v07;
@@ -57,7 +61,8 @@ public class PlacementProcess {
     int queryLimit=Integer.MAX_VALUE;
     //int queryLimit=1000000;
     //graph of words alignment
-    boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
+    boolean graphAlignment=true; //NOTE: This will work only if hash is based on PositionNodes
+    boolean graphAlignmentToImage=true;
     boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
     //test different way to select best score
     boolean useTopTwo=false; //score only searcing top 2 values
@@ -185,7 +190,7 @@ public class PlacementProcess {
         // PREPARE TSV OUTPUT
         //header of CSV output
         if (bwTSV!=null) {
-            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tExtendedTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\tentropy\n");
+            sb=new StringBuffer("Query\tARTree_NodeId\tARTree_NodeName\tExtendedTree_NodeId\tExtendedTree_NodeName\tOriginal_NodeId\tOriginal_NodeName\tPP*\tH\tlength\n");
         }
         //debug file of mers stats
         BufferedWriter bwMerStats =null;
@@ -596,7 +601,7 @@ public class PlacementProcess {
                     else {
                         int p = triplet.getRefPosition()-queryKmerCount+qMax-v;
                         if ((p > -1) && (triplet.getRefPosition() < mMax + qMax - 2*v)) {
-                            float val=(bestScore - session.PPStarThresholdAsLog10)*(qMax/f(p,v,qMax,mMax));
+                            float val=(triplet.getPPStar() - session.PPStarThresholdAsLog10)*(qMax/f(p,v,qMax,mMax));
                             D[p] += val;
                             sum += val;
                             if (O[p]==0) {
@@ -629,11 +634,16 @@ public class PlacementProcess {
                 //System.out.println("D' in p_ieme="+index+" : "+D[index]);
                 H+=-D[index]*(Math.log(D[index])/Math.log(2));
                 //System.out.println("Occ in p_ieme="+index+" : "+O[index]);
+<<<<<<< HEAD
                 
+=======
+>>>>>>> 034ee55efa31f0b67e6966fa9c7cc6218d61122a
                 D[index]=0;
                 O[index]=0;
                 
             }
+            //normalisation of H
+            H/=(Math.log(qMax)/Math.log(2));
             
             
             //System.out.println("H:"+H);
@@ -649,14 +659,22 @@ public class PlacementProcess {
                 DefaultXYZDataset datasetForGraph=new DefaultXYZDataset();
                 //datasetForGraph.addSeries(0, graphDataForTopTuples);
                 datasetForGraph.addSeries(0, graphDataForTopTuples);
-                JFrame infos=new JFrame();
-                infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                infos.setLayout(new GridLayout(1, 1));
-                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
-                infos.setSize(1024, 250);
-                infos.pack();
-                RefineryUtilities.centerFrameOnScreen(infos);
-                infos.setVisible(true);
+
+                JPanel panel = ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0);
+                if (graphAlignmentToImage) {
+                    BufferedImage image = ScreenImage.createImage(panel);
+                    String filename=logDir.getAbsolutePath()+File.separator+fasta.getHeader().split(" ")[0]+"_"+queryCounter+".png";
+                    ScreenImage.writeImage(image, filename);
+                } else {
+                    JFrame infos=new JFrame();
+                    infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    infos.setLayout(new GridLayout(1, 1));
+                    infos.add(panel);
+                    infos.setSize(1024, 250);
+                    infos.pack();
+                    RefineryUtilities.centerFrameOnScreen(infos);
+                    infos.setVisible(true);
+                }
             }
             
             
@@ -800,11 +818,13 @@ public class PlacementProcess {
                         sb.append(String.valueOf(bestNodeId)).append("\t"); //edge of original tree (original nodeId)
                         sb.append(String.valueOf(session.originalTree.getById(bestNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
                         sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\t");
-                        if (H>0) {
+                        if (H>-1) {
                             sb.append(String.valueOf(nb.format(H)));
                         } else {
                             sb.append("NaN");
                         }
+                        sb.append("\t");
+                        sb.append(queryLength);
                         sb.append("\n");
                     }
                 }

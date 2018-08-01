@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,7 +81,7 @@ public class PlacementProcess {
     //filled while the placement process is running
     JSONArray placements=null;
     StringBuffer sb=null;
-    NumberFormat nb=NumberFormat.getInstance();
+    NumberFormat nb=NumberFormat.getInstance(Locale.ENGLISH);
     
     
     /**
@@ -634,10 +635,7 @@ public class PlacementProcess {
                 //System.out.println("D' in p_ieme="+index+" : "+D[index]);
                 H+=-D[index]*(Math.log(D[index])/Math.log(2));
                 //System.out.println("Occ in p_ieme="+index+" : "+O[index]);
-<<<<<<< HEAD
-                
-=======
->>>>>>> 034ee55efa31f0b67e6966fa9c7cc6218d61122a
+
                 D[index]=0;
                 O[index]=0;
                 
@@ -817,9 +815,9 @@ public class PlacementProcess {
                         sb.append("").append("\t"); //extended Tree nodeName
                         sb.append(String.valueOf(bestNodeId)).append("\t"); //edge of original tree (original nodeId)
                         sb.append(String.valueOf(session.originalTree.getById(bestNodeId).getLabel())).append("\t"); //edge of original tree (original nodeName
-                        sb.append(String.valueOf(bestScoreList[bestScoreList.length-1].score)).append("\t");
+                        sb.append(nb.format(bestScoreList[bestScoreList.length-1].score)).append("\t");
                         if (H>-1) {
-                            sb.append(String.valueOf(nb.format(H)));
+                            sb.append(nb.format(H));
                         } else {
                             sb.append("NaN");
                         }

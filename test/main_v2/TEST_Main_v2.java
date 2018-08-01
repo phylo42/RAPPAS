@@ -117,7 +117,6 @@ public class TEST_Main_v2 {
             
             
             // placement launch
-<<<<<<< HEAD
 //            arguments=
 //                              "-m p "
 //                            + "-w "+workDir+" "
@@ -130,7 +129,6 @@ public class TEST_Main_v2 {
 //                            + "--states nucl"
 //                            ;    
                             
-=======
             arguments=
                               "-m p "
                             + "-w "+workDir+" "
@@ -146,11 +144,14 @@ public class TEST_Main_v2 {
             
             
             // test 50%_50% 16S_18S
-            workDir="/home/ben/Dropbox/STAGIAIRES/yannick_antoine_M2_2018/resultats_entropy/test_netbeans_16S_18S";
+            String base="/media/STOCK";
+            workDir=base+"/Dropbox/STAGIAIRES/yannick_antoine_M2_2018/resultats_entropy/test_netbeans_16S_18S";
             q= workDir+"/50percent_16S_and_18S_100000_reads.fasta";
             q= workDir+"/reads_H0.8.fasta";
             q= workDir+"/reads_H_between_0_and_1_step_0.1.fasta";
             q= workDir+"/extreme_cases.fasta";
+            q= workDir+"/MIXED_cases.fasta";
+            q= workDir+"/REPEAT_cases.fasta";
             db= workDir+"/DB_session_k8_a1.0_f1_t-4.81648.union";
             
             arguments=
@@ -169,7 +170,6 @@ public class TEST_Main_v2 {
             
             
 //                            
->>>>>>> 034ee55efa31f0b67e6966fa9c7cc6218d61122a
                             
 /////////FOR TESTS CORRECTION: HCV, A34, k8_a1.0, R500bp  --> case where our algo cannot fails compared to EPA/PPlacer          
 //            arguments=

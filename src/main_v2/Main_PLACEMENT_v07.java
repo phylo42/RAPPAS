@@ -192,6 +192,10 @@ public class Main_PLACEMENT_v07 {
             ////////////////////////////////////////////////////////////////////
             //PREPARE THE WRITER FOR OUTPUT IN TSV FORMAT
             ////////////////////////////////////////////////////////////////////
+            //prepare directories
+            if (!workDir.exists()) {workDir.mkdir();}
+            if (!new File(logPath).exists()) {new File(logPath).mkdir();}
+            
             int bufferSize=2097152; // buffer of 2mo
             //placement results
             BufferedWriter bwTSVPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);

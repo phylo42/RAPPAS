@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import models.EvolModel;
 
 /**
  * parse the arguments when command_line version is used
@@ -32,32 +33,7 @@ public class ArgumentsParser_v2 {
     
     private HashMap<Integer,String> argsMap=null;
 
-    
-    //parameters related to AR models
-    //note only models supported by both phyml and paml are supported in RAPPAS
-    //nucl models: 7 commons
-    public static final int MODEL_JC69=1; //phyml=JC69 ; baseml=JC69
-    public static final int MODEL_K80=2; //phyml=K80  ; baseml=K80
-    public static final int MODEL_F81=3; //phyml=F81  ; baseml=F81
-    public static final int MODEL_F84=4; //phyml=F84  ; baseml=F84
-    public static final int MODEL_HKY85=5; //phyml=HKY85  ; baseml=HKY85
-    public static final int MODEL_TN93=6; //phyml=TN93  ; baseml=TN93
-    public static final int MODEL_GTR=7;  //phyml=GTR  ; baseml=REV
-    //prot models 9 commons
-    public static final int MODEL_LG=11; //phyml=LG ; baseml=lg.dat
-    public static final int MODEL_WAG=12; //phyml=WAG  ; baseml=wag.dat
-    public static final int MODEL_JTT=13; //phyml=JTT  ; baseml=jones.dat
-    public static final int MODEL_DAYHOFF=14; //phyml=Dayhoff  ; baseml=dayhoff.dat
-    public static final int MODEL_DCMUT=15; //phyml=DCMut  ; baseml=dayhoff_dimut.dat
-    public static final int MODEL_CPREV=16; //phyml=CpREV  ; baseml=cpREV10.dat
-    public static final int MODEL_MTMAM=17;  //phyml=MtMam  ; baseml=mtmam.dat
-    public static final int MODEL_MTREV=18;  //phyml=mMtREV  ; baseml=mtREV24.dat
-    public static final int MODEL_MTART=19;  //phyml=MtArt  ; baseml=mtart.dat
-    //gamma parameters
-    public int model=MODEL_GTR;
-    public float alpha=1.0f;
-    public int categories=4;
-    
+
     //RAPPAS general parameters
     public int phase=DBBUILD_PHASE;
     public File workingDir=null;//current directory by default, see below
@@ -77,6 +53,11 @@ public class ArgumentsParser_v2 {
     public File alignmentFile=null;
     public File treeFile=null;
     public boolean forceRooting=false;
+    public String modelString=null; //if not set by options, default will be used (see Main)
+    public float alpha=1.0f;
+    public int categories=4;
+    public String arparameters=null;
+
     //passed for debugging in DB_build
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;  // used to load directly an already computed AR
@@ -140,14 +121,16 @@ public class ArgumentsParser_v2 {
      */
     private void loadParameters() throws Exception {
 
-        //general loop, must pass a 1st time on all arguments to set the phase for sure
+        //general loop, must pass a 1st time on all arguments to set basal
+        //options which will influence other options (ex: protein vs nucleotides analysis)
         boolean wGiven=false;
         boolean statesGiven=false;
+        boolean modelGiven=false;
         for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
             int index=it.next();
             
             //check if --phase associated to correct minimum values
-            if (argsMap.get(index).equals("-m") || argsMap.get(index).equals("--phase")) {
+            if (argsMap.get(index).equals("-p") || argsMap.get(index).equals("--phase")) {
                 if (argsMap.get(index+1).equalsIgnoreCase("b")) {this.phase=DBBUILD_PHASE;}
                 if (argsMap.get(index+1).equalsIgnoreCase("p")) {this.phase=PLACEMENT_PHASE;}
             }
@@ -177,7 +160,8 @@ public class ArgumentsParser_v2 {
                         System.exit(1);
                     }
             }        
-            //test -s parameter
+            //test -s parameter, this must be tested before many other options as 
+            //analyses differ when doing protein or nucleotides analysis
             if (argsMap.get(index).equals("--states") || argsMap.get(index).equals("-s")) {
                 if (argsMap.get(index+1).equalsIgnoreCase("nucl")) {
                     statesGiven=true;
@@ -195,8 +179,14 @@ public class ArgumentsParser_v2 {
                 this.convertUOX=true;
             }
             
+            //test -m modelId: 
+            if (argsMap.get(index).equals("--model") || argsMap.get(index).equals("-m")) {
+                String fVal=argsMap.get(index+1);
+                this.modelString=fVal;
+                modelGiven=true;
+            }
             
-            
+
         }
         if ( !(phase==DBBUILD_PHASE) && !(phase==PLACEMENT_PHASE) ) {
             System.out.println("Unexpected -p (--phase) value, must be 'b' (build_db) or 'p' (place) !");
@@ -214,7 +204,7 @@ public class ArgumentsParser_v2 {
             System.out.println("Analysis states not found. Use option -s (--states) and one of 'nucl' or 'amino'.");
             System.exit(1);
         }
-        
+
         
         
         ////from here, we know in which phase the program will be launched///////
@@ -350,71 +340,7 @@ public class ArgumentsParser_v2 {
                         }
                        
                     }
-                    
-                    //test -m model
-                    if (argsMap.get(index).equals("--model") || argsMap.get(index).equals("-m")) {
-                        String fVal=argsMap.get(index+1);
-                        try {
-                            switch (fVal) {
-                                //nucleotidic models: 
-                                case "JC69":
-                                    this.model=MODEL_JC69;
-                                    break;
-                                case "HKY85":
-                                    this.model=MODEL_HKY85;
-                                    break;
-                                case "K80":
-                                    this.model=MODEL_K80;
-                                    break;
-                                case "F81":
-                                    this.model=MODEL_F81;
-                                    break;
-                                case "TN93":
-                                    this.model=MODEL_TN93;
-                                    break;
-                                case "GTR":
-                                    this.model=MODEL_GTR;
-                                    break;
-                                //proteic models
-                                case "LG":
-                                    this.model=MODEL_LG;
-                                    break;
-                                case "WAG":
-                                    this.model=MODEL_WAG;
-                                    break;
-                                case "JTT":
-                                    this.model=MODEL_JTT;
-                                    break;
-                                case "Dayhoff":
-                                    this.model=MODEL_DAYHOFF;
-                                    break;
-                                case "DCMut":
-                                    this.model=MODEL_DCMUT;
-                                    break;
-                                case "CpREV":
-                                    this.model=MODEL_CPREV;
-                                    break;
-                                case "MtMam":
-                                    this.model=MODEL_MTMAM;
-                                    break;
-                                case "MtREV":
-                                    this.model=MODEL_MTREV;
-                                    break;
-                                case "MtArt":
-                                    this.model=MODEL_MTART;
-                                    break;   
-                                default:
-                                    System.out.println("Model name not recognized. Please use one of:");
-                                    System.out.println("-nucleotides: JC69, HKY85, K80, F81, TN93, GTR");
-                                    System.out.println("-amino acids: LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt");  
-                                    System.exit(1);
-                            }
-                        } catch (NumberFormatException ex ) {
-                            System.out.println("Cannot parse '-m (--model)' as a string value.");
-                            System.exit(1);
-                        }
-                       
-                    }
+                  
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
@@ -598,7 +524,30 @@ public class ArgumentsParser_v2 {
                             System.out.println("Cannot parse '--gap-jump-thresh' as a float value.");
                             System.exit(1);
                         }
-                    }                    //////////////////////////////////////
+                    }             
+                    
+                    //test --arparameters
+                    if (argsMap.get(index).equals("--arparameters")) {
+                        String val=argsMap.get(index+1);
+                        this.arparameters=val;
+                        System.out.println("AR paramaters fixed by user : '"+arparameters+"'");
+                        if (this.arparameters.length()<1) {
+                            System.out.println("AR parameters string is less than 1 character, please check.");
+                            System.exit(1);
+                        }
+                        //forbidden params, because set by RAPPAS
+                        if (    this.arparameters.contains("--ancestral ") ||
+                                this.arparameters.contains("-i ") ||
+                                this.arparameters.contains("--input ") ||
+                                this.arparameters.contains("-u ") ||
+                                this.arparameters.contains("--inputtree ")
+                                ) {
+                            System.out.println("AR parameters string set with '--arparameters' contains a forbidden option (--ancestral,-i,--input,-u,--inputtree).\nThose are always managed by RAPPAS, please remove them.");
+                            System.exit(1);
+                        }
+                    }
+
+                    //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
                     
@@ -748,7 +697,7 @@ public class ArgumentsParser_v2 {
         System.out.println("## benjamin/dot/linard/at/lirmm/dot/fr");
         System.out.println("################################################");
         System.out.print(
-        "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+        "\n--------------------------------------------------------------------\n" +
         " Minimum usage:\n\n"+
         " 1. For building the phylo-kmers database:\n"+
         "    java -jar viromplacer.jar -p b -s [nucl|prot] -b ARbinary \n" +
@@ -761,10 +710,10 @@ public class ArgumentsParser_v2 {
         "       ex: java -jar -Xms1024m -Xmx16g viromplacer.jar [...] \n"+
         "       -Xms -> memory allocated at startup. (m=MegaByte, g=GigaByte)\n"+
         "       -Xmx -> maximum allocation allowed.  \n"+
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "---------------------------------------------------------------------\n"+
         "\n" +
         "Main options:     Default values are in [].\n" +
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "---------------------------------------------------------------------\n"+
         "-b (--arbinary)   [file] Binary for marginal AR, currently 'phyml' and \n" +
         "                  'baseml' (from PAML) are supported. (b phase)\n" +
         "-d (--database)   [file] The database of ancestral kmers. (b|p phase) \n"+
@@ -783,41 +732,43 @@ public class ArgumentsParser_v2 {
         "                  be placed if filenames are separated by ','.\n" +
         "-v (--verbosity)  [0] Verbosity level: -1=null ; 0=low ; 1=high\n" +  
         "-w (--workdir)    [.] Path to the working directory (b|p phase).\n" +  
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Outputs options:  Jplace, log files...  \n" +
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+     
+        "---------------------------------------------------------------------\n"+
         "--keep-at-most    [7] Max number of placement per query kept in \n" +
         "                  the jplace output. (p phase)\n" +
         "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
         "                  than (factor x best_likelihood_ratio). (p phase)\n" +      
         "--write-reduction [file] Write reduced alignment to file. (b phase)\n" +
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Algo options:     Use only if you know what you are doing...    \n" +
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
+        "---------------------------------------------------------------------\n"+
         "-a (--alpha)      [1.0] Shape parameter, used in AR . (b phase)\n" +     
         "-c (--categories) [4] # categories, used in AR . (b phase)\n" +   
         "-g (--ghosts)     [1] # ghost nodes injected per branches. (b phase)\n"+
         "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +   
         "-m (--model)      [GTR|LG] Model used in AR, one of the following:\n" +   
-        "                  - nucleotides: JC69, HKY85, K80, F81, TN93, GTR \n" +  
-        "                  - amino acids: LG, WAG, JTT, Dayhoff, DCMut, CpREV,\n" +
-        "                                 mMtREV, MtMam, MtArt \n" +  
+        "                  *nucl  : JC69, HKY85, K80, F81, TN93, GTR \n" +  
+        "                  *amino : LG, WAG, JTT, Dayhoff, DCMut, CpREV,\n" +
+        "                           mMtREV, MtMam, MtArt \n" +  
         "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
         "--force-root      [] Root input tree if non rooted. (b phase)\n" +
         "--ratio-reduction [0.999] Ratio for alignment reduction, e.g. sites \n" +
         "                  holding >99.9% gaps are ignored. (b phase)\n" +
+        "--arparameters    [string] Parameters passed to the software used for\n" +
+        "                  anc. seq. reconstuct. Overrides -a,-c,-m options.\n" +
+        "                  Value must be quoted by ' or \". Do not set options\n" +
+        "                  -i,-u,--ancestral (managed by RAPPAS). (b phase)\n" +
+        "                  PhyML example: \"-m HIVw -c 10 -f m -v 0.0 --r_seed 1\"\n" +
         "--no-reduction    [] Do not operate alignment reduction. This will \n" +
         "                  keep all sites of input reference alignment and \n" +
         "                  may produce erroneous ancestral k-mers. (b phase)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
         "--omega           [1.0] Modifier levelling the threshold used in\n"+
         "                  phylo-kmers filtering, (omega/#states)^k . (b phase)\n" +
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+
         "\n" +
         "Debug options:    Use only if you know what you are doing...    \n" +
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"+     
+        "---------------------------------------------------------------------\n"+
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
         "                  uses outputs of the specified directory. (b phase)\n" +
         "--extree          [dir] Skip phantom nodes injection, and use already\n"+

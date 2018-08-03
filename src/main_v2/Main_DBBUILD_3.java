@@ -9,12 +9,10 @@ import inputs.ARProcessLauncher;
 import alignement.Alignment;
 import core.AAStates;
 import core.DNAStatesShifted;
-import core.ProbabilisticWord;
 import core.States;
 import core.algos.PlacementProcess;
 import core.algos.RandomSeqGenerator;
 import core.algos.SequenceKnife;
-import core.algos.WordExplorer_v2;
 import core.algos.WordExplorer_v3;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;
@@ -44,6 +42,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import models.EvolModel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -62,17 +61,13 @@ import tree.PhyloTreeModel;
  * @author ben
  */
 public class Main_DBBUILD_3 {
-    
-    public static final int TYPE_DNA=1;
-    public static final int TYPE_PROT=1;
-    
+  
     
     /**
      * 
-     * @param analysisType one of ArgumentsParser_v2.TYPE_*
      * @param processLog null if not used
      * @param k
-     * @param alpha 
+     * @param omega 
      * @param branchPerLength 
      * @param s states (DNA or Protein)
      * @param a alignment
@@ -98,13 +93,14 @@ public class Main_DBBUILD_3 {
      * @param doGapJumps 
      * @param limitTo1Jump 
      * @param gapJumpThreshold 
+     * @param model 
+     * @param arparameters 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
-    public static void DBGeneration(    int analysisType,
-                                        FileWriter processLog,
+    public static void DBGeneration(    FileWriter processLog,
                                         int k,
-                                        float alpha,
+                                        float omega,
                                         int branchPerLength,
                                         States s,
                                         File a,
@@ -129,7 +125,9 @@ public class Main_DBBUILD_3 {
                                         float keepRatio,
                                         boolean doGapJumps,
                                         boolean limitTo1Jump,
-                                        float gapJumpThreshold
+                                        float gapJumpThreshold,
+                                        EvolModel model,
+                                        String arparameters
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -158,11 +156,11 @@ public class Main_DBBUILD_3 {
             int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             int min_k=k;
             float sitePPThreshold=Float.MIN_VALUE;
-            float PPStarThreshold=(float)Math.pow((0.0+alpha/s.getNonAmbiguousStatesCount()),k);
+            float PPStarThreshold=(float)Math.pow((0.0+omega/s.getNonAmbiguousStatesCount()),k);
             float PPStarThresholdAsLog=(float)Math.log10(PPStarThreshold);
             boolean wordCompression=true;
             Infos.println("k="+k);
-            Infos.println("factor="+alpha);
+            Infos.println("factor="+omega);
             Infos.println("PPStarThreshold="+PPStarThreshold);
             Infos.println("log10(PPStarThreshold)="+PPStarThresholdAsLog);
             //site and word posterior probas thresholds
@@ -380,10 +378,9 @@ public class Main_DBBUILD_3 {
             }
             
             
-            
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
-            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,analysisType);
+            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,s,model,arparameters);
             //basique recognition of AR software is done through its ARBinary name
             //Note: even if AR is skipped (option --ardir),
             //ArgumentsParser.ARBinary value is used, which allows 
@@ -455,12 +452,12 @@ public class Main_DBBUILD_3 {
             //are set at construction:
             //session.k
             //session.minK
-            //session.alpha
+            //session.omega
             //session.branchPerLength
             //session.sitePPThreshold
             //session.PPStarProbaThreshold
             //session.PPStarProbaThresholdAsLog10
-            SessionNext_v2 session=new SessionNext_v2(k, min_k, alpha, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
+            SessionNext_v2 session=new SessionNext_v2(k, min_k, omega, branchPerLength, sitePPThreshold, PPStarThreshold,PPStarThresholdAsLog);
             //are set after instanciation
             //session.states
             session.associateStates(s);
@@ -509,7 +506,7 @@ public class Main_DBBUILD_3 {
             //!!!!  AT THIS POINT the session should be set with all important data
             //session.k
             //session.minK
-            //session.alpha
+            //session.omega
             //session.states
             //session.branchPerEdge
             /////////
@@ -702,8 +699,8 @@ public class Main_DBBUILD_3 {
             //OUTPUT SOME STATS IN THE WORKDIR
             
             //double[] vals=hash.keySet().stream().mapToDouble(w->hash.getPairs(w).size()).toArray();
-            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"),k,alpha);
-            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+alpha+"_t"+PPStarThreshold+".png"), k, alpha);
+            //outputWordBucketSize(vals, 40, new File(workDir+"histogram_word_buckets_size_k"+k+"_mk"+min_k+"_f"+omega+"_t"+PPStarThreshold+".png"),k,omega);
+            //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+omega+"_t"+PPStarThreshold+".png"), k, omega);
             
             //output some stats as histograms:
             if (histogramNumberPositionsPerNode && session.hash.keySet().size()>0) {
@@ -775,7 +772,7 @@ public class Main_DBBUILD_3 {
             }
             
             //keep filenames here, used even in dbInRAM mode
-            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+alpha+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);
+            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+omega+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);
             File dbfull=new File(db.getAbsoluteFile()+".full");
             File dbmedium=new File(db.getAbsoluteFile()+".medium");
             File dbsmall=new File(db.getAbsoluteFile()+".small");

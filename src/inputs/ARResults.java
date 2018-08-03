@@ -159,16 +159,6 @@ public class ARResults {
             endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML Postrerior Probas used " + (endTime - startTime) + " ms");
             
-        } else if (this.arpl.currentProg==ARProcessLauncher.AR_FASTML) {
-            //probas
-            long startTime = System.currentTimeMillis();
-            //!!!!!!!!!!!!!!!
-            //this.probas = fw..parseProbas(new FileInputStream(probasFile),1e-6f,false);
-            Infos.println("return of  PProbasSorted not implemented yet for FASTML !");
-            System.exit(1);
-            //!!!!!!!!!!!!!!!!
-            long endTime = System.currentTimeMillis();
-            Infos.println("Loading of probas used " + (endTime - startTime) + " ms");
         } 
 
         

@@ -11,6 +11,8 @@ import core.States;
 import etc.NullPrintStream;
 import java.io.File;
 import javax.swing.UIManager;
+import static main_v2.ArgumentsParser_v2.DBBUILD_PHASE;
+import models.EvolModel;
 
 
 /**
@@ -72,6 +74,8 @@ public class Main_v2 {
                 s=new AAStates(argsParser.convertUOX);
                 System.out.println("Set analysis for PROTEIN");
             }
+            
+            
 
             
             
@@ -81,10 +85,31 @@ public class Main_v2 {
             if (argsParser.phase==ArgumentsParser_v2.DBBUILD_PHASE) {
                 System.out.println("Starting db_build pipeline...");
                 
+                //set default model for ASR if user set nothing
+                EvolModel model=null;
+                if ( argsParser.modelString==null ) {
+                    model=EvolModel.getDefault(argsParser.states);
+                    System.out.println("User did not set model parameters, using default: "+model.toString());
+                } else {
+                    model=new EvolModel(
+                        argsParser.states,
+                        argsParser.modelString, 
+                        argsParser.alpha, 
+                        argsParser.categories
+                    );
+                    System.out.println("Model parameters: "+model.toString());
+                }
+                //test if model compatible to nucl/prot, test not done is user provides --arparameters
+                if ( !model.isProteinModel() && (s instanceof AAStates) && (argsParser.arparameters==null)) {
+                    System.out.println("You ask for a nucleic model but use amino acid states, please correct (see -h).");
+                    System.exit(1);
+                } else if (model.isProteinModel() && !(s instanceof AAStates) && (argsParser.arparameters==null)) {
+                    System.out.println("You ask for a proteic model but use nucleic states, please correct (see -h).");
+                    System.exit(1);
+                }
 
 
-
-                Main_DBBUILD_3.DBGeneration(argsParser.states,
+                Main_DBBUILD_3.DBGeneration(
                                             null,
                                             argsParser.k,
                                             argsParser.omega,
@@ -112,13 +137,16 @@ public class Main_v2 {
                                             argsParser.keepFactor,
                                             argsParser.doGapJumps,
                                             argsParser.limitTo1Jump,
-                                            argsParser.gapJumpThreshold
+                                            argsParser.gapJumpThreshold,
+                                            model,
+                                            argsParser.arparameters
                         
                                             );
+                System.out.println("Have a coffee, you \"built\" your world.");
+
                 
             //////////////////////
             //PLACEMENT MODE
-                
             } else if (argsParser.phase==ArgumentsParser_v2.PLACEMENT_PHASE) {
                 System.out.println("Starting placement pipeline...");
                 //load session itself (i.e the DB)
@@ -140,13 +168,13 @@ public class Main_v2 {
                                                 argsParser.keepFactor
                                                 );
                 }
-                
+                System.out.println("Have a coffee, you \"placed\" your world.");
+
             }
             
             
             long endTime=System.currentTimeMillis();
             System.out.println("Total execution time: "+(endTime-startTime)+" ms ("+((endTime-startTime)/60000)+" min)");
-            System.out.println("Have a coffee, you \"placed\" your world.");
             //System.exit(0);
             
         } catch (Exception ex) {

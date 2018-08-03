@@ -5,12 +5,9 @@
  */
 package main_v2;
 
-import core.AAStates;
-import core.DNAStates;
 import core.States;
 import core.algos.PlacementProcess;
 import core.algos.SequenceKnife;
-import core.hash.CustomHash_v2;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -20,7 +17,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;

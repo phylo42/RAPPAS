@@ -11,6 +11,8 @@ import core.States;
 import etc.NullPrintStream;
 import java.io.File;
 import javax.swing.UIManager;
+import static main_v2.ArgumentsParser_v2.DBBUILD_PHASE;
+import models.EvolModel;
 
 
 /**
@@ -19,13 +21,13 @@ import javax.swing.UIManager;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.03";
+    private final static String consoleVersion="1.04";
 
     public static void main (String[] args) {
         try {
             long startTime=System.currentTimeMillis();
-           
-            //System.out.println(VM.current().details());
+            
+	    //System.out.println(VM.current().details());
             System.setProperty("viromeplacer_version", consoleVersion);
             
             //hack related to Problems under MAC OS implementation of
@@ -65,30 +67,53 @@ public class Main_v2 {
             
             //type of Analysis, DNA or AA
             States s=null; 
-            if (argsParser.analysisType==ArgumentsParser_v2.TYPE_DNA) {
+            if (argsParser.states==ArgumentsParser_v2.STATES_DNA) {
                 s=new DNAStatesShifted();
                 System.out.println("Set analysis for DNA");
-            } else if (argsParser.analysisType==ArgumentsParser_v2.TYPE_PROTEIN) {
+            } else if (argsParser.states==ArgumentsParser_v2.STATES_PROTEIN) {
                 s=new AAStates(argsParser.convertUOX);
                 System.out.println("Set analysis for PROTEIN");
             }
+            
+            
 
             
             
             //////////////////////
             //DB_BUILD MODE
             
-            if (argsParser.mode==ArgumentsParser_v2.DBBUILD_MODE) {
+            if (argsParser.phase==ArgumentsParser_v2.DBBUILD_PHASE) {
                 System.out.println("Starting db_build pipeline...");
                 
+                //set default model for ASR if user set nothing
+                EvolModel model=null;
+                if ( argsParser.modelString==null ) {
+                    model=EvolModel.getDefault(argsParser.states);
+                    System.out.println("User did not set model parameters, using default: "+model.toString());
+                } else {
+                    model=new EvolModel(
+                        argsParser.states,
+                        argsParser.modelString, 
+                        argsParser.alpha, 
+                        argsParser.categories
+                    );
+                    System.out.println("Model parameters: "+model.toString());
+                }
+                //test if model compatible to nucl/prot, test not done is user provides --arparameters
+                if ( !model.isProteinModel() && (s instanceof AAStates) && (argsParser.arparameters==null)) {
+                    System.out.println("You ask for a nucleic model but use amino acid states, please correct (see -h).");
+                    System.exit(1);
+                } else if (model.isProteinModel() && !(s instanceof AAStates) && (argsParser.arparameters==null)) {
+                    System.out.println("You ask for a proteic model but use nucleic states, please correct (see -h).");
+                    System.exit(1);
+                }
 
 
-
-                Main_DBBUILD_3.DBGeneration(argsParser.analysisType,
+                Main_DBBUILD_3.DBGeneration(
                                             null,
                                             argsParser.k,
-                                            argsParser.alpha,
-                                            argsParser.fakeBranchAmount,
+                                            argsParser.omega,
+                                            argsParser.ghostsAmount,
                                             s,
                                             argsParser.alignmentFile,
                                             argsParser.treeFile,
@@ -112,14 +137,17 @@ public class Main_v2 {
                                             argsParser.keepFactor,
                                             argsParser.doGapJumps,
                                             argsParser.limitTo1Jump,
-                                            argsParser.gapJumpThreshold
+                                            argsParser.gapJumpThreshold,
+                                            model,
+                                            argsParser.arparameters
                         
                                             );
+                System.out.println("Have a coffee, you \"built\" your world.");
+
                 
             //////////////////////
             //PLACEMENT MODE
-                
-            } else if (argsParser.mode==ArgumentsParser_v2.PLACEMENT_MODE) {
+            } else if (argsParser.phase==ArgumentsParser_v2.PLACEMENT_PHASE) {
                 System.out.println("Starting placement pipeline...");
                 //load session itself (i.e the DB)
                 System.out.println("Loading ancestral words DB... ("+argsParser.databaseFile.getName()+")");
@@ -140,13 +168,13 @@ public class Main_v2 {
                                                 argsParser.keepFactor
                                                 );
                 }
-                
+                System.out.println("Have a coffee, you \"placed\" your world.");
+
             }
             
             
             long endTime=System.currentTimeMillis();
             System.out.println("Total execution time: "+(endTime-startTime)+" ms ("+((endTime-startTime)/60000)+" min)");
-            System.out.println("Have a coffee, you \"placed\" your world.");
             //System.exit(0);
             
         } catch (Exception ex) {

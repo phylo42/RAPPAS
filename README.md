@@ -166,9 +166,11 @@ They are analogs to PPlacer options.
 
 option | expected value {default} | description
 --- | --- | ---
+**-a (--alpha)** | float in ]0,Inf] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
+**-c (--categories)** | int in [1,Inf] {4} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
 **-k** | integer>=3 {8} | The k-mer length used at DB build.
-**-a (--alpha)** | float in ]0,#states] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
-**-f (--fakebranch)** | integer>=1 {1} | Number of ghost nodes injected on each reference tree branches. (b mode)
+**-m (--model)** | string {GTR|LG} | Model used in AR, one of the following: *nucl  : JC69, HKY85, K80, F81, TN93, GTR* *amino : LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt* (b mode)
+**--arparameters** | string | Parameters passed to the software used for anc. seq. reconstuct. Overrides -a,-c,-m options. Value must be quoted by ' or ". Do not set options -i,-u,--ancestral (managed by RAPPAS). PhyML example: "-m HIVw -c 10 -f m -v 0.0 --r_seed 1" (b phase)
 **--convertUOX** | none | U,O,X amino acids are converted to C,L,- to allow correct ancestral reconstruction (b mode)
 **--force-root**  | none | Root input tree if non rooted. (b mode)
 **--ratio-reduction** | float in ]0,1] {0.999} |Ratio for alignment reduction, i.e. sites holding >99.9% gaps are ignored. (b mode)
@@ -183,12 +185,9 @@ option | expected value {default} | description
 --- | --- | ---
 **--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b mode)
 **--extree**  | directory |  Skips ghost nodes injection, and use injected trees present in the specified directory. (b mode)
-**--dbfull**  | none | Save "full" DB (unused in current algo). (b mode)
 **--nsbound** | float in ]-Inf,O[ | Forces score bound. (p mode)
 **--dbinram** | none | Operate "b" followed by "p" mode, without saving DB to files and placing directly queries given via -q .
 **--calibration** | none |  Prototype score calibration on random anc. kmers. (b mode).
-**--poshash** | none  |  Places using deprecated hash. (b mode)
-**--original-nodes** | none |  Also compute ancestral kmers at original nodes, produces results unused in current algo. (b mode)
 **--do-n-jumps** | none |   Shifts to n jumps. (b mode) 
 **--no-gap-jumps** | none |  Deactivate k-mer gap jumps, even if reference alignment has a proportion of gaps higher than "--gap-jump-thresh". (b mode) 
 

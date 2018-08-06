@@ -89,12 +89,12 @@ where
 
 option | expected value | description
 --- | --- | ---
-**-m (--mode)** | "b" | Invokes the "database build" process.
-**-s (--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
-**-b (--arbinary)** | binary of PhyML (>=v3.3) or PAML (>=4.9) | Set the path to the binary used for ancestral sequence reconstruction (see note below).
-**-w (--workdir)** | directory | Set the directory to save the database in.
-**-r (--refalign)** | file | The reference alignment, in fasta format.
-**-t (--reftree)̀** | file | The reference tree, in newick format.
+**-m <br/>(--mode)** | "b" | Invokes the "database build" process.
+**-s <br/>(--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
+**-b <br/>(--arbinary)** | binary of PhyML (>=v3.3) or PAML (>=4.9) | Set the path to the binary used for ancestral sequence reconstruction (see note below).
+**-w <br/>(--workdir)** | directory | Set the directory to save the database in.
+**-r <br/>(--refalign)** | file | The reference alignment, in fasta format.
+**-t <br/>(--reftree)̀** | file | The reference tree, in newick format.
 
 __Note on PhyML and PAML binaries__:
 Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
@@ -133,11 +133,11 @@ where
 
 option | expected value | description
 --- | --- | ---
-**-m (--mode)** | "p" | Invokes the "placement" process.
-**-s (--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
-**-w (--workdir)** | directory | Set the directory to save the database in.
-**-d (--database)** | file | the *.union file created at previous DB build step.
-**-q (--queries)** | file | The query reads, in fasta format.
+**-m <br/>(--mode)** | "p" | Invokes the "placement" process.
+**-s <br/>(--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
+**-w <br/>(--workdir)** | directory | Set the directory to save the database in.
+**-d <br/>(--database)** | file | the *.union file created at previous DB build step.
+**-q <br/>(--queries)** | file | The query reads, in fasta format.
 
 __Note on -Xm[x]G option__:
 Reuse the value used in the database build phase, as loading the database will basically require the same amount of memory.
@@ -166,16 +166,17 @@ They are analogs to PPlacer options.
 
 option | expected value {default} | description
 --- | --- | ---
-**-a (--alpha)** | float in ]0,Inf] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
-**-c (--categories)** | int in [1,Inf] {4} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
+**-a <br/>(--alpha)** | float in ]0,Inf] {1.0} | Shape parameter used in AR. (b mode)
+**-c <br/>(--categories)** | int in [1,Inf] {4} | # categories used in AR. (b mode)
 **-k** | integer>=3 {8} | The k-mer length used at DB build.
-**-m (--model)** | string {GTR|LG} | Model used in AR, one of the following: *nucl  : JC69, HKY85, K80, F81, TN93, GTR* *amino : LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt* (b mode)
+**-m <br/>(--model)** | string {GTR\|LG} | Model used in AR, one of the following: (for nucl) JC69, HKY85, K80, F81, TN93, GTR ; (for amino) LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt (b mode)
 **--arparameters** | string | Parameters passed to the software used for anc. seq. reconstuct. Overrides -a,-c,-m options. Value must be quoted by ' or ". Do not set options -i,-u,--ancestral (managed by RAPPAS). PhyML example: "-m HIVw -c 10 -f m -v 0.0 --r_seed 1" (b phase)
 **--convertUOX** | none | U,O,X amino acids are converted to C,L,- to allow correct ancestral reconstruction (b mode)
 **--force-root**  | none | Root input tree if non rooted. (b mode)
 **--ratio-reduction** | float in ]0,1] {0.999} |Ratio for alignment reduction, i.e. sites holding >99.9% gaps are ignored. (b mode)
 **--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b mode)
 **--gap-jump-thresh** | float in ]0,1] {0.3}| Gap ratio above which gap jumps are activated, for instance if the reference alignment hold more than 30% of gaps.
+**--omega** | float in ]0,#states] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
 
 
 __Debug options:__

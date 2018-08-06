@@ -1,3 +1,13 @@
+v1.04
++ added options to set more easily the model used during AR (options -m,-a,-c)
++ added --arparameters options to pass parameters directly to the AR software (useful for phyML tuning) 
+* options -a (alpha) renamed -o (omega) to avoid confusion with Gamma shape parameters
+
+v1.03
++ added UOX amino acids support (option --convertUOX)
+* bugfix related to incorrect null verbosity (-v -1)
+
+
 v1.02
 + support of platypi interactions
 

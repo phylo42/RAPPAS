@@ -31,17 +31,17 @@ public class Main_v2 {
             System.setProperty("viromeplacer_version", consoleVersion);
             
             //hack related to Problems under MAC OS implementation of
-            //the Aqua (mac Look and feel)
-            //in some implementations, (Mac implementation if Java... not Oracle or open JDK)
+            //the Aqua (mac Look and feel) in some implementations,
+            //(Mac implementation of Java is screwed... not Oracle or openJDK)
             //for unknown reason, the use of Jtree prompts the virtual machine to 
             //use the class com.apple.laf.AquaTreeUI
             //which is not Serializable and causes crashes when Jtree is serialized
             //(i.e. when the database is saved on the disk)
-            // Set cross-platform Java L&F (also called "Metal")
+            // Set cross-platform Java L&F as defaults (also called "Metal")
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             
             //parse program arguments
-            ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args);
+            ArgumentsParser_v2 argsParser = new ArgumentsParser_v2(args,consoleVersion);
             
             
             //set verbosity to null, if required

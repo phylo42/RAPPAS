@@ -32,6 +32,8 @@ public class ArgumentsParser_v2 {
     public static final int STATES_PROTEIN=2;
     
     private HashMap<Integer,String> argsMap=null;
+    
+    String version="";
 
 
     //RAPPAS general parameters
@@ -82,7 +84,8 @@ public class ArgumentsParser_v2 {
     //call string
     public String callString=null;
     
-    public ArgumentsParser_v2(String[] args) {
+    public ArgumentsParser_v2(String[] args,String version) {
+        this.version=version;
         argsMap=new HashMap<Integer,String>();
         StringBuilder sb=new StringBuilder();
         //args with priority
@@ -689,6 +692,8 @@ public class ArgumentsParser_v2 {
      */
     private void showHelpAndExit() {
         System.out.println("################################################");
+        System.out.println("## RAPPAS v"+version);
+        System.out.println("## ---------------------------------------------");
         System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
         System.out.println("## via Ancestral Sequences");
         System.out.println("## Linard B, Swenson KM, Pardi F");
@@ -743,8 +748,8 @@ public class ArgumentsParser_v2 {
         "\n" +
         "Algo options:     Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+
-        "-a (--alpha)      [1.0] Shape parameter, used in AR . (b phase)\n" +     
-        "-c (--categories) [4] # categories, used in AR . (b phase)\n" +   
+        "-a (--alpha)      [1.0] Shape parameter used in AR . (b phase)\n" +     
+        "-c (--categories) [4] # categories used in AR . (b phase)\n" +   
         "-g (--ghosts)     [1] # ghost nodes injected per branches. (b phase)\n"+
         "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +   
         "-m (--model)      [GTR|LG] Model used in AR, one of the following:\n" +   
@@ -764,23 +769,19 @@ public class ArgumentsParser_v2 {
         "                  keep all sites of input reference alignment and \n" +
         "                  may produce erroneous ancestral k-mers. (b phase)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
-        "--omega           [1.0] Modifier levelling the threshold used in\n"+
-        "                  phylo-kmers filtering, (omega/#states)^k . (b phase)\n" +
+        "--omega           [1.0] Modifier levelling the threshold used during\n"+
+        "                  phylo-kmers filtering, T=(omega/#states)^k .(b phase)\n" +
         "\n" +
         "Debug options:    Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
-        "                  uses outputs of the specified directory. (b phase)\n" +
+        "                  uses outputs from the specified directory. (b phase)\n" +
         "--extree          [dir] Skip phantom nodes injection, and use already\n"+
-        "                  injected trees of the specified directory. (b phase)\n" +
-        "--dbfull          [] Save full DB (unused in algo). (b phase)\n" +      
+        "                  injected trees from the specified directory.(b phase)\n" +
         "--nsbound         [float] Force normalized score bound. (p phase)\n" +
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +
         "--calibration     [] Prototype calib. on random anc. kmers. (b phase).\n" +
-        "--poshash         [] Places using older deprecated hash. (b phase)\n" +
-        "--original-nodes  [] Also compute ancestral kmers for original nodes,\n" +
-        "                  produces heavier (unused) computations. (b phase)\n" +
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +
         "--no-gap-jumps    [] Deactivate k-mer gap jumps. (b phase) \n" +
         "\n"

@@ -238,7 +238,7 @@ public class PhyloTree extends JTree implements Serializable {
      * depth first search, starting from node
      * @param node 
      */
-    private void dfs(PhyloNode node) {
+    public void dfs(PhyloNode node) {
         nodeCount++;
         indexById.put(node.getId(), node);
         indexByName.put(node.getLabel(), node);

@@ -164,7 +164,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
     }
 
     @Override
-    public byte[] compressMer(byte[] bytes) {
+    public byte[] compressMer(byte[] bytes, byte[] bytesCompressed) {
         return bytes;
     }
 

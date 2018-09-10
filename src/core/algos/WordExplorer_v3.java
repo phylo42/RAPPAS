@@ -43,6 +43,8 @@ public class WordExplorer_v3 {
     //variables for the recursive algorithm
     float currentLogSum=0.0f;
     byte[] word=null;
+    byte[] wordCopy=null;
+    byte[] wordCompressed=null;
     boolean boundReached=false;
     boolean wordCompression=false;
     int refPosition=-1;
@@ -82,6 +84,12 @@ public class WordExplorer_v3 {
         this.limitTo1Jump=limitTo1Jump;
         //accessory variables used in recursion
         this.word=new byte[session.k]; //generated words are of size k
+        if (wordCompression) {
+            wordCopy=new byte[(session.k%4)+1];
+        } else {
+            wordCopy=new byte[session.k];
+        }
+        
         this.current_k=0;//defines to k-th position where is currently position recursion
         //ARTree id mapped to originals ids, as has will contain these
         this.extTreeId=session.nodeMapping.get(nodeId);
@@ -122,14 +130,22 @@ public class WordExplorer_v3 {
         if (current_k==session.k-1) {
             //register word
             if (!boundReached) {
-                byte[] w=null;
+                wordCopy=new byte[session.k];
+                for (int k = 0; k < session.k; k++) {
+                    wordCopy[k]=word[k];
+                }
                 if (wordCompression) {
-                    w=session.states.compressMer(Arrays.copyOf(word, word.length));
+                    wordCompressed=new byte[(session.k%4)+1];
+                    wordCompressed=session.states.compressMer(wordCopy,wordCompressed);
+                    session.hash.addTuple(wordCompressed, currentLogSum, originalId, refPosition);
                 } else {
-                    w=Arrays.copyOf(word, word.length);
+                    wordCopy=new byte[session.k];
+                    for (int k = 0; k < session.k; k++) {
+                        wordCopy[k]=word[k];
+                    }
+                    session.hash.addTuple(wordCopy, currentLogSum, originalId, refPosition);
                 }
                 //Infos.println("REGISTER: "+Arrays.toString(word)+" log10(PP*)="+currentLogSum);
-                session.hash.addTuple(w, currentLogSum, originalId, refPosition);
                 generateTupleCount+=1;
             }
             //decrease before return

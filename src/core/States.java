@@ -44,7 +44,7 @@ public interface States {
      * @param bytes
      * @return 
      */
-    public byte[] compressMer(byte[] bytes);
+    public byte[] compressMer(byte[] bytes, byte[] bytesCompressed);
 
     /**
      * allows the possibility of mer expansion as chars

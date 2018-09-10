@@ -235,7 +235,7 @@ public class PHYMLWrapper implements ARWrapper {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (java.lang.NumberFormatException ex) {
-            Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states.getStateCount()));                    
+            Infos.println("Parsing error (line "+lineNumber+"): all states will have pp="+(1.0/states.getNonAmbiguousStatesCount()));                    
             ex.printStackTrace();
             System.exit(1);
         } catch (IOException ex) {

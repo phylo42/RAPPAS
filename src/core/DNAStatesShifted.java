@@ -58,22 +58,24 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     /**
      * compress DNA mer into a mer.size/4 byte array, compressing 4 residues per byte
      * @param bytes
+     * @param bytesCompressed
      * @return 
      */
     @Override
-    public byte[] compressMer(byte[] bytes) {
+    public byte[] compressMer(byte[] bytes, byte[] bytesCompressed) {
         //chose number of bytes necessary to represent this DNA
         //we can code 4 bases in 1 byte
-        int byteCount=new Double(Math.ceil((0.0+bytes.length)/4)).intValue();
+        //int byteCount=bytesCompressed.length;
+        //int byteCount=new Double(Math.ceil((0.0+bytes.length)/4)).intValue();
         //the kmer compressed in byteCount bytes
-        byte[] kmer=new byte[byteCount];
+        //byte[] bytesCompressed=new byte[byteCount];
         
         byte fourBasesByte=0x00;
         int insertions=0;
         for (int i = 0; i < bytes.length; i++) {
             if ( (i>0) & (i%4==0) ) {      
                 //instance copy this byte in byte array
-                kmer[(i/4)-1]=new Byte(fourBasesByte).byteValue();
+                bytesCompressed[(i/4)-1]=new Byte(fourBasesByte).byteValue();
                 //reset pivot byte
                 fourBasesByte=0x00;
             }
@@ -83,11 +85,11 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
         //last mer fragment was last than 4 bases
         //use a complete byte, and at expansion, k will be used to know how
         //many bit pairs will need to be read.
-        if (insertions<kmer.length) {
-            kmer[kmer.length-1]=fourBasesByte;
+        if (insertions<bytesCompressed.length) {
+            bytesCompressed[bytesCompressed.length-1]=fourBasesByte;
         }
 
-        return kmer;
+        return bytesCompressed;
         
     }
     

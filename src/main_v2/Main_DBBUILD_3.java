@@ -573,7 +573,7 @@ public class Main_DBBUILD_3 {
                 //take all internal nodes, fakes + original
                 nodesTested=session.ARTree.getInternalNodesByDFS();
             }
-            int loggingBatchFraction=25;
+            int loggingBatchFraction=100;
             int nodeBatchSize=nodesTested.size()/loggingBatchFraction;         //for time logging
             if (nodesTested.size()<loggingBatchFraction) {nodeBatchSize=1;}
             long perBatchWordExplorerLaunchs=0;               //for time logging
@@ -676,6 +676,7 @@ public class Main_DBBUILD_3 {
                 //register all words in the hash
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
+                
                 nodeCounter++;
                 
             }

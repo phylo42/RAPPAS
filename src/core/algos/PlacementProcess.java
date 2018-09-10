@@ -696,14 +696,16 @@ public class PlacementProcess {
             boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
             byte[] qw=null;
+            byte[] qwCompressed=new byte[(session.k%4)+1];
             while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
                 
                 //get Pairs associated to this word
 //                long startT1Time=System.currentTimeMillis();
                 Char2FloatMap.FastEntrySet allPairs =null;
+                //List<Pair> allPairs=null;
                 if (session.states instanceof DNAStatesShifted) {
-                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
+                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw,qwCompressed));
                 } else {
                     allPairs = session.hash.getPairsOfTopPosition2(qw);
                 }
@@ -721,6 +723,7 @@ public class PlacementProcess {
                 //stream version, 5-10% faster than allPairs.fastIterator()
                 allPairs.stream().forEach( (entry) -> {
                     int nodeId=entry.getCharKey();
+                    //int nodeId=entry.getNodeId();
                     //we will score only encountered nodes, originalNode registered
                     //at 1st encouter
                     if (nodeOccurences[nodeId]==0) {
@@ -742,7 +745,7 @@ public class PlacementProcess {
 //                   //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
 //                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allPairs.toArray()[0]);                        
 //                }
-
+                Arrays.fill(qwCompressed,(byte)0);
                 queryKmerCount++;
 
             }

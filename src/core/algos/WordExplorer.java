@@ -89,7 +89,7 @@ public class WordExplorer {
             //register word
             if (!boundReached) {
                 if (wordCompression) {
-                    words.add(new ProbabilisticWord(s.compressMer(Arrays.copyOf(word, word.length)), currentLogSum, refPosition ));
+                    //words.add(new ProbabilisticWord(s.compressMer(Arrays.copyOf(word, word.length)), currentLogSum, refPosition ));
                 } else {
                     words.add(new ProbabilisticWord(Arrays.copyOf(word, word.length), currentLogSum, refPosition ));
                 }

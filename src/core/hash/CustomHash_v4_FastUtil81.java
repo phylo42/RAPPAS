@@ -130,8 +130,16 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
         } else {
             return null;
         }
-        
     }
+//    public List<Pair> getPairsOfTopPosition2(byte[] w) {
+//        UnionPointer up=null;
+//        if ((up=hash.get(w))!=null) {
+//            return up.getPairList(0);
+//        } else {
+//            return null;
+//        }
+//    }
+    
     
     /**
      * reference alignment positions associated to a word

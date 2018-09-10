@@ -6,8 +6,9 @@
 package core;
 
 import etc.Infos;
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
@@ -19,13 +20,14 @@ public class AAStates extends AbstractStates implements States,Serializable {
     private static final long serialVersionUID = 6002L;
     
     
-    char[] states = {   'R','H','K','D','E',
+    char[] states = {   
+                        'R','H','K','D','E',
                         'S','T','N','Q','C',
                         'G','P','A','I','L',
                         'M','F','W','Y','V',
                         '-'
                     };
-    byte[] bytes = {    
+    byte[] bytes =  {    
                         (byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,
                         (byte)0x05,(byte)0x06,(byte)0x07,(byte)0x08,(byte)0x09,
                         (byte)0x0A,(byte)0x0B,(byte)0x0C,(byte)0x0D,(byte)0x0E,
@@ -35,6 +37,8 @@ public class AAStates extends AbstractStates implements States,Serializable {
     
     LinkedHashMap<Byte,Character> s =new LinkedHashMap<>();
     LinkedHashMap<Character, Byte> b =new LinkedHashMap<>();
+    
+    HashMap<Character,Boolean> ambiguousState=new HashMap<>(30);
     
     /**
      *
@@ -90,9 +94,8 @@ public class AAStates extends AbstractStates implements States,Serializable {
         b.put('V',(byte)19);b.put('v',(byte)19);
         
         //ambigous states which are allowed
-        ambigousStates=1;
-        s.put((byte)20, '-');
-        b.put('-',(byte)20);
+        ambigousStatesCount=1;
+        ambiguousState.put('-', true);
         
         //special AA and unknown
         if (convertUOX) {
@@ -107,26 +110,30 @@ public class AAStates extends AbstractStates implements States,Serializable {
     }
 
     @Override
+    public boolean isAmbiguous(char c) {
+        return ambiguousState.containsKey(c);
+    }
+    
+    
+    
+    
+
+    @Override
     protected byte charToByte(char c) {
         return b.get(c);
     }
 
-    
-    
-    
     @Override
     public char byteToState(byte b) {
         return states[b];
     }
     
     @Override
-    public byte stateToByte(char c) throws NonIUPACStateException {
+    public byte stateToByte(char c) throws NonSupportedStateException {
         try {
             return bytes[charToByte(c)];
         } catch (NullPointerException ex) {
-            //ex.printStackTrace();
-            //mettre une erreur
-            throw new NonIUPACStateException(this, c);
+            throw new NonSupportedStateException(this, c);
         }
     }
     
@@ -148,7 +155,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
         
     @Override
     public int getNonAmbiguousStatesCount() {
-        return states.length-ambigousStates;
+        return 20;
     }
 
     @Override

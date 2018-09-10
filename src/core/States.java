@@ -5,7 +5,7 @@
  */
 package core;
 
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 
 /**
  *
@@ -24,19 +24,20 @@ public interface States {
      * from a character, return the corresponding byte
      * @param c
      * @return 
-     * @throws etc.exceptions.NonIUPACStateException 
+     * @throws etc.exceptions.NonSupportedStateException 
      */
-    public byte stateToByte(char c) throws NonIUPACStateException;
+    public byte stateToByte(char c) throws NonSupportedStateException;
     /**
      * from a character, returns the correposnding byte, but as an int.
      * @param c
      * @return 
-     * @throws etc.exceptions.NonIUPACStateException 
+     * @throws etc.exceptions.NonSupportedStateException 
      */
-    public int stateToInt(char c) throws NonIUPACStateException; //simply convert the byte to unsigned int
+    public int stateToInt(char c) throws NonSupportedStateException; //simply convert the byte to unsigned int
     public String getSequence(byte[] bytes);
     public int getStateCount();
-    public int getNonAmbiguousStatesCount();
+    public int getNonAmbiguousStatesCount();   
+    public boolean isAmbiguous(char c);
     
     /**
      * allows the possibility of mer compression

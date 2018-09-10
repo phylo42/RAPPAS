@@ -5,9 +5,11 @@
  */
 package core.hash;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -19,13 +21,14 @@ public class UnionPointer implements HashPointer,Serializable {
     
     private static final long serialVersionUID = 7300L;
 
-    //only one fake position list, with fake position set to -10
-    UnionList list=new UnionList(0);
+    ObjectList<Pair> list=null;
 
     /**
      *
      */
-    public UnionPointer() {}
+    public UnionPointer() {
+        list=new ObjectArrayList<>();
+    }
 
     @Override
     public void registerTuple(int nodeId, int refPosition, float PPStar) {
@@ -90,7 +93,7 @@ public class UnionPointer implements HashPointer,Serializable {
      * @return 
      */
     @Override
-    public ArrayList<Pair> getPairList(int refPosition) {
+    public List<Pair> getPairList(int refPosition) {
         return list;
     }
     
@@ -100,7 +103,6 @@ public class UnionPointer implements HashPointer,Serializable {
      */
     @Override
     public int getPairCountInTopPosition() {
-        
         return list.size();
     }
 
@@ -119,54 +121,11 @@ public class UnionPointer implements HashPointer,Serializable {
      */
     @Override
     public int getBestPosition() {
-        return list.getRefPosition();
+        return 0;
     }
 
     @Override
     public void sort() {
         Collections.sort(list);            
     }  
-
-    
-
-    /**
-     * internal class just to link a reference position to a LinkedList
-     */
-    private class UnionList extends ArrayList<Pair> implements Comparable<UnionList>,Serializable {
-        
-        private static final long serialVersionUID = 7310L;
-        
-        private int refPosition=-1;
-
-        public UnionList(int refPosition) {
-            super(1);
-            this.refPosition=refPosition;
-        }
-
-        public int getRefPosition() {
-            return refPosition;
-        }
-
-        /**
-         * Comparable retrieving inversed order to set. Work considering
-         * that the list of Pair_16_32_bit object is already sorted (best PP* as
-         * index 0).
-         * @param o
-         * @return 
-         */
-        @Override
-        public int compareTo(UnionList o) {
-            return -Float.compare(this.get(0).getPPStar(), o.get(0).getPPStar());
-        }
-
-        @Override
-        public boolean add(Pair e) {
-            boolean ok= super.add(e);
-            //this.trimToSize(); //force arrylist capacity to preserve a max of memory
-            return ok;
-        }
-    }
-
-    
-    
 }

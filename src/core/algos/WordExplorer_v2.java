@@ -6,25 +6,11 @@
 package core.algos;
 
 import alignement.Alignment;
-import core.DNAStates;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
 import core.States;
-import core.hash.CustomHash_v2;
-import etc.Environement;
-import etc.Infos;
-import inputs.FASTAPointer;
-import inputs.Fasta;
-import inputs.PHYMLWrapper;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import tree.PhyloTree;
 
 /**
  * second version of word explorer, which takes into account empty columns to generate k-mers

@@ -6,7 +6,7 @@
 package core;
 
 import etc.Infos;
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 import java.io.Serializable;
 
 /**
@@ -17,16 +17,16 @@ public abstract class AbstractStates implements States,Serializable {
     
     private static final long serialVersionUID = 6000L;
     
-    protected int ambigousStates=2;
+    protected int ambigousStatesCount=2;
 
     
     /**
      * important method to implement to effectively match char and byte
      * @param c
      * @return 
-     * @throws etc.exceptions.NonIUPACStateException 
+     * @throws etc.exceptions.NonSupportedStateException 
      */
-    protected byte charToByte(char c) throws NonIUPACStateException {
+    protected byte charToByte(char c) throws NonSupportedStateException {
         return -1;
     }
 

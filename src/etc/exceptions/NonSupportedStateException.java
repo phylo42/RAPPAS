@@ -16,7 +16,6 @@
  */
 package etc.exceptions;
 
-import core.DNAStates;
 import core.DNAStatesShifted;
 import core.States;
 
@@ -24,16 +23,16 @@ import core.States;
  * exception to report characters not compatible with IUPAC code
  * @author yann
  */
-public class NonIUPACStateException extends Exception {
+public class NonSupportedStateException extends Exception {
     
     char c;
 
-    public NonIUPACStateException() {super();}
+    public NonSupportedStateException() {super();}
     
-    public NonIUPACStateException(States s, char c) {
+    public NonSupportedStateException(States s, char c) {
         super("The non-IUPAC state "+c+" is not allowed.");
         this.c=c;
-        if ( (s instanceof DNAStates) || (s instanceof DNAStatesShifted)) {
+        if (s instanceof DNAStatesShifted) {
             System.err.println("You selected a nucleotide analysis (-s 'nucl'), but this state is not an IUPAC allowed nucleotides.");
         } else {
             System.err.println("You selected an amino acid analysis (-s 'amino'), but this state is not regular amino acids.");

@@ -5,7 +5,6 @@
  */
 package core.algos;
 
-import core.DNAStates;
 import core.States;
 import inputs.Fasta;
 import java.util.Random;

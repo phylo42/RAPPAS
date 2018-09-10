@@ -5,15 +5,12 @@
  */
 package core.algos;
 
-import core.DNAStates;
 import core.QueryWord;
 import core.States;
-import core.Word;
 import etc.Infos;
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 import inputs.Fasta;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,7 +65,7 @@ public class SequenceKnife {
         String seq = f.getSequence(false);
         try {
             initTables(seq, SAMPLING_LINEAR);
-        } catch (NonIUPACStateException ex) {
+        } catch (NonSupportedStateException ex) {
             Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -86,7 +83,7 @@ public class SequenceKnife {
         this.s=s;
         try {
             initTables(seq, SAMPLING_LINEAR);
-        } catch (NonIUPACStateException ex) {
+        } catch (NonSupportedStateException ex) {
             Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -105,14 +102,14 @@ public class SequenceKnife {
         this.s=s;
         try {
             initTables(seq, samplingMode);
-        } catch (NonIUPACStateException ex) {
-            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NonSupportedStateException ex) {
+            ex.printStackTrace();
         }
     }
     
     /**
      * constructor setting the mer order through SAMPLING_* static variables
-     * @param seq
+     * @param f
      * @param k
      * @param minK
      * @param s
@@ -125,15 +122,32 @@ public class SequenceKnife {
         String seq = f.getSequence(false);
         try {
             initTables(seq, samplingMode);
-        } catch (NonIUPACStateException ex) {
-            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NonSupportedStateException ex) {
+            ex.printStackTrace(System.err);
+            System.out.println("Query sequence contains not yet supported states. ("+f.getHeader()+")");
+            System.exit(1);
         }
 
     }
     
-    private void initTables(String seq, int samplingMode) throws NonIUPACStateException {
+    private void initTables(String seq, int samplingMode) throws NonSupportedStateException {
         sequence=new byte[seq.length()];
         for (int i = 0; i < seq.length(); i++) {
+            
+            //test all characters of query
+            if (s.isAmbiguous(seq.charAt(i))) { //expected states
+                Infos.println("Ambiguous state not supported in queries (char='"+seq.charAt(i)+"'), corresponding k-mers are ignored.");
+            } else { //test state
+                try {
+                    s.stateToByte(seq.charAt(i));
+                } catch (NonSupportedStateException ex) {
+                    ex.printStackTrace(System.err);
+                    System.out.println("Query contains a non supported state.");
+                    System.exit(1); //do not exit here, AR will take care of transforming them to gaps
+                }
+            }
+            
+            
             sequence[i]=s.stateToByte(seq.charAt(i));
         }
         //Infos.println("Binary seq: "+Arrays.toString(sequence));

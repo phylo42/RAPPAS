@@ -5,32 +5,14 @@
  */
 package core.hash;
 
-import alignement.Alignment;
-import core.DNAStates;
-import core.PProbasSorted;
 import core.States;
-import core.algos.SequenceKnife;
-import core.algos.WordExplorer;
 import etc.Infos;
-import inputs.FASTAPointer;
-import inputs.Fasta;
-import inputs.PAMLWrapper;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import tree.PhyloTree;
 
 /**
  * In this second hash version, the Nodes composing the buckets contain a table
@@ -48,9 +30,6 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
     int nodeType=NODES_UNION;
     
     Object2ObjectOpenCustomHashMap<byte[],UnionPointerWithMap> hash;
-
-    
-    ArrayList<Pair> pairsBuffer =new ArrayList(1024);
     
     int maxCapacitySize=-1;
 
@@ -139,10 +118,15 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
         }
     }  
     
+    /**
+     * 
+     * @param w
+     * @return 
+     */
     public Char2FloatMap.FastEntrySet getPairsOfTopPosition2(byte[] w) {
         UnionPointerWithMap up=null;
         if ((up=hash.get(w))!=null) {
-            return hash.get(w).getPairs();
+            return up.getPairs();
         } else {
             return null;
         }
@@ -154,6 +138,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
      * @param w
      * @return 
      */
+    @Deprecated
     public int[] getPositions(byte[] w) {
         HashPointer cn=null;
         if ((cn=hash.get(w))!=null) {
@@ -168,6 +153,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
      * @param w
      * @return -1 if word not in hash
      */
+    @Deprecated
     public int getTopPosition(byte[] w) {
         HashPointer cn=null;
         if ((cn=hash.get(w))!=null) {
@@ -178,7 +164,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
     }
     
     
-    
+    @Deprecated
     public void sortData() {
         //trim hash to max size
         this.hash.trim(maxCapacitySize);
@@ -192,18 +178,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
     }
     
     
-    /**
-     * pairs whatever the associated position
-     * @param w
-     * @return 
-     */
-    public List<Pair> getPairs(byte[] w) {
-        pairsBuffer.clear();
-        for (int p: hash.get(w).getPositions()) {
-            pairsBuffer.addAll(hash.get(w).getPairList(p));
-        }
-        return pairsBuffer;
-    }
+
     
     /**
      * pairs selected by associated position
@@ -211,6 +186,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
      * @param position
      * @return 
      */
+    @Deprecated
     public List<Pair> getPairs(byte[] w,int position) {
         if (hash.containsKey(w)) {
             return hash.get(w).getPairList(position);
@@ -226,6 +202,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
     /**
      * empty all the positions which where not associated to the best PP*
      */
+    @Deprecated
     public void reduceToMediumHash() {
         return;
     }
@@ -244,15 +221,9 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
      * discards all words where top positions is associated to more than X nodes
      * @param X
      */
+    @Deprecated
     public void reducetoSmallHash_v2(int X) {
-        assert X>0;
-        List<byte[]> collect = hash.keySet().stream() 
-                                            //.peek((w)->System.out.println("REDUCING:"+w))
-                                            .filter((w) -> hash.get(w).getPairs().size()>X)
-                                            //.peek((w)->System.out.println("TRASHED!:"+w))
-                                            .collect(Collectors.toList());
-        collect.stream().forEach((w)-> {hash.remove(w);});
-        collect=null;
+        return;
     }    
     
     

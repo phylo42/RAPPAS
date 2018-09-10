@@ -10,7 +10,7 @@ import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
 import etc.Infos;
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -214,7 +214,13 @@ public class PAMLWrapper implements ARWrapper {
                             site=Integer.parseInt(matcher.group(2));
                         }
                         SiteProba sp=new SiteProba();
-                        sp.state=states.stateToByte(matcher.group(4).charAt(0));
+                        try {
+                            sp.state=states.stateToByte(matcher.group(4).charAt(0));
+                        } catch ( NonSupportedStateException ex) {
+                            ex.printStackTrace(System.err);
+                            System.out.println("PAML wrapper encountered a non supported state. (state="+matcher.group(4).charAt(0)+")");
+                            System.exit(1);
+                        }
                         sp.proba=Float.parseFloat(matcher.group(5));  
                         if (sp.proba<sitePPThreshold)
                             sp.proba=sitePPThreshold;
@@ -288,8 +294,6 @@ public class PAMLWrapper implements ARWrapper {
             ex.printStackTrace();
             System.exit(1);
         } catch (IOException ex) {
-            Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NonIUPACStateException ex) {
             Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {

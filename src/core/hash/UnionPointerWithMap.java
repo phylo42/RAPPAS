@@ -60,7 +60,6 @@ public class UnionPointerWithMap implements HashPointer,Serializable {
      * @return 
      */
     @Override
-    @Deprecated
     public List<Pair> getPairList(int refPosition) {
         return map.char2FloatEntrySet().stream().map((e)->new Pair_16_32_bit((int)e.getCharKey(),e.getFloatValue())).collect(Collectors.toList());
     }

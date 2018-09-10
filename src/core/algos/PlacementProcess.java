@@ -670,23 +670,23 @@ public class PlacementProcess {
 
 
             //if alignment graph are required
-            double[][] graphDataForTopTuples =null;
-            int xSize=-1;
-            if (graphAlignment) {
-                //preparing preplacement graph data :
-                xSize=session.align.getLength();
-                int ySize=queryLength;
-                graphDataForTopTuples =new double[3][xSize*ySize];
-                //init the Z axis (PP*) to very small values for all possible (X,Y)
-                    for (int y = 0; y < ySize; y++) {
-                        for (int x = 0; x < xSize; x++) {
-                            //System.out.println(col+" "+line+" "+(col+(line*session.align.getLength())));
-                            graphDataForTopTuples[0][x+(y*xSize)]=x;
-                            graphDataForTopTuples[1][x+(y*xSize)]=y;
-                            graphDataForTopTuples[2][x+(y*xSize)]=session.PPStarThresholdAsLog10;
-                        }
-                    }
-            }
+//            double[][] graphDataForTopTuples =null;
+//            int xSize=-1;
+//            if (graphAlignment) {
+//                //preparing preplacement graph data :
+//                xSize=session.align.getLength();
+//                int ySize=queryLength;
+//                graphDataForTopTuples =new double[3][xSize*ySize];
+//                //init the Z axis (PP*) to very small values for all possible (X,Y)
+//                    for (int y = 0; y < ySize; y++) {
+//                        for (int x = 0; x < xSize; x++) {
+//                            //System.out.println(col+" "+line+" "+(col+(line*session.align.getLength())));
+//                            graphDataForTopTuples[0][x+(y*xSize)]=x;
+//                            graphDataForTopTuples[1][x+(y*xSize)]=y;
+//                            graphDataForTopTuples[2][x+(y*xSize)]=session.PPStarThresholdAsLog10;
+//                        }
+//                    }
+//            }
 
             ////////////////////////////////////////////////////////////////
             // BUILD THE ALIGNMENT AND SCORE IN A SINGLE LOOP ON QUERY WORDS
@@ -719,7 +719,7 @@ public class PlacementProcess {
                 queryKmerMatchingDB++;
                 
                 //stream version, 5-10% faster than allPairs.fastIterator()
-                allPairs.stream().forEach((Char2FloatMap.Entry entry) -> {
+                allPairs.stream().forEach( (entry) -> {
                     int nodeId=entry.getCharKey();
                     //we will score only encountered nodes, originalNode registered
                     //at 1st encouter
@@ -737,11 +737,11 @@ public class PlacementProcess {
 //                totalT2Time+=(endT2Time-startT2Time);
                 
                 //graph of alignment, if asked
-                if(graphAlignment) {
-                   int topPosition =session.hash.getTopPosition(qw);
-                   //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
-                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allPairs.toArray()[0]);                        
-                }
+//                if(graphAlignment) {
+//                   int topPosition =session.hash.getTopPosition(qw);
+//                   //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
+//                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allPairs.toArray()[0]);                        
+//                }
 
                 queryKmerCount++;
 
@@ -755,23 +755,23 @@ public class PlacementProcess {
             
 
             //display alignment result of requested
-            if (graphAlignment) {
-                //graph for topTuplePerPos
-                DefaultXYZDataset datasetForGraph=new DefaultXYZDataset();
-                //datasetForGraph.addSeries(0, graphDataForTopTuples);
-                datasetForGraph.addSeries(0, graphDataForTopTuples);
-                JFrame infos=new JFrame();
-                infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                infos.setLayout(new GridLayout(1, 1));
-                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
-                infos.setSize(1024, 250);
-                infos.pack();
-                RefineryUtilities.centerFrameOnScreen(infos);
-                infos.setVisible(true);
-            }
+//            if (graphAlignment) {
+//                //graph for topTuplePerPos
+//                DefaultXYZDataset datasetForGraph=new DefaultXYZDataset();
+//                //datasetForGraph.addSeries(0, graphDataForTopTuples);
+//                datasetForGraph.addSeries(0, graphDataForTopTuples);
+//                JFrame infos=new JFrame();
+//                infos.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//                infos.setLayout(new GridLayout(1, 1));
+//                infos.add(ChartsForNodes.buildReadMatchForANode4("Top_tuple_per_pos of read="+fasta.getHeader(),session.align.getLength(),queryLength, datasetForGraph,session.PPStarThresholdAsLog10,0));
+//                infos.setSize(1024, 250);
+//                infos.pack();
+//                RefineryUtilities.centerFrameOnScreen(infos);
+//                infos.setVisible(true);
+//            }
 
 
-            //Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
+            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
 //            long endAlignTime=System.currentTimeMillis();
 //            totalAlignTime+=(endAlignTime-startAlignTime);
             //Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      

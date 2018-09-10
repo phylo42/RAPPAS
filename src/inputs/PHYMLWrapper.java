@@ -10,7 +10,7 @@ import core.PProbasSorted;
 import core.SiteProba;
 import core.States;
 import etc.Infos;
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -152,7 +152,8 @@ public class PHYMLWrapper implements ARWrapper {
             ArrayList<SiteProba> probasPerSite=new ArrayList<>(states.getNonAmbiguousStatesCount());
             for (int i = 0; i < states.getNonAmbiguousStatesCount(); i++) {
                 probasPerSite.add(new SiteProba());
-            }   Infos.println("Starting to parse PHYML posterior probas...");
+            }
+            Infos.println("Starting to parse PHYML posterior probas...");
             while ((line=br.readLine())!=null) {
                 lineNumber++;
                 if (lineNumber%500000==0) {
@@ -203,7 +204,13 @@ public class PHYMLWrapper implements ARWrapper {
                     //System.out.println("NODE/SITE: "+nodeId+" "+site);
                     for (int i = 0; i < stateOrder.length; i++) {
                         SiteProba sp=new SiteProba();
-                        sp.state=states.stateToByte(stateOrder[i]);
+                        try {
+                            sp.state=states.stateToByte(stateOrder[i]);
+                        } catch ( NonSupportedStateException ex) {
+                            ex.printStackTrace(System.err);
+                            System.out.println("PAML wrapper encountered a non supported state. (state="+stateOrder[i]+")");
+                            System.exit(1);
+                        }
                         sp.proba=Float.parseFloat(data[i+2]);
                         //System.out.print(" "+sp.state+":"+sp.proba);
                         if (sp.proba<sitePPThreshold)
@@ -233,8 +240,6 @@ public class PHYMLWrapper implements ARWrapper {
             System.exit(1);
         } catch (IOException ex) {
             Logger.getLogger(PAMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NonIUPACStateException ex) {
-            Logger.getLogger(PHYMLWrapper.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 br.close();

@@ -21,7 +21,7 @@ import models.EvolModel;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.04";
+    private final static String consoleVersion="1.05";
 
     public static void main (String[] args) {
         try {

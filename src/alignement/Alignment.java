@@ -17,7 +17,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedList;
 import core.States;
-import etc.exceptions.NonIUPACStateException;
+import etc.Infos;
+import etc.exceptions.NonSupportedStateException;
 
 /**
  *
@@ -129,11 +130,18 @@ public class Alignment implements Serializable {
             for (int j = 0; j < f.getSequence(false).length(); j++) {
                 char c=f.getSequence(false).charAt(j);
                 //test char per char at read
-                try {
-                    s.stateToByte(c);
-                } catch (NonIUPACStateException ex) {
-                    ex.printStackTrace(System.err);
-                    System.exit(1);
+                if (s.isAmbiguous(c)) { //expected states
+                    if (c!='-') {
+                        Infos.println("Ambiguous state (char='"+c+"') will be considered as a gap during AR.");
+                    }
+                } else { //test state
+                    try {
+                        s.stateToByte(c);
+                    } catch (NonSupportedStateException ex) {
+                        ex.printStackTrace(System.err);
+                        System.out.println("Reference alignment contains a non supported state.");
+                        System.exit(1); //do not exit here, AR will take care of transforming them to gaps
+                    }
                 }
                 charMatrix[i][j]=c;
                 if (c=='-') {

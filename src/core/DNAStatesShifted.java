@@ -6,7 +6,7 @@
 package core;
 
 import etc.Infos;
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 import java.io.Serializable;
 import java.util.HashMap;
 
@@ -28,23 +28,28 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     byte[] maskArray={(byte)0x03,(byte)0x0C,(byte)0x30,(byte)0xC0};
     
     char[] states = {'A','T','C','G','N','-','.'};
-    HashMap<Character,Boolean> convertedToN=new HashMap<>();
     byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06};     
+    //char[] states = {'A','T','C','G'};
+    //byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03};     
+    HashMap<Character,Boolean> ambiguousState=new HashMap<>(30);
 
     public DNAStatesShifted() {
         //ambigous states which are allowed
-        ambigousStates=3;
+        ambigousStatesCount=24;
         //fill hashmap that correspond to IUPAC code
-        convertedToN.put('R', Boolean.TRUE);convertedToN.put('r', Boolean.TRUE);
-        convertedToN.put('Y', Boolean.TRUE);convertedToN.put('y', Boolean.TRUE);
-        convertedToN.put('S', Boolean.TRUE);convertedToN.put('s', Boolean.TRUE);
-        convertedToN.put('W', Boolean.TRUE);convertedToN.put('w', Boolean.TRUE);
-        convertedToN.put('K', Boolean.TRUE);convertedToN.put('k', Boolean.TRUE);
-        convertedToN.put('M', Boolean.TRUE);convertedToN.put('m', Boolean.TRUE);
-        convertedToN.put('B', Boolean.TRUE);convertedToN.put('b', Boolean.TRUE);
-        convertedToN.put('D', Boolean.TRUE);convertedToN.put('d', Boolean.TRUE);
-        convertedToN.put('H', Boolean.TRUE);convertedToN.put('h', Boolean.TRUE);
-        convertedToN.put('V', Boolean.TRUE);convertedToN.put('v', Boolean.TRUE);
+        ambiguousState.put('R', Boolean.TRUE);ambiguousState.put('r', Boolean.TRUE);
+        ambiguousState.put('Y', Boolean.TRUE);ambiguousState.put('y', Boolean.TRUE);
+        ambiguousState.put('S', Boolean.TRUE);ambiguousState.put('s', Boolean.TRUE);
+        ambiguousState.put('W', Boolean.TRUE);ambiguousState.put('w', Boolean.TRUE);
+        ambiguousState.put('K', Boolean.TRUE);ambiguousState.put('k', Boolean.TRUE);
+        ambiguousState.put('M', Boolean.TRUE);ambiguousState.put('m', Boolean.TRUE);
+        ambiguousState.put('B', Boolean.TRUE);ambiguousState.put('b', Boolean.TRUE);
+        ambiguousState.put('D', Boolean.TRUE);ambiguousState.put('d', Boolean.TRUE);
+        ambiguousState.put('H', Boolean.TRUE);ambiguousState.put('h', Boolean.TRUE);
+        ambiguousState.put('V', Boolean.TRUE);ambiguousState.put('v', Boolean.TRUE);
+        ambiguousState.put('N', Boolean.TRUE);ambiguousState.put('n', Boolean.TRUE);
+        ambiguousState.put('.', Boolean.TRUE);
+        ambiguousState.put('-', Boolean.TRUE);
     }
     
     
@@ -120,10 +125,10 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
      * 
      * @param c
      * @return
-     * @throws NonIUPACStateException 
+     * @throws NonSupportedStateException 
      */
     @Override
-    protected byte charToByte(char c) throws NonIUPACStateException {
+    protected byte charToByte(char c) throws NonSupportedStateException {
         byte b=-1;
         switch (c) {
             case 'a':
@@ -155,25 +160,30 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
             case '.':
                 b=0x06; break;  
             default:
-                if (convertedToN.containsKey(c)) {
-                    Infos.println("Unexpected IUPAC state in the sequence (not ATUCGN-.), replaced with N. (char='"+String.valueOf(c)+"')");
-                    b=0x04;
-                } else {
-                    throw new NonIUPACStateException(this, c);
-                }
-                break; //put N if other IUPAC base
+                b=0x05; 
+                
         }
         return b;
     }
-    
+
+    @Override
+    public boolean isAmbiguous(char c) {
+        return ambiguousState.containsKey(c);
+    }
+
     @Override
     public char byteToState(byte b) {
         return states[b];
     }
     
     @Override
-    public byte stateToByte(char c) throws NonIUPACStateException{
-        return bytes[charToByte(c)];
+    public byte stateToByte(char c) throws NonSupportedStateException{
+        
+        try {
+            return bytes[charToByte(c)];
+        } catch (NullPointerException ex) {
+            throw new NonSupportedStateException(this, c);
+        }
     }
     
 
@@ -194,14 +204,11 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     
     @Override
     public int getNonAmbiguousStatesCount() {
-        return states.length-ambigousStates;
+        return 4;
     }
 
     @Override
-    public int stateToInt(char c) throws NonIUPACStateException {
-        if (c=='U') {
-            c='T';
-        }
+    public int stateToInt(char c) throws NonSupportedStateException {
         return bytes[charToByte(c)];
     }
     

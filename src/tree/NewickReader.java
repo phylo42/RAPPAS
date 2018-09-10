@@ -61,18 +61,18 @@ public class NewickReader {
             //the newick is red from left to rigth, parenthesis are used to 
             //jump dig in and out at different depths
             for (int i = 0; i < s.length(); i++) {
-//                System.out.println("i:"+i);
-//                System.out.println("--------------------------------------------");
-//                System.out.println("-BEFORE-------------------------------------");
-//                System.out.println("char:"+s.charAt(i));
-//                System.out.println("depth:"+depth);
-////                System.out.println("stackedParents:"+stackedParents);
-////                System.out.println("nodesPerDepth:"+nodesPerDepth);
-//                System.out.println("sb:"+sb);
-//                System.out.println("currentNodeIndex:"+currentNodeIndex);
-//                System.out.println("bufferedNode:"+bufferedNode);
-//                System.out.println("descending:"+descending);
-//                System.out.println("ascending:"+ascending);
+    //            System.out.println("i:"+i);
+    //            System.out.println("--------------------------------------------");
+    //            System.out.println("-BEFORE-------------------------------------");
+    //            System.out.println("char:"+s.charAt(i));
+    //            System.out.println("depth:"+depth);
+    //            System.out.println("stackedParents:"+stackedParents);
+    //            System.out.println("nodesPerDepth:"+nodesPerDepth);
+    //            System.out.println("sb:"+sb);
+    //            System.out.println("currentNodeIndex:"+currentNodeIndex);
+    //            System.out.println("bufferedNode:"+bufferedNode);
+    //            System.out.println("descending:"+descending);
+    //            System.out.println("ascending:"+ascending);
                 //init new node when (
                 if (s.charAt(i)=='(') {
                     stackedParents.push(new PhyloNode(++currentNodeIndex));
@@ -101,12 +101,9 @@ public class NewickReader {
                                 bl=Float.parseFloat(data[1]);
                             }
                         }
-                        if (!ascending) {
-                            //System.out.println("NEW: PhyloNode("+currentNodeIndex+","+label+","+bl+","+jplaceEdgeId+","+false+")");
+                        if (!ascending)
                             nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId, false));
-                        }
                         else {
-                            //System.out.println("UPDATE: PhyloNode("+bufferedNode.getId()+","+label+","+bl+","+jplaceEdgeId+","+false+")");
                             bufferedNode.setLabel(label);
                             bufferedNode.setBranchLengthToAncestor(bl);
                             bufferedNode.setJPlaceEdgeId(jplaceEdgeId);
@@ -124,7 +121,7 @@ public class NewickReader {
                     nodesPerDepth.get(depth).clear();
 
                     //now moving to depth after )
-                    //not forgetting to register the parent to this new depth
+                    //not forgetting to register the paretn to this new depth
                     depth--;
                     descending=false;
                     ascending=true;
@@ -150,11 +147,9 @@ public class NewickReader {
                     }
                     //if comes from upper depth, start list of nodes for this depth
                     if (descending) {
-                        //System.out.println("NEW: PhyloNode("+currentNodeIndex+","+label+","+bl+","+jplaceEdgeId+","+false+")");
                         nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId, false));
                     //if ascending, come up from subtree, we use the unstacked node
                     } else if (ascending) {
-                        //System.out.println("UPDATE: PhyloNode("+bufferedNode.getId()+","+label+","+bl+","+jplaceEdgeId+","+false+")");
                         bufferedNode.setLabel(label);
                         bufferedNode.setBranchLengthToAncestor(bl);
                         bufferedNode.setJPlaceEdgeId(jplaceEdgeId);
@@ -162,7 +157,6 @@ public class NewickReader {
                     //neither ascending or descending (case happening when unrooted
                     //tree, 1st level appears with 3 nodes, i.e. ((),(),());
                     } else {
-                        //System.out.println("NEW: PhyloNode("+currentNodeIndex+","+label+","+bl+","+jplaceEdgeId+","+false+")");
                         nodesPerDepth.get(depth).add(new PhyloNode(++currentNodeIndex, label, bl, jplaceEdgeId, false));
                     }
                     sb.delete(0, sb.length());
@@ -188,7 +182,7 @@ public class NewickReader {
                             bl=Float.parseFloat(data[1]);
                         }
                     }
-                    //System.out.println("UPDATE: PhyloNode("+bufferedNode.getId()+","+label+","+bl+","+jplaceEdgeId+","+false+")");
+
                     bufferedNode.setJPlaceEdgeId(jplaceEdgeId);
                     bufferedNode.setLabel(label);
                     bufferedNode.setBranchLengthToAncestor(bl);
@@ -201,16 +195,16 @@ public class NewickReader {
                 }
 
 
-//                System.out.println("-AFTER----");
-//                System.out.println("char:"+s.charAt(i));
-//                System.out.println("depth:"+depth);
-////                System.out.println("stack:"+stackedParents);
-////                System.out.println("nodesPerDepth:"+nodesPerDepth);
-//                System.out.println("sb:"+sb);
-//                System.out.println("currentNodeIndex:"+currentNodeIndex);
-//                System.out.println("bufferedNode:"+bufferedNode);
-//                System.out.println("descending:"+descending);
-//                System.out.println("ascending:"+ascending);
+    //            System.out.println("-AFTER----");
+    //            System.out.println("char:"+s.charAt(i));
+    //            System.out.println("depth:"+depth);
+    //            System.out.println("stack:"+stackedParents);
+    //            System.out.println("nodesPerDepth:"+nodesPerDepth);
+    //            System.out.println("sb:"+sb);
+    //            System.out.println("currentNodeIndex:"+currentNodeIndex);
+    //            System.out.println("bufferedNode:"+bufferedNode);
+    //            System.out.println("descending:"+descending);
+    //            System.out.println("ascending:"+ascending);
             }
 
             //if the root contain 2 sons, it's rooted, if three it's unrooted

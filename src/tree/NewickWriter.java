@@ -23,18 +23,15 @@ import javax.swing.JFrame;
 public class NewickWriter {
     
     private int currentNodeIndex=0;
-    private int level=-1;
+    private int level=0;
     private int treeCount=0;
     
     private boolean branchLength=true;
     private boolean internalNodeNames=true;
     // if true, a {X} labelling edge is added to each node, this represents the
     // edge linking the node to its parent. Same ID (integer) is used for the
-    //node and this parent edge
+    //node and this parent edge.
     private boolean jplaceBranchLabels=false; 
-    private int jplaceNodeIdCounter=0;
-    
-    PhyloTree tree=null;
     
     private NumberFormat format=null;
     
@@ -61,8 +58,8 @@ public class NewickWriter {
         //makes all branch length as a decimal number, no scientific number 
         //and with . as fraction separator
         format=NumberFormat.getNumberInstance(Locale.UK);
-        format.setMaximumFractionDigits(20);
-        format.setMinimumFractionDigits(20);
+        format.setMaximumFractionDigits(12);
+        format.setMinimumFractionDigits(12);
         format.setParseIntegerOnly(false);
     }
     
@@ -79,21 +76,12 @@ public class NewickWriter {
      * @throws java.io.IOException 
      */
     public void writeNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
-        this.tree=tree;
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
-        jplaceNodeIdCounter=0;
         if (treeCount>1) {w.append('\n');}
         currentNodeIndex=0;
-        level=-1;
-        //for rooted tree, we consider the branch leading to the root 
-        //as the level 0, for an unrooted tree, the tree son of the newick
-        //virtual root are the level 0
-        //this is use to determine if the top level jplace edge id should be
-        //written or not
-        //i.e. newick=(A{1},B{2},C{3}); and not newick=(A{1},B{2},C{3}){4};
-        if (tree.isRooted()) { level=0; }
+        level=0;
         PhyloNode root=(PhyloNode)tree.getModel().getRoot();
         StringBuilder sb = new StringBuilder();
         sb = writerDFS(root,sb);
@@ -113,20 +101,11 @@ public class NewickWriter {
      * @throws java.io.IOException 
      */
     public String getNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
-        this.tree=tree;
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
-        jplaceNodeIdCounter=0;
         currentNodeIndex=0;
-        level=-1;
-        //for rooted tree, we consider the branch leading to the root 
-        //as the level 0, for an unrooted tree, the tree son of the newick
-        //virtual root are the level 0
-        //this is use to determine if the top level jplace edge id should be
-        //written or not
-        //i.e. newick=(A{1},B{2},C{3}); and not newick=(A{1},B{2},C{3}){4};
-        if (tree.isRooted()) { level=0; }
+        level=0;
         PhyloNode root=(PhyloNode)tree.getModel().getRoot();
         StringBuilder sb = new StringBuilder();
         sb = writerDFS(root,sb);
@@ -159,15 +138,12 @@ public class NewickWriter {
                 }
                 if (jplaceBranchLabels) {
                     sb.append('{');
-                    sb.append(jplaceNodeIdCounter);
+                    sb.append(currentNode.getId());
                     sb.append('}');
-                    jplaceNodeIdCounter++;
                 }
             } else {
-                level++;
                 //System.out.println("LEVEL "+level+" TO "+(++level));
                 writerDFS(currentNode,sb);
-                level--;
                 //System.out.println("RETURN TO "+(--level) +"  (node:"+node+")");
             }
             //return from recusion or simple leaf,
@@ -180,18 +156,14 @@ public class NewickWriter {
                 if(internalNodeNames) {
                     sb.append(node.getLabel());
                 }
-                //the level<1 condition avoid to add a {} label on the virtual
-                //root of an unrooted tree, i.e. newick=(A{1},B{2},C{3});
-                //and not newick=(A{1},B{2},C{3}){4};
-                if (branchLength && (!(level<0))) {
+                if (branchLength) {
                     sb.append(':');
                     sb.append(format.format(node.getBranchLengthToAncestor()));
                 }
-                if (jplaceBranchLabels && (!(level<0)) ) {
+                if (jplaceBranchLabels) {
                     sb.append('{');
-                    sb.append(jplaceNodeIdCounter);
+                    sb.append(node.getId());
                     sb.append('}');
-                    jplaceNodeIdCounter++;
                 }            
             }
 

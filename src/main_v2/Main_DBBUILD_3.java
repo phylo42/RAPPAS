@@ -560,6 +560,7 @@ public class Main_DBBUILD_3 {
             double startHashBuildTime=System.currentTimeMillis();
             ArrayList<Integer> nodesTested=new ArrayList<>(100);
             if (onlyFakeNodes) {
+                Infos.print("Only ghost nodes are tested.");
                 //search which nodes are fakes
                 ArrayList<Integer> possiblytested=session.ARTree.getInternalNodesByDFS();
                 for (int i = 0; i < possiblytested.size(); i++) {
@@ -676,6 +677,12 @@ public class Main_DBBUILD_3 {
                 //register all words in the hash
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
+                
+                //for larger k, make garbage collection more intensive, i.e after each node.
+                //this avoids accumulative trashing of byte array in Wordexplorer
+                if (session.k>10) {
+                    System.gc();
+                }
                 
                 nodeCounter++;
                 

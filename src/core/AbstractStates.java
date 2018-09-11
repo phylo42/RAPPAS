@@ -31,7 +31,7 @@ public abstract class AbstractStates implements States,Serializable {
     }
 
     @Override
-    public byte[] compressMer(byte[] chars, byte[] bytesCompressed) {
+    public byte[] compressMer(byte[] chars) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

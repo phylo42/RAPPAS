@@ -69,7 +69,7 @@ public class ArgumentsParser_v2 {
     public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
     public boolean unionHash=true; //if false, use old positionnal hash
     public boolean onlyFakeNodes=true; //if false, uses ancestral kmers of original nodes
-    public boolean doGapJumps=true; //take gap jumps into account when building kmers
+    public boolean doGapJumps=false; //take gap jumps into account when building kmers
     public boolean limitTo1Jump=true; //only allow a 1st jump, not jump combinations
     public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
     
@@ -501,9 +501,9 @@ public class ArgumentsParser_v2 {
                         
                     }
                     //test --no-gap-jumps
-                    if (argsMap.get(index).equals("--no-gap-jumps")) {
-                        this.doGapJumps=false;
-                        System.out.println("Gap jumps deactivated.");
+                    if (argsMap.get(index).equals("--force-gap-jump")) {
+                        this.doGapJumps=true;
+                        System.out.println("Forced gap jump activation.");
                     }
                     //test --do-n-jumps
                     if (argsMap.get(index).equals("--do-n-jumps")) {
@@ -511,7 +511,7 @@ public class ArgumentsParser_v2 {
                         System.out.println("N gaps interval will be considered.");
                     }
                     //test --gap-jump-thresh
-                    if (argsMap.get(index).equals("--gap-jump-thresh")) {
+                    if (argsMap.get(index).equals("--gap-jumps-thresh")) {
                         String val=argsMap.get(index+1);
                         try {
                             this.gapJumpThreshold=Float.parseFloat(val);
@@ -783,7 +783,7 @@ public class ArgumentsParser_v2 {
         "                  directly place queries given via -q .\n" +
         "--calibration     [] Prototype calib. on random anc. kmers. (b phase).\n" +
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +
-        "--no-gap-jumps    [] Deactivate k-mer gap jumps. (b phase) \n" +
+        "--force-gap-jump  [] Forces gap jump even if %gap<thresh. (b phase) \n" +
         "\n"
         );
        System.exit(0);

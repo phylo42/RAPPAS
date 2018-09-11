@@ -696,7 +696,6 @@ public class PlacementProcess {
             boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
             byte[] qw=null;
-            byte[] qwCompressed=new byte[(session.k%4)+1];
             while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
                 
@@ -705,7 +704,7 @@ public class PlacementProcess {
                 Char2FloatMap.FastEntrySet allPairs =null;
                 //List<Pair> allPairs=null;
                 if (session.states instanceof DNAStatesShifted) {
-                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw,qwCompressed));
+                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
                 } else {
                     allPairs = session.hash.getPairsOfTopPosition2(qw);
                 }
@@ -745,7 +744,6 @@ public class PlacementProcess {
 //                   //System.out.println((queryKmerCount*xSize+topPosition)+"="+allPairs.get(0).getPPStar());
 //                   graphDataForTopTuples[2][queryKmerCount*xSize+topPosition]= new Double((float)allPairs.toArray()[0]);                        
 //                }
-                Arrays.fill(qwCompressed,(byte)0);
                 queryKmerCount++;
 
             }

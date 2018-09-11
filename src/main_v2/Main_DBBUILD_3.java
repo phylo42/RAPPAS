@@ -232,8 +232,12 @@ public class Main_DBBUILD_3 {
             //check gap ratio in reference alignment
             //if >= to gapJumpThreshold, activate gap jumps
             boolean gapJumpsActivated=false;
-            if (doGapJumps) { //if false, the user explicitely deactivated jumps
-                
+            //if already true, the user explicitely activated jump option
+            if (doGapJumps) { 
+                Infos.print("Gap jumps forced by user.");
+                gapJumpsActivated=true;
+            //if false, activate it depending on %gap criteria 
+            } else {
                 double[] gapProportions = align.getGapProportions();
                 double gap=0.0; double nonGap=0.0;
                 for (int i = 0; i < gapProportions.length; i++) {
@@ -245,9 +249,10 @@ public class Main_DBBUILD_3 {
                 if (gapRatio>=gapJumpThreshold) {
                     gapJumpsActivated=true;
                     Infos.println(">="+gapJumpThreshold+", gap jumps activated.");
-                }
+                } else {
+                    Infos.println("Gap jumps not activated.");
+                } 
             }
-
 
             //parse tree
             String line=null;
@@ -699,7 +704,7 @@ public class Main_DBBUILD_3 {
             System.out.println("Tuples explored:"+totalTuplesBuiltForHash);
 
             if (session.hash.keySet().size()<1) {
-                System.out.println("Something went wrong... hash is empty.");
+                System.out.println("Something went wrong... hash is empty!");
                 System.exit(1);
             }
             

@@ -282,6 +282,13 @@ public class Main_DBBUILD_3 {
             }
             alignLabels=null;
             
+            //init indexes of the original tree and immediately setup jplace
+            //edge ids. 
+            //this is important so that the original tree be saved with
+            //correct edge ids; later during placement, the information
+            //can be directly written in the jplace
+            originalTree.initIndexes();
+            originalTree.resetJplaceEdgeIds();
             
             
             
@@ -847,7 +854,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
@@ -860,7 +867,7 @@ public class Main_DBBUILD_3 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false);
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
@@ -891,7 +898,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false);
                     }
                     //reduction to small DB
                     //System.out.println("Reduction to small union DB...");

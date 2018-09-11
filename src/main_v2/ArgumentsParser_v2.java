@@ -80,6 +80,7 @@ public class ArgumentsParser_v2 {
     public Float nsBound=Float.NEGATIVE_INFINITY; //do not consider threshold calculated by formula but this particular threshold
     public int keepAtMost=7; //as in pplacer
     public float keepFactor=0.01f; //as in pplacer
+    public boolean guppyCompatible=false;
     
     //call string
     public String callString=null;
@@ -665,7 +666,11 @@ public class ArgumentsParser_v2 {
                         }
                         
                     }
-                    
+                    //test --guppy-compat
+                    if (argsMap.get(index).equals("--guppy-compat")) {
+                        this.guppyCompatible=true;
+                        System.out.println("Jplace format changed to be guppy-compatible.");
+                    }
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
@@ -745,6 +750,7 @@ public class ArgumentsParser_v2 {
         "--keep-factor     [0.01] Report placement with likelihood_ratio higher\n" +
         "                  than (factor x best_likelihood_ratio). (p phase)\n" +      
         "--write-reduction [file] Write reduced alignment to file. (b phase)\n" +
+        "--guppy-compat    [] Ensures output is Guppy compatible. (p phase)\n" +
         "\n" +
         "Algo options:     Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+

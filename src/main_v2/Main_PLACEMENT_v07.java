@@ -85,7 +85,8 @@ public class Main_PLACEMENT_v07 {
                                 String callString,
                                 Float nsBound,
                                 int keepAtMost,
-                                float keepRatio) {
+                                float keepRatio,
+                                boolean guppyCompatible) {
 
         try {
                         
@@ -236,7 +237,7 @@ public class Main_PLACEMENT_v07 {
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
             //close TSV logs
             bwTSVPlacement.close();
             bwNotPlaced.close();
@@ -260,13 +261,22 @@ public class Main_PLACEMENT_v07 {
             //- in pplacer: "distal_length", "edge_num", "like_weight_ratio", "likelihood", "pendant_length"
             //- in EPA: "edge_num", "likelihood", "like_weight_ratio", "distal_length", "pendant_length"
             JSONArray fList=new JSONArray();
-            fList.add("edge_num"); //i.e equal to the id of the son originalNode
-            fList.add("likelihood"); //
-            fList.add("like_weight_ratio");
-            //add fake fields to be compatible with current visualisation tools
-            fList.add("distal_length");
-            fList.add("pendant_length");
-            top.put("fields", fList);
+            if (!guppyCompatible) {
+                fList.add("edge_num"); //i.e equal to the id of the son originalNode
+                fList.add("likelihood"); //
+                fList.add("like_weight_ratio");
+                //add fake fields to be compatible with current visualisation tools
+                fList.add("distal_length");
+                fList.add("pendant_length");
+                top.put("fields", fList);
+            } else {
+                fList.add("distal_length");
+                fList.add("edge_num");
+                fList.add("like_weight_ratio");
+                fList.add("likelihood");
+                fList.add("pendant_length");
+                top.put("fields", fList);
+            }
             
             //put all the elements in the top JSON object
             top.putAll(topMap);

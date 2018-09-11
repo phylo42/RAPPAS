@@ -165,7 +165,8 @@ public class Main_v2 {
                                                 argsParser.callString,
                                                 argsParser.nsBound,
                                                 argsParser.keepAtMost,
-                                                argsParser.keepFactor
+                                                argsParser.keepFactor,
+                                                argsParser.guppyCompatible
                                                 );
                 }
                 System.out.println("Have a coffee, you \"placed\" your world.");

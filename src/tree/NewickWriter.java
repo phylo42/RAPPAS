@@ -23,7 +23,7 @@ import javax.swing.JFrame;
 public class NewickWriter {
     
     private int currentNodeIndex=0;
-    private int level=0;
+    private int level=-1;
     private int treeCount=0;
     
     private boolean branchLength=true;
@@ -81,7 +81,15 @@ public class NewickWriter {
         this.jplaceBranchLabels=withJplaceBranchLabels;
         if (treeCount>1) {w.append('\n');}
         currentNodeIndex=0;
-        level=0;
+        //the level variable is used to not set any branch length or
+        //jplace edge ids at the virtual root of an unrooted newick
+        //i.e.  (A,B,C):0.0{0};  => not valid
+        //      (A,B,C);         => valid
+        if (!tree.isRooted()) {
+            level=-1;
+        } else {
+            level=0;
+        }
         PhyloNode root=(PhyloNode)tree.getModel().getRoot();
         StringBuilder sb = new StringBuilder();
         sb = writerDFS(root,sb);
@@ -105,7 +113,15 @@ public class NewickWriter {
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
         currentNodeIndex=0;
-        level=0;
+        //the level variable is used to not set any branch length or
+        //jplace edge ids at the virtual root of an unrooted newick
+        //i.e.  (A,B,C):0.0{0};  => not valid
+        //      (A,B,C);         => valid
+        if (!tree.isRooted()) {
+            level=-1;
+        } else {
+            level=0;
+        }
         PhyloNode root=(PhyloNode)tree.getModel().getRoot();
         StringBuilder sb = new StringBuilder();
         sb = writerDFS(root,sb);
@@ -138,7 +154,7 @@ public class NewickWriter {
                 }
                 if (jplaceBranchLabels) {
                     sb.append('{');
-                    sb.append(currentNode.getId());
+                    sb.append(currentNode.getJplaceEdgeId());
                     sb.append('}');
                 }
             } else {
@@ -156,13 +172,13 @@ public class NewickWriter {
                 if(internalNodeNames) {
                     sb.append(node.getLabel());
                 }
-                if (branchLength) {
+                if (branchLength && (level>-1) ) {
                     sb.append(':');
                     sb.append(format.format(node.getBranchLengthToAncestor()));
                 }
-                if (jplaceBranchLabels) {
+                if (jplaceBranchLabels && (level>-1) ) {
                     sb.append('{');
-                    sb.append(node.getId());
+                    sb.append(node.getJplaceEdgeId());
                     sb.append('}');
                 }            
             }

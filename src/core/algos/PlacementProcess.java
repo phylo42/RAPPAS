@@ -480,6 +480,7 @@ public class PlacementProcess {
      * @param logDir
      * @param keepAtMost
      * @param keepFactor
+     * @param guppyCOMpatibility
      * @return the number of queries effectively placed (kmers were found in DB)
      * @throws java.io.IOException
      */
@@ -491,7 +492,8 @@ public class PlacementProcess {
                                 int minOverlap,
                                 File logDir,
                                 int keepAtMost,
-                                float keepFactor
+                                float keepFactor,
+                                boolean guppyCompatible
             
                                 ) throws IOException {
         
@@ -869,7 +871,7 @@ public class PlacementProcess {
             //System.out.println("  AFTER SCORING");
             //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
             //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
-            //Infos.println("Best node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
+            Infos.println("Best node (originalTree) is : "+bestNodeId+" (score="+bestScore+")");
             //Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
             //System.out.println("allLikelihoodSums: "+allLikelihoodSums);
 //            if (useSelectionAlgo) {
@@ -1017,7 +1019,6 @@ public class PlacementProcess {
                     //System.out.println("i: "+i);
                     //calculate weight_ratio
                     double weigth_ratio=-1;
-                    //System.out.println("bestScoreList[i].score : "+bestScoreList[i].score);
                     //System.out.println("bestScoreList[i].score-weightRatioShift : "+(bestScoreList[i].score-weightRatioShift));
                     //System.out.println("Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift)):"+ Math.pow(10.0, (double)(bestScoreList[i].score-weightRatioShift)));
                     weigth_ratio=computeWeightRatio(bestScoreList[i], weightRatioShift, allLikelihoodSums);
@@ -1035,13 +1036,25 @@ public class PlacementProcess {
                     //we input only the best one, but that can be changed in the future
                     //"distal_length","like_weight_ratio","pendant_length","edge_num","likelihood"
                     JSONArray placeColumns=new JSONArray();
-                    placeColumns.add(bestScoreList[i].nodeId); // 1. edge of original tree (original nodeId=edgeID)
-                    placeColumns.add(bestScoreList[i].score); // 2. PP*
-                    placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
-                    //fake fields for compatibility with current tools (guppy, archeopteryx)
-                    //should be provided as an option
-                    placeColumns.add(0.0); //distal_length
-                    placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
+                    if (guppyCompatible) {
+//                        System.out.println("bestScoreList[i].score : "+bestScoreList[i].score);
+//                        System.out.println("bestScoreList[i].nodeId : "+bestScoreList[i].nodeId);
+//                        System.out.println(session.originalTree.getById(bestScoreList[i].nodeId));
+//                        System.out.println(session.originalTree.getById(bestScoreList[i].nodeId).getJplaceEdgeId());
+                        placeColumns.add(0.0); //distal_length
+                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getJplaceEdgeId()); // 1. edge of original tree (original nodeId=edgeID)
+                        placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
+                        placeColumns.add(bestScoreList[i].score); // 2. PP*
+                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
+                    } else {
+                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getJplaceEdgeId()); // 1. edge of original tree (original nodeId=edgeID)
+                        placeColumns.add(bestScoreList[i].score); // 2. PP*
+                        placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
+                        //fake fields for compatibility with current tools (guppy, archeopteryx)
+                        //should be provided as an option
+                        placeColumns.add(0.0); //distal_length
+                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
+                    }
                     pMetadata.add(placeColumns);
                 }
                 placement.put("p", pMetadata);

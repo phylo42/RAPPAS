@@ -9,7 +9,6 @@ import etc.Infos;
 import java.awt.Dimension;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -50,8 +49,10 @@ public class PhyloTree extends JTree implements Serializable {
     //this map will be not null and contain the mapping between the jplace
     //edge ids and the current PhyloTree node ids (edge data holded by son node)
     //map(jplace_edge_id)=PhyloTree_node_id
-    HashMap<Integer, Integer> jPlaceEdgeMapping=null;
-    
+    HashMap<Integer, Integer> jPlaceEdgeMappingJPToNodeID=null;
+    //map(PhyloTree_node_id)=jplace_edge_id
+    HashMap<Integer, Integer> jPlaceEdgeMappingNodeIDToJP=null;
+    int jplaceIdsCounter=0;
 
     /**
      * necessary to use the ExtendedTree specialization
@@ -230,7 +231,8 @@ public class PhyloTree extends JTree implements Serializable {
         this.orderedInternalNodesIds = new ArrayList<>();
         this.nodeCount=0;
         this.leavesCount=0;
-        this.jPlaceEdgeMapping=new HashMap<>();
+        this.jPlaceEdgeMappingJPToNodeID=new HashMap<>();
+        this.jPlaceEdgeMappingNodeIDToJP=new HashMap<>();
         dfs((PhyloNode)this.getModel().getRoot());     
     }
 
@@ -252,7 +254,7 @@ public class PhyloTree extends JTree implements Serializable {
         orderedNodesIds.add(node.getId());
         orderedNodesLabels.add(node.getLabel());
         if (isJplaceType)
-            jPlaceEdgeMapping.put(node.getJplaceEdgeId(), node.getId());
+            jPlaceEdgeMappingJPToNodeID.put(node.getJplaceEdgeId(), node.getId());
         //go down recursively
         for (int i=0;i<node.getChildCount();i++) {
             PhyloNode child=(PhyloNode) node.getChildAt(i);
@@ -282,21 +284,70 @@ public class PhyloTree extends JTree implements Serializable {
     }
     
     /**
+     * CAN BE LAUNCHED ONLY AFTER initindexes() is called,
+     * update the jplace edge ids to be similar to EPA/PPlacer orders
+     * 
+     */
+    public void resetJplaceEdgeIds() {
+        jplaceIdsCounter=0;
+        jPlaceEdgeMappingJPToNodeID=new HashMap<>();
+        jPlaceEdgeMappingNodeIDToJP=new HashMap<>();
+        jplaceEdgeIdsUpdaterDFS(this.getRoot());
+    }
+    
+     /**
+     * depth first search to update the jplace ids
+     * @param node 
+     */
+    private void jplaceEdgeIdsUpdaterDFS(PhyloNode node) {
+        //start this level
+        int childrenLeft=node.getChildCount();
+        Enumeration e=node.children();
+        while (e.hasMoreElements()) {
+            childrenLeft-=1; 
+            PhyloNode currentNode=(PhyloNode)e.nextElement();
+            if (currentNode.isLeaf()) {
+                jPlaceEdgeMappingJPToNodeID.put(jplaceIdsCounter, currentNode.getId());
+                jPlaceEdgeMappingNodeIDToJP.put(currentNode.getId(),jplaceIdsCounter);
+                currentNode.setJPlaceEdgeId(jplaceIdsCounter++);
+            } else {
+                jplaceEdgeIdsUpdaterDFS(currentNode);
+            }
+            if (childrenLeft>0) {
+            } else {
+                jPlaceEdgeMappingJPToNodeID.put(jplaceIdsCounter, currentNode.getId());
+                jPlaceEdgeMappingNodeIDToJP.put(currentNode.getId(),jplaceIdsCounter);
+                node.setJPlaceEdgeId(jplaceIdsCounter++);           
+            }
+        }
+    }
+    
+    /**
      * used only if parsed tree is from jplace, i.e. edges are assigned to ids
      * with the {x} annotation on the right of branch length. map(jplaceEdgeId)=nodeId
      * @param jplaceEdgeId 
      * @return the nodeId holding the equivalent edge
      */
-    public int getJplaceMapping(int jplaceEdgeId) {
-        return jPlaceEdgeMapping.get(jplaceEdgeId);
+    public int getJplaceMappingJPToNodeID(int jplaceEdgeId) {
+        return jPlaceEdgeMappingJPToNodeID.get(jplaceEdgeId);
+    }
+    
+    /**
+     * used only if parsed tree is from jplace, i.e. edges are assigned to ids
+     * with the {x} annotation on the right of branch length. map(nodeId)=jplaceEdgeId
+     * @param jplaceEdgeId 
+     * @return the nodeId holding the equivalent edge
+     */
+    public int getJplaceMappingNodeIdToJP(int nodeId) {
+        return jPlaceEdgeMappingNodeIDToJP.get(nodeId);
     }
     
     /**
      * return all jplace mapping in a map (see @getJplaceMapping)
      * @return 
      */
-    public HashMap<Integer,Integer> getAllJPlaceMappings() {
-        return jPlaceEdgeMapping;
+    public HashMap<Integer,Integer> getAllJPlaceMappingsJPToNodeID() {
+        return jPlaceEdgeMappingJPToNodeID;
     }
 
     @Override

@@ -616,7 +616,10 @@ public class Main_DBBUILD_3 {
                     Infos.println("WordExplorer took on average: "+(((perBatchExploreTime+0.0)/perBatchWordExplorerLaunchs)*0.000001)+" ms");
                     Infos.println("# kmers generated in this batch: "+perBatchTotalTuples);
                     //free memory before next batch
+                    double startGC=System.currentTimeMillis();
                     System.gc();
+                    double endGC=System.currentTimeMillis();
+                    Infos.println("GC launch took: "+(endGC-startGC)+" ms");
                     warnedAboutMemory=false;
                     //reset exploration timers 
                     perBatchWordExplorerLaunchs=0;
@@ -694,10 +697,13 @@ public class Main_DBBUILD_3 {
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 
-                //for larger k, make garbage collection more intensive, i.e after each node.
-                //this avoids accumulative trashing of byte array in Wordexplorer
-                if (session.k>10) {
+                //for larger k, make garbage collection more intensive every 10 edges.
+                //this avoids to accumulate trash of byte arrays in Wordexplorer
+                if ( (session.k>10) && (nodeCounter%10==0) ) {
+                    double startGC=System.currentTimeMillis();
                     System.gc();
+                    double endGC=System.currentTimeMillis();
+                    Infos.println("GC launch took: "+(endGC-startGC)+" ms");
                 }
                 
                 nodeCounter++;

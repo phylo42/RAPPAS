@@ -159,7 +159,9 @@ public class NewickWriter {
                 }
             } else {
                 //System.out.println("LEVEL "+level+" TO "+(++level));
+                level++;
                 writerDFS(currentNode,sb);
+                level--;
                 //System.out.println("RETURN TO "+(--level) +"  (node:"+node+")");
             }
             //return from recusion or simple leaf,

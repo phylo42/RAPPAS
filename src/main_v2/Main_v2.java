@@ -11,7 +11,6 @@ import core.States;
 import etc.NullPrintStream;
 import java.io.File;
 import javax.swing.UIManager;
-import static main_v2.ArgumentsParser_v2.DBBUILD_PHASE;
 import models.EvolModel;
 
 

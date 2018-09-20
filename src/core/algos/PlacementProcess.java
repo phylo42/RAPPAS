@@ -5,7 +5,6 @@
  */
 package core.algos;
 
-import charts.ChartsForNodes;
 import com.google.common.math.Quantiles;
 import core.DNAStatesShifted;
 import core.hash.Pair;
@@ -15,25 +14,23 @@ import inputs.SequencePointer;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import java.awt.GridLayout;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import jonelo.jacksum.JacksumAPI;
 import jonelo.jacksum.algorithm.AbstractChecksum;
 import main_v2.Main_PLACEMENT_v07;
 import main_v2.SessionNext_v2;
-import org.jfree.data.xy.DefaultXYZDataset;
-import org.jfree.ui.RefineryUtilities;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import tree.PhyloNode;
@@ -70,6 +67,7 @@ public class PlacementProcess {
     JSONArray placements=null;
     BufferedWriter bwTSV=null;
     StringBuffer sb=null;
+    NumberFormat nf = NumberFormat.getInstance(Locale.UK);
     
     /**
      *
@@ -1041,19 +1039,19 @@ public class PlacementProcess {
 //                        System.out.println("bestScoreList[i].nodeId : "+bestScoreList[i].nodeId);
 //                        System.out.println(session.originalTree.getById(bestScoreList[i].nodeId));
 //                        System.out.println(session.originalTree.getById(bestScoreList[i].nodeId).getJplaceEdgeId());
-                        placeColumns.add(0.0); //distal_length
+                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //distal_length
                         placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getJplaceEdgeId()); // 1. edge of original tree (original nodeId=edgeID)
                         placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
                         placeColumns.add(bestScoreList[i].score); // 2. PP*
-                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
+                        placeColumns.add(0.0); //pendant_length
                     } else {
                         placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getJplaceEdgeId()); // 1. edge of original tree (original nodeId=edgeID)
                         placeColumns.add(bestScoreList[i].score); // 2. PP*
                         placeColumns.add(weigth_ratio); // 3. like_weight_ratio column of ML-based methods
                         //fake fields for compatibility with current tools (guppy, archeopteryx)
                         //should be provided as an option
-                        placeColumns.add(0.0); //distal_length
-                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2); //pendant_length
+                        placeColumns.add(session.originalTree.getById(bestScoreList[i].nodeId).getBranchLengthToAncestor()/2f); //distal_length
+                        placeColumns.add(0.0); //pendant_length
                     }
                     pMetadata.add(placeColumns);
                 }

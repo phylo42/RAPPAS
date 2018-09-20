@@ -587,7 +587,7 @@ public class Main_DBBUILD_3 {
                 //take all internal nodes, fakes + original
                 nodesTested=session.ARTree.getInternalNodesByDFS();
             }
-            int loggingBatchFraction=10;
+            int loggingBatchFraction=100;
             if (k<10) {
                 loggingBatchFraction=10;
             }
@@ -733,73 +733,73 @@ public class Main_DBBUILD_3 {
             //outputWordPerNode(wordsPerNode, 40, new File(workDir+"histogram_word_per_node_k"+k+"_mk"+min_k+"_f"+omega+"_t"+PPStarThreshold+".png"), k, omega);
             
             //output some stats as histograms:
-            if (histogramNumberPositionsPerNode && session.hash.keySet().size()>0) {
-                Infos.println("Building #positions_per_word histogram...");
-                double[] values=new double[session.hash.keySet().size()];
-                int i=0;
-                double max=0;
-                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    byte[] next = iterator.next();
-                    values[i]=new Double(session.hash.getPositions(next).length);
-                    if (values[i]>max) {
-                        max=values[i];
-                    }
-                    i++;
-                }
-                //jfreechat histogram construction and output as image
-                HistogramDataset dataset = new HistogramDataset();
-                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-                int bins=50;
-                dataset.addSeries("Big",values,bins,0,max);
-                String plotTitle = "#positions_per_word"; 
-                String xaxis = "#positions";
-                String yaxis = "proportion"; 
-                PlotOrientation orientation = PlotOrientation.VERTICAL; 
-                boolean show = false; 
-                boolean toolTips = false;
-                boolean urls = false; 
-                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
-                        dataset, orientation, show, toolTips, urls);
-                int width = 500;
-                int height = 300; 
-                try {
-                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Npositions_per_word.png"), chart, width, height);
-                } catch (IOException e) {}
-            }
-                
-            if (hitsogramNumberNodesPerFirstPosition) {
-                Infos.println("Building #nodes_per_1stposition histogram...");
-                double[] values=new double[session.hash.keySet().size()];
-                int i=0;
-                double max=0;
-                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
-                    byte[] next = iterator.next();
-                    values[i]=new Double(session.hash.getPairsOfTopPosition2(next).size());
-                    if (values[i]>max) {
-                        max=values[i];
-                    }
-                    i++;
-                }
-                //jfreechat histogram construction and output as image
-                HistogramDataset dataset = new HistogramDataset();
-                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-                int bins=50;
-                dataset.addSeries("Big",values,bins,0,max);
-                String plotTitle = "#nodes_per_kmers"; 
-                String xaxis = "#nodes";
-                String yaxis = "proportion"; 
-                PlotOrientation orientation = PlotOrientation.VERTICAL; 
-                boolean show = false; 
-                boolean toolTips = false;
-                boolean urls = false; 
-                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
-                        dataset, orientation, show, toolTips, urls);
-                int width = 500;
-                int height = 300; 
-                try {
-                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
-                } catch (IOException e) {}
-            }
+//            if (histogramNumberPositionsPerNode && session.hash.keySet().size()>0) {
+//                Infos.println("Building #positions_per_word histogram...");
+//                double[] values=new double[session.hash.keySet().size()];
+//                int i=0;
+//                double max=0;
+//                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+//                    byte[] next = iterator.next();
+//                    values[i]=new Double(session.hash.getPositions(next).length);
+//                    if (values[i]>max) {
+//                        max=values[i];
+//                    }
+//                    i++;
+//                }
+//                //jfreechat histogram construction and output as image
+//                HistogramDataset dataset = new HistogramDataset();
+//                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+//                int bins=50;
+//                dataset.addSeries("Big",values,bins,0,max);
+//                String plotTitle = "#positions_per_word"; 
+//                String xaxis = "#positions";
+//                String yaxis = "proportion"; 
+//                PlotOrientation orientation = PlotOrientation.VERTICAL; 
+//                boolean show = false; 
+//                boolean toolTips = false;
+//                boolean urls = false; 
+//                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+//                        dataset, orientation, show, toolTips, urls);
+//                int width = 500;
+//                int height = 300; 
+//                try {
+//                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Npositions_per_word.png"), chart, width, height);
+//                } catch (IOException e) {}
+//            }
+//                
+//            if (hitsogramNumberNodesPerFirstPosition) {
+//                Infos.println("Building #nodes_per_1stposition histogram...");
+//                double[] values=new double[session.hash.keySet().size()];
+//                int i=0;
+//                double max=0;
+//                for (Iterator<byte[]> iterator = session.hash.keySet().iterator(); iterator.hasNext();) {
+//                    byte[] next = iterator.next();
+//                    values[i]=new Double(session.hash.getPairsOfTopPosition2(next).size());
+//                    if (values[i]>max) {
+//                        max=values[i];
+//                    }
+//                    i++;
+//                }
+//                //jfreechat histogram construction and output as image
+//                HistogramDataset dataset = new HistogramDataset();
+//                dataset.setType(HistogramType.RELATIVE_FREQUENCY);
+//                int bins=50;
+//                dataset.addSeries("Big",values,bins,0,max);
+//                String plotTitle = "#nodes_per_kmers"; 
+//                String xaxis = "#nodes";
+//                String yaxis = "proportion"; 
+//                PlotOrientation orientation = PlotOrientation.VERTICAL; 
+//                boolean show = false; 
+//                boolean toolTips = false;
+//                boolean urls = false; 
+//                JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
+//                        dataset, orientation, show, toolTips, urls);
+//                int width = 500;
+//                int height = 300; 
+//                try {
+//                    ChartUtilities.saveChartAsPNG(new File(workDir.getAbsolutePath()+File.separator+"histogram_Nnodes_per_1stposition.png"), chart, width, height);
+//                } catch (IOException e) {}
+//            }
             
             //keep filenames here, used even in dbInRAM mode
             File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+omega+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);

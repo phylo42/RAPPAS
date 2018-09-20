@@ -9,6 +9,7 @@ import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
 import core.hash.CustomHash_v4_FastUtil81;
+import core.hash.CustomHash_v5_FastUtil811;
 import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;

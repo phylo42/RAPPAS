@@ -16,6 +16,7 @@ import core.algos.SequenceKnife;
 import core.algos.WordExplorer_v3;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;
+import core.hash.CustomHash_v5_FastUtil811;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -586,7 +587,10 @@ public class Main_DBBUILD_3 {
                 //take all internal nodes, fakes + original
                 nodesTested=session.ARTree.getInternalNodesByDFS();
             }
-            int loggingBatchFraction=100;
+            int loggingBatchFraction=10;
+            if (k<10) {
+                loggingBatchFraction=10;
+            }
             int nodeBatchSize=nodesTested.size()/loggingBatchFraction;         //for time logging
             if (nodesTested.size()<loggingBatchFraction) {nodeBatchSize=1;}
             long perBatchWordExplorerLaunchs=0;               //for time logging

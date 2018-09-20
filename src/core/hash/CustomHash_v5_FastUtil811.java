@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * (nodeId, PP*)
  * @author ben
  */
-public class CustomHash_v4_FastUtil81 implements Serializable{
+public class CustomHash_v5_FastUtil811 implements Serializable{
     
     private static final long serialVersionUID = 7000L;
     
@@ -42,7 +42,7 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
      * @param s
      * @param nodeType one of NODES_UNION or POSITION_UNION
      */
-    public CustomHash_v4_FastUtil81(int k, States s, int nodeType) {        
+    public CustomHash_v5_FastUtil811(int k, States s, int nodeType) {        
         this.maxCapacitySize=new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue();
         this.nodeType=nodeType;
         //internal tests showed that with k<14 we generally get at least 75% of the possible k-mers

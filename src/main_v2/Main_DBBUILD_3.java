@@ -96,6 +96,7 @@ public class Main_DBBUILD_3 {
      * @param gapJumpThreshold 
      * @param model 
      * @param arparameters 
+     * @param onlyX1Nodes 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -128,7 +129,8 @@ public class Main_DBBUILD_3 {
                                         boolean limitTo1Jump,
                                         float gapJumpThreshold,
                                         EvolModel model,
-                                        String arparameters
+                                        String arparameters,
+                                        boolean onlyX1Nodes
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -573,14 +575,20 @@ public class Main_DBBUILD_3 {
             double startHashBuildTime=System.currentTimeMillis();
             ArrayList<Integer> nodesTested=new ArrayList<>(100);
             if (onlyFakeNodes) {
-                Infos.print("Only ghost nodes are tested.");
+                Infos.println("Only ghost nodes are tested.");
+                if (onlyX1Nodes) {
+                    Infos.println("Only X1 nodes are tested.");
+                }
                 //search which nodes are fakes
                 ArrayList<Integer> possiblytested=session.ARTree.getInternalNodesByDFS();
                 for (int i = 0; i < possiblytested.size(); i++) {
                     Integer nodeId = possiblytested.get(i);
                     int extTreeId=session.nodeMapping.get(nodeId);
-                    if (session.extendedTree.getById(extTreeId).isFakeNode()) {
-                        nodesTested.add(nodeId);
+                    PhyloNode node = session.extendedTree.getById(extTreeId);
+                    if (node.isFakeNode()) {
+                        if (onlyX1Nodes && (node.getLabel().contains("_X1"))) {
+                            nodesTested.add(nodeId);
+                        }
                     } 
                 }
             } else {
@@ -697,9 +705,9 @@ public class Main_DBBUILD_3 {
                 //Infos.println("Word generation in this node took "+(endMerScanTime-startMerScanTime)+" ms");
                 //Environement.printMemoryUsageDescription();
                 
-                //for larger k, make garbage collection more intensive every 10 edges.
-                //this avoids to accumulate trash of byte arrays in Wordexplorer
-                if ( (session.k>10) && (nodeCounter%10==0) ) {
+                //for larger k, make garbage collection more intensive every X edges.
+                //this avoids cumulative trashing of byte arrays in Wordexplorer
+                if ( (session.k>10) && (nodeCounter%25==0) ) {
                     double startGC=System.currentTimeMillis();
                     System.gc();
                     double endGC=System.currentTimeMillis();

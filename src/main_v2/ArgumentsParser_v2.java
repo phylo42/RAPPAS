@@ -72,6 +72,7 @@ public class ArgumentsParser_v2 {
     public boolean doGapJumps=false; //take gap jumps into account when building kmers
     public boolean limitTo1Jump=true; //only allow a 1st jump, not jump combinations
     public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
+    public boolean onlyX1Nodes=false;
     
     //RAPPAS parameters for placement
     public int minOverlap=100; //used in entropy computation
@@ -550,7 +551,13 @@ public class ArgumentsParser_v2 {
                             System.exit(1);
                         }
                     }
-
+                    
+                    //test --onlyX1
+                    if (argsMap.get(index).equals("--onlyX1")) {
+                        this.onlyX1Nodes=true;
+                        System.out.println("Only X1 nodes will be considered.");
+                    }
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE

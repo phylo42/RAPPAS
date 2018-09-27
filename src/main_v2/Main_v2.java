@@ -138,7 +138,8 @@ public class Main_v2 {
                                             argsParser.limitTo1Jump,
                                             argsParser.gapJumpThreshold,
                                             model,
-                                            argsParser.arparameters
+                                            argsParser.arparameters,
+                                            argsParser.onlyX1Nodes
                         
                                             );
                 System.out.println("Have a coffee, you \"built\" your world.");

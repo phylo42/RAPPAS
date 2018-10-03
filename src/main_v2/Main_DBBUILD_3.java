@@ -586,7 +586,10 @@ public class Main_DBBUILD_3 {
                     int extTreeId=session.nodeMapping.get(nodeId);
                     PhyloNode node = session.extendedTree.getById(extTreeId);
                     if (node.isFakeNode()) {
-                        if (onlyX1Nodes && (node.getLabel().contains("_X1"))) {
+                        if (onlyX1Nodes) {
+                            if (node.getLabel().contains("_X1"))
+                                nodesTested.add(nodeId);
+                        } else {
                             nodesTested.add(nodeId);
                         }
                     } 

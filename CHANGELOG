@@ -1,3 +1,9 @@
+v1.05
++ option to output a jplace with same colulmn order than in pplacer, making the output compatible with guppy
++ some rafactoring to simplify the DB code
++ added onlyX1 debug option
+* correted an important bug introduced in v1.04 where distal and pendant length were flipped in the jplace output
+
 v1.04
 + added options to set more easily the model used during AR (options -m,-a,-c)
 + added --arparameters options to pass parameters directly to the AR software (useful for phyML tuning) 

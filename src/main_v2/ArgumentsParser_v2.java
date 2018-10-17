@@ -46,7 +46,7 @@ public class ArgumentsParser_v2 {
     //RAPPAS parameters for alignment reduction
     public boolean reduction=true;
     public File reducedAlignFile=null;
-    public double reductionRatio=0.999;
+    public double reductionRatio=0.99;
     
     //RAPPAS parameters for DB build
     public int k=8; //default=8
@@ -771,8 +771,8 @@ public class ArgumentsParser_v2 {
         "                           mMtREV, MtMam, MtArt \n" +  
         "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
         "--force-root      [] Root input tree if non rooted. (b phase)\n" +
-        "--ratio-reduction [0.999] Ratio for alignment reduction, e.g. sites \n" +
-        "                  holding >99.9% gaps are ignored. (b phase)\n" +
+        "--ratio-reduction [0.99] Ratio for alignment reduction, e.g. sites \n" +
+        "                  holding >99% gaps are ignored. (b phase)\n" +
         "--arparameters    [string] Parameters passed to the software used for\n" +
         "                  anc. seq. reconstuct. Overrides -a,-c,-m options.\n" +
         "                  Value must be quoted by ' or \". Do not set options\n" +

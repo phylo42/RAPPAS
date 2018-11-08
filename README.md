@@ -1,3 +1,13 @@
+```diff
+
+- WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS.
+- The more recent phyml-v3.3.20180621 will crash the database construction !
+- This will be corrected in next version (issue #7). **
+
+``` 
+
+
+
 # RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
 

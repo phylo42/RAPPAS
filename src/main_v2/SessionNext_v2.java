@@ -14,13 +14,20 @@ import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONObject;
 import tree.ExtendedTree;
 import tree.PhyloTree;
 
@@ -199,5 +206,49 @@ public class SessionNext_v2 {
         }
     }
     
+    /**
+     * outputs all data to a json
+     * careful, this produced unreasonably huge databases !
+     * @param f
+     */
+    public void saveToJSON(File f) {
+        try {
+            BufferedWriter bw = Files.newBufferedWriter(f.toPath(),Charset.forName("UTF-8"));
+            
+            JSONObject obj = new JSONObject();
+            obj.put("k", k);
+            obj.put("mink", minK);
+            obj.put("alpha", alpha);
+            obj.put("branchPerEdge", branchPerEdge);
+            obj.put("stateThreshold", stateThreshold);
+            obj.put("stateThreshold", stateThreshold);
+            obj.put("PPStarThreshold", PPStarThreshold);
+            obj.put("PPStarThresholdAsLog10", PPStarThresholdAsLog10);
+            Infos.println("Storing of States");
+            obj.put("states", states);
+            Infos.println("Storing of Alignment");
+            obj.put("align", align);
+            Infos.println("Storing of Original Tree");
+            obj.put("originalTree", originalTree);
+            Infos.println("Storing of Extended Tree");
+            obj.put("extendedTree",extendedTree);
+            Infos.println("Storing of AR Tree");
+            obj.put("ARTree", ARTree);
+            Infos.println("Storing of AR node mappings");  
+            obj.put("nodeMApping", nodeMapping);
+            //            Infos.println("Storing of PPStats");
+            //            oos.writeObject(parsedProbas);
+            Infos.println("Storing of Calibration");
+            obj.put("calibrationNormScore", calibrationNormScore);
+            Infos.println("Storing of Hash");
+            obj.put("hash", hash.getHash());
+
+            //write to file
+            obj.writeJSONString(bw);
+            bw.close();
+        } catch (IOException ex) {
+            Logger.getLogger(SessionNext_v2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
 }

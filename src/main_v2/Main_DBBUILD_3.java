@@ -343,12 +343,12 @@ public class Main_DBBUILD_3 {
                         //write extended trees
                         Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
                         NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
-                        nw.writeNewickTree(extendedTree, true, true, false);
+                        nw.writeNewickTree(extendedTree, true, true, false, false);
                         nw.close();
                         //write version without internal nodes labels
                         Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
                         nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
-                        nw.writeNewickTree(extendedTree, true, false, false);
+                        nw.writeNewickTree(extendedTree, true, false, false, false);
                         nw.close();
                         //save this extendedTree as a binary
                         FileOutputStream fos = new FileOutputStream(fileRelaxedTreeBinary);

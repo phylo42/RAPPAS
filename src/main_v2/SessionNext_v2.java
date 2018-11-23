@@ -9,7 +9,6 @@ import alignement.Alignment;
 import core.PProbasSorted;
 import core.States;
 import core.hash.CustomHash_v4_FastUtil81;
-import core.hash.CustomHash_v5_FastUtil811;
 import etc.Infos;
 import inputs.ARResults;
 import java.io.BufferedInputStream;
@@ -21,14 +20,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.json.simple.JSONObject;
 import tree.ExtendedTree;
+import tree.NewickWriter;
 import tree.PhyloTree;
 
 /**
@@ -214,13 +214,12 @@ public class SessionNext_v2 {
     public void saveToJSON(File f) {
         try {
             BufferedWriter bw = Files.newBufferedWriter(f.toPath(),Charset.forName("UTF-8"));
-            
+            NewickWriter nw=new NewickWriter();
             JSONObject obj = new JSONObject();
             obj.put("k", k);
             obj.put("mink", minK);
             obj.put("alpha", alpha);
             obj.put("branchPerEdge", branchPerEdge);
-            obj.put("stateThreshold", stateThreshold);
             obj.put("stateThreshold", stateThreshold);
             obj.put("PPStarThreshold", PPStarThreshold);
             obj.put("PPStarThresholdAsLog10", PPStarThresholdAsLog10);
@@ -229,23 +228,42 @@ public class SessionNext_v2 {
             Infos.println("Storing of Alignment");
             obj.put("align", align);
             Infos.println("Storing of Original Tree");
-            obj.put("originalTree", originalTree);
+            obj.put("originalTree", nw.getNewickTree(originalTree, true, true, false, false));
+            nw=new NewickWriter();
+            obj.put("originalTreeWithNodeIds", nw.getNewickTree(originalTree, true, true, false, true));
+            nw=new NewickWriter();
             Infos.println("Storing of Extended Tree");
-            obj.put("extendedTree",extendedTree);
+            obj.put("extendedTree", nw.getNewickTree(extendedTree, true, true, false, false));
+            nw=new NewickWriter();
             Infos.println("Storing of AR Tree");
-            obj.put("ARTree", ARTree);
+            obj.put("ARTree", nw.getNewickTree(ARTree, true, true, false, false));
+            nw=new NewickWriter();
             Infos.println("Storing of AR node mappings");  
-            obj.put("nodeMApping", nodeMapping);
+            obj.put("nodeMapping", nodeMapping);
             //            Infos.println("Storing of PPStats");
             //            oos.writeObject(parsedProbas);
             Infos.println("Storing of Calibration");
             obj.put("calibrationNormScore", calibrationNormScore);
             Infos.println("Storing of Hash");
-            obj.put("hash", hash.getHash());
+            //If DNAStatesShifted, we need to code binary kmers back to characters
+            //also nodeIds coded as chars need to be converted back to integers.            
+            obj.put("hash", hash.getHash().object2ObjectEntrySet().stream().collect(
+                    Collectors.toMap(
+                        kmer_map->String.valueOf(states.expandMer(kmer_map.getKey(), k)),
+                        kmer_map->kmer_map.getValue().char2FloatEntrySet().stream().collect(
+                            Collectors.toMap(
+                                node_map->(int)node_map.getCharKey(),
+                                node_map->node_map.getFloatValue()
+                            )
+                        )
+                    )
+                )
+            );
 
             //write to file
             obj.writeJSONString(bw);
             bw.close();
+
         } catch (IOException ex) {
             Logger.getLogger(SessionNext_v2.class.getName()).log(Level.SEVERE, null, ex);
         }

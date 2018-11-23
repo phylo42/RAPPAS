@@ -798,7 +798,7 @@ public class ArgumentsParser_v2 {
         "                  uses outputs from the specified directory. (b phase)\n" +
         "--extree          [dir] Skip phantom nodes injection, and use already\n"+
         "                  injected trees from the specified directory.(b phase)\n" +
-        "--jsondb          [] DB written as json. (careful, huge file!)\n" +
+        "--jsondb          [] DB written as json. (careful, outputs huge files!)\n" +
         "--nsbound         [float] Force normalized score bound. (p phase)\n" +
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +

@@ -6,7 +6,7 @@
 package core.hash;
 
 import alignement.Alignment;
-import core.DNAStates;
+import core.DNAStatesShifted;
 import core.PProbasSorted;
 import core.States;
 import core.algos.SequenceKnife;
@@ -75,7 +75,7 @@ public class TEST_CustomHash_v4_FastUtil81 {
             
             //////////////////////
             //States: DNA or AA
-            States s=new DNAStates();
+            States s=new DNAStatesShifted();
             //////////////////////
             //LOAD ORIGINAL ALIGNMENT
             Infos.println("Loading Alignment...");

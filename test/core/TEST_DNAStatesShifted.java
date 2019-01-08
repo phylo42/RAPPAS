@@ -5,7 +5,7 @@
  */
 package core;
 
-import etc.exceptions.NonIUPACStateException;
+import etc.exceptions.NonSupportedStateException;
 
 /**
  *
@@ -14,7 +14,7 @@ import etc.exceptions.NonIUPACStateException;
 public class TEST_DNAStatesShifted {
 
     
-    public static void main(String[] args) throws NonIUPACStateException {
+    public static void main(String[] args) throws NonSupportedStateException {
         
         //tests affichage
         char[] stat = {'A','T','C','G','N','-'};
@@ -22,7 +22,7 @@ public class TEST_DNAStatesShifted {
             char state = stat[i];
             System.out.println((int)state);
         }
-        DNAStates states=new DNAStates();
+        DNAStatesShifted states=new DNAStatesShifted();
         //print test
         byte[] t= { (byte)0, (byte)1, (byte)2, (byte)3};
         System.out.println(printBytes(t));

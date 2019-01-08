@@ -7,7 +7,7 @@ package core.algos;
 
 import core.algos.*;
 import alignement.Alignment;
-import core.DNAStates;
+import core.DNAStatesShifted;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
 import core.States;
@@ -156,7 +156,7 @@ public class WordExplorer {
             
             //////////////////////
             //States: DNA or AA
-            States s=new DNAStates();
+            States s=new DNAStatesShifted();
             //////////////////////
             //LOAD ORIGINAL ALIGNMENT
             Infos.println("Loading Alignment...");

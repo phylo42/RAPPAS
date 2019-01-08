@@ -6,7 +6,7 @@
 package core.hash;
 
 import alignement.Alignment;
-import core.DNAStates;
+import core.DNAStatesShifted;
 import core.PProbasSorted;
 import core.States;
 import etc.Infos;
@@ -32,7 +32,7 @@ public class TEST_PHYMLWrapper {
     public static void main(String[] args) {
         
         try {
-            States s=new DNAStates();
+            States s=new DNAStatesShifted();
             File a=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.fasta");
             File t=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.phylip_phyml_tree.txt");
             File p=new File("/media/ben/STOCK/DATA/ancestral_reconstruct_tests/JC69_based_comparison/phyml/basic.phylip_phyml_ancestral_seq");

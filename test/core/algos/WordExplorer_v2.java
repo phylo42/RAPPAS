@@ -7,7 +7,6 @@ package core.algos;
 
 import core.algos.*;
 import alignement.Alignment;
-import core.DNAStates;
 import core.PProbasSorted;
 import core.ProbabilisticWord;
 import core.States;

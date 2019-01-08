@@ -73,6 +73,7 @@ public class ArgumentsParser_v2 {
     public boolean limitTo1Jump=true; //only allow a 1st jump, not jump combinations
     public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
     public boolean onlyX1Nodes=false;
+    public boolean jsondb=false;
     
     //RAPPAS parameters for placement
     public int minOverlap=100; //used in entropy computation
@@ -558,6 +559,12 @@ public class ArgumentsParser_v2 {
                         System.out.println("Only X1 nodes will be considered.");
                     }
                     
+                    //test --jsondb
+                    if (argsMap.get(index).equals("--jsondb")) {
+                        this.jsondb=true;
+                        System.out.println("DB will be written as json.");
+                    }
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -791,6 +798,7 @@ public class ArgumentsParser_v2 {
         "                  uses outputs from the specified directory. (b phase)\n" +
         "--extree          [dir] Skip phantom nodes injection, and use already\n"+
         "                  injected trees from the specified directory.(b phase)\n" +
+        "--jsondb          [] DB written as json. (careful, outputs huge files!)\n" +
         "--nsbound         [float] Force normalized score bound. (p phase)\n" +
         "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
         "                  directly place queries given via -q .\n" +

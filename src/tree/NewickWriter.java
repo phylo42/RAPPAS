@@ -32,6 +32,10 @@ public class NewickWriter {
     // edge linking the node to its parent. Same ID (integer) is used for the
     //node and this parent edge.
     private boolean jplaceBranchLabels=false; 
+    //if true, the programmatic nodeid is added as a prefix to node labels
+    //ex: (8BV-4:0.023443493992,3BV-52:0.010550861247):0.011659557000)
+    //    (__12__8BV-4:0.023443493992,__13__3BV-52:0.010550861247)__11__:0.011659557000)
+    private boolean nodeIdPrefix=false;
     
     private NumberFormat format=null;
     
@@ -70,15 +74,17 @@ public class NewickWriter {
      * of the node is reused transfered to give an id on the parent branch,
      * following the JSON specification of jplace format (i.e. node:0.123{branch_id} ).
      * @param tree 
+     * @param withBranchLength 
      * @param withInternalNodeNames 
      * @param withJplaceBranchLabels 
-     * @param withBranchLength 
+     * @param withNodeIdPrefix 
      * @throws java.io.IOException 
      */
-    public void writeNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
+    public void writeNewickTree(PhyloTree tree, boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels, boolean withNodeIdPrefix) throws IOException {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
+        this.nodeIdPrefix=withNodeIdPrefix;
         if (treeCount>1) {w.append('\n');}
         currentNodeIndex=0;
         //the level variable is used to not set any branch length or
@@ -103,15 +109,18 @@ public class NewickWriter {
      * an id on the parent branch, following the JSON specification of jplace
      * format (i.e. node:0.123{branch_id} ).
      * @param tree 
-     * @param withInternalNodeNames 
-     * @param withJplaceBranchLabels 
      * @param withBranchLength 
-     * @throws java.io.IOException 
+     * @param withInternalNodeNames 
+     * @param withJplaceBranchLabels
+     * @param withNodeIdPrefix the value of withNodeIdPrefix 
+     * @throws java.io.IOException
+     * @return the java.lang.String 
      */
-    public String getNewickTree(PhyloTree tree,boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels) throws IOException {
+    public String getNewickTree(PhyloTree tree, boolean withBranchLength, boolean withInternalNodeNames, boolean withJplaceBranchLabels, boolean withNodeIdPrefix) throws IOException {
         this.branchLength=withBranchLength;
         this.internalNodeNames=withInternalNodeNames;
         this.jplaceBranchLabels=withJplaceBranchLabels;
+        this.nodeIdPrefix=withNodeIdPrefix;
         currentNodeIndex=0;
         //the level variable is used to not set any branch length or
         //jplace edge ids at the virtual root of an unrooted newick
@@ -147,6 +156,11 @@ public class NewickWriter {
             PhyloNode currentNode=(PhyloNode)e.nextElement();
             //System.out.println("currentNode "+currentNode);
             if (currentNode.isLeaf()) {
+                if (nodeIdPrefix) {
+                    sb.append("__");
+                    sb.append(currentNode.getId());
+                    sb.append("__");
+                }
                 sb.append(currentNode.getLabel());
                 if(branchLength) {
                     sb.append(':');
@@ -171,6 +185,11 @@ public class NewickWriter {
                 sb.append(',');
             } else {
                 sb.append(')');
+                if (nodeIdPrefix) {
+                    sb.append("__");
+                    sb.append(currentNode.getId());
+                    sb.append("__");
+                }
                 if(internalNodeNames) {
                     sb.append(node.getLabel());
                 }
@@ -249,7 +268,7 @@ public class NewickWriter {
         try {
             NewickWriter nw=new NewickWriter(new File("test_fake.tree"));
             //nw.writeNewickTree(t,true,true,true);
-            System.out.println(nw.getNewickTree(t, true, true, true));
+            System.out.println(nw.getNewickTree(t, true, true, true, false));
             nw.close();
             
         } catch (IOException ex) {

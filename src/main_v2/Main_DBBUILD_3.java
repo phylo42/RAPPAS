@@ -97,6 +97,7 @@ public class Main_DBBUILD_3 {
      * @param model 
      * @param arparameters 
      * @param onlyX1Nodes 
+     * @param jsondb 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -130,7 +131,8 @@ public class Main_DBBUILD_3 {
                                         float gapJumpThreshold,
                                         EvolModel model,
                                         String arparameters,
-                                        boolean onlyX1Nodes
+                                        boolean onlyX1Nodes,
+                                        boolean jsondb
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -341,12 +343,12 @@ public class Main_DBBUILD_3 {
                         //write extended trees
                         Infos.println("Write extended newick tree: "+fileRelaxedTreewithBL.getAbsolutePath());
                         NewickWriter nw=new NewickWriter(fileRelaxedTreewithBL);
-                        nw.writeNewickTree(extendedTree, true, true, false);
+                        nw.writeNewickTree(extendedTree, true, true, false, false);
                         nw.close();
                         //write version without internal nodes labels
                         Infos.println("Write extended newick tree with branch length: "+fileRelaxedTreewithBLNoInternalNodeLabels.getAbsolutePath());
                         nw=new NewickWriter(fileRelaxedTreewithBLNoInternalNodeLabels);
-                        nw.writeNewickTree(extendedTree, true, false, false);
+                        nw.writeNewickTree(extendedTree, true, false, false, false);
                         nw.close();
                         //save this extendedTree as a binary
                         FileOutputStream fos = new FileOutputStream(fileRelaxedTreeBinary);
@@ -818,6 +820,7 @@ public class Main_DBBUILD_3 {
             File dbmedium=new File(db.getAbsoluteFile()+".medium");
             File dbsmall=new File(db.getAbsoluteFile()+".small");
             File dbunion=new File(db.getAbsoluteFile()+".union");
+            File dbunionjson=new File(db.getAbsoluteFile()+".json");
             //File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
             
             
@@ -1149,7 +1152,13 @@ public class Main_DBBUILD_3 {
                 session.associateCalibrationScore(calibrationNormScoreUnion);
                 //store in DB
                 System.out.println("Serialization of the database (normal union)...");
-                session.storeHash(dbunion);
+                if (!jsondb) {
+                    session.storeHash(dbunion);
+                    Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
+                } else {
+                    session.saveToJSON(dbunionjson);
+                    Infos.println("DB UNION: "+Environement.getFileSize(dbunionjson)+" Mb saved");
+                }
                 
                 //reduction 
                 session.hash.reducetoSmallHash_v2(100);
@@ -1177,7 +1186,6 @@ public class Main_DBBUILD_3 {
                 //session.storeHash(dbsmallunion);
 
                 //serialization finished, output some log infos
-                Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
                 //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
                 System.out.println("\"Union\" database saved.");
             }

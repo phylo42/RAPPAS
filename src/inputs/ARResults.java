@@ -147,7 +147,7 @@ public class ARResults {
                 Infos.println("AR tree was unrooted by PhyML, rerooting for coherent jplace result. Now rooted: "+ARTree.isRooted());
                 File rerooted=new File(tree.getAbsolutePath()+"_rerooted");
                 NewickWriter nw=new NewickWriter(rerooted);
-                nw.writeNewickTree(ARTree, true, true, false);
+                nw.writeNewickTree(ARTree, true, true, false, false);
                 Infos.println("Rerooted tree written in :"+rerooted.getAbsolutePath());
                 nw.close();
             }

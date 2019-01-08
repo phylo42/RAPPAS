@@ -213,7 +213,7 @@ public class Main_PLACEMENT_v07 {
             //object tree (mandatory)
             //write a newick version of the loaded original tree for control
             NewickWriter nw=new NewickWriter();
-            String relaxedTreeForJplace=nw.getNewickTree(session.originalTree, true, true, true);
+            String relaxedTreeForJplace=nw.getNewickTree(session.originalTree, true, true, true, false);
             nw.close();
             topMap.put("tree",relaxedTreeForJplace);  
             //we do an array of placement object

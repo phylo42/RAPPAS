@@ -139,8 +139,8 @@ public class Main_v2 {
                                             argsParser.gapJumpThreshold,
                                             model,
                                             argsParser.arparameters,
-                                            argsParser.onlyX1Nodes
-                        
+                                            argsParser.onlyX1Nodes,
+                                            argsParser.jsondb
                                             );
                 System.out.println("Have a coffee, you \"built\" your world.");
 

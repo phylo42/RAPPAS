@@ -1,3 +1,13 @@
+```diff
+
+- WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS.
+- The more recent phyml-v3.3.20180621 will crash the database construction !
+- This will be corrected in next version (issue #7). **
+
+``` 
+
+
+
 # RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
 
@@ -108,6 +118,13 @@ For instance, -Xm8G will extend the java heap to a maximum of 8Gb of memory, -Xm
 
 
 You can use the latest versions provided on the authors' websites. PhyML requires at least version 3.3 (see [PhyML GIT](https://github.com/stephaneguindon/phyml) ), but we recommand the _HACKED VERSIONS_ available in this git repository in the /depbin directory.
+
+```diff
+- ** WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS ** (not the more recent phyml-v3.3.20180621 !)
+- This will be corrected in next versions (related to issue #7). **
+``` 
+
+
 These are based on slightly modified sources of PhyML and PAML: no change in ML computations, but useless outputs are skipped, making the ancestral reconstruction process faster (in particular for PAML).
 
 The reconstruction will result in the production of a directory structure and a database file in the given "workdir":

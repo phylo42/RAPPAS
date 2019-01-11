@@ -146,7 +146,7 @@ public class PhyloNode extends DefaultMutableTreeNode implements Serializable {
                                 listSons
                             );
     }
-
+    
     public int getId() {
         return id;
     }

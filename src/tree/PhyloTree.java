@@ -16,6 +16,7 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -147,6 +148,125 @@ public class PhyloTree extends JTree implements Serializable {
     public boolean isFromJplace() {
         return isJplaceType;
     }
+        
+/**
+     * reroot tree from Rold node to Rnew node, will remove added root in
+     * bipartiotionned trees (2 children at root) and inject a new one if
+     * forceRooting flag is true ; also note that indexes are
+     * not reinitialized to keep track of node ids but this can be manually done
+     * afterwards
+     * @param Rnew
+     * @param forceRooting the value of forceRooting
+     */
+    public void rerootTree(PhyloNode Rnew, boolean forceRooting) {
+        //check if given node is actually connected
+        if ( ((PhyloTreeModel)this.getModel()).getPathToRoot(Rnew)==null ) {
+            Infos.println("PhyloNode is not contained in the tree to reroot ! ");
+            System.exit(1);
+        } else if (this.getById(Rnew.getId()).isLeaf()) {
+            Infos.println("Cannot root on a leaf !");
+            System.exit(1);
+        } 
+        
+        if (this.isRooted) {
+            Infos.println("Tree is a pipartitionned, unrooting... ");
+            PhyloNode root = this.getRoot();
+            PhyloNode left = root.getChildAt(0);
+            PhyloNode right = root.getChildAt(1);
+            if (right.isLeaf()) { //inverse 
+                PhyloNode temp=left;
+                left=right;
+                right=temp;
+            }
+            //isolate root
+            root.removeAllChildren();
+            //disconnect left and add to right
+            right.add(left);
+            //set right as root trifurcation
+            ((PhyloTreeModel)this.getModel()).setRoot(right);
+        }
+        
+        //call recursion, must init as Rtemp=Rnew and Rprev=null
+        PhyloNode Rold=(PhyloNode)this.getModel().getRoot();
+        //possibly already rooted on correct node by unrooting
+        if (!(Rold==Rnew)) {
+            //launch rerooting recursion
+            reroot(Rnew, Rnew, Rold, null);
+            ((DefaultTreeModel)this.getModel()).setRoot(Rnew);
+        }
+
+            
+        //reroot if asked by user
+        if (forceRooting) {
+            Infos.println("Rooting of unrooted Tree.");
+            //rooting will be done on the edge linking the newick root 
+            //and the 3 son: 
+            //(son1,son2,son3)newick_root; -->  ((son1,son2)newick_root,son3)added_root;
+            //
+            //   newick_root                      added_root
+            //     / | \bl=1.5  ==>          bl=0/   \ bl=1.5
+            //    /  |  \               newick_root   \
+            // son1 son2 son3                /  \      son3
+            //                            son1  son2
+            //
+
+            PhyloNode newick_root=(PhyloNode)this.getModel().getRoot();
+            PhyloNode son3=newick_root.getChildAt(2);
+            PhyloNode added_root=new PhyloNode(-1, "added_root", 0.0f, -1, false);
+            //unlink sons3
+            float son3_bl=son3.getBranchLengthToAncestor();
+            son3.removeFromParent();
+            //set new branch lengths
+            son3.setBranchLengthToAncestor(son3_bl);
+            newick_root.setBranchLengthToAncestor(0.0f);
+            //link son3 and newick_root to added_root
+            added_root.add(newick_root);
+            added_root.add(son3);
+            //build tree
+            ((DefaultTreeModel)this.getModel()).setRoot(added_root);
+        }
+        
+    }
+    
+    private void reroot(PhyloNode Rtemp, PhyloNode Rnew, PhyloNode Rold, PhyloNode Rprev){
+        if (Rtemp==Rold){//end of path
+            //branch lengths to transfer from son to parent during permutation
+            float blToTransfer1=Rprev.getBranchLengthToAncestor();
+            float blToTransfer2=Rprev.getBranchLengthToOriginalAncestor();
+            float blToTransfer3=Rprev.getBranchLengthToOriginalSon();
+            Rtemp.remove(Rprev);//disconnect Rprev from Rold
+            Rprev.add(Rtemp);//reconnect Rtemp as child
+            Rtemp.setBranchLengthToAncestor(blToTransfer1);
+            Rtemp.setBranchLengthToOriginalAncestor(blToTransfer2);
+            Rtemp.setBranchLengthToOriginalSon(blToTransfer3);
+            Rprev.setBranchLengthToAncestor(0.0f);
+            Rprev.setBranchLengthToOriginalAncestor(0.0f);
+            Rprev.setBranchLengthToOriginalSon(0.0f);
+            return;
+        }
+        if (Rtemp.getParent() != null){ //recursively climb the path from Rnew to Rold
+            reroot((PhyloNode)Rtemp.getParent(),Rnew,Rold,Rtemp);
+        }
+        if (Rtemp==Rnew) { //returned from all recursions
+            Infos.println("Tree rerooted");
+        } else {
+            //branch lengths to transfer from son to parent during permutation
+            float blToTransfer1=Rprev.getBranchLengthToAncestor();
+            float blToTransfer2=Rprev.getBranchLengthToOriginalAncestor();
+            float blToTransfer3=Rprev.getBranchLengthToOriginalSon();
+            Rtemp.remove(Rprev);//disconnect Rprev from Rold
+            Rprev.add(Rtemp);//reconnect Rtemp as child
+            Rtemp.setBranchLengthToAncestor(blToTransfer1);
+            Rtemp.setBranchLengthToOriginalAncestor(blToTransfer2);
+            Rtemp.setBranchLengthToOriginalSon(blToTransfer3);
+            Rprev.setBranchLengthToAncestor(0.0f);
+            Rprev.setBranchLengthToOriginalAncestor(0.0f);
+            Rprev.setBranchLengthToOriginalSon(0.0f);
+        } 
+    }
+    
+    
+    
 
     /**
      * for graphical representation only

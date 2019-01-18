@@ -74,6 +74,7 @@ public class ArgumentsParser_v2 {
     public float gapJumpThreshold=0.3f; //gap jumps are activated if >30% gaps in the ref alignment
     public boolean onlyX1Nodes=false;
     public boolean jsondb=false;
+    public boolean acceptUnrootedRefTree=false;
     
     //RAPPAS parameters for placement
     public int minOverlap=100; //used in entropy computation
@@ -565,6 +566,12 @@ public class ArgumentsParser_v2 {
                         System.out.println("DB will be written as json.");
                     }
                     
+                    //test --use_unrooted 
+                    if (argsMap.get(index).equals("--use_unrooted")) {
+                        this.acceptUnrootedRefTree=true;
+                        System.out.println("User confirmed to use an unrooted tree.");
+                    }
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -777,7 +784,8 @@ public class ArgumentsParser_v2 {
         "                  *amino : LG, WAG, JTT, Dayhoff, DCMut, CpREV,\n" +
         "                           mMtREV, MtMam, MtArt \n" +  
         "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
-        "--force-root      [] Root input tree if non rooted. (b phase)\n" +
+        "--force-root      [] Root input tree (if unrooted) by adding a root\n"+
+        "                  node on righmost branch of the trifurcation.(b phase)\n" +
         "--ratio-reduction [0.99] Ratio for alignment reduction, e.g. sites \n" +
         "                  holding >99% gaps are ignored. (b phase)\n" +
         "--arparameters    [string] Parameters passed to the software used for\n" +
@@ -790,7 +798,11 @@ public class ArgumentsParser_v2 {
         "                  may produce erroneous ancestral k-mers. (b phase)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
         "--omega           [1.0] Modifier levelling the threshold used during\n"+
-        "                  phylo-kmers filtering, T=(omega/#states)^k .(b phase)\n" +
+        "                  phylo-kmer filtering, T=(omega/#states)^k .(b phase)\n" +
+        "--use_unrooted    [] Confirms you accept to use an unrooted reference\n"+
+        "                  tree (option -t). The trifurcation described by the\n"+
+        "                  newick file will be considered as root. Be aware that\n" +
+        "                  meaningless roots may impact accuracy. (b phase)\n" +
         "\n" +
         "Debug options:    Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+

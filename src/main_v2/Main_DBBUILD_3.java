@@ -16,7 +16,6 @@ import core.algos.SequenceKnife;
 import core.algos.WordExplorer_v3;
 import core.hash.CustomHash_v2;
 import core.hash.CustomHash_v4_FastUtil81;
-import core.hash.CustomHash_v5_FastUtil811;
 import etc.Environement;
 import etc.Infos;
 import inputs.FASTAPointer;
@@ -98,6 +97,7 @@ public class Main_DBBUILD_3 {
      * @param arparameters 
      * @param onlyX1Nodes 
      * @param jsondb 
+     * @param acceptUnrootedRefTree 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -132,7 +132,8 @@ public class Main_DBBUILD_3 {
                                         EvolModel model,
                                         String arparameters,
                                         boolean onlyX1Nodes,
-                                        boolean jsondb
+                                        boolean jsondb,
+                                        boolean acceptUnrootedRefTree
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -268,6 +269,18 @@ public class Main_DBBUILD_3 {
             br.close();
             PhyloTree originalTree = NewickReader.parseNewickTree2(tline, forceRooting, false);
             Infos.println("Original tree read.");
+            
+            //if tree is unrooted, continue only if user explicitely accepted
+            //this situation, which is problematic as trifurcation position
+            //will impact ghost branches length and following placements
+            if (!originalTree.isRooted()) {
+                if (!acceptUnrootedRefTree) {
+                    System.out.println("This reference tree is unrooted. The trifurcation described by the newick file can be used as root.");
+                    System.out.println("Please confirm you want to do this by adding the option --use_unrooted.");
+                    System.out.println("Be aware a meaningless root may impact placement accuracy.");
+                    System.exit(1);
+                }
+            }
 
 
             //integrity tests: do alignment/tree labels match ?

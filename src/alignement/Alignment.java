@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import core.States;
 import etc.Infos;
 import etc.exceptions.NonSupportedStateException;
+import java.util.HashMap;
 
 /**
  *
@@ -113,6 +114,8 @@ public class Alignment implements Serializable {
         //list of gap intervals
         gapIntervals=new ArrayList[fastas.get(0).getSequence(false).length()];
         
+        //register how many ambiguous characters were found
+        HashMap<Character,Integer> ambiguityInventory=new HashMap<>();        
         for (int i = 0; i < fastas.size(); i++) {
             Fasta f = fastas.get(i);
             //init matrix 
@@ -132,7 +135,11 @@ public class Alignment implements Serializable {
                 //test char per char at read
                 if (s.isAmbiguous(c)) { //expected states
                     if (c!='-') {
-                        Infos.println("Ambiguous state (char='"+c+"') will be considered as a gap during AR.");
+                        if (!ambiguityInventory.containsKey(c)) {
+                            ambiguityInventory.put(c, 1);
+                        } else {
+                            ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
+                        }
                     }
                 } else { //test state
                     try {
@@ -176,10 +183,24 @@ public class Alignment implements Serializable {
             //sequence labels
             rowLabels[i]=f.getHeader();
         }
+        //warn about ambiguities
+        if (ambiguityInventory.keySet().size()>0) {
+            System.out.println("Some ambiguous states were found in the alignment.");
+            for (Iterator<Character> iterator = ambiguityInventory.keySet().iterator(); iterator.hasNext();) {
+                Character key = iterator.next();
+                Infos.println("Ambiguous state: char='"+key+"' occurences="+ambiguityInventory.get(key));
+            }
+        }
+
+        
+        
         //gap proportions 
         for (int j = 0; j < fastas.get(0).getSequence(false).length(); j++) {
             gapProportions[j]/=0.0+fastas.size();
         }
+        
+        
+        
     }
     
     /**

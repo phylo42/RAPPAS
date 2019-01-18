@@ -731,16 +731,16 @@ public class ArgumentsParser_v2 {
         "\n--------------------------------------------------------------------\n" +
         " Minimum usage:\n\n"+
         " 1. For building the phylo-kmers database:\n"+
-        "    java -jar viromplacer.jar -p b -s [nucl|prot] -b ARbinary \n" +
-        "    -w workdir -s nucl -r alignment.fasta -t tree.newick\n" +
+        "    java -jar RAPPAS.jar -p b -s [nucl|prot] -b ARbinary \n" +
+        "    -w workdir -r alignment.fasta -t tree.newick\n" +
         "   \n" + 
-        " 2. For placing the query reads, using the database built in 1. :\n"+
-        "    java -jar viromplacer.jar -p p -d database.union -q queries.fasta \n"+ 
+        " 2. For placing sequences, using the database (DB) built in step 1:\n"+
+        "    java -jar RAPPAS.jar -p p -s [nucl|prot] -d DB.union -q query.fasta \n"+ 
         "    \n"+ 
-        " Note: For larger alignments or values of k, allocate more memory:\n" +
-        "       ex: java -jar -Xms1024m -Xmx16g viromplacer.jar [...] \n"+
+        " Note: For large references or higher values of k, allocate more RAM :\n" +
+        "       ex: java -Xms1024m -Xmx16g -jar RAPPAS.jar [options] \n"+
         "       -Xms -> memory allocated at startup. (m=MegaByte, g=GigaByte)\n"+
-        "       -Xmx -> maximum allocation allowed.  \n"+
+        "       -Xmx -> maximum memory allocated to the process.  \n"+
         "---------------------------------------------------------------------\n"+
         "\n" +
         "Main options:     Default values are in [].\n" +
@@ -748,21 +748,19 @@ public class ArgumentsParser_v2 {
         "-b (--arbinary)   [file] Binary for marginal AR, currently 'phyml' and \n" +
         "                  'baseml' (from PAML) are supported. (b phase)\n" +
         "-d (--database)   [file] The database of ancestral kmers. (b|p phase) \n"+
-        "-p (--phase)       ['b'|'p'] One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
-        "                   * b: Build DB of phylo-kmers (done 1 time). \n" +
-        "                   * p: Phylogenetic placement itself (done n times)\n"+
-        "                        requires the DB generated during 'build' phase.\n" +
+        "-p (--phase)      [b|p] One of 'b' for \"Build\" or 'p' for \"Place\"\n" +
+        "                  b: Build DB of phylo-kmers (done 1 time). \n" +
+        "                  p: Phylogenetic placement itself (done n times)\n"+
+        "                     requires the DB generated during 'build' phase.\n" +
         "-r (--refalign)   [file] Reference alignment in fasta format.\n" +
         "                  It must be the multiple alignment from which was \n" +
-        "                  inferred the reference tree (option -t). (b phase) \n"+        
+        "                  built the reference tree loaded with -t. (b phase) \n"+        
         "-s (--states)     ['nucl'|'amino'] States used in analysis. (b|p phase) \n" +    
         "-t (--reftree)    [file] Reference tree, in newick format.\n"+
-        "                  reconstruction and DB build (b phase).\n" +
         "-q (--queries)    [file[,file,...]] Fasta queries to place on the tree.\n" +
         "                  Can be a list of files separated by ','. (b|p phase)\n"+
-        "                  be placed if filenames are separated by ','.\n" +
-        "-v (--verbosity)  [0] Verbosity level: -1=null ; 0=low ; 1=high\n" +  
-        "-w (--workdir)    [.] Path to the working directory (b|p phase).\n" +  
+        "-v (--verbosity)  [0] Verbosity level: -1=none ; 0=default ; 1=high\n" +  
+        "-w (--workdir)    [path] Working directory for temp files. (b|p phase)\n" +  
         "\n" +
         "Outputs options:  Jplace, log files...  \n" +
         "---------------------------------------------------------------------\n"+
@@ -775,28 +773,28 @@ public class ArgumentsParser_v2 {
         "\n" +
         "Algo options:     Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+
-        "-a (--alpha)      [1.0] Shape parameter used in AR . (b phase)\n" +     
+        "-a (--alpha)      [1.0] Gammma shape parameter used in AR . (b phase)\n" +     
         "-c (--categories) [4] # categories used in AR . (b phase)\n" +   
         "-g (--ghosts)     [1] # ghost nodes injected per branches. (b phase)\n"+
         "-k (--k)          [8] k-mer length used at DB build. (b mode)\n" +   
         "-m (--model)      [GTR|LG] Model used in AR, one of the following:\n" +   
-        "                  *nucl  : JC69, HKY85, K80, F81, TN93, GTR \n" +  
-        "                  *amino : LG, WAG, JTT, Dayhoff, DCMut, CpREV,\n" +
-        "                           mMtREV, MtMam, MtArt \n" +  
-        "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
-        "--force-root      [] Root input tree (if unrooted) by adding a root\n"+
-        "                  node on righmost branch of the trifurcation.(b phase)\n" +
-        "--ratio-reduction [0.99] Ratio for alignment reduction, e.g. sites \n" +
-        "                  holding >99% gaps are ignored. (b phase)\n" +
+        "                  nucl  : JC69, HKY85, K80, F81, TN93, GTR \n" +  
+        "                  amino : LG, WAG, JTT, Dayhoff, DCMut, CpREV,\n" +
+        "                          mMtREV, MtMam, MtArt \n" +  
         "--arparameters    [string] Parameters passed to the software used for\n" +
         "                  anc. seq. reconstuct. Overrides -a,-c,-m options.\n" +
         "                  Value must be quoted by ' or \". Do not set options\n" +
         "                  -i,-u,--ancestral (managed by RAPPAS). (b phase)\n" +
-        "                  PhyML example: \"-m HIVw -c 10 -f m -v 0.0 --r_seed 1\"\n" +
+        "                  PhyML example: \"-m HIVw -c 10 -f m -v 0.0 --r_seed 1\"\n" +     
+        "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
+        "--force-root      [] Root input tree (if unrooted) by adding a root\n"+
+        "                  node on righmost branch of the trifurcation.(b phase)\n" +
+        "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
         "--no-reduction    [] Do not operate alignment reduction. This will \n" +
         "                  keep all sites of input reference alignment and \n" +
         "                  may produce erroneous ancestral k-mers. (b phase)\n" +
-        "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
+        "--ratio-reduction [0.99] Ratio for alignment reduction, e.g. sites \n" +
+        "                  holding >99% gaps are ignored. (b phase)\n" +
         "--omega           [1.0] Modifier levelling the threshold used during\n"+
         "                  phylo-kmer filtering, T=(omega/#states)^k .(b phase)\n" +
         "--use_unrooted    [] Confirms you accept to use an unrooted reference\n"+
@@ -808,15 +806,11 @@ public class ArgumentsParser_v2 {
         "---------------------------------------------------------------------\n"+
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
         "                  uses outputs from the specified directory. (b phase)\n" +
-        "--extree          [dir] Skip phantom nodes injection, and use already\n"+
-        "                  injected trees from the specified directory.(b phase)\n" +
-        "--jsondb          [] DB written as json. (careful, outputs huge files!)\n" +
-        "--nsbound         [float] Force normalized score bound. (p phase)\n" +
-        "--dbinram         [] Operate B mode, but whitout saving DB to files and\n" +
-        "                  directly place queries given via -q .\n" +
-        "--calibration     [] Prototype calib. on random anc. kmers. (b phase).\n" +
+        "--dbinram         [] Build DB, but do not save it to a file and \n" +
+        "                  directly place queries given via -q instead.\n" +
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +
         "--force-gap-jump  [] Forces gap jump even if %gap<thresh. (b phase) \n" +
+        "--jsondb          [] DB written as json. (careful, outputs huge files!)\n" +
         "\n"
         );
        System.exit(0);

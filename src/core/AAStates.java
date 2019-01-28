@@ -94,8 +94,9 @@ public class AAStates extends AbstractStates implements States,Serializable {
         b.put('V',(byte)19);b.put('v',(byte)19);
         
         //ambigous states which are allowed
-        ambigousStatesCount=1;
+        ambigousStatesCount=2;
         ambiguousState.put('-', true);
+        ambiguousState.put('*', true); //stop codons can be present in the middle of protein translations
         
         //special AA and unknown
         if (convertUOX) {

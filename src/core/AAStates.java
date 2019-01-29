@@ -71,6 +71,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
         s.put((byte)17, 'W');s.put((byte)17, 'w');
         s.put((byte)18, 'Y');s.put((byte)18, 'y');
         s.put((byte)19, 'V');s.put((byte)19, 'v');
+        s.put((byte)20, '-');
         
         b.put('R',(byte)0);b.put('r',(byte)0);
         b.put('H',(byte)1);b.put('h',(byte)1);
@@ -92,11 +93,13 @@ public class AAStates extends AbstractStates implements States,Serializable {
         b.put('W',(byte)17);b.put('w',(byte)17);
         b.put('Y',(byte)18);b.put('y',(byte)18);
         b.put('V',(byte)19);b.put('v',(byte)19);
+        b.put('-',(byte)20);
         
         //ambigous states which are allowed
         ambigousStatesCount=2;
-        ambiguousState.put('-', true);
+        //ambiguousState.put('-', true);
         ambiguousState.put('*', true); //stop codons can be present in the middle of protein translations
+        ambiguousState.put('!', true); //codon containing a frameshift, used in MACSE aligner
         
         //special AA and unknown
         if (convertUOX) {

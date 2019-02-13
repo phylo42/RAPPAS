@@ -24,21 +24,19 @@ public class AAStates extends AbstractStates implements States,Serializable {
                         'R','H','K','D','E',
                         'S','T','N','Q','C',
                         'G','P','A','I','L',
-                        'M','F','W','Y','V',
-                        '-'
+                        'M','F','W','Y','V'
                     };
     byte[] bytes =  {    
                         (byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,
                         (byte)0x05,(byte)0x06,(byte)0x07,(byte)0x08,(byte)0x09,
                         (byte)0x0A,(byte)0x0B,(byte)0x0C,(byte)0x0D,(byte)0x0E,
-                        (byte)0x0F,(byte)0x10,(byte)0x11,(byte)0x12,(byte)0x13,
-                        (byte)0x14
+                        (byte)0x0F,(byte)0x10,(byte)0x11,(byte)0x12,(byte)0x13
                     };
     
     LinkedHashMap<Byte,Character> s =new LinkedHashMap<>();
     LinkedHashMap<Character, Byte> b =new LinkedHashMap<>();
     
-    HashMap<Character,Boolean> ambiguousState=new HashMap<>(30);
+    HashMap<Character,byte[]> ambiguousState=new HashMap<>(30);
     
     /**
      *
@@ -71,7 +69,6 @@ public class AAStates extends AbstractStates implements States,Serializable {
         s.put((byte)17, 'W');s.put((byte)17, 'w');
         s.put((byte)18, 'Y');s.put((byte)18, 'y');
         s.put((byte)19, 'V');s.put((byte)19, 'v');
-        s.put((byte)20, '-');
         
         b.put('R',(byte)0);b.put('r',(byte)0);
         b.put('H',(byte)1);b.put('h',(byte)1);
@@ -93,22 +90,33 @@ public class AAStates extends AbstractStates implements States,Serializable {
         b.put('W',(byte)17);b.put('w',(byte)17);
         b.put('Y',(byte)18);b.put('y',(byte)18);
         b.put('V',(byte)19);b.put('v',(byte)19);
-        b.put('-',(byte)20);
         
         //ambigous states which are allowed
-        ambigousStatesCount=2;
-        //ambiguousState.put('-', true);
-        ambiguousState.put('*', true); //stop codons can be present in the middle of protein translations
-        ambiguousState.put('!', true); //codon containing a frameshift, used in MACSE aligner
+        ambigousStatesCount=7;
+        byte[] ambAA= {'R','H','K','D','E','S','T','N','Q','C','G','P','A','I','L','M','F','W','Y','V'};
+        ambiguousState.put('-', ambAA);
+        ambiguousState.put('*', ambAA); //stop codons appear sometime in the middle of protein translations
+        ambiguousState.put('!', ambAA); //codon containing a frameshift, used in MACSE aligner
+        //degenerated bases
+        ambiguousState.put('X', ambAA); //Unknown amino acid
+        byte[] B={'D','N'};
+        ambiguousState.put('B', B); //codon RAY, D or N
+        byte[] Z={'E','Q'};
+        ambiguousState.put('Z', Z); //codon SAR, E or Q
+        byte[] J={'I','L'};
+        ambiguousState.put('J', J); //codons YTR,ATH,CTY, i.e. I or L
+        //not that there phi/omega/epsilon/pi notations also exist, but are restricted to crystallographic applications
+        
+        
+        
+        
         
         //special AA and unknown
         if (convertUOX) {
             s.put((byte)9, 'U');s.put((byte)9, 'u'); // U to C
             s.put((byte)14, 'O');s.put((byte)14, 'o'); // O to L
-            s.put((byte)20, 'X');s.put((byte)20, 'x'); // X to -
             b.put('U',(byte)9);b.put('u',(byte)9);
             b.put('O',(byte)14);b.put('o',(byte)14);
-            b.put('X',(byte)20);b.put('x',(byte)20);
         }
         
     }
@@ -118,10 +126,20 @@ public class AAStates extends AbstractStates implements States,Serializable {
         return ambiguousState.containsKey(c);
     }
     
+    /**
+     * get list of states equivalent to this ambiguity
+     * @param c
+     * @return 
+     */
+    @Override
+    public byte[] ambiguityEquivalence(char c) {
+        if (ambiguousState.containsKey(c)) {
+            return ambiguousState.get(c);
+        } else {
+            return null;
+        }
+    }
     
-    
-    
-
     @Override
     protected byte charToByte(char c) {
         return b.get(c);

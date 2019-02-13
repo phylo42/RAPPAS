@@ -28,7 +28,7 @@ public interface States {
      */
     public byte stateToByte(char c) throws NonSupportedStateException;
     /**
-     * from a character, returns the correposnding byte, but as an int.
+     * from a character, returns the corresponding byte, but as an int.
      * @param c
      * @return 
      * @throws etc.exceptions.NonSupportedStateException 
@@ -38,6 +38,7 @@ public interface States {
     public int getStateCount();
     public int getNonAmbiguousStatesCount();   
     public boolean isAmbiguous(char c);
+    public byte[] ambiguityEquivalence(char c);
     
     /**
      * allows the possibility of mer compression

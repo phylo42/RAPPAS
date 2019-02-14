@@ -409,7 +409,7 @@ public class PhyloTree extends JTree implements Serializable {
      * 
      */
     public void resetJplaceEdgeIds() {
-        jplaceIdsCounter=0;
+        jplaceIdsCounter=-1;
         jPlaceEdgeMappingJPToNodeID=new HashMap<>();
         jPlaceEdgeMappingNodeIDToJP=new HashMap<>();
         jplaceEdgeIdsUpdaterDFS(this.getRoot());
@@ -427,19 +427,18 @@ public class PhyloTree extends JTree implements Serializable {
             childrenLeft-=1; 
             PhyloNode currentNode=(PhyloNode)e.nextElement();
             if (currentNode.isLeaf()) {
+                jplaceIdsCounter++;
+                currentNode.setJPlaceEdgeId(jplaceIdsCounter);
                 jPlaceEdgeMappingJPToNodeID.put(jplaceIdsCounter, currentNode.getId());
                 jPlaceEdgeMappingNodeIDToJP.put(currentNode.getId(),jplaceIdsCounter);
-                currentNode.setJPlaceEdgeId(jplaceIdsCounter++);
             } else {
                 jplaceEdgeIdsUpdaterDFS(currentNode);
             }
-            if (childrenLeft>0) {
-            } else {
-                jPlaceEdgeMappingJPToNodeID.put(jplaceIdsCounter, currentNode.getId());
-                jPlaceEdgeMappingNodeIDToJP.put(currentNode.getId(),jplaceIdsCounter);
-                node.setJPlaceEdgeId(jplaceIdsCounter++);           
-            }
         }
+        jplaceIdsCounter++;
+        jPlaceEdgeMappingJPToNodeID.put(jplaceIdsCounter, node.getId());
+        jPlaceEdgeMappingNodeIDToJP.put(node.getId(),jplaceIdsCounter);
+        node.setJPlaceEdgeId(jplaceIdsCounter);           
     }
     
     /**

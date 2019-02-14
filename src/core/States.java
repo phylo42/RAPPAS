@@ -38,7 +38,7 @@ public interface States {
     public int getStateCount();
     public int getNonAmbiguousStatesCount();   
     public boolean isAmbiguous(char c);
-    public byte[] ambiguityEquivalence(char c);
+    public byte[] ambiguityEquivalence(char c) throws NonSupportedStateException;
     
     /**
      * allows the possibility of mer compression

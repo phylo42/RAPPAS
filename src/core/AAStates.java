@@ -35,9 +35,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
     
     LinkedHashMap<Byte,Character> s =new LinkedHashMap<>();
     LinkedHashMap<Character, Byte> b =new LinkedHashMap<>();
-    
-    HashMap<Character,byte[]> ambiguousState=new HashMap<>(30);
-    
+        
     /**
      *
      * @param convertUOX the value of convertUOX
@@ -107,10 +105,6 @@ public class AAStates extends AbstractStates implements States,Serializable {
         ambiguousState.put('J', J); //codons YTR,ATH,CTY, i.e. I or L
         //not that there phi/omega/epsilon/pi notations also exist, but are restricted to crystallographic applications
         
-        
-        
-        
-        
         //special AA and unknown
         if (convertUOX) {
             s.put((byte)9, 'U');s.put((byte)9, 'u'); // U to C
@@ -119,25 +113,6 @@ public class AAStates extends AbstractStates implements States,Serializable {
             b.put('O',(byte)14);b.put('o',(byte)14);
         }
         
-    }
-
-    @Override
-    public boolean isAmbiguous(char c) {
-        return ambiguousState.containsKey(c);
-    }
-    
-    /**
-     * get list of states equivalent to this ambiguity
-     * @param c
-     * @return 
-     */
-    @Override
-    public byte[] ambiguityEquivalence(char c) {
-        if (ambiguousState.containsKey(c)) {
-            return ambiguousState.get(c);
-        } else {
-            return null;
-        }
     }
     
     @Override

@@ -133,22 +133,34 @@ public class Alignment implements Serializable {
             for (int j = 0; j < f.getSequence(false).length(); j++) {
                 char c=f.getSequence(false).charAt(j);
                 //test char per char at read
-                if (s.isAmbiguous(c)) { //expected states
-                    if (c!='-') {
-                        if (!ambiguityInventory.containsKey(c)) {
-                            ambiguityInventory.put(c, 1);
-                        } else {
-                            ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
-                        }
+                if (c!='-') {
+                    if (!ambiguityInventory.containsKey(c)) {
+                        ambiguityInventory.put(c, 1);
+                    } else {
+                        ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
                     }
-                } else { //test state
-                    try {
-                        s.stateToByte(c);
-                    } catch (NonSupportedStateException ex) {
-                        ex.printStackTrace(System.err);
-                        System.out.println("Reference alignment contains a non supported state.");
-                        System.exit(1); //do not exit here, AR will take care of transforming them to gaps
+                }
+                //either this is a known ambiguity or it raises an exception
+                try {
+                    //either this is a known ambiguity definition or it raises an exception
+                    if (s.isAmbiguous(c)) {
+                        s.ambiguityEquivalence(c);       
+                    } else {
+                    //either this is a valid state or it raises an exception
+                        s.stateToByte(c);                        
                     }
+                } catch (NonSupportedStateException ex) {
+                    ex.printStackTrace(System.err);
+                    System.out.println("Reference alignment contains a non supported ambiguous state.");
+                    System.exit(1); //do not exit here, AR will take care of transforming them to gaps
+                }
+                //either this is a valid state or it raises an exception
+                try {
+                    s.stateToByte(c);                        
+                } catch (NonSupportedStateException ex) {
+                    ex.printStackTrace(System.err);
+                    System.out.println("Reference alignment contains a non supported state.");
+                    System.exit(1); //do not exit here, AR will take care of transforming them to gaps
                 }
                 charMatrix[i][j]=c;
                 if (c=='-') {

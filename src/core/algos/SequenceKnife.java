@@ -46,7 +46,7 @@ public class SequenceKnife {
     private int k=-1;
     private int minK=-1;
     private int iterator=0; //last returned mer, as index of the merOrder table
-    private byte[] sequence=null; //the inital sequence itself
+    private char[] sequence=null; //the inital sequence itself
     private int[] merOrder=null; //to define the order in which the mer are returned
     private States s=null;
     private int step=-1;
@@ -131,8 +131,13 @@ public class SequenceKnife {
     }
     
     private void initTables(String seq, int samplingMode) throws NonSupportedStateException {
-        sequence=new byte[seq.length()];
+        sequence=seq.toCharArray();
         for (int i = 0; i < seq.length(); i++) {
+            
+            //TODO:
+            //here build alternative kmers for positions with ambiguities 
+            //and build alternative k-mers accordingly
+            
             
             //test all characters of query
             if (s.isAmbiguous(seq.charAt(i))) { //expected states
@@ -147,8 +152,7 @@ public class SequenceKnife {
                 }
             }
             
-            
-            sequence[i]=s.stateToByte(seq.charAt(i));
+            //sequence[i]=s.stateToByte(seq.charAt(i));
         }
         //Infos.println("Binary seq: "+Arrays.toString(sequence));
         switch (samplingMode) {
@@ -184,18 +188,6 @@ public class SequenceKnife {
         }
     }
     
-    /**
-     * get a word targeted through its 1st residue position
-     * @param queryPosition
-     * @return 
-     */
-    @Deprecated
-    public QueryWord getWordAt(int queryPosition) {
-        assert queryPosition>-1;
-        assert queryPosition<(sequence.length-k+1);
-        //this needs optimization !!! to avoid the copy
-        return new QueryWord(Arrays.copyOfRange(sequence, queryPosition, queryPosition+k),queryPosition);
-    }
     
     /**
      * a table representing the order in which mers are returned \n
@@ -223,42 +215,16 @@ public class SequenceKnife {
         return (this.sequence.length-this.k+1)/this.step;
     }
     
-    
-    
     /**
      * must be called to retireve mers one by one
      * @return the next mer as a @Word, null is no more mers to return
      */
-    public QueryWord getNextWord() {
-        if (iterator>merOrder.length-1) {
-            return null;
-        }
-        int currentPosition=merOrder[iterator];
-        int charactersLeft=sequence.length-currentPosition;
-        if (charactersLeft>=minK) {
-            byte[] word=null;
-            if (charactersLeft<k) {
-                word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+charactersLeft);
-            } else {
-                word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+k);
-            }
-            iterator++;
-            return new QueryWord(word, currentPosition);
-            
-        } else {
-            //Infos.println("Skip word on position "+currentPosition+": length < minK !");
-            //this allow to skip words that are too short but in the middle
-            //of the shuffled mer order, we just skip them and go to the next one.
-            iterator++;
-            return getNextWord();
-        }
-    }
-    
-    /**
-     * must be called to retireve mers one by one
-     * @return the next mer as a @Word, null is no more mers to return
-     */
-    public byte[] getNextByteWord() {
+    public byte[][] getNextByteWord() {
+        
+        //TODO
+        //modify so that a list of kmers is returned
+        
+        
         if (iterator>merOrder.length-1) {
             return null;
         }

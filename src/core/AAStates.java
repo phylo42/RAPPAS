@@ -116,7 +116,10 @@ public class AAStates extends AbstractStates implements States,Serializable {
     }
     
     @Override
-    protected byte charToByte(char c) {
+    protected byte charToByte(char c) throws NonSupportedStateException {
+        if (!b.containsKey(c)) {
+            throw new NonSupportedStateException(this, c);
+        }
         return b.get(c);
     }
 
@@ -129,7 +132,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
     public byte stateToByte(char c) throws NonSupportedStateException {
         try {
             return bytes[charToByte(c)];
-        } catch (NullPointerException ex) {
+        } catch (Exception ex) {
             throw new NonSupportedStateException(this, c);
         }
     }
@@ -156,7 +159,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
     }
 
     @Override
-    public int stateToInt(char c) {
+    public int stateToInt(char c) throws NonSupportedStateException {
         return bytes[charToByte(c)];
     }
 

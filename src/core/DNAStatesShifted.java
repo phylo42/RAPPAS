@@ -207,6 +207,8 @@ public final class DNAStatesShifted extends AbstractStates implements Serializab
                 b=0x03; break;
             case 'G':
                 b=0x03; break;
+            default:
+                throw new NonSupportedStateException(this, c);
         }
         return b;
     }
@@ -237,10 +239,9 @@ public final class DNAStatesShifted extends AbstractStates implements Serializab
     
     @Override
     public byte stateToByte(char c) throws NonSupportedStateException{
-        
         try {
             return bytes[charToByte(c)];
-        } catch (NullPointerException ex) {
+        } catch (Exception ex) {
             throw new NonSupportedStateException(this, c);
         }
     }

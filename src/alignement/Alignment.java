@@ -43,7 +43,7 @@ public class Alignment implements Serializable {
     private int reducedColumnCount=0;
     //% of gap in each site
     private double[] gapProportions=null;
-    private double reductionThreshold=0.995;
+    private double reductionThreshold=0.99;
     //gap intervals
     private ArrayList<Integer>[] gapIntervals=null;
     
@@ -142,24 +142,14 @@ public class Alignment implements Serializable {
                 }
                 //either this is a known ambiguity or it raises an exception
                 try {
-                    //either this is a known ambiguity definition or it raises an exception
-                    if (s.isAmbiguous(c)) {
-                        s.ambiguityEquivalence(c);       
-                    } else {
-                    //either this is a valid state or it raises an exception
+                    //either this is a known ambiguity definition
+                    if (!s.isAmbiguous(c)) {
+                    //or this is a valid state or it raises an exception
                         s.stateToByte(c);                        
                     }
                 } catch (NonSupportedStateException ex) {
                     ex.printStackTrace(System.err);
                     System.out.println("Reference alignment contains a non supported ambiguous state.");
-                    System.exit(1); //do not exit here, AR will take care of transforming them to gaps
-                }
-                //either this is a valid state or it raises an exception
-                try {
-                    s.stateToByte(c);                        
-                } catch (NonSupportedStateException ex) {
-                    ex.printStackTrace(System.err);
-                    System.out.println("Reference alignment contains a non supported state.");
                     System.exit(1); //do not exit here, AR will take care of transforming them to gaps
                 }
                 charMatrix[i][j]=c;

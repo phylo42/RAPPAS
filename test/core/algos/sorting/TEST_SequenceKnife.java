@@ -25,14 +25,9 @@ public class TEST_SequenceKnife {
         knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_LINEAR);
         System.out.println(Arrays.toString(knife.getMerOrder()));
         
-        QueryWord w=null;
-        while ((w=knife.getNextWord())!=null) {
+        byte[][] w=null;
+        while ((w=knife.getNextByteWord())!=null) {
             System.out.println(w);
-            List<QueryWord> mutatedWords = w.getMutatedWords(new DNAStatesShifted());
-            for (int i = 0; i < mutatedWords.size(); i++) {
-                System.out.println("   "+ mutatedWords.get(i));
-                
-            }
         }
     }
 }

@@ -159,7 +159,6 @@ public class Main_DBBUILD_3 {
 
             
             //build of threshold/////////////////////////////////////////////////////
-            int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             int min_k=k;
             float sitePPThreshold=Float.MIN_VALUE;
             float PPStarThreshold=(float)Math.pow((0.0+omega/s.getNonAmbiguousStatesCount()),k);
@@ -562,9 +561,6 @@ public class Main_DBBUILD_3 {
             ////////////////////////////////////////////////////////////////////
             // GENERATION OF ANCESTRAL WORDS
             
-            //positions for which word are built
-            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, knifeMode);
-            
             //if this is DNA, will use kmer compression
             if (session.states instanceof DNAStatesShifted) {
                 System.out.println("Using kmer compression.");
@@ -674,10 +670,8 @@ public class Main_DBBUILD_3 {
                 //WordExplorer_v2 wd =null;
                 WordExplorer_v3 wd=null;
                 int totaTuplesInNode=0;
-                for (int pos:knife.getMerOrder()) {
+                for (int pos=0; pos<align.getLength()-k+2;pos++) {
 
-                    if(pos+k-1>align.getLength()-1)
-                        continue;
                     //DEBUG
                     //if(pos>3)
                     //    System.exit(1);

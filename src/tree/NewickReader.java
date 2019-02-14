@@ -169,7 +169,7 @@ public class NewickReader {
                     //to fill node
                     String[] data=sb.toString().split(":");
                     String label=data[0];
-                    Float bl=-1.0f; 
+                    Float bl=0.0f; 
                     int jplaceEdgeId=-1;
                     if (data.length>1) {
                         //if jplace file, consider {x} as jplace nodeids

@@ -44,11 +44,11 @@ public class PlacementProcess {
     
     
     //debug/////////////////////////////////////////////////////////////
+    boolean debug=false;
     //csv log
     boolean csvLog=false;
     //max number of queries treated 
     int queryLimit=Integer.MAX_VALUE;
-    //int queryLimit=1000000;
     //graph of words alignment
     boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
@@ -140,7 +140,7 @@ public class PlacementProcess {
             }
             
             //debug
-            if (queryCounter>queryLimit)
+            if (debug && (queryCounter>queryLimit) )
                 break;
             
             
@@ -597,7 +597,7 @@ public class PlacementProcess {
             }
             
             //debug
-            if (queryCounter>queryLimit)
+            if (debug && queryCounter>queryLimit)
                 break;
             
             ///////////////////////////////////

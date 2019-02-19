@@ -697,7 +697,7 @@ public class PlacementProcess {
             //loop on words
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
-                //Infos.println("Query mer: "+qw.toString());
+                Infos.println("Query mer: "+qw.toString());
                 
                 //get Pairs associated to this word
 //                long startT1Time=System.currentTimeMillis();
@@ -732,6 +732,7 @@ public class PlacementProcess {
                     nodeOccurences[nodeId]+=1;
                     //score associated to originalNode x for current read
                     nodeScores[nodeId]+=entry.getFloatValue();
+                    System.out.println("\tnodeid: "+nodeId+"\tPP*: "+entry.getFloatValue());
                 });
                 
                 

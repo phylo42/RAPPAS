@@ -2,7 +2,20 @@
 
 - WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS.
 - The more recent phyml-v3.3.20180621 will crash the database construction !
-- This will be corrected in next version (issue #7). **
+- This will be corrected in next versions (issue #7).
+
+Also, default limits of phyml are quite low (<4000 taxa, sequence labels <1000 characters).
+You can work with larger trees and longer sequence labels with the following changes.
+
+1) Modify the following lines in the src/utilities.h source file :
+
+#define  T_MAX_FILE          2000
+#define  T_MAX_NAME          5000
+#define  N_MAX_OTU         262144
+
+2) Recompile phyml after these changes.
+
+Alternatively, use the precompiled versions found on this repository in the /bindep directory.
 
 ``` 
 
@@ -108,7 +121,7 @@ option | expected value | description
 
 __Note on PhyML and PAML binaries__:
 Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
-- PhyML : Fastest & strongly recommended but may require lots of RAM.
+- PhyML : Fastest & strongly recommended but may require lots of RAM (you have to use phyml-v3.3.20180214).
 - PAML  : Slower,  but requires less memory.
 
 __Note on -Xm[x]G option__:

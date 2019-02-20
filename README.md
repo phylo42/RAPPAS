@@ -25,8 +25,12 @@ Alternatively, use the precompiled versions found on this repository in the /bin
 
 
 **This README contains short instructions to build and launch RAPPAS.**
-**You will find more detailed intructions, tutorials and links related to phylogenetic placement on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
 
+**!!!!!!!!!!!!!!!!!**
+
+**You will find __more detailed instructions, test datasets, pre-built databases and tutorials__ and discussions related to phylogenetic placement on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
+
+**!!!!!!!!!!!!!!!!!**
 
 ## Description
 
@@ -99,6 +103,10 @@ Such reference marker gene datasets can be found, for instance from:
 - Any marker database from EukRef: <http://eukref.org/databases/>,
 - The curated database of Eukref : <http://eukref.org/databases/>,
 - Or built internally in the lab.
+
+### Sharing pre-built RAPPAS databases
+
+While our goal is to allow stable databases that can be broadly shared, RAPPAS is still in active development. Some major changes may induce that a recent version (ex: v1.05) becomes incompatible with a DB built using an older version (ex: v1.01). Such incompatibilities are clearly stated in the "release" page and the changelog. 
 
 ### RAPPAS database build 
 

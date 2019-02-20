@@ -156,8 +156,9 @@ public class PlacementProcess {
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
             byte[] qw=null;
-            SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
 
+            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            sk.init(fasta);
             
             ////////////////////////////////////////////////////////////////
             // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
@@ -661,7 +662,8 @@ public class PlacementProcess {
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
 //            long startKnifeTime=System.currentTimeMillis();
-            SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
+            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            sk.init(fasta);
             int queryKmerCount=0;
             int queryKmerMatchingDB=0;
 //            long endKnifeTime=System.currentTimeMillis();

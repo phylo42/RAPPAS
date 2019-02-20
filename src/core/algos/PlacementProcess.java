@@ -487,7 +487,7 @@ public class PlacementProcess {
                                 JSONArray placements,
                                 BufferedWriter bwTSV,
                                 BufferedWriter bwNotPLaced,
-                                int queryWordSampling,
+                                SequenceKnife sk,
                                 int minOverlap,
                                 File logDir,
                                 int keepAtMost,
@@ -662,7 +662,6 @@ public class PlacementProcess {
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
 //            long startKnifeTime=System.currentTimeMillis();
-            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
             sk.init(fasta);
             int queryKmerCount=0;
             int queryKmerMatchingDB=0;

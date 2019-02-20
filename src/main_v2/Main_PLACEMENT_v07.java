@@ -238,7 +238,8 @@ public class Main_PLACEMENT_v07 {
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
+            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
             //close TSV logs
             bwTSVPlacement.close();
             bwNotPlaced.close();

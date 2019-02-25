@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  * of matches and mismatches.
  * @author ben
  */
-public class SequenceKnife {
+public class SequenceKnife implements ISequenceKnife {
     
     /**
      * done through the shuffling of the table merOrder
@@ -50,84 +50,32 @@ public class SequenceKnife {
     private int[] merOrder=null; //to define the order in which the mer are returned
     private States s=null;
     private int step=-1;
+    private int samplingMode = -1;
     
-    /**
-     * Basic constructor, will return mers in linear order
-     * @param f
-     * @param k
-     * @param minK
-     * @param s 
-     */
-    public SequenceKnife(Fasta f, int k, int minK, States s) {
-        this.k=k;
-        this.minK=minK;
-        this.s=s;
-        String seq = f.getSequence(false);
+    public void init(String seq) {
         try {
-            initTables(seq, SAMPLING_LINEAR);
-        } catch (NonSupportedStateException ex) {
-            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-   
-    /**
-     * Basic constructor, will return mers in linear order
-     * @param seq
-     * @param k
-     * @param minK
-     * @param s 
-     */
-    public SequenceKnife(String seq, int k, int minK, States s) {
-        this.k=k;
-        this.minK=minK;
-        this.s=s;
-        try {
-            initTables(seq, SAMPLING_LINEAR);
+            initTables(seq, samplingMode);
         } catch (NonSupportedStateException ex) {
             Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    /**
-     * constructor setting the mer order through SAMPLING_* static variables
-     * @param seq
-     * @param k
-     * @param minK
-     * @param s
-     * @param samplingMode 
-     */
-    public SequenceKnife(String seq, int k, int minK, States s, int samplingMode) {
-        this.k=k;
-        this.minK=minK;
-        this.s=s;
-        try {
-            initTables(seq, samplingMode);
-        } catch (NonSupportedStateException ex) {
-            ex.printStackTrace();
-        }
+    public void init(Fasta f) {
+    	init(f.getSequence(false));
     }
     
     /**
-     * constructor setting the mer order through SAMPLING_* static variables
-     * @param f
+     * Basic constructor, will return mers in linear order
      * @param k
      * @param minK
-     * @param s
-     * @param samplingMode 
+     * @param s 
+     * @param samplingMode
      */
-    public SequenceKnife(Fasta f, int k, int minK, States s, int samplingMode) {
+    public SequenceKnife(int k, int minK, States s, int samplingMode) {
         this.k=k;
         this.minK=minK;
         this.s=s;
-        String seq = f.getSequence(false);
-        try {
-            initTables(seq, samplingMode);
-        } catch (NonSupportedStateException ex) {
-            ex.printStackTrace(System.err);
-            System.out.println("Query sequence contains not yet supported states. ("+f.getHeader()+")");
-            System.exit(1);
-        }
-
+        this.samplingMode=samplingMode;
     }
     
     private void initTables(String seq, int samplingMode) throws NonSupportedStateException {

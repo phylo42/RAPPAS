@@ -562,7 +562,7 @@ public class Main_DBBUILD_3 {
             // GENERATION OF ANCESTRAL WORDS
             
             //positions for which word are built
-            SequenceKnife knife=new SequenceKnife(k, k, s, knifeMode);
+            SequenceKnife knife=new SequenceKnife(k, k, s, SequenceKnife.SAMPLING_LINEAR);
             knife.init(new String(align.getCharMatrix()[0]));
             
             //if this is DNA, will use kmer compression

@@ -17,15 +17,20 @@ import java.util.List;
  */
 public class TEST_SequenceKnife {
     public static void main(String[] args) {
-        SequenceKnife knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_SEQUENTIAL);
-        System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_STOCHASTIC);
-        knife.forceSeed(12345);
-        System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_LINEAR);
+        SequenceKnife knife=new SequenceKnife(7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_SEQUENTIAL);
+        knife.init("ATCGCTGATCGATCGA");
         System.out.println(Arrays.toString(knife.getMerOrder()));
         
-        byte[][] w=null;
+        knife=new SequenceKnife(7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_STOCHASTIC);
+        knife.forceSeed(12345);
+        knife.init("ATCGCTGATCGATCGA");
+        System.out.println(Arrays.toString(knife.getMerOrder()));
+        
+        knife=new SequenceKnife(7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_LINEAR);
+        knife.init("ATCGCTGATCGATCGA");
+        System.out.println(Arrays.toString(knife.getMerOrder()));
+        
+        byte[] w=null;
         while ((w=knife.getNextByteWord())!=null) {
             System.out.println(w);
         }

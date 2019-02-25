@@ -245,8 +245,17 @@ public class ARProcessLauncher {
             File seq=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_seq.txt");
             File oriTree=new File(alignPath.getAbsolutePath()+"_phyml_tree.txt");
             //check that they were correctly created
-            if (!stats.exists() || !stats.exists()) {
-                System.out.println("Phyml outputs are missing, the process may have failed...");
+            if (!stats.exists() || !tree.exists() || !seq.exists() || !oriTree.exists()) {
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println("!!! Phyml outputs are missing, the process may have failed... !!!");
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+                System.out.println("Some clues may be found in the AR/AR_sdterr.txt  or AR/AR_sdtour.txt files.\n");
+                System.out.println("A common reason: phyml limits are set during compilation (defaults are <4000 taxa, label<1000 characters...)");
+                System.out.println("You can increase these limits in the src/utilities.h source file and recompile phyml.");
+                System.out.println("Changing these lines to these new values should be enough in most cases: ");
+                System.out.println("  #define  T_MAX_FILE          2000");
+                System.out.println("  #define  T_MAX_NAME          5000");
+                System.out.println("  #define  N_MAX_OTU         262144");
                 System.exit(1);
             }
             File statsNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_stats.txt");

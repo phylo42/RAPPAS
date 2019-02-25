@@ -2,7 +2,20 @@
 
 - WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS.
 - The more recent phyml-v3.3.20180621 will crash the database construction !
-- This will be corrected in next version (issue #7). **
+- This will be corrected in next versions (issue #7).
+
+Also, default limits of phyml are quite low (<4000 taxa, sequence labels <1000 characters).
+You can work with larger trees and longer sequence labels with the following changes.
+
+1) Modify the following lines in the src/utilities.h source file :
+
+#define  T_MAX_FILE          2000
+#define  T_MAX_NAME          5000
+#define  N_MAX_OTU         262144
+
+2) Recompile phyml after these changes.
+
+Alternatively, use the precompiled versions found on this repository in the /bindep directory.
 
 ``` 
 
@@ -92,14 +105,14 @@ Such reference marker gene datasets can be found, for instance from:
 __Basic command__
 
 ```
-java -Xmx8G -jar RAPPAS.jar -m b -s [nucl|prot] -b ARbinary -w workdir -r reference_alignment.fasta -t reference_tree.newick
+java -Xmx8G -jar RAPPAS.jar -p b -s [nucl|prot] -b ARbinary -w workdir -r reference_alignment.fasta -t reference_tree.newick
 ```
 
 where
 
 option | expected value | description
 --- | --- | ---
-**-m <br/>(--mode)** | "b" | Invokes the "database build" process.
+**-p <br/>(--phase)** | "b" | Invokes the "database build" process.
 **-s <br/>(--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
 **-b <br/>(--arbinary)** | binary of PhyML (>=v3.3) or PAML (>=4.9) | Set the path to the binary used for ancestral sequence reconstruction (see note below).
 **-w <br/>(--workdir)** | directory | Set the directory to save the database in.
@@ -108,7 +121,7 @@ option | expected value | description
 
 __Note on PhyML and PAML binaries__:
 Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
-- PhyML : Fastest & strongly recommended but may require lots of RAM.
+- PhyML : Fastest & strongly recommended but may require lots of RAM (you have to use phyml-v3.3.20180214).
 - PAML  : Slower,  but requires less memory.
 
 __Note on -Xm[x]G option__:
@@ -143,14 +156,14 @@ After building the RAPPAS DB, placement commands can be called numerous times on
 v1.00 of RAPPAS places 1,000,000 metagenomic of 150bp in ~30-40 minutes, using only a single core of a normal desktop PC.
 
 ```
-java -Xmx8G -jar RAPPAS.jar -m p -s [nucl|prot] -w workdir -d database.union -q queries.fasta 
+java -Xmx8G -jar RAPPAS.jar -p p -s [nucl|prot] -w workdir -d database.union -q queries.fasta 
 ```
 
 where
 
 option | expected value | description
 --- | --- | ---
-**-m <br/>(--mode)** | "p" | Invokes the "placement" process.
+**-p <br/>(--phase)** | "p" | Invokes the "placement" process.
 **-s <br/>(--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
 **-w <br/>(--workdir)** | directory | Set the directory to save the database in.
 **-d <br/>(--database)** | file | the *.union file created at previous DB build step.
@@ -173,9 +186,9 @@ They are analogs to PPlacer options.
 
 option | expected value {default} | description
 --- | --- | ---
-**--keep-at-most** | integer>=1  {7} | Maximum number of placements reported per query in the jplace output. (p mode)
-**--keep-factor** | float in ]0;1]  {0.01} | Report placement with likelihood_ratio higher than (factor x best_likelihood_ratio). (p mode)
-**--write-reduction** | file | Write reduced alignment to a file (see --ratio-reduction). (b mode)
+**--keep-at-most** | integer>=1  {7} | Maximum number of placements reported per query in the jplace output. (p phase)
+**--keep-factor** | float in ]0;1]  {0.01} | Report placement with likelihood_ratio higher than (factor x best_likelihood_ratio). (p phase)
+**--write-reduction** | file | Write reduced alignment to a file (see --ratio-reduction). (b phase)
 
 __Algorithm  options:__
 Options are related to the Jplace file outputs which resumes the placement results.
@@ -183,31 +196,28 @@ They are analogs to PPlacer options.
 
 option | expected value {default} | description
 --- | --- | ---
-**-a <br/>(--alpha)** | float in ]0,Inf] {1.0} | Shape parameter used in AR. (b mode)
-**-c <br/>(--categories)** | int in [1,Inf] {4} | # categories used in AR. (b mode)
+**-a <br/>(--alpha)** | float in ]0,Inf] {1.0} | Shape parameter used in AR. (b phase)
+**-c <br/>(--categories)** | int in [1,Inf] {4} | # categories used in AR. (b phase)
 **-k** | integer>=3 {8} | The k-mer length used at DB build.
-**-m <br/>(--model)** | string {GTR\|LG} | Model used in AR, one of the following: (for nucl) JC69, HKY85, K80, F81, TN93, GTR ; (for amino) LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt (b mode)
+**-m <br/>(--model)** | string {GTR\|LG} | Model used in AR, one of the following: (for nucl) JC69, HKY85, K80, F81, TN93, GTR ; (for amino) LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt (b phase)
 **--arparameters** | string | Parameters passed to the software used for anc. seq. reconstuct. Overrides -a,-c,-m options. Value must be quoted by ' or ". Do not set options -i,-u,--ancestral (managed by RAPPAS). PhyML example: "-m HIVw -c 10 -f m -v 0.0 --r_seed 1" (b phase)
-**--convertUOX** | none | U,O,X amino acids are converted to C,L,- to allow correct ancestral reconstruction (b mode)
-**--force-root**  | none | Root input tree if non rooted. (b mode)
-**--ratio-reduction** | float in ]0,1] {0.999} |Ratio for alignment reduction, i.e. sites holding >99.9% gaps are ignored. (b mode)
-**--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b mode)
-**--gap-jump-thresh** | float in ]0,1] {0.3}| Gap ratio above which gap jumps are activated, for instance if the reference alignment hold more than 30% of gaps.
-**--omega** | float in ]0,#states] {1.0} | Alpha modifier levelling the proba threshold used in ancestral words filtering. (b mode)
-
+**--convertUOX** | none | U,O,X amino acids are converted to C,L,- to allow correct ancestral reconstruction (b phase)
+**--force-root**  | none | Root input tree if non rooted. (b phase)
+**--ratio-reduction** | float in ]0,1] {0.99} |Ratio for alignment reduction, i.e. sites holding >99% gaps are ignored. (b phase)
+**--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b phase)
+**--gap-jump-thresh** | float in ]0,1] {0.3}| Gap ratio above which gap jumps are activated, for instance if the reference alignment holds more than 30% of gaps. (b phase)
+**--omega** | float in ]0,#states] {1.0} | Ratio levelling the probability threshold used in phylo-kmer filtering. (b phase)
+**--use_unrooted** | none | Confirms you accept to use an unrooted reference tree (option -t). The trifurcation described in the newick file will be considered as root. Be aware that meaningless roots may impact accuracy. (b phase)
 
 __Debug options:__
 Avoid using debug options if you are not involved in RAPPAS development.
 
 option | expected value {default} | description
 --- | --- | ---
-**--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b mode)
-**--extree**  | directory |  Skips ghost nodes injection, and use injected trees present in the specified directory. (b mode)
-**--nsbound** | float in ]-Inf,O[ | Forces score bound. (p mode)
-**--dbinram** | none | Operate "b" followed by "p" mode, without saving DB to files and placing directly queries given via -q .
-**--calibration** | none |  Prototype score calibration on random anc. kmers. (b mode).
-**--do-n-jumps** | none |   Shifts to n jumps. (b mode) 
-**--no-gap-jumps** | none |  Deactivate k-mer gap jumps, even if reference alignment has a proportion of gaps higher than "--gap-jump-thresh". (b mode) 
+**--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b phase)
+**--dbinram** | none | Operate "b" phase followed by "p" phase in one run, without saving DB to a file and placing directly queries given via -q .
+**--do-n-jumps** | none |   Shifts to n jumps. (b phase) 
+**--no-gap-jumps** | none |  Deactivate k-mer gap jumps, even if reference alignment has a proportion of gaps higher than "--gap-jump-thresh". (b phase) 
 
 
 ## License

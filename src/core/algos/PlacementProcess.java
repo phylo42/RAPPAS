@@ -44,11 +44,11 @@ public class PlacementProcess {
     
     
     //debug/////////////////////////////////////////////////////////////
+    boolean debug=false;
     //csv log
     boolean csvLog=false;
     //max number of queries treated 
     int queryLimit=Integer.MAX_VALUE;
-    //int queryLimit=1000000;
     //graph of words alignment
     boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
@@ -140,7 +140,7 @@ public class PlacementProcess {
             }
             
             //debug
-            if (queryCounter>queryLimit)
+            if (debug && (queryCounter>queryLimit) )
                 break;
             
             
@@ -156,8 +156,9 @@ public class PlacementProcess {
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
             byte[] qw=null;
-            SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
 
+            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            sk.init(fasta);
             
             ////////////////////////////////////////////////////////////////
             // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
@@ -486,7 +487,7 @@ public class PlacementProcess {
                                 JSONArray placements,
                                 BufferedWriter bwTSV,
                                 BufferedWriter bwNotPLaced,
-                                int queryWordSampling,
+                                SequenceKnife sk,
                                 int minOverlap,
                                 File logDir,
                                 int keepAtMost,
@@ -597,7 +598,7 @@ public class PlacementProcess {
             }
             
             //debug
-            if (queryCounter>queryLimit)
+            if (debug && queryCounter>queryLimit)
                 break;
             
             ///////////////////////////////////
@@ -661,7 +662,7 @@ public class PlacementProcess {
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
 //            long startKnifeTime=System.currentTimeMillis();
-            SequenceKnife sk=new SequenceKnife(fasta, session.k, session.minK, session.states, queryWordSampling);
+            sk.init(fasta);
             int queryKmerCount=0;
             int queryKmerMatchingDB=0;
 //            long endKnifeTime=System.currentTimeMillis();
@@ -732,6 +733,7 @@ public class PlacementProcess {
                     nodeOccurences[nodeId]+=1;
                     //score associated to originalNode x for current read
                     nodeScores[nodeId]+=entry.getFloatValue();
+                    //System.out.println("\tnodeid: "+nodeId+"\tPP*: "+entry.getFloatValue());
                 });
                 
                 

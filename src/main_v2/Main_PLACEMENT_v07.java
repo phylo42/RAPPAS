@@ -15,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.logging.Level;
@@ -103,7 +104,7 @@ public class Main_PLACEMENT_v07 {
             int queryWordSampling=SequenceKnife.SAMPLING_LINEAR;
 
             //debug 
-            int queryLimit=50000;
+            int queryLimit=Integer.MAX_VALUE;
             
 
             ////////////////////////////////////////////////////////////////////
@@ -237,7 +238,8 @@ public class Main_PLACEMENT_v07 {
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
+            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
             //close TSV logs
             bwTSVPlacement.close();
             bwNotPlaced.close();

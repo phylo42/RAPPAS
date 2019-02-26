@@ -78,6 +78,8 @@ public class Main_PLACEMENT_v07 {
      * @param nsBound
      * @param keepAtMost
      * @param keepRatio
+     * @param guppyCompatible
+     * @param treatAmbiguitiesWithMax
      * @return 
      */
     public int doPlacements(    File q,
@@ -87,7 +89,8 @@ public class Main_PLACEMENT_v07 {
                                 Float nsBound,
                                 int keepAtMost,
                                 float keepRatio,
-                                boolean guppyCompatible) {
+                                boolean guppyCompatible,
+                                boolean treatAmbiguitiesWithMax) {
 
         try {
                         
@@ -239,7 +242,7 @@ public class Main_PLACEMENT_v07 {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
             SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible,treatAmbiguitiesWithMax);
             //close TSV logs
             bwTSVPlacement.close();
             bwNotPlaced.close();

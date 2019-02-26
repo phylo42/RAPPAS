@@ -10,12 +10,9 @@ import core.States;
 import etc.Infos;
 import etc.exceptions.NonSupportedStateException;
 import inputs.Fasta;
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -249,14 +246,20 @@ public class SequenceKnife_v2 implements ISequenceKnife {
                     }
                     byte[] words=new byte[altProduct*k];
                     //build alternative words
+                    //first copy non ambigous bases
                     for (int i = 0; i < k; i++) {
                         if (sequence[currentPosition+i]!=-1) {
                             for (int j = 0; j < altProduct; j++) {
                                 words[i+j*k]=sequence[currentPosition+i];
                             }                            
                         } else {
-                            for (int j = 0; j < ambiguityOffsets.get(currentPosition).get(i).length; j++) {
-                                words[i+j*k]=ambiguityOffsets.get(currentPosition).get(i)[j];
+                            //repeat alternatives times other ambiguities
+                            int jump=0;
+                            for (int step = 0; step < altProduct/ambiguityOffsets.get(currentPosition).get(i).length; step++) {
+                                for (int j = 0; j < ambiguityOffsets.get(currentPosition).get(i).length; j++) {
+                                    words[i+jump*k]=ambiguityOffsets.get(currentPosition).get(i)[j];
+                                    jump++;
+                                }
                             }
                         }
                     }
@@ -275,6 +278,9 @@ public class SequenceKnife_v2 implements ISequenceKnife {
         }
     }
     
+    private void exploreAmbiguities() {
+        
+    }
     
     
     @Override

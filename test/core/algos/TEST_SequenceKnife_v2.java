@@ -27,16 +27,18 @@ public class TEST_SequenceKnife_v2 {
     
     public static void main(String[] args) {
         System.setProperty("debug.verbose", "1");
-        
-        SequenceKnife_v2 sq=new SequenceKnife_v2(4,4,new DNAStatesShifted(),SequenceKnife_v2.SAMPLING_LINEAR);
-        sq.init("ASTTTATGBCTGTTCGYAT");
+        int k=4;
+        SequenceKnife_v2 sq=new SequenceKnife_v2(k,k,new DNAStatesShifted(),SequenceKnife_v2.SAMPLING_LINEAR);
+        sq.init("ASSTTATGBCTG");
         System.out.println(sq.getMaxMerCount());
         System.out.println(sq.getMerCount());
         byte[] word=null;
         int counter=0;
         while ((word=sq.getNextByteWord())!=null) {
-            System.out.println((counter++)+": "+Arrays.toString(word));
+            System.out.println((counter++)+" #words:"+(word.length/k)+" byte[]="+Arrays.toString(word));
         }
+        
+        
         
         
     }

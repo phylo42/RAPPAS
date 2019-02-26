@@ -133,19 +133,20 @@ public class Alignment implements Serializable {
             for (int j = 0; j < f.getSequence(false).length(); j++) {
                 char c=f.getSequence(false).charAt(j);
                 //test char per char at read
-                if (c!='-') {
-                    if (!ambiguityInventory.containsKey(c)) {
-                        ambiguityInventory.put(c, 1);
-                    } else {
-                        ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
-                    }
-                }
                 //either this is a known ambiguity or it raises an exception
                 try {
                     //either this is a known ambiguity definition
                     if (!s.isAmbiguous(c)) {
                     //or this is a valid state or it raises an exception
                         s.stateToByte(c);                        
+                    } else {
+                        if (c!='-') {
+                            if (!ambiguityInventory.containsKey(c)) {
+                                ambiguityInventory.put(c, 1);
+                            } else {
+                                ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
+                            }
+                        }
                     }
                 } catch (NonSupportedStateException ex) {
                     ex.printStackTrace(System.err);
@@ -187,7 +188,7 @@ public class Alignment implements Serializable {
         }
         //warn about ambiguities
         if (ambiguityInventory.keySet().size()>0) {
-            System.out.println("Some ambiguous states were found in the alignment.");
+            System.out.println("Some ambiguous states were found in the alignment. (use '-v 1' to know more)");
             for (Iterator<Character> iterator = ambiguityInventory.keySet().iterator(); iterator.hasNext();) {
                 Character key = iterator.next();
                 Infos.println("Ambiguous state: char='"+key+"' occurences="+ambiguityInventory.get(key));

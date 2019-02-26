@@ -167,7 +167,8 @@ public class Main_v2 {
                                                 argsParser.nsBound,
                                                 argsParser.keepAtMost,
                                                 argsParser.keepFactor,
-                                                argsParser.guppyCompatible
+                                                argsParser.guppyCompatible,
+                                                argsParser.treatAmbiguitiesWithMax
                                                 );
                 }
                 System.out.println("Have a coffee, you \"placed\" your world.");

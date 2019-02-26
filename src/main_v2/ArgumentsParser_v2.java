@@ -84,6 +84,8 @@ public class ArgumentsParser_v2 {
     public int keepAtMost=7; //as in pplacer
     public float keepFactor=0.01f; //as in pplacer
     public boolean guppyCompatible=false;
+    public boolean treatAmbiguitiesWithMax=false; //default: treated with means
+
     
     //call string
     public String callString=null;
@@ -692,6 +694,11 @@ public class ArgumentsParser_v2 {
                         this.guppyCompatible=true;
                         System.out.println("Jplace format changed to be guppy-compatible.");
                     }
+                    //test --ambwithmax
+                    if (argsMap.get(index).equals("--ambwithmax")) {
+                        this.treatAmbiguitiesWithMax=true;
+                        System.out.println("Ambiguities will be treated with max(w'), not mean(w').");
+                    }
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
@@ -811,6 +818,7 @@ public class ArgumentsParser_v2 {
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +
         "--force-gap-jump  [] Forces gap jump even if %gap<thresh. (b phase) \n" +
         "--jsondb          [] DB written as json. (careful, outputs huge files!)\n" +
+        "--ambwithmax      [] Treat ambiguities with max, not mean. (p phase)\n" +
         "\n"
         );
        System.exit(0);

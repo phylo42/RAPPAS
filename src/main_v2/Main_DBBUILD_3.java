@@ -889,7 +889,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,false);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
@@ -902,7 +902,7 @@ public class Main_DBBUILD_3 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,false);
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
@@ -933,7 +933,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false,false);
                     }
                     //reduction to small DB
                     //System.out.println("Reduction to small union DB...");

@@ -127,6 +127,9 @@ public class PlacementProcess {
         // DO KMERS ALIGNMENT AND SCORING FOR ALL SEQUENCE QUERIES
         ////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////
+        
+        //init kmer extraction
+        SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
 
         int queryCounter=0;
         int queryPlacedCounter=0;
@@ -143,27 +146,18 @@ public class PlacementProcess {
             if (debug && (queryCounter>queryLimit) )
                 break;
             
-            
             ///////////////////////////////////
             //GENERATE RANDOM SEQ
             Fasta fasta=rs.generateSequence();
 
-//            Infos.println("#######################################################################");
-//            Infos.println("### PLACEMENT FOR QUERY #"+queryCounter+" : "+fasta.getHeader());
-//            Infos.println("#######################################################################");
-            //fw.append(fasta.getFormatedFasta()+"\n");
-
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
             byte[] qw=null;
-
-            SequenceKnife sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
             sk.init(fasta);
             
             ////////////////////////////////////////////////////////////////
             // BUILD THE ALIGNMENT AND SCORE IN A SIGNLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
-//            Infos.println("Launching scoring on candidate nodes...");
             int queryWordFoundCounter=0;
             int queryWordCounter=0;
 
@@ -474,12 +468,13 @@ public class PlacementProcess {
      * @param placements
      * @param bwTSV
      * @param bwNotPLaced
-     * @param queryWordSampling
+     * @param sk
      * @param minOverlap
      * @param logDir
      * @param keepAtMost
+     * @param guppyCompatible
      * @param keepFactor
-     * @param guppyCOMpatibility
+     * @param treatAmbiguitiesWithMax
      * @return the number of queries effectively placed (kmers were found in DB)
      * @throws java.io.IOException
      */
@@ -492,12 +487,9 @@ public class PlacementProcess {
                                 File logDir,
                                 int keepAtMost,
                                 float keepFactor,
-                                boolean guppyCompatible
-            
-                                ) throws IOException {
-        
-        
-        
+                                boolean guppyCompatible,
+                                boolean treatAmbiguitiesWithMax
+                            ) throws IOException {
         
         
         ///////////////////////////////////////////////////////            
@@ -512,7 +504,6 @@ public class PlacementProcess {
         int[] nodeOccurences=new int[session.originalTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
         float[] nodeScores=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
         float[] nodeScoresCopy=new float[session.originalTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
-        //System.out.println("S/C size: "+nodeOccurences.length);
         int numberOfBestScoreToConsiderForOutput=-1;
         Score[] bestScoreList=new Score[keepAtMost]; //in ascending order
         for (int i = 0; i < bestScoreList.length; i++) {
@@ -693,52 +684,62 @@ public class PlacementProcess {
             // BUILD THE ALIGNMENT AND SCORE IN A SINGLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
 //            long startAlignTime=System.currentTimeMillis();
-            Infos.println("Launching scoring on candidate nodes...");
             boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
             //loop on words
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+qw.toString());
                 
-                //get Pairs associated to this word
-//                long startT1Time=System.currentTimeMillis();
-                Char2FloatMap.FastEntrySet allPairs =null;
-                //List<Pair> allPairs=null;
-                if (session.states instanceof DNAStatesShifted) {
-                    allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
-                } else {
-                    allPairs = session.hash.getPairsOfTopPosition2(qw);
-                }
-//                long endT1Time=System.currentTimeMillis();
-//                totalT1Time+=(endT1Time-startT1Time);
+                //treat simple kmers
+                if (qw.length==session.k) {
                 
-
-                //word is not present in hash
-                if (allPairs==null) {
-                    queryKmerCount++;
-                    continue;
-                }
-                queryKmerMatchingDB++;
-                
-                //stream version, 5-10% faster than allPairs.fastIterator()
-                allPairs.stream().forEach( (entry) -> {
-                    int nodeId=entry.getCharKey();
-                    //int nodeId=entry.getNodeId();
-                    //we will score only encountered nodes, originalNode registered
-                    //at 1st encouter
-                    if (nodeOccurences[nodeId]==0) {
-                        selectedNodes.add(nodeId);
+                    //get Pairs associated to this word
+                    //long startT1Time=System.currentTimeMillis();
+                    Char2FloatMap.FastEntrySet allPairs =null;
+                    //List<Pair> allPairs=null;
+                    if (session.states instanceof DNAStatesShifted) {
+                        allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(qw));
+                    } else {
+                        allPairs = session.hash.getPairsOfTopPosition2(qw);
                     }
-                    //count # times originalNode encountered
-                    nodeOccurences[nodeId]+=1;
-                    //score associated to originalNode x for current read
-                    nodeScores[nodeId]+=entry.getFloatValue();
-                    //System.out.println("\tnodeid: "+nodeId+"\tPP*: "+entry.getFloatValue());
-                });
+                    //long endT1Time=System.currentTimeMillis();
+                    //totalT1Time+=(endT1Time-startT1Time);
+
+
+                    //word is not present in hash
+                    if (allPairs==null) {
+                        queryKmerCount++;
+                        continue;
+                    }
+                    queryKmerMatchingDB++;
+
+                    //stream version, 5-10% faster than allPairs.fastIterator()
+                    allPairs.stream().forEach( (entry) -> {
+                        int nodeId=entry.getCharKey();
+                        //int nodeId=entry.getNodeId();
+                        //we will score only encountered nodes, originalNode registered
+                        //at 1st encouter
+                        if (nodeOccurences[nodeId]==0) {
+                            selectedNodes.add(nodeId);
+                        }
+                        //count # times originalNode encountered
+                        nodeOccurences[nodeId]+=1;
+                        //score associated to originalNode x for current read
+                        nodeScores[nodeId]+=entry.getFloatValue();
+                        //System.out.println("\tnodeid: "+nodeId+"\tPP*: "+entry.getFloatValue());
+                    });
+                
+                } else {
+                    if (!treatAmbiguitiesWithMax) {
+                        treatAmbiguitiesWithMean(qw,sk.getMerCount(),selectedNodes,nodeOccurences,nodeScores);
+                    } else {
+                        treatAmbiguitiesWithMean(qw,sk.getMerCount(),selectedNodes,nodeOccurences,nodeScores);
+                    }
+                }
                 
                 
-//                long endT2Time=System.currentTimeMillis();
-//                totalT2Time+=(endT2Time-startT2Time);
+                //long endT2Time=System.currentTimeMillis();
+                //totalT2Time+=(endT2Time-startT2Time);
                 
                 //graph of alignment, if asked
 //                if(graphAlignment) {
@@ -774,9 +775,9 @@ public class PlacementProcess {
 //            }
 
 
-            Infos.println("Proportion of query words retrieved in the hash: "+queryKmerMatchingDB+"/"+queryKmerCount);
-//            long endAlignTime=System.currentTimeMillis();
-//            totalAlignTime+=(endAlignTime-startAlignTime);
+            Infos.println("words_retrieved_in_DB/tested_kmers/query_kmers: "+queryKmerMatchingDB+"/"+queryKmerCount+"/"+sk.getMaxMerCount());
+            //long endAlignTime=System.currentTimeMillis();
+            //totalAlignTime+=(endAlignTime-startAlignTime);
             //Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      
 
             //if selectedNodes is empty (no node could be associated)
@@ -1150,6 +1151,116 @@ public class PlacementProcess {
 //        System.out.println("############################################################");
         
         return queryCounter;
+    }
+    
+    /**
+     * 
+     * @param w concatenate of kmers of size k
+     * @param Q #mer in query
+     * @param L list of node encountered in main placement loop
+     * @param C occurences per nodeId
+     * @param S score per nodeId
+     */
+    private void treatAmbiguitiesWithMean(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S) {
+        
+        float[] S_amb=new float[C.length];
+        int[] C_amb=new int[C.length];
+        
+        ArrayList<Integer> L_amb=new ArrayList<>();
+        
+        int W_size=w.length/session.k;
+        
+        //extract probas for ech w_prime
+        byte[] w_prime=null;
+        for (int i=0; i<W_size;i++) {
+            w_prime=Arrays.copyOfRange(w, i*session.k, (i+1)*session.k);
+            Char2FloatMap.FastEntrySet allPairs =null;
+            if (session.states instanceof DNAStatesShifted) {
+                allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(w_prime));
+            } else {
+                allPairs = session.hash.getPairsOfTopPosition2(w_prime);
+            }
+            if (allPairs==null) {
+                continue;
+            }
+            allPairs.stream().forEach( (entry) -> {
+                int x=entry.getCharKey();
+                if (C_amb[x]==0) {
+                    L_amb.add(x);
+                }
+                C_amb[x]+=1;
+                S_amb[x]+=Math.log10(entry.getFloatValue());
+            });
+        }
+        //compute mean and add it to scoring/counting tables
+        for (int i = 0; i < L_amb.size(); i++) {
+            int x = L_amb.get(i);
+                if (C[x]==0) {
+                    L.add(x);
+                    S[x]=Q*session.PPStarThresholdAsLog10;
+                }
+                C[x]+=1;
+                float avgProba=(S_amb[x] + (Q-C_amb[x])*session.PPStarThreshold) / W_size;
+                S[x]+=Math.log10(avgProba)-session.PPStarThresholdAsLog10;
+                C_amb[x]=0;
+        }
+        
+    }
+    
+    /**
+     * 
+     * @param w concatenate of kmers of size k
+     * @param Q #mer in query
+     * @param L list of node encountered in main placement loop
+     * @param C occurences per nodeId
+     * @param S score per nodeId
+     */
+    private void treatAmbiguitiesWithMax(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S) {
+        
+        float[] S_amb=new float[C.length];
+        int[] C_amb=new int[C.length];
+        
+        ArrayList<Integer> L_amb=new ArrayList<>();
+        
+        int W_size=w.length/session.k;
+        
+        //extract probas for each w_prime and retain max
+        byte[] w_prime=null;
+        for (int i=0; i<W_size;i++) {
+            w_prime=Arrays.copyOfRange(w, i*session.k, (i+1)*session.k);
+            Char2FloatMap.FastEntrySet allPairs =null;
+            if (session.states instanceof DNAStatesShifted) {
+                allPairs = session.hash.getPairsOfTopPosition2(session.states.compressMer(w_prime));
+            } else {
+                allPairs = session.hash.getPairsOfTopPosition2(w_prime);
+            }
+            if (allPairs==null) {
+                continue;
+            }
+            allPairs.stream().forEach( (entry) -> {
+                int x=entry.getCharKey();
+                if (C_amb[x]==0) {
+                    L_amb.add(x);
+                    S_amb[x]=entry.getFloatValue();
+                }
+                C_amb[x]+=1;
+                if (entry.getFloatValue() > S_amb[x]) {
+                    S_amb[x]=entry.getFloatValue();
+                }
+            });
+        }
+        //add max to scoring/counting tables
+        for (int i = 0; i < L_amb.size(); i++) {
+            int x = L_amb.get(i);
+                if (C[x]==0) {
+                    L.add(x);
+                    S[x]=Q*session.PPStarThresholdAsLog10;
+                }
+                C[x]+=1;
+                S[x]+=S_amb[x]-session.PPStarThresholdAsLog10;
+                C_amb[x]=0;
+        }
+        
     }
     
     

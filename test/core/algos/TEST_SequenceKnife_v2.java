@@ -28,7 +28,7 @@ public class TEST_SequenceKnife_v2 {
     public static void main(String[] args) {
         System.setProperty("debug.verbose", "1");
         int k=4;
-        SequenceKnife_v2 sq=new SequenceKnife_v2(k,k,new DNAStatesShifted(),SequenceKnife_v2.SAMPLING_LINEAR);
+        AmbigSequenceKnife sq=new AmbigSequenceKnife(k,k,new DNAStatesShifted(),AmbigSequenceKnife.SAMPLING_LINEAR);
         sq.init("ASSTTATGBCTG");
         System.out.println(sq.getMaxMerCount());
         System.out.println(sq.getMerCount());

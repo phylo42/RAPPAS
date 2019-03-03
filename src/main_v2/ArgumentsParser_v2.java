@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import models.EvolModel;
 
 /**
  * parse the arguments when command_line version is used
@@ -33,7 +32,7 @@ public class ArgumentsParser_v2 {
     
     private HashMap<Integer,String> argsMap=null;
     
-    String version="";
+    String version="debug";
 
 
     //RAPPAS general parameters
@@ -80,10 +79,11 @@ public class ArgumentsParser_v2 {
     public int minOverlap=100; //used in entropy computation
     public List<File> queriesFiles=null;
     public File databaseFile=null;
-    public Float nsBound=Float.NEGATIVE_INFINITY; //do not consider threshold calculated by formula but this particular threshold
+    public Float nsBound=null; //do not consider threshold calculated by formula but this particular threshold, null if note set
     public int keepAtMost=7; //as in pplacer
     public float keepFactor=0.01f; //as in pplacer
     public boolean guppyCompatible=false;
+    public boolean treatAmbiguities=true; // treat ambiguities 
     public boolean treatAmbiguitiesWithMax=false; //default: treated with means
 
     
@@ -109,8 +109,6 @@ public class ArgumentsParser_v2 {
             System.out.println("Cannot find 'phase' (option -p). See help (-h) for details.");
             System.exit(1);
         }
-        
-        
         
         try {
             //if arguments values are correct
@@ -169,20 +167,7 @@ public class ArgumentsParser_v2 {
                         System.exit(1);
                     }
             }        
-            //test -s parameter, this must be tested before many other options as 
-            //analyses differ when doing protein or nucleotides analysis
-            if (argsMap.get(index).equals("--states") || argsMap.get(index).equals("-s")) {
-                if (argsMap.get(index+1).equalsIgnoreCase("nucl")) {
-                    statesGiven=true;
-                    this.states=STATES_DNA;
-                } else if (argsMap.get(index+1).equalsIgnoreCase("amino")) {
-                    statesGiven=true;
-                    this.states=STATES_PROTEIN;
-                } else {
-                    System.out.println("Unexpected -s (--states) value, must be one of [nucl|amino].");
-                    System.exit(1);
-                }
-            }
+            
             //test --convertUOX parameter
             if (argsMap.get(index).equals("--convertUOX")) {
                 this.convertUOX=true;
@@ -209,13 +194,6 @@ public class ArgumentsParser_v2 {
             System.out.println("workDir="+this.workingDir.getAbsolutePath());
         }
         
-        if (!statesGiven) {
-            System.out.println("Analysis states not found. Use option -s (--states) and one of 'nucl' or 'amino'.");
-            System.exit(1);
-        }
-
-        
-        
         ////from here, we know in which phase the program will be launched///////
         ////////////////////////////////////////////////////////////////////////
         //check if -a ,-t, -k given when phase=b
@@ -225,12 +203,29 @@ public class ArgumentsParser_v2 {
                 
                 boolean kGiven=false;
                 boolean omegaGiven=false;
+                boolean reductionGiven=false;
                 boolean fGiven=false;
                 boolean alignGiven=false;
                 boolean treeGiven=false;
                 
                 for (Iterator<Integer> it=argsMap.keySet().iterator();it.hasNext();) {
                     int index=it.next();
+                    
+                    //test -s parameter, this must be tested before many other options as 
+                    //analyses differ when doing protein or nucleotides analysis
+                    if (argsMap.get(index).equals("--states") || argsMap.get(index).equals("-s")) {
+                        if (argsMap.get(index+1).equalsIgnoreCase("nucl")) {
+                            statesGiven=true;
+                            this.states=STATES_DNA;
+                        } else if (argsMap.get(index+1).equalsIgnoreCase("amino")) {
+                            statesGiven=true;
+                            this.states=STATES_PROTEIN;
+                        } else {
+                            System.out.println("Unexpected -s (--states) value, must be one of [nucl|amino].");
+                            System.exit(1);
+                        }
+                    }
+                    
                     //test -r parameter
                     if (argsMap.get(index).equals("--refalign") || argsMap.get(index).equals("-r")) {
                         File alignment=new File(argsMap.get(index+1));
@@ -377,7 +372,7 @@ public class ArgumentsParser_v2 {
                         String alphaVal=argsMap.get(index+1);
                         try {
                             this.reductionRatio=Double.parseDouble(alphaVal);
-                            omegaGiven=true;
+                            reductionGiven=true;
                             if (this.reductionRatio>1) {
                                 this.reductionRatio=1;
                                 System.out.println("--ratio-reduction set to 1.0 .");
@@ -392,7 +387,7 @@ public class ArgumentsParser_v2 {
                     //test --ardir parameter
                     if (argsMap.get(index).equals("--ardir")) {
                         File ARDir=new File(argsMap.get(index+1));
-                        System.out.println("Using AR provided by user: "+ARDir.getAbsolutePath());
+                        System.out.println("AR provided by user: "+ARDir.getAbsolutePath());
                         if (ARDir.isDirectory() && ARDir.canRead()) {
                             this.ARDirToUse=ARDir;
                         } else {
@@ -581,7 +576,10 @@ public class ArgumentsParser_v2 {
                     
                 }
                 
-
+                ///////////////////////////////////////////////
+                //do not continue if the type of analysis is not set
+                ///////////////////////////////////////////////
+                if (!statesGiven) {System.out.println("Analysis states not found. Use option -s (--states) and one of 'nucl' or 'amino'.");System.exit(1);}
                 ///////////////////////////////////////////////
                 //do not continue if align/tree not set (-r / -t)
                 ///////////////////////////////////////////////
@@ -591,7 +589,8 @@ public class ArgumentsParser_v2 {
                 //use defaults if -k,-a,-f not set
                 ///////////////////////////////////////////////
                 if (!kGiven) {System.out.println("Default k="+this.k+" will be used.");}
-                if (!omegaGiven) {System.out.println("Default alpha="+this.omega+" will be used.");}
+                if (!omegaGiven) {System.out.println("Default omega="+this.omega+" will be used.");}
+                if (!reductionGiven) {System.out.println("Default ratio-reduction="+this.reductionRatio+" will be used.");}
                 if (!fGiven) {
                     System.out.println("Default injectionPerBranch="+this.ghostsAmount+" will be used.");
                 }
@@ -694,6 +693,11 @@ public class ArgumentsParser_v2 {
                         this.guppyCompatible=true;
                         System.out.println("Jplace format changed to be guppy-compatible.");
                     }
+                    //test --noamb
+                    if (argsMap.get(index).equals("--noamb")) {
+                        this.treatAmbiguities=false;
+                        System.out.println("Ambiguities will not be treated.");
+                    }
                     //test --ambwithmax
                     if (argsMap.get(index).equals("--ambwithmax")) {
                         this.treatAmbiguitiesWithMax=true;
@@ -729,22 +733,23 @@ public class ArgumentsParser_v2 {
         System.out.println("## ---------------------------------------------");
         System.out.println("## Rapid Alignment-free Phylogenetic Placement ");
         System.out.println("## via Ancestral Sequences");
-        System.out.println("## Linard B, Swenson KM, Pardi F");
+        System.out.println("## Linard B, Swenson KM, Pardi F.");
         System.out.println("## LIRMM, Univ. of Montpellier, CNRS, France");
-        System.out.println("## https://doi.org/10.1101/328740");
+        System.out.println("## Citation:");
+        System.out.println("## https://doi.org/10.1093/bioinformatics/btz068");
         System.out.println("## benjamin/dot/linard/at/lirmm/dot/fr");
         System.out.println("################################################");
         System.out.print(
         "\n--------------------------------------------------------------------\n" +
         " Minimum usage:\n\n"+
         " 1. For building the phylo-kmers database:\n"+
-        "    java -jar RAPPAS.jar -p b -s [nucl|prot] -b ARbinary \n" +
+        "    java -jar RAPPAS.jar -p b -s [nucl|amino] -b ARbinary \n" +
         "    -w workdir -r alignment.fasta -t tree.newick\n" +
         "   \n" + 
         " 2. For placing sequences, using the database (DB) built in step 1:\n"+
-        "    java -jar RAPPAS.jar -p p -s [nucl|prot] -d DB.union -q query.fasta \n"+ 
+        "    java -jar RAPPAS.jar -p p -d DB.union -q queries.fa \n"+ 
         "    \n"+ 
-        " Note: For large references or higher values of k, allocate more RAM :\n" +
+        " Note: For large references or high values of k, allocate more RAM :\n" +
         "       ex: java -Xms1024m -Xmx16g -jar RAPPAS.jar [options] \n"+
         "       -Xms -> memory allocated at startup. (m=MegaByte, g=GigaByte)\n"+
         "       -Xmx -> maximum memory allocated to the process.  \n"+
@@ -811,14 +816,15 @@ public class ArgumentsParser_v2 {
         "\n" +
         "Debug options:    Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+
+        "--ambwithmax      [] Treat ambiguities with max, not mean. (p phase)\n" +
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
         "                  uses outputs from the specified directory. (b phase)\n" +
-        "--dbinram         [] Build DB, but do not save it to a file and \n" +
-        "                  directly place queries given via -q instead.\n" +
+        "--dbinram         [] Build DB, do not save it to a file, but directly\n" +
+        "                     place queries given via -q instead.\n" +
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +
         "--force-gap-jump  [] Forces gap jump even if %gap<thresh. (b phase) \n" +
-        "--jsondb          [] DB written as json. (careful, outputs huge files!)\n" +
-        "--ambwithmax      [] Treat ambiguities with max, not mean. (p phase)\n" +
+        "--jsondb          [] DB written as json. (careful, huge file outputs!)\n" +
+        "--noamb           [] Do not treat ambiguous states. (p phase)\n" +
         "\n"
         );
        System.exit(0);

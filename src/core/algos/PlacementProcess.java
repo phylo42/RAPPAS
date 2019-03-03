@@ -53,7 +53,6 @@ public class PlacementProcess {
     boolean graphAlignment=false; //NOTE: This will work only if hash is based on PositionNodes
     boolean merStats=false; //log outputing stats associated with mers, CAUTION produces big files
     //test different way to select best score
-    boolean useTopTwo=false; //score only searcing top 2 values
     boolean useSelectionAlgo=true; // score using Hoare's selection algorithm
     //debug/////////////////////////////////////////////////////////////
     
@@ -482,7 +481,7 @@ public class PlacementProcess {
                                 JSONArray placements,
                                 BufferedWriter bwTSV,
                                 BufferedWriter bwNotPLaced,
-                                SequenceKnife sk,
+                                ISequenceKnife sk,
                                 int minOverlap,
                                 File logDir,
                                 int keepAtMost,
@@ -499,10 +498,10 @@ public class PlacementProcess {
         //variable size, expanded only at 1st encounter with the node
         //when nodeOccurences[nodeId]==0
         //,reset at each read
-        ArrayList<Integer> selectedNodes=new ArrayList<>(10);
+        ArrayList<Integer> L=new ArrayList<>(10);
         //instanciated once
-        int[] nodeOccurences=new int[session.originalTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
-        float[] nodeScores=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
+        int[] C=new int[session.originalTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
+        float[] S=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
         float[] nodeScoresCopy=new float[session.originalTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
         int numberOfBestScoreToConsiderForOutput=-1;
         Score[] bestScoreList=new Score[keepAtMost]; //in ascending order
@@ -655,6 +654,7 @@ public class PlacementProcess {
 //            long startKnifeTime=System.currentTimeMillis();
             sk.init(fasta);
             int queryKmerCount=0;
+            int ambiguousMerTreated=0;
             int queryKmerMatchingDB=0;
 //            long endKnifeTime=System.currentTimeMillis();
 //            totalKnifeTime+=(endKnifeTime-startKnifeTime);
@@ -688,7 +688,7 @@ public class PlacementProcess {
             //loop on words
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
-                //Infos.println("Query mer: "+qw.toString());
+                Infos.println("Query mer: "+queryKmerCount+"\t"+Arrays.toString(qw));
                 
                 //treat simple kmers
                 if (qw.length==session.k) {
@@ -705,7 +705,6 @@ public class PlacementProcess {
                     //long endT1Time=System.currentTimeMillis();
                     //totalT1Time+=(endT1Time-startT1Time);
 
-
                     //word is not present in hash
                     if (allPairs==null) {
                         queryKmerCount++;
@@ -714,26 +713,28 @@ public class PlacementProcess {
                     queryKmerMatchingDB++;
 
                     //stream version, 5-10% faster than allPairs.fastIterator()
-                    allPairs.stream().forEach( (entry) -> {
-                        int nodeId=entry.getCharKey();
+                    allPairs.stream().forEach((entry) -> {
+                        int x=(int)entry.getCharKey();
                         //int nodeId=entry.getNodeId();
                         //we will score only encountered nodes, originalNode registered
                         //at 1st encouter
-                        if (nodeOccurences[nodeId]==0) {
-                            selectedNodes.add(nodeId);
+                        if (C[x]==0) {
+                            L.add(x);
+                            S[x]+= sk.getMerCount()*session.PPStarThresholdAsLog10;
                         }
                         //count # times originalNode encountered
-                        nodeOccurences[nodeId]+=1;
+                        C[x]+=1;
                         //score associated to originalNode x for current read
-                        nodeScores[nodeId]+=entry.getFloatValue();
+                        S[x]+= entry.getFloatValue()-session.PPStarThresholdAsLog10;
                         //System.out.println("\tnodeid: "+nodeId+"\tPP*: "+entry.getFloatValue());
                     });
                 
                 } else {
-                    if (!treatAmbiguitiesWithMax) {
-                        treatAmbiguitiesWithMean(qw,sk.getMerCount(),selectedNodes,nodeOccurences,nodeScores);
+                    ambiguousMerTreated++;
+                    if (treatAmbiguitiesWithMax) {
+                        treatAmbiguitiesWithMax(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
                     } else {
-                        treatAmbiguitiesWithMean(qw,sk.getMerCount(),selectedNodes,nodeOccurences,nodeScores);
+                        treatAmbiguitiesWithMean(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
                     }
                 }
                 
@@ -775,14 +776,14 @@ public class PlacementProcess {
 //            }
 
 
-            Infos.println("words_retrieved_in_DB/tested_kmers/query_kmers: "+queryKmerMatchingDB+"/"+queryKmerCount+"/"+sk.getMaxMerCount());
+            Infos.println("matching_kmers/ambiguous_kmers_treated/query_kmers: "+queryKmerMatchingDB+"/"+ambiguousMerTreated+"/"+sk.getMerCount());
             //long endAlignTime=System.currentTimeMillis();
             //totalAlignTime+=(endAlignTime-startAlignTime);
             //Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      
 
             //if selectedNodes is empty (no node could be associated)
             //for instance when no query words could be found in the hash
-            if ( (selectedNodes.size()<1) ) {
+            if ( (L.size()<1) ) {
                 Infos.println("Read cannot be placed.");
                 //report queries that could not be placed because
                 //none of its kmers found in DB
@@ -791,48 +792,6 @@ public class PlacementProcess {
 	            bwNotPLaced.newLine();
                 }
                 continue; //to next query
-            }
-            
-
-
-            // NOW CORRECTING SCORING BY UNMATCHED WORDS
-            ///////////////////////////////////////////////////////
-            long startScoringTime=System.currentTimeMillis();
-            
-            int bestNodeId=-1;
-            float bestScore=Float.NEGATIVE_INFINITY;
-            int secondBest=-1;
-            float secondScore=Float.NEGATIVE_INFINITY;
-            
-            //correct scoring by score of unmatched words (i.e. the threshold)
-            //and normalize by dividing by number of kmers involved in the score
-            for (Integer nodeId:selectedNodes) {
-                //System.out.println("Scoring originalNode:"+nodeId);
-                //System.out.println("nodeMapping:"+session.nodeMapping.get(nodeId));
-                //int extendedTreeId=session.nodeMapping.get(nodeId);
-                //System.out.println("extendedTreeId:"+extendedTreeId);
-                //Integer originalNodeId = extendedTree.getFakeToOriginalId(extendedTreeId);
-                //System.out.println("originalNodeId:"+originalNodeId);
-                //System.out.println("  scoring originalNode: ARTree="+session.ARTree.getById(nodeId)+" ExtendedTree="+session.extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
-                //correct scoring by score of unmatched words (i.e. the threshold)
-//                System.out.print("maxWords:"+queryKmerCount);
-//                System.out.print(" nodeId:"+nodeId);
-//                System.out.print("\tscore:"+nodeScores[nodeId]);
-//                System.out.print("\toccur:"+nodeOccurences[nodeId]);
-                nodeScores[nodeId]+=(session.PPStarThresholdAsLog10*(queryKmerCount-nodeOccurences[nodeId]));
-                
-                //here keep track of the 2 best scores
-                if (useTopTwo) {
-                    if (nodeScores[nodeId]>bestScore) {
-                        secondBest=bestNodeId;
-                        secondScore=bestScore;
-                        bestNodeId=nodeId;
-                        bestScore=nodeScores[nodeId];
-                    } else if (nodeScores[nodeId]>secondScore) {
-                        secondBest=nodeId;
-                        secondScore=nodeScores[nodeId];
-                    }
-                }
             }
             
             
@@ -851,14 +810,17 @@ public class PlacementProcess {
             //here keep track of the nth best node scores using selection algorithm
             //this should be on average O(k.log(k) + n)
             double allLikelihoodSums = 0.0;
+            float bestScore=-1.0f;
+            int bestNodeId =-1;
+            int secondBestNodeId =-1;
             if (useSelectionAlgo) {
                 numberOfBestScoreToConsiderForOutput=keepAtMost;
                 //level down keepAtMost is less nodes were selected
-                if(selectedNodes.size()<keepAtMost) {
-                    numberOfBestScoreToConsiderForOutput=selectedNodes.size();
+                if(L.size()<keepAtMost) {
+                    numberOfBestScoreToConsiderForOutput=L.size();
                 }
             	
-                allLikelihoodSums = fillBestScoreList(nodeScores, nodeScoresCopy, selectedNodes, bestScoreList, numberOfBestScoreToConsiderForOutput);
+                allLikelihoodSums = fillBestScoreList(S, nodeScoresCopy, L, bestScoreList, numberOfBestScoreToConsiderForOutput);
 
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
@@ -872,7 +834,7 @@ public class PlacementProcess {
             //System.out.println("  AFTER SCORING");
             //System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,150,250)));
             //System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,150,250)));
-            Infos.println("Best node (originalTree) is : "+bestNodeId+" (score="+bestScore+")");
+            Infos.println("Best : "+bestNodeId+" (score="+bestScore+")");
             //Infos.println("mapping: ARTree="+session.ARTree.getById(bestNodeId)+" ExtendedTree="+session.extendedTree.getById(session.nodeMapping.get(bestNodeId))+" OriginalTree="+session.originalTree.getById(session.extendedTree.getFakeToOriginalId(session.nodeMapping.get(bestNodeId))));
             //System.out.println("allLikelihoodSums: "+allLikelihoodSums);
 //            if (useSelectionAlgo) {
@@ -880,20 +842,17 @@ public class PlacementProcess {
 //            }
             
 
-            // DEPRECATED !!!!
-            // THIS IS USED ONLY IF DEBUG OPTION --orinodes IS CALLED
+            // FOLLOWING BLOCK ONLY IF DEBUG OPTION --orinodes IS CALLED
             // AT DB_BUILD. THEN, THIS BLOCK IS EXECUTED AS DB CONTAIN ARTREE
             // NODEIDS. IF DB WAS BUILT WITHOUT THIS OPTION, IT CONTAINS
             // ORIGINAL_TREE NODEIDS, NOT AR_TREE NODEIDS !!!
-            // SELECT BEST NEIGHBOOR FAKE NODE IF BEST NODE IS ORIGINAL NODE
+            // SEARCH BEST NEIGHBOOR GHOST IF BEST NODE IS ORIGINAL NODE
             ////////////////////////////////////////////////////////////////
             
             int extendedTreeId=-1;
             int originalNodeId = -1;
             PhyloNode nodeToTest = null;
-            
             if (session.onlyFakes==false) {       
-            
                 //check if this was a fake originalNode or not
                 //to do that, retromapping from ARTree to extended tree 
                 extendedTreeId=session.nodeMapping.get(bestNodeId);
@@ -904,20 +863,18 @@ public class PlacementProcess {
                 if (!nodeToTest.isFakeNode() ) {
                     //System.out.println("############### change best node to neighboors !");                    
                     Infos.println("Current best node is an original node...");
-
                     PhyloNode firstNode = null;
                     PhyloNode secondNode = null;
                     //if there was no other scored nodes ? this case happened when a single query mer was found in the DB
-                    if (secondBest<0) {
+                    if (secondBestNodeId<0) {
                         //arbitrary choice, take FAKE node which is left son.
                         firstNode = session.ARTree.getById(bestNodeId);
                         secondNode = firstNode.getChildAt(0);
                         bestNodeId =secondNode.getId();
-
                     } else {
                         firstNode = session.ARTree.getById(bestNodeId);
                         //select node of 2nd best score
-                        secondNode = session.ARTree.getById(secondBest);
+                        secondNode = session.ARTree.getById(secondBestNodeId);
                         //get path from this node to bestNodeId
                         //System.out.println("1st node: "+ARTree.getById(bestNodeId)+" 2nd node:"+ARTree.getById(secondNodeId));
                         PhyloTree.Path shortestPath = session.ARTree.shortestPath(session.ARTree.getRoot(), firstNode, secondNode);
@@ -928,12 +885,9 @@ public class PlacementProcess {
                         //in all case the 2nd elt of the path is the X0 chosen 
                         //for the placement
                         bestNodeId=shortestPath.path.get(1).getId();
-
                     }
                     extendedTreeId=session.nodeMapping.get(bestNodeId);
                     originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);        
-
-
                     //System.out.println("NEW Selected node (ARTree) is : "+bestNodeId+" (score="+bestScore+")");
                     //System.out.println("mapping: ARTree="+ARTree.getById(bestNodeId)+" ExtendedTree="+extendedTree.getById(extendedTreeId)+" OriginalTree="+session.originalTree.getById(originalNodeId));
 
@@ -1099,16 +1053,16 @@ public class PlacementProcess {
 
             //reset the scoring vectors
             long startResetTime=System.currentTimeMillis();
-            for (Integer nodeId : selectedNodes) {
-                nodeScores[nodeId]=0.0f;
+            for (Integer nodeId : L) {
+                S[nodeId]=0.0f;
                 nodeScoresCopy[nodeId]=0.0f;
-                nodeOccurences[nodeId]=0;
+                C[nodeId]=0;
             }
             for (int i = 0; i < bestScoreList.length; i++) {
                 bestScoreList[i]=new Score(-1, Float.NEGATIVE_INFINITY);
             }
-            selectedNodeSize+=selectedNodes.size();
-            selectedNodes.clear();
+            selectedNodeSize+=L.size();
+            L.clear();
 //            long endResetTime=System.currentTimeMillis();
 //            totalResetTime+=endResetTime-startResetTime;
             
@@ -1160,17 +1114,18 @@ public class PlacementProcess {
      * @param L list of node encountered in main placement loop
      * @param C occurences per nodeId
      * @param S score per nodeId
+     * @param queryKmerMatchingDB debug counter
      */
-    private void treatAmbiguitiesWithMean(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S) {
-        
+    private void treatAmbiguitiesWithMean(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB) {
+        System.out.println("with mean");
         float[] S_amb=new float[C.length];
         int[] C_amb=new int[C.length];
         
         ArrayList<Integer> L_amb=new ArrayList<>();
         
         int W_size=w.length/session.k;
-        
-        //extract probas for ech w_prime
+        boolean matched=false;
+        //extract probas for each w_prime
         byte[] w_prime=null;
         for (int i=0; i<W_size;i++) {
             w_prime=Arrays.copyOfRange(w, i*session.k, (i+1)*session.k);
@@ -1183,15 +1138,21 @@ public class PlacementProcess {
             if (allPairs==null) {
                 continue;
             }
+            matched=true;
             allPairs.stream().forEach( (entry) -> {
-                int x=entry.getCharKey();
+                int x=(int)entry.getCharKey();
                 if (C_amb[x]==0) {
                     L_amb.add(x);
                 }
                 C_amb[x]+=1;
-                S_amb[x]+=Math.log10(entry.getFloatValue());
+                S_amb[x]+=Math.pow(10,entry.getFloatValue());
+                if (x==1)
+                    System.out.println("vals: nodeid="+x+"\t"+entry.getFloatValue()+"\t"+Math.pow(10,entry.getFloatValue()));
+
             });
         }
+        //if one of the w_prime matched increase debug counter
+        if (matched) {queryKmerMatchingDB++;}
         //compute mean and add it to scoring/counting tables
         for (int i = 0; i < L_amb.size(); i++) {
             int x = L_amb.get(i);
@@ -1200,7 +1161,15 @@ public class PlacementProcess {
                     S[x]=Q*session.PPStarThresholdAsLog10;
                 }
                 C[x]+=1;
-                float avgProba=(S_amb[x] + (Q-C_amb[x])*session.PPStarThreshold) / W_size;
+                float avgProba=(S_amb[x] + (W_size-C_amb[x])*session.PPStarThreshold) / W_size;
+
+                if (x==1) {
+                    System.out.println("S_amb[x]:"+S_amb[x]);
+                    System.out.println("W_size:"+W_size);
+                    System.out.println("C_amb[x]:"+C_amb[x]);
+                    System.out.println("session.PPStarThreshold:"+session.PPStarThreshold);
+                    System.out.println("AVG: nodeid="+x+"\t"+avgProba);
+                }
                 S[x]+=Math.log10(avgProba)-session.PPStarThresholdAsLog10;
                 C_amb[x]=0;
         }
@@ -1214,9 +1183,10 @@ public class PlacementProcess {
      * @param L list of node encountered in main placement loop
      * @param C occurences per nodeId
      * @param S score per nodeId
+     * @param queryKmerMatchingDB debug counter
      */
-    private void treatAmbiguitiesWithMax(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S) {
-        
+    private void treatAmbiguitiesWithMax(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB) {
+        System.out.println("with max");
         float[] S_amb=new float[C.length];
         int[] C_amb=new int[C.length];
         
@@ -1226,6 +1196,7 @@ public class PlacementProcess {
         
         //extract probas for each w_prime and retain max
         byte[] w_prime=null;
+        boolean matched=false;
         for (int i=0; i<W_size;i++) {
             w_prime=Arrays.copyOfRange(w, i*session.k, (i+1)*session.k);
             Char2FloatMap.FastEntrySet allPairs =null;
@@ -1237,6 +1208,7 @@ public class PlacementProcess {
             if (allPairs==null) {
                 continue;
             }
+            matched=true;
             allPairs.stream().forEach( (entry) -> {
                 int x=entry.getCharKey();
                 if (C_amb[x]==0) {
@@ -1244,11 +1216,15 @@ public class PlacementProcess {
                     S_amb[x]=entry.getFloatValue();
                 }
                 C_amb[x]+=1;
+                if (x==1)
+                    System.out.println("val: nodeid="+x+"\t"+entry.getFloatValue());
                 if (entry.getFloatValue() > S_amb[x]) {
                     S_amb[x]=entry.getFloatValue();
                 }
             });
         }
+        //if one of the w_prime matched increase debug counter
+        if (matched) {queryKmerMatchingDB++;}
         //add max to scoring/counting tables
         for (int i = 0; i < L_amb.size(); i++) {
             int x = L_amb.get(i);
@@ -1258,6 +1234,8 @@ public class PlacementProcess {
                 }
                 C[x]+=1;
                 S[x]+=S_amb[x]-session.PPStarThresholdAsLog10;
+                if (x==1)
+                    System.out.println("MAX: nodeid="+x+"\t"+S_amb[x]);
                 C_amb[x]=0;
         }
         

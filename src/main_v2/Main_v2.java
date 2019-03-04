@@ -62,6 +62,7 @@ public class Main_v2 {
             System.out.println("## benjamin/dot/linard/at/lirmm/dot/fr");
             System.out.println("################################################");
             
+            System.out.println("workDir="+argsParser.workingDir.getAbsolutePath());
             
             //////////////////////
             //DB_BUILD MODE

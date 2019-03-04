@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import models.EvolModel;
 
 /**
  * parse the arguments when command_line version is used
@@ -188,10 +189,7 @@ public class ArgumentsParser_v2 {
         }
         
         if (!wGiven) {
-            //this.workingDir=Environement.getExecutablePathWithoutFilename(this.getClass());
             this.workingDir=Environement.getCurrentDirectory().toFile();
-            System.out.println("Default working directory (current directory) will be used.");
-            System.out.println("workDir="+this.workingDir.getAbsolutePath());
         }
         
         ////from here, we know in which phase the program will be launched///////

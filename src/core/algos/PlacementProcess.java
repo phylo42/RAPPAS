@@ -688,7 +688,7 @@ public class PlacementProcess {
             //loop on words
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
-                Infos.println("Query mer: "+queryKmerCount+"\t"+Arrays.toString(qw));
+                //Infos.println("Query mer: "+queryKmerCount+"\t"+Arrays.toString(qw));
                 
                 //treat simple kmers
                 if (qw.length==session.k) {
@@ -1117,12 +1117,9 @@ public class PlacementProcess {
      * @param queryKmerMatchingDB debug counter
      */
     private void treatAmbiguitiesWithMean(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB) {
-        System.out.println("with mean");
         float[] S_amb=new float[C.length];
         int[] C_amb=new int[C.length];
-        
         ArrayList<Integer> L_amb=new ArrayList<>();
-        
         int W_size=w.length/session.k;
         boolean matched=false;
         //extract probas for each w_prime
@@ -1146,9 +1143,6 @@ public class PlacementProcess {
                 }
                 C_amb[x]+=1;
                 S_amb[x]+=Math.pow(10,entry.getFloatValue());
-                if (x==1)
-                    System.out.println("vals: nodeid="+x+"\t"+entry.getFloatValue()+"\t"+Math.pow(10,entry.getFloatValue()));
-
             });
         }
         //if one of the w_prime matched increase debug counter
@@ -1162,14 +1156,6 @@ public class PlacementProcess {
                 }
                 C[x]+=1;
                 float avgProba=(S_amb[x] + (W_size-C_amb[x])*session.PPStarThreshold) / W_size;
-
-                if (x==1) {
-                    System.out.println("S_amb[x]:"+S_amb[x]);
-                    System.out.println("W_size:"+W_size);
-                    System.out.println("C_amb[x]:"+C_amb[x]);
-                    System.out.println("session.PPStarThreshold:"+session.PPStarThreshold);
-                    System.out.println("AVG: nodeid="+x+"\t"+avgProba);
-                }
                 S[x]+=Math.log10(avgProba)-session.PPStarThresholdAsLog10;
                 C_amb[x]=0;
         }

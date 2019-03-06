@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import models.EvolModel;
 
 /**
  * parse the arguments when command_line version is used
@@ -64,6 +63,7 @@ public class ArgumentsParser_v2 {
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;  // used to load directly an already computed AR
     public File exTreeDir=null; //not functionnal anymore
+    public boolean onlyAR=false;
     public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
     public boolean noCalibration=true; //skip calibration step
     public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
@@ -574,6 +574,12 @@ public class ArgumentsParser_v2 {
                         System.out.println("User confirmed to use an unrooted tree.");
                     }
                     
+                    //test --use_unrooted 
+                    if (argsMap.get(index).equals("--aronly")) {
+                        this.onlyAR=true;
+                        System.out.println("Only extended_tree and AR will be built.");
+                    }
+                    
                     //////////////////////////////////////
                     //////////////////////////////////////
                     //DEBUG OPTIONS END HERE
@@ -813,6 +819,7 @@ public class ArgumentsParser_v2 {
         "---------------------------------------------------------------------\n"+
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
         "                  uses outputs from the specified directory. (b phase)\n" +
+        "--aronly          [] Launch AR, but not DB build. (b phase)\n" +
         "--dbinram         [] Build DB, but do not save it to a file and \n" +
         "                  directly place queries given via -q instead.\n" +
         "--do-n-jumps      [] Shifts from 1 to n jumps. (b phase) \n" +

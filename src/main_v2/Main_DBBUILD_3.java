@@ -98,6 +98,7 @@ public class Main_DBBUILD_3 {
      * @param onlyX1Nodes 
      * @param jsondb 
      * @param acceptUnrootedRefTree 
+     * @param onlyAR 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -133,7 +134,8 @@ public class Main_DBBUILD_3 {
                                         String arparameters,
                                         boolean onlyX1Nodes,
                                         boolean jsondb,
-                                        boolean acceptUnrootedRefTree
+                                        boolean acceptUnrootedRefTree,
+                                        boolean onlyAR
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -435,6 +437,11 @@ public class Main_DBBUILD_3 {
                 }
             } 
 
+            
+            if (onlyAR) {
+                System.out.println("Only AR was requested, pipeline stopped.");
+                System.exit(0);
+            }
             
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////

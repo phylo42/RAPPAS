@@ -137,7 +137,8 @@ public class Main_v2 {
                                             argsParser.arparameters,
                                             argsParser.onlyX1Nodes,
                                             argsParser.jsondb,
-                                            argsParser.acceptUnrootedRefTree
+                                            argsParser.acceptUnrootedRefTree,
+                                            argsParser.onlyAR
                                             );
                 System.out.println("Have a coffee, you \"built\" your world.");
 

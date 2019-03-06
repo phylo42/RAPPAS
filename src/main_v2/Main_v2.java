@@ -20,7 +20,7 @@ import models.EvolModel;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.06";
+    private final static String consoleVersion="1.10";
 
     public static void main (String[] args) {
         try {
@@ -62,27 +62,23 @@ public class Main_v2 {
             System.out.println("## benjamin/dot/linard/at/lirmm/dot/fr");
             System.out.println("################################################");
             
-            
-            
-            //type of Analysis, DNA or AA
-            States s=null; 
-            if (argsParser.states==ArgumentsParser_v2.STATES_DNA) {
-                s=new DNAStatesShifted();
-                System.out.println("Set analysis for DNA");
-            } else if (argsParser.states==ArgumentsParser_v2.STATES_PROTEIN) {
-                s=new AAStates(argsParser.convertUOX);
-                System.out.println("Set analysis for PROTEIN");
-            }
-            
-            
-
-            
+            System.out.println("workDir="+argsParser.workingDir.getAbsolutePath());
             
             //////////////////////
             //DB_BUILD MODE
             
             if (argsParser.phase==ArgumentsParser_v2.DBBUILD_PHASE) {
                 System.out.println("Starting db_build pipeline...");
+                
+                //type of Analysis, DNA or AA
+                States s=null; 
+                if (argsParser.states==ArgumentsParser_v2.STATES_DNA) {
+                    s=new DNAStatesShifted();
+                    System.out.println("Set analysis for DNA");
+                } else if (argsParser.states==ArgumentsParser_v2.STATES_PROTEIN) {
+                    s=new AAStates(argsParser.convertUOX);
+                    System.out.println("Set analysis for PROTEIN");
+                }
                 
                 //set default model for ASR if user set nothing
                 EvolModel model=null;
@@ -156,7 +152,7 @@ public class Main_v2 {
                 SessionNext_v2 session= SessionNext_v2.load(argsParser.databaseFile,true);
                 long endLoadTime=System.currentTimeMillis();
                 System.out.println("Loading the database took "+(endLoadTime-startLoadTime)+" ms");
-            
+                            
                 Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session, false);
                 for (int i = 0; i < argsParser.queriesFiles.size(); i++) {
                     File query = argsParser.queriesFiles.get(i);
@@ -168,6 +164,7 @@ public class Main_v2 {
                                                 argsParser.keepAtMost,
                                                 argsParser.keepFactor,
                                                 argsParser.guppyCompatible,
+                                                argsParser.treatAmbiguities,
                                                 argsParser.treatAmbiguitiesWithMax
                                                 );
                 }

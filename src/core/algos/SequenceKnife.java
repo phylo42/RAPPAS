@@ -11,6 +11,7 @@ import etc.Infos;
 import etc.exceptions.NonSupportedStateException;
 import inputs.Fasta;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,8 +46,9 @@ public class SequenceKnife implements ISequenceKnife {
     
     private int k=-1;
     private int minK=-1;
-    private int iterator=0; //last returned mer, as index of the merOrder table
+    private int merIterator=0; //last returned mer, as index of the merOrder table
     private byte[] sequence=null; //the inital sequence itself
+    private int[] ambiguityCountPerMer; //register the nmber of ambiguities included in the mer starting at this position
     private int[] merOrder=null; //to define the order in which the mer are returned
     private States s=null;
     private int step=-1;
@@ -79,28 +81,32 @@ public class SequenceKnife implements ISequenceKnife {
     }
     
     private void initTables(String seq, int samplingMode) throws NonSupportedStateException {
+        merIterator=0;
         sequence=new byte[seq.length()];
+        ambiguityCountPerMer=new int[sequence.length];
         for (int i = 0; i < seq.length(); i++) {
-            
-            //TODO:
-            //here build alternative kmers for positions with ambiguities 
-            //and build alternative k-mers accordingly
-            
-            
+            char c=seq.charAt(i);
             //test all characters of query
             if (s.isAmbiguous(seq.charAt(i))) { //expected states
                 Infos.println("Ambiguous state not supported in queries (char='"+seq.charAt(i)+"'), corresponding k-mers are ignored.");
-            } else { //test state
+                //counts number of ambiguities contained in kmers
+                for (int j=i-k+1;j<i+1;j++) {
+                    if (j>-1 && j<seq.length()) {
+                        ambiguityCountPerMer[j]++;
+                    }
+                }
+                //register this position as ambiguity
+                sequence[i]=-1;
+            } else { 
+                //state either non ambiguous or stop process
                 try {
-                    s.stateToByte(seq.charAt(i));
+                    sequence[i]=s.stateToByte(c);
                 } catch (NonSupportedStateException ex) {
                     ex.printStackTrace(System.err);
-                    System.out.println("Query contains a non supported state.");
-                    System.exit(1); //do not exit here, AR will take care of transforming them to gaps
+                    System.out.println("Query contains a non supported state: '"+c+"'");
+                    System.exit(1);
                 }
             }
-            
-            //sequence[i]=s.stateToByte(seq.charAt(i));
         }
         //Infos.println("Binary seq: "+Arrays.toString(sequence));
         switch (samplingMode) {
@@ -170,33 +176,34 @@ public class SequenceKnife implements ISequenceKnife {
     @Override
     public byte[] getNextByteWord() {
 
-        if (iterator>merOrder.length-1) {
+        if (merIterator>merOrder.length-1) {
             return null;
         }
-        int currentPosition=merOrder[iterator];
+        int currentPosition=merOrder[merIterator];
         int charactersLeft=sequence.length-currentPosition;
-        if (charactersLeft>=minK) {
+        if ( (charactersLeft>=minK) && !(ambiguityCountPerMer[currentPosition]>0) ) {
             byte[] word=null;
             if (charactersLeft<k) {
                 word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+charactersLeft);
             } else {
                 word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+k);
             }
-            iterator++;
+            merIterator++;
             return word;
             
         } else {
             //Infos.println("Skip word on position "+currentPosition+": length < minK !");
             //this allow to skip words that are too short but in the middle
-            //of the shuffled mer order, we just skip them and go to the next one.
-            iterator++;
+            //of the shuffled mer order, we just skip them and go to the next one
+            //or words that were flagged as ambiguity-containing
+            merIterator++;
             return getNextByteWord();
         }
     }
     
     @Override
     public QueryWord getNextWord() {
-        return new QueryWord(getNextByteWord(), iterator++);
+        return new QueryWord(getNextByteWord(), merIterator++);
     }
     
     

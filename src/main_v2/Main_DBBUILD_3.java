@@ -889,7 +889,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,false);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,true,false);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
@@ -902,7 +902,7 @@ public class Main_DBBUILD_3 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,false);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,true,false);
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
@@ -933,7 +933,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false,false);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false,true,false);
                     }
                     //reduction to small DB
                     //System.out.println("Reduction to small union DB...");
@@ -1162,7 +1162,7 @@ public class Main_DBBUILD_3 {
                 //associate medium calibration
                 session.associateCalibrationScore(calibrationNormScoreUnion);
                 //store in DB
-                System.out.println("Serialization of the database (normal union)...");
+                System.out.println("Serialization of the database...");
                 if (!jsondb) {
                     session.storeHash(dbunion);
                     Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
@@ -1198,7 +1198,7 @@ public class Main_DBBUILD_3 {
 
                 //serialization finished, output some log infos
                 //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
-                System.out.println("\"Union\" database saved.");
+                System.out.println("Database saved in: "+dbunion.getAbsolutePath());
             }
             
             //closing some stuff

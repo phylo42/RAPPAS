@@ -17,11 +17,7 @@ import java.util.HashMap;
 public abstract class AbstractStates implements States,Serializable {
     
     private static final long serialVersionUID = 6000L;
-    
-    protected int ambigousStatesCount=2;
-
-    HashMap<Character,byte[]> ambiguousState=new HashMap<>(30);
-    
+        
     /**
      * important method to implement to effectively match char and byte
      * @param c
@@ -41,24 +37,6 @@ public abstract class AbstractStates implements States,Serializable {
     public char[] expandMer(byte[] mer, int k) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    @Override
-    public boolean isAmbiguous(char c) {
-        return ambiguousState.containsKey(c);
-    }
-    
-    /**
-     * get list of states equivalent to this ambiguity
-     * @param c
-     * @return 
-     * @throws etc.exceptions.NonSupportedStateException 
-     */
-    @Override
-    public byte[] ambiguityEquivalence(char c) throws NonSupportedStateException{
-        if (!ambiguousState.containsKey(c)) {
-            throw new NonSupportedStateException(this, c);
-        }
-        return ambiguousState.get(c);
-    }
+   
     
 }

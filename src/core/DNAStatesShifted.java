@@ -34,6 +34,9 @@ public final class DNAStatesShifted extends AbstractStates implements Serializab
     byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03};     
     //char[] states = {'A','T','C','G'};
     //byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03};     
+    
+    private int ambigousStatesCount;
+    HashMap<Character,byte[]> ambiguousState=new HashMap<>();
 
     public DNAStatesShifted() {
         //ambigous states which are allowed
@@ -214,8 +217,8 @@ public final class DNAStatesShifted extends AbstractStates implements Serializab
     }
 
     @Override
-    public boolean isAmbiguous(char c){
-       return ambiguousState.containsKey(c);
+    public boolean isAmbiguous(char c) {
+        return ambiguousState.containsKey(c);
     }
     
     /**
@@ -225,7 +228,7 @@ public final class DNAStatesShifted extends AbstractStates implements Serializab
      * @throws etc.exceptions.NonSupportedStateException 
      */
     @Override
-    public byte[] ambiguityEquivalence(char c) throws NonSupportedStateException {
+    public byte[] ambiguityEquivalence(char c) throws NonSupportedStateException{
         if (!ambiguousState.containsKey(c)) {
             throw new NonSupportedStateException(this, c);
         }

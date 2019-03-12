@@ -9,12 +9,14 @@ import core.AAStates;
 import core.States;
 import etc.Infos;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import models.EvolModel;
 
 /**
@@ -44,6 +48,8 @@ public class ARProcessLauncher {
     private States s=null;
     private EvolModel model=null;
     private String ARParameters;
+    private String phymlVersion=null;
+    private boolean phymlAcceptsDuplicates=true;
     
     /**
      * prepare the marginal AR
@@ -80,7 +86,7 @@ public class ARProcessLauncher {
             }
             this.currentProg=AR_PAML;
         } else {
-            System.out.println("AR binary is unknown, currently RAPPAS support only phyml & baseml+codeml (from paml package).");
+                System.out.println("AR binary is unknown, currently RAPPAS support only phyml & baseml+codeml (from paml package).");
             System.exit(1);
         }
 
@@ -118,6 +124,13 @@ public class ARProcessLauncher {
                 break;
             case AR_PHYML:
                 Infos.println("PHYML AR was selected.");
+                {
+                    try {
+                        testPHYMLVersion();
+                    } catch (IOException ex) {
+                        Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 launchPHYML();
                 break;
             default:
@@ -187,6 +200,13 @@ public class ARProcessLauncher {
                 break;
             case AR_PHYML:
                 Infos.println("PHYML AR was selected.");
+                {
+                    try {
+                        testPHYMLVersion();
+                    } catch (IOException ex) {
+                        Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 command=preparePHYML();
                 break;
             default:
@@ -372,9 +392,10 @@ public class ARProcessLauncher {
             com.add("-f"); //base frequencies based on aligned
             com.add("e"); 
             //com.add("--quiet"); //no interactive questions
-            //phymlversion from 06.2018 do not accept anymore duplicat seqs
-            //TODO, find a way to test and choose correct parameters depending on version
-            //com.add("--leave_duplicates");
+            //phymlversion 3.3.20180621 do not accept anymore duplicate seqs
+            if (phymlAcceptsDuplicates) {
+                com.add("--leave_duplicates");
+            }
         } else {
             //if parameters given by user via --arparameters, forget previous 
             //command and use this one instead.
@@ -517,7 +538,7 @@ public class ARProcessLauncher {
      * @param com 
      */
     private void executeProcess(List<String> com) throws IOException {
-
+        
         ProcessBuilder pb = new ProcessBuilder(com);
         //pb.environment().entrySet().stream().forEach((e) ->{ System.out.println(e.getKey()+"="+e.getValue()); });
         //env.put("VAR1", "myValue"); env.remove("OTHERVAR");
@@ -526,6 +547,10 @@ public class ARProcessLauncher {
         pb.redirectErrorStream(false);
         pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
         pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+        Infos.println("External process operating reconstruction is logged in: "+new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt").getAbsolutePath());
+        Infos.println("Launching ancestral reconstruction (go and take a coffee, it might take hours if > 5000 leaves!) ...");
+        System.out.println("Output from external software:");
+        
         Process p = pb.start();
         assert pb.redirectInput() == ProcessBuilder.Redirect.PIPE;
         assert p.getInputStream().read() == -1;
@@ -536,9 +561,7 @@ public class ARProcessLauncher {
             inputStreamToOutputStream(p.getInputStream(), System.out);
         inputStreamToOutputStream(p.getInputStream(), STDOUTOutputStream);
         inputStreamToOutputStream(p.getErrorStream(), STDERROutputStream);
-        Infos.println("External process operating reconstruction is logged in: "+new File(ARPath.getAbsolutePath()+File.separator+"AR_sdtout.txt").getAbsolutePath());
-        Infos.println("Launching ancestral reconstruction (go and take a coffee, it might take hours if > 5000 leaves!) ...");
-        System.out.println("Output from external software:");
+
         try {
             p.waitFor();
             Thread.sleep(100);
@@ -577,6 +600,68 @@ public class ARProcessLauncher {
         });
         t.setDaemon(true);
         t.start();
+    }
+    
+    /**
+     * If phyml, needs to test which version as --ancestral option is recent
+     * ; no other way than launching it and getting it from the help header
+     */
+    private void testPHYMLVersion() throws UnsupportedEncodingException, IOException {
+        ProcessBuilder pb = null;
+        System.out.print("Testing phyml version :");
+        ArrayList<String> phymlHelpCom=new ArrayList<>();
+        phymlHelpCom.add(ARBinary.getAbsolutePath());
+        phymlHelpCom.add("-h");
+        pb = new ProcessBuilder(phymlHelpCom);
+        pb.directory(ARPath);
+        ByteArrayOutputStream output=new ByteArrayOutputStream();
+        Process p = pb.start();
+        inputStreamToOutputStream(p.getInputStream(), output);
+
+        try {
+            p.waitFor();
+            Thread.sleep(100);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String res=output.toString("UTF-8");
+        Pattern pattern = Pattern.compile("- PhyML [0-9a-z+:\\.-]+ -");
+        Matcher matcher = pattern.matcher(res);
+        while(matcher.find()) {
+            this.phymlVersion=matcher.group(0);
+            System.out.println(" found "+this.phymlVersion);
+        }          
+        if ( (!phymlVersion.equals("- PhyML 3.3.20180214 -")) && (!phymlVersion.equals("- PhyML 3.3.20180621 -")) ) {
+            System.out.println("Please, use releases 3.3.20180214 or 3.3.20180621 .");
+            System.out.println("They can be downloaded from:  https://github.com/stephaneguindon/phyml/releases");
+            System.exit(1);
+        }
+        //testing --leave_duplicates behaviosu because this stupid 
+        //PhyML 3.3.20180621 shows version 3.3.20180214 in its help !!!
+        System.out.print("Testing phyml 'duplicates' option :");
+        phymlHelpCom=new ArrayList<>();
+        phymlHelpCom.add(ARBinary.getAbsolutePath());
+        phymlHelpCom.add("--leave_duplicates");
+        pb = new ProcessBuilder(phymlHelpCom);
+        pb.directory(ARPath);
+        output=new ByteArrayOutputStream();
+        p = pb.start();
+        //inputStreamToOutputStream(p.getInputStream(), output);
+        inputStreamToOutputStream(p.getErrorStream(), output);
+        try {
+            p.waitFor();
+            Thread.sleep(100);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        res=output.toString("UTF-8");
+        if (res.contains("unrecognized option '--leave_duplicates'")) {
+            System.out.println(" UNSUPPORTED");
+            this.phymlAcceptsDuplicates=false;
+        } else {
+            System.out.println(" SUPPORTED");
+        }
+        
     }
     
 }

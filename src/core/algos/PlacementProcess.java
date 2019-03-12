@@ -474,12 +474,12 @@ public class PlacementProcess {
      * @param placements
      * @param bwTSV
      * @param bwNotPLaced
-     * @param queryWordSampling
+     * @param sk
      * @param minOverlap
      * @param logDir
      * @param keepAtMost
+     * @param guppyCompatible
      * @param keepFactor
-     * @param guppyCOMpatibility
      * @return the number of queries effectively placed (kmers were found in DB)
      * @throws java.io.IOException
      */
@@ -487,7 +487,7 @@ public class PlacementProcess {
                                 JSONArray placements,
                                 BufferedWriter bwTSV,
                                 BufferedWriter bwNotPLaced,
-                                SequenceKnife sk,
+                                ISequenceKnife sk,
                                 int minOverlap,
                                 File logDir,
                                 int keepAtMost,

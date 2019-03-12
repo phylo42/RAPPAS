@@ -17,12 +17,15 @@ import java.util.List;
  */
 public class TEST_SequenceKnife {
     public static void main(String[] args) {
-        SequenceKnife knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_SEQUENTIAL);
+        SequenceKnife knife=new SequenceKnife(7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_SEQUENTIAL);
+        knife.init("ATCGCTGATCGATCGA");
         System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_STOCHASTIC);
+        knife=new SequenceKnife(7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_STOCHASTIC);
         knife.forceSeed(12345);
+        knife.init("ATCGCTGATCGATCGA");
         System.out.println(Arrays.toString(knife.getMerOrder()));
-        knife=new SequenceKnife("ATCGCTGATCGATCGA", 7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_LINEAR);
+        knife=new SequenceKnife(7, 4, new DNAStatesShifted(), SequenceKnife.SAMPLING_LINEAR);
+        knife.init("ATCGCTGATCGATCGA");
         System.out.println(Arrays.toString(knife.getMerOrder()));
         
         QueryWord w=null;

@@ -188,7 +188,8 @@ public class WordExplorer {
     
     
             //positions for which word are checked
-            SequenceKnife knife=new SequenceKnife(new String(align.getCharMatrix()[0]), k, k, s, SequenceKnife.SAMPLING_LINEAR);
+            SequenceKnife knife=new SequenceKnife(k, k, s, SequenceKnife.SAMPLING_LINEAR);
+            knife.init(new String(align.getCharMatrix()[0]));
             int[] refPositions=knife.getMerOrder();     
             
             

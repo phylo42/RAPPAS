@@ -43,7 +43,7 @@ public class Alignment implements Serializable {
     private int reducedColumnCount=0;
     //% of gap in each site
     private double[] gapProportions=null;
-    private double reductionThreshold=0.995;
+    private double reductionThreshold=0.99;
     //gap intervals
     private ArrayList<Integer>[] gapIntervals=null;
     
@@ -133,22 +133,25 @@ public class Alignment implements Serializable {
             for (int j = 0; j < f.getSequence(false).length(); j++) {
                 char c=f.getSequence(false).charAt(j);
                 //test char per char at read
-                if (s.isAmbiguous(c)) { //expected states
-                    if (c!='-') {
-                        if (!ambiguityInventory.containsKey(c)) {
-                            ambiguityInventory.put(c, 1);
-                        } else {
-                            ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
+                //either this is a known ambiguity or it raises an exception
+                try {
+                    //either this is a known ambiguity definition
+                    if (!s.isAmbiguous(c)) {
+                    //or this is a valid state or it raises an exception
+                        s.stateToByte(c);                        
+                    } else {
+                        if (c!='-') {
+                            if (!ambiguityInventory.containsKey(c)) {
+                                ambiguityInventory.put(c, 1);
+                            } else {
+                                ambiguityInventory.put(c,ambiguityInventory.get(c)+1);
+                            }
                         }
                     }
-                } else { //test state
-                    try {
-                        s.stateToByte(c);
-                    } catch (NonSupportedStateException ex) {
-                        ex.printStackTrace(System.err);
-                        System.out.println("Reference alignment contains a non supported state.");
-                        System.exit(1); //do not exit here, AR will take care of transforming them to gaps
-                    }
+                } catch (NonSupportedStateException ex) {
+                    ex.printStackTrace(System.err);
+                    System.out.println("Reference alignment contains a non supported ambiguous state.");
+                    System.exit(1); //do not exit here, AR will take care of transforming them to gaps
                 }
                 charMatrix[i][j]=c;
                 if (c=='-') {
@@ -185,7 +188,7 @@ public class Alignment implements Serializable {
         }
         //warn about ambiguities
         if (ambiguityInventory.keySet().size()>0) {
-            System.out.println("Some ambiguous states were found in the alignment.");
+            System.out.println("Some ambiguous states were found in the alignment. (use '-v 1' to know more)");
             for (Iterator<Character> iterator = ambiguityInventory.keySet().iterator(); iterator.hasNext();) {
                 Character key = iterator.next();
                 Infos.println("Ambiguous state: char='"+key+"' occurences="+ambiguityInventory.get(key));

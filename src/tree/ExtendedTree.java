@@ -369,20 +369,15 @@ public class ExtendedTree extends PhyloTree {
      * @param node 
      */
     private void getBLFromMean_DFS(PhyloNode node, int level) {
-        if(node.isLeaf()) {
-            //System.out.println("          LEAF:"+node);
+        if(node.isLeaf() && !node.isFakeNode()) {
             l_sum_B_subtree+=l_DFS_cumul+node.getBranchLengthToAncestor();
             sum_B_leaves+=1;
-            //System.out.println("          meanSum: "+meanSum);
-            //System.out.println("          meanLeaves: "+meanLeaves);
         } else {
             if (level>0) {
                 l_DFS_cumul+=node.getBranchLengthToAncestor();
-                //System.out.println("       cumul+:"+cumul);
             } else {
                 l_DFS_cumul=0;
                 l_sum_B_subtree=0;
-                //System.out.println("       cumul to 0");
             }
             //go down recursively
             for (int i=0;i<node.getChildCount();i++) {
@@ -391,7 +386,6 @@ public class ExtendedTree extends PhyloTree {
             }
             if (level>0) {
                 l_DFS_cumul-=node.getBranchLengthToAncestor();
-                //System.out.println("       cumul-:"+cumul);
             }
         }
     }
@@ -406,23 +400,17 @@ public class ExtendedTree extends PhyloTree {
      */
     @Deprecated
     private void getBLFromMinMax_DFS(PhyloNode node, int level) {
-        //System.out.println("       DFS_shortlong: "+node);
-        if(node.isLeaf()) {
-            //System.out.println("          LEAF:"+node);
+        if(node.isLeaf() && !node.isFakeNode()) {
             float pathLength=l_DFS_cumul+node.getBranchLengthToAncestor();
-            //System.out.println("          pathLength: "+pathLength);
             if ( pathLength > longest ) {
                 longest=pathLength;
-                //System.out.println("          UPDATE longest:"+pathLength);
             }
             if (pathLength < shortest ) {
                 shortest=pathLength;
-                //System.out.println("          UPDATE shortest:"+pathLength);
             }
         } else {
             if (level>0) {
                 l_DFS_cumul+=node.getBranchLengthToAncestor();
-                //System.out.println("       cumul+:"+cumul);
             }
             //go down recursively
             for (int i=0;i<node.getChildCount();i++) {
@@ -431,7 +419,6 @@ public class ExtendedTree extends PhyloTree {
             }
             if (level>0) {
                 l_DFS_cumul-=node.getBranchLengthToAncestor();
-                //System.out.println("       cumul-:"+cumul);
             }
         }
     }

@@ -33,11 +33,11 @@ Alternatively, use the precompiled versions found on this repository in the /bin
 
 ## Description
 
-RAPPAS (Rapid Alignment-free Phylogenetic PLacement via Ancestral Sequences) is a program dedicated to "Phylogenetic Placement" (PP) of metagenomic reads on a reference tree. As apposed to previous PP programs, RAPPAS uses a 2 step approach divided into a) the database build, and b) the placement itself.
+RAPPAS (Rapid Alignment-free Phylogenetic PLacement via Ancestral Sequences) is a program dedicated to "Phylogenetic Placement" (PP) of metagenomic reads on a reference tree. As apposed to previous PP programs, RAPPAS is based on the phylo-kmers idea, detailed in tis manuscript and uses a 2 step approach divided into a) the database build, and b) the placement itself.
 
 The main advantage of RAPPAS is that it is alignment free, which means that after step (a) (the DB build) is performed, metagenomic reads can be directly placed on a referene tree _WITHOUT_ aligning them to the reference alignment on which the tree was built (as required by other approaches).
 
-The second advantage of RAPPAS is its algorithm based on ancestal k-mer matches, making its execution time linear with respect to the length of the placed sequences.
+The second advantage of RAPPAS is its algorithm based on phylo-kmers matches, making its execution time linear with respect to the length of the placed sequences.
 
 ![EU_flag](http://52.43.194.9/images/fc3849b.jpg) ![virogenesis_logo](http://52.43.194.9/images/32a5f46.png)
 RAPPAS was funded from  the European Union’s Horizon 2020 research and innovation programme under grant agreement No 634650. (Virogenesis.eu)
@@ -140,8 +140,7 @@ For instance, -Xm8G will extend the java heap to a maximum of 8Gb of memory, -Xm
 You can use the latest versions provided on the authors' websites. PhyML requires at least version 3.3 (see [PhyML GIT](https://github.com/stephaneguindon/phyml) ), but we recommand the _HACKED VERSIONS_ available in this git repository in the /depbin directory.
 
 ```diff
-- ** WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS ** (not the more recent phyml-v3.3.20180621 !)
-- This will be corrected in next versions (related to issue #7). **
+- ** WARNING : if you use phyml, the recent phyml-v3.3.20180214 and phyml-v3.3.20180621 are currently compatible with RAPPAS. These versions can be downloaded from the phyml GIT repository: https://github.com/stephaneguindon/phyml**
 ``` 
 
 
@@ -163,7 +162,7 @@ After building the RAPPAS DB, placement commands can be called numerous times on
 v1.00 of RAPPAS places 1,000,000 metagenomic of 150bp in ~30-40 minutes, using only a single core of a normal desktop PC.
 
 ```
-java -Xmx8G -jar RAPPAS.jar -p p -s [nucl|prot] -w workdir -d database.union -q queries.fasta 
+java -Xmx8G -jar RAPPAS.jar -p p -d database.union -q queries.fasta 
 ```
 
 where
@@ -171,8 +170,6 @@ where
 option | expected value | description
 --- | --- | ---
 **-p <br/>(--phase)** | "p" | Invokes the "placement" process.
-**-s <br/>(--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
-**-w <br/>(--workdir)** | directory | Set the directory to save the database in.
 **-d <br/>(--database)** | file | the *.union file created at previous DB build step.
 **-q <br/>(--queries)** | file | The query reads, in fasta format.
 
@@ -221,10 +218,14 @@ Avoid using debug options if you are not involved in RAPPAS development.
 
 option | expected value {default} | description
 --- | --- | ---
+**--ambwithmax** | none | Treat ambiguities with max, not mean. (p phase)
+**--aronly** | none | Launches ancestral reconstruction, but do not build phylo-kmers DB. (b phase)
 **--ardir** | directory | Skips ancestral sequence reconstruction, and uses outputs of PhyML or PAML present in the specified directory. (b phase)
 **--dbinram** | none | Operate "b" phase followed by "p" phase in one run, without saving DB to a file and placing directly queries given via -q .
 **--do-n-jumps** | none |   Shifts to n jumps. (b phase) 
 **--no-gap-jumps** | none |  Deactivate k-mer gap jumps, even if reference alignment has a proportion of gaps higher than "--gap-jump-thresh". (b phase) 
+**--noamb** | none | Do not treat ambiguous states, corresponding k-mers are skipped. (p phase)
+
 
 
 ## License

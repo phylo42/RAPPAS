@@ -1,3 +1,13 @@
+v1.1
+
++ added full support for nucleotide/amino acids ambiguities.
+  !! This major change breaks compatibility with previous versions. !!
+  !! It will also produce slightly different placement scores. !!
++ phyml version is now explicitely tested before execution to ensure compatibility
++ when a user uses an unrooted tree, he has now to explicitely confirm this choice as root choice may impact accuracy
+- you do not anymore to define the states (-s) in placement phase, as this information is now saved in the database.
+* bugfix related to some phantom branch lengths that were incorrect
+
 v1.05
 + option to output a jplace with same column order than in pplacer, making the output compatible with guppy
 + some refactoring to simplify the DB code

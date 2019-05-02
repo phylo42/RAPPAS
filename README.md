@@ -1,11 +1,10 @@
 ```diff
 
-- WARNING : due to a change in output formats, only phyml-v3.3.20180214 is compatible with RAPPAS.
-- The more recent phyml-v3.3.20180621 will crash the database construction !
-- This will be corrected in next versions (issue #7).
+Only phyml-v3.3.20180214 and phyml-v3.3.20180621 are currently compatible with RAPPAS.
+You can download these versions from phyml GIT repository.
 
 Also, default limits of phyml are quite low (<4000 taxa, sequence labels <1000 characters).
-You can work with larger trees and longer sequence labels with the following changes.
+You can work with larger trees and longer sequence labels after operatinf the following changes.
 
 1) Modify the following lines in the src/utilities.h source file :
 

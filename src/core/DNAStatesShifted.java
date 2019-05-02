@@ -8,13 +8,16 @@ package core;
 import etc.Infos;
 import etc.exceptions.NonSupportedStateException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author ben
  */
-public class DNAStatesShifted extends AbstractStates implements Serializable {
+public final class DNAStatesShifted extends AbstractStates implements Serializable {
  
     private static final long serialVersionUID = 6003L;
     
@@ -27,29 +30,85 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     //11000000 mask for position 3
     byte[] maskArray={(byte)0x03,(byte)0x0C,(byte)0x30,(byte)0xC0};
     
-    char[] states = {'A','T','C','G','N','-','.'};
-    byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06};     
+    char[] states = {'A','T','C','G'};
+    byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03};     
     //char[] states = {'A','T','C','G'};
     //byte[] bytes = {(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03};     
-    HashMap<Character,Boolean> ambiguousState=new HashMap<>(30);
+    
+    private int ambigousStatesCount;
+    HashMap<Character,byte[]> ambiguousState=new HashMap<>();
 
     public DNAStatesShifted() {
         //ambigous states which are allowed
         ambigousStatesCount=24;
         //fill hashmap that correspond to IUPAC code
-        ambiguousState.put('R', Boolean.TRUE);ambiguousState.put('r', Boolean.TRUE);
-        ambiguousState.put('Y', Boolean.TRUE);ambiguousState.put('y', Boolean.TRUE);
-        ambiguousState.put('S', Boolean.TRUE);ambiguousState.put('s', Boolean.TRUE);
-        ambiguousState.put('W', Boolean.TRUE);ambiguousState.put('w', Boolean.TRUE);
-        ambiguousState.put('K', Boolean.TRUE);ambiguousState.put('k', Boolean.TRUE);
-        ambiguousState.put('M', Boolean.TRUE);ambiguousState.put('m', Boolean.TRUE);
-        ambiguousState.put('B', Boolean.TRUE);ambiguousState.put('b', Boolean.TRUE);
-        ambiguousState.put('D', Boolean.TRUE);ambiguousState.put('d', Boolean.TRUE);
-        ambiguousState.put('H', Boolean.TRUE);ambiguousState.put('h', Boolean.TRUE);
-        ambiguousState.put('V', Boolean.TRUE);ambiguousState.put('v', Boolean.TRUE);
-        ambiguousState.put('N', Boolean.TRUE);ambiguousState.put('n', Boolean.TRUE);
-        ambiguousState.put('.', Boolean.TRUE);
-        ambiguousState.put('-', Boolean.TRUE);
+        ambiguousState.put('R', new byte[2]);ambiguousState.put('r', new byte[2]);
+        ambiguousState.put('Y', new byte[2]);ambiguousState.put('y', new byte[2]);
+        ambiguousState.put('S', new byte[2]);ambiguousState.put('s', new byte[2]);
+        ambiguousState.put('W', new byte[2]);ambiguousState.put('w', new byte[2]);
+        ambiguousState.put('K', new byte[2]);ambiguousState.put('k', new byte[2]);
+        ambiguousState.put('M', new byte[2]);ambiguousState.put('m', new byte[2]);
+        ambiguousState.put('B', new byte[3]);ambiguousState.put('b', new byte[3]);
+        ambiguousState.put('D', new byte[3]);ambiguousState.put('d', new byte[3]);
+        ambiguousState.put('H', new byte[3]);ambiguousState.put('h', new byte[3]);
+        ambiguousState.put('V', new byte[3]);ambiguousState.put('v', new byte[3]);
+        ambiguousState.put('N', new byte[4]);ambiguousState.put('n', new byte[4]);
+        //ambiguousState.put('Z', new ArrayList<>());ambiguousState.put('z', new ArrayList<>()); //the rarely used Zero nucleotide
+        ambiguousState.put('.', new byte[4]);
+        ambiguousState.put('-', new byte[4]);
+        
+        try {
+            //purine/pyrimide
+            ambiguousState.get('R')[0]=stateToByte('A');
+            ambiguousState.get('R')[1]=stateToByte('G');
+            ambiguousState.get('Y')[0]=stateToByte('C');
+            ambiguousState.get('Y')[1]=stateToByte('T');
+            //strong/weak
+            ambiguousState.get('S')[0]=stateToByte('C');
+            ambiguousState.get('S')[1]=stateToByte('G');
+            ambiguousState.get('W')[0]=stateToByte('A');
+            ambiguousState.get('W')[1]=stateToByte('T');
+            //keto/amino
+            ambiguousState.get('K')[0]=stateToByte('G');
+            ambiguousState.get('K')[1]=stateToByte('T');
+            ambiguousState.get('M')[0]=stateToByte('A');
+            ambiguousState.get('M')[1]=stateToByte('C');
+            //not A
+            ambiguousState.get('B')[0]=stateToByte('C');
+            ambiguousState.get('B')[1]=stateToByte('G');     
+            ambiguousState.get('B')[2]=stateToByte('T');
+            //not C
+            ambiguousState.get('D')[0]=stateToByte('A');
+            ambiguousState.get('D')[1]=stateToByte('G');        
+            ambiguousState.get('D')[2]=stateToByte('T');
+            //not G
+            ambiguousState.get('H')[0]=stateToByte('A');
+            ambiguousState.get('H')[1]=stateToByte('C');   
+            ambiguousState.get('H')[2]=stateToByte('T');
+            //not T
+            ambiguousState.get('V')[0]=stateToByte('A');
+            ambiguousState.get('V')[1]=stateToByte('C');
+            ambiguousState.get('V')[2]=stateToByte('G');
+            //any
+            ambiguousState.get('N')[0]=stateToByte('A');
+            ambiguousState.get('N')[1]=stateToByte('C');
+            ambiguousState.get('N')[2]=stateToByte('G');
+            ambiguousState.get('N')[3]=stateToByte('T');
+            ambiguousState.get('.')[0]=stateToByte('A');
+            ambiguousState.get('.')[1]=stateToByte('C');         
+            ambiguousState.get('.')[2]=stateToByte('G');
+            ambiguousState.get('.')[3]=stateToByte('T');
+            ambiguousState.get('-')[0]=stateToByte('A');
+            ambiguousState.get('-')[1]=stateToByte('C');     
+            ambiguousState.get('-')[2]=stateToByte('G');
+            ambiguousState.get('-')[3]=stateToByte('T');
+            
+        } catch (NonSupportedStateException ex) {
+            Logger.getLogger(DNAStatesShifted.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        
+        
     }
     
     
@@ -151,17 +210,8 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
                 b=0x03; break;
             case 'G':
                 b=0x03; break;
-            case 'N':
-                b=0x04; break;
-            case 'n':
-                b=0x04; break;
-            case '-':
-                b=0x05; break;
-            case '.':
-                b=0x06; break;  
             default:
-                b=0x05; 
-                
+                throw new NonSupportedStateException(this, c);
         }
         return b;
     }
@@ -169,6 +219,20 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     @Override
     public boolean isAmbiguous(char c) {
         return ambiguousState.containsKey(c);
+    }
+    
+    /**
+     * get list of states equivalent to this ambiguity
+     * @param c
+     * @return 
+     * @throws etc.exceptions.NonSupportedStateException 
+     */
+    @Override
+    public byte[] ambiguityEquivalence(char c) throws NonSupportedStateException{
+        if (!ambiguousState.containsKey(c)) {
+            throw new NonSupportedStateException(this, c);
+        }
+        return ambiguousState.get(c);
     }
 
     @Override
@@ -178,10 +242,9 @@ public class DNAStatesShifted extends AbstractStates implements Serializable {
     
     @Override
     public byte stateToByte(char c) throws NonSupportedStateException{
-        
         try {
             return bytes[charToByte(c)];
-        } catch (NullPointerException ex) {
+        } catch (Exception ex) {
             throw new NonSupportedStateException(this, c);
         }
     }

@@ -5,7 +5,10 @@
  */
 package main_v2;
 
+import core.DNAStatesShifted;
 import core.States;
+import core.algos.AmbigSequenceKnife;
+import core.algos.ISequenceKnife;
 import core.algos.PlacementProcess;
 import core.algos.SequenceKnife;
 import etc.Environement;
@@ -78,6 +81,9 @@ public class Main_PLACEMENT_v07 {
      * @param nsBound
      * @param keepAtMost
      * @param keepRatio
+     * @param guppyCompatible
+     * @param treatAmbiguities
+     * @param treatAmbiguitiesWithMax
      * @return 
      */
     public int doPlacements(    File q,
@@ -87,7 +93,9 @@ public class Main_PLACEMENT_v07 {
                                 Float nsBound,
                                 int keepAtMost,
                                 float keepRatio,
-                                boolean guppyCompatible) {
+                                boolean guppyCompatible,
+                                boolean treatAmbiguities,
+                                boolean treatAmbiguitiesWithMax) {
 
         try {
                         
@@ -124,21 +132,25 @@ public class Main_PLACEMENT_v07 {
             Infos.println("k="+session.k);
             Infos.println("min_k="+session.minK);
             //site and word posterior probas thresholds
-            Infos.println("factor="+session.alpha);
+            Infos.println("omega="+session.omega);
             Infos.println("sitePPThreshold="+session.stateThreshold+" (for info, unused)");
             Infos.println("PPStarThreshold="+session.PPStarThreshold);
             Infos.println("PPStarThreshold(log10)="+session.PPStarThresholdAsLog10);
             
             
             //type of Analysis AA or DNA////////////////////////////////////////
-            States s=session.states; 
+            if (session.states instanceof DNAStatesShifted) {
+                System.out.println("DB was built on 'nucl' states.");
+            } else {
+                System.out.println("DB was built on 'amino' states.");
+            }
 
             
             //SOME BASIC DISPLAY TO CONTROL SESSION LOAD////////////////////////
             Infos.println(session.align.describeAlignment(false));
-            Infos.println("# nodes in the tree: "+session.ARTree.getNodeCount());
-            Infos.println("# leaves in the tree: "+session.ARTree.getLeavesCount());
-            Infos.println("# internal nodes in the tree: "+session.ARTree.getInternalNodesByDFS().size());
+            Infos.println("# nodes in the tree: "+session.originalTree.getNodeCount());
+            Infos.println("# leaves in the tree: "+session.originalTree.getLeavesCount());
+            Infos.println("# internal nodes in the tree: "+session.originalTree.getInternalNodesByDFS().size());
             
             //LOAD THE POSTERIOR PROBAS/////////////////////////////////////////
 //            PProbasSorted pprobas = session.parsedProbas;
@@ -232,13 +244,23 @@ public class Main_PLACEMENT_v07 {
             //IN THE JPLACE OUPUT
             //TODO: HERE EXTEND WITH PARALLELISM
             PlacementProcess asp=null;
+            
             if (nsBound!=null) {  //norm score bound was set manually via command line
                 System.out.println("User provided nsBound !");
                 asp=new PlacementProcess(session,nsBound, queryLimit);
             } else {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,queryWordSampling,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible);
+            //with or without ambiguities
+            ISequenceKnife sk=null;
+            if (treatAmbiguities) {
+                sk=new AmbigSequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            } else {
+                sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
+            }
+            
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible,treatAmbiguitiesWithMax);
+            
             //close TSV logs
             bwTSVPlacement.close();
             bwNotPlaced.close();

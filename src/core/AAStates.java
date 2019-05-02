@@ -24,22 +24,21 @@ public class AAStates extends AbstractStates implements States,Serializable {
                         'R','H','K','D','E',
                         'S','T','N','Q','C',
                         'G','P','A','I','L',
-                        'M','F','W','Y','V',
-                        '-'
+                        'M','F','W','Y','V'
                     };
     byte[] bytes =  {    
                         (byte)0x00,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,
                         (byte)0x05,(byte)0x06,(byte)0x07,(byte)0x08,(byte)0x09,
                         (byte)0x0A,(byte)0x0B,(byte)0x0C,(byte)0x0D,(byte)0x0E,
-                        (byte)0x0F,(byte)0x10,(byte)0x11,(byte)0x12,(byte)0x13,
-                        (byte)0x14
+                        (byte)0x0F,(byte)0x10,(byte)0x11,(byte)0x12,(byte)0x13
                     };
     
     LinkedHashMap<Byte,Character> s =new LinkedHashMap<>();
     LinkedHashMap<Character, Byte> b =new LinkedHashMap<>();
     
-    HashMap<Character,Boolean> ambiguousState=new HashMap<>(30);
-    
+    private int ambigousStatesCount;
+    HashMap<Character,byte[]> ambiguousState=new HashMap<>();
+        
     /**
      *
      * @param convertUOX the value of convertUOX
@@ -94,32 +93,38 @@ public class AAStates extends AbstractStates implements States,Serializable {
         b.put('V',(byte)19);b.put('v',(byte)19);
         
         //ambigous states which are allowed
-        ambigousStatesCount=1;
-        ambiguousState.put('-', true);
+        ambigousStatesCount=7;
+        byte[] ambAA= {'R','H','K','D','E','S','T','N','Q','C','G','P','A','I','L','M','F','W','Y','V'};
+        ambiguousState.put('-', ambAA);
+        ambiguousState.put('*', ambAA); //stop codons appear sometime in the middle of protein translations
+        ambiguousState.put('!', ambAA); //codon containing a frameshift, used in MACSE aligner
+        //degenerated bases
+        ambiguousState.put('X', ambAA);ambiguousState.put('x', ambAA); //Unknown amino acid
+        byte[] B={'D','N'};
+        ambiguousState.put('B', B);ambiguousState.put('b', B); //codon RAY, D or N
+        byte[] Z={'E','Q'};
+        ambiguousState.put('Z', Z);ambiguousState.put('z', Z); //codon SAR, E or Q
+        byte[] J={'I','L'};
+        ambiguousState.put('J', J);ambiguousState.put('j', J); //codons YTR,ATH,CTY, i.e. I or L
+        //not that phi/omega/epsilon/pi notations also exist, 
+        //but are generally restricted to crystallographic applications
+        //and may be sources of character encoding errors
         
-        //special AA and unknown
+        //special AA
         if (convertUOX) {
             s.put((byte)9, 'U');s.put((byte)9, 'u'); // U to C
             s.put((byte)14, 'O');s.put((byte)14, 'o'); // O to L
-            s.put((byte)20, 'X');s.put((byte)20, 'x'); // X to -
             b.put('U',(byte)9);b.put('u',(byte)9);
             b.put('O',(byte)14);b.put('o',(byte)14);
-            b.put('X',(byte)20);b.put('x',(byte)20);
         }
         
     }
-
+    
     @Override
-    public boolean isAmbiguous(char c) {
-        return ambiguousState.containsKey(c);
-    }
-    
-    
-    
-    
-
-    @Override
-    protected byte charToByte(char c) {
+    protected byte charToByte(char c) throws NonSupportedStateException {
+        if (!b.containsKey(c)) {
+            throw new NonSupportedStateException(this, c);
+        }
         return b.get(c);
     }
 
@@ -132,7 +137,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
     public byte stateToByte(char c) throws NonSupportedStateException {
         try {
             return bytes[charToByte(c)];
-        } catch (NullPointerException ex) {
+        } catch (Exception ex) {
             throw new NonSupportedStateException(this, c);
         }
     }
@@ -157,9 +162,28 @@ public class AAStates extends AbstractStates implements States,Serializable {
     public int getNonAmbiguousStatesCount() {
         return 20;
     }
+    
+    @Override
+    public boolean isAmbiguous(char c) {
+        return ambiguousState.containsKey(c);
+    }
+    
+    /**
+     * get list of states equivalent to this ambiguity
+     * @param c
+     * @return 
+     * @throws etc.exceptions.NonSupportedStateException 
+     */
+    @Override
+    public byte[] ambiguityEquivalence(char c) throws NonSupportedStateException{
+        if (!ambiguousState.containsKey(c)) {
+            throw new NonSupportedStateException(this, c);
+        }
+        return ambiguousState.get(c);
+    }
 
     @Override
-    public int stateToInt(char c) {
+    public int stateToInt(char c) throws NonSupportedStateException {
         return bytes[charToByte(c)];
     }
 

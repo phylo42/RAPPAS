@@ -46,7 +46,7 @@ public class SessionNext_v2 {
     public float stateThreshold=Float.MIN_VALUE;
     public float PPStarThreshold=Float.MIN_VALUE;
     public float PPStarThresholdAsLog10=Float.NEGATIVE_INFINITY;
-    public float alpha=1.0f;
+    public float omega=1.0f;
     
     
     
@@ -69,16 +69,16 @@ public class SessionNext_v2 {
      *
      * @param k the value of k
      * @param mink the value of mink
-     * @param alpha the value of alpha
+     * @param omega the value of omega
      * @param branchPerEdge the number of branches injected on each edge
      * @param stateThreshold the value of stateThreshold
      * @param PPStarThreshold the value of PPStarThreshold
      * @param PPStarThresholdAsLog10 the value of PPStarThresholdAsLog10
      */
-    public SessionNext_v2(int k, int mink, float alpha, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
+    public SessionNext_v2(int k, int mink, float omega, int branchPerEdge, float stateThreshold, float PPStarThreshold, float PPStarThresholdAsLog10) {
         this.k=k;
         this.minK=mink;
-        this.alpha=alpha;
+        this.omega=omega;
         this.branchPerEdge=branchPerEdge;
         this.stateThreshold=stateThreshold;
         this.PPStarThreshold=PPStarThreshold;
@@ -116,7 +116,7 @@ public class SessionNext_v2 {
             ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(fos,bufferSize));
             oos.writeInt(k);
             oos.writeInt(minK);
-            oos.writeFloat(alpha);
+            oos.writeFloat(omega);
             oos.writeInt(branchPerEdge);
             oos.writeFloat(stateThreshold);
             oos.writeFloat(PPStarThreshold);
@@ -162,12 +162,12 @@ public class SessionNext_v2 {
             ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(fis,bufferSize));
             int k=ois.readInt();
             int minK=ois.readInt();
-            float alpha=ois.readFloat();
+            float omega=ois.readFloat();
             int branchPerEdge=ois.readInt();
             float stateThreshold=ois.readFloat();
             float PPStarThreshold=ois.readFloat();
             float PPStarThresholdAsLog10=ois.readFloat();
-            SessionNext_v2 s=new SessionNext_v2(k, minK, alpha, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
+            SessionNext_v2 s=new SessionNext_v2(k, minK, omega, branchPerEdge, stateThreshold, PPStarThreshold, PPStarThresholdAsLog10);
             Infos.println("Loading States");
             s.states = (States)ois.readObject();
             Infos.println("Loading Alignment");
@@ -218,7 +218,7 @@ public class SessionNext_v2 {
             JSONObject obj = new JSONObject();
             obj.put("k", k);
             obj.put("mink", minK);
-            obj.put("alpha", alpha);
+            obj.put("omega", omega);
             obj.put("branchPerEdge", branchPerEdge);
             obj.put("stateThreshold", stateThreshold);
             obj.put("PPStarThreshold", PPStarThreshold);

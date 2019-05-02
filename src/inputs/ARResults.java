@@ -154,6 +154,7 @@ public class ARResults {
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML modified tree used " + (endTime - startTime) + " ms");
             //probas
+            Infos.println("Starting to parse AR Postrerior Probas...");
             File align = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+"_phyml_ancestral_seq.txt");
             startTime = System.currentTimeMillis();
             this.probas = pw.parseSortedProbas(new FileInputStream(align),Float.MIN_VALUE,true,Integer.MAX_VALUE);

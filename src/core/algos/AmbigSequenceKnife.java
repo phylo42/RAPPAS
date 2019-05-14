@@ -229,7 +229,7 @@ public class AmbigSequenceKnife implements ISequenceKnife {
                 //skips it if too many ambiguities
                 if (ambiguityCountPerMer[merIterator]>maxAmbigPerMer) {
                     merIterator++;
-                    return getNextByteWord();
+                    return new byte[1]; //special value to avoid to return null
                 } else {           
                     //build and concat all alternatives
                     int altProduct=1;

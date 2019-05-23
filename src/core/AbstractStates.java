@@ -8,6 +8,7 @@ package core;
 import etc.Infos;
 import etc.exceptions.NonSupportedStateException;
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  *
@@ -16,10 +17,7 @@ import java.io.Serializable;
 public abstract class AbstractStates implements States,Serializable {
     
     private static final long serialVersionUID = 6000L;
-    
-    protected int ambigousStatesCount=2;
-
-    
+        
     /**
      * important method to implement to effectively match char and byte
      * @param c
@@ -39,6 +37,6 @@ public abstract class AbstractStates implements States,Serializable {
     public char[] expandMer(byte[] mer, int k) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+   
     
 }

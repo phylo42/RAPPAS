@@ -98,6 +98,7 @@ public class Main_DBBUILD_3 {
      * @param onlyX1Nodes 
      * @param jsondb 
      * @param acceptUnrootedRefTree 
+     * @param onlyAR 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -133,7 +134,8 @@ public class Main_DBBUILD_3 {
                                         String arparameters,
                                         boolean onlyX1Nodes,
                                         boolean jsondb,
-                                        boolean acceptUnrootedRefTree
+                                        boolean acceptUnrootedRefTree,
+                                        boolean onlyAR
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -159,7 +161,6 @@ public class Main_DBBUILD_3 {
 
             
             //build of threshold/////////////////////////////////////////////////////
-            int knifeMode=SequenceKnife.SAMPLING_LINEAR;
             int min_k=k;
             float sitePPThreshold=Float.MIN_VALUE;
             float PPStarThreshold=(float)Math.pow((0.0+omega/s.getNonAmbiguousStatesCount()),k);
@@ -437,6 +438,11 @@ public class Main_DBBUILD_3 {
             } 
 
             
+            if (onlyAR) {
+                System.out.println("Only AR was requested, pipeline stopped.");
+                System.exit(0);
+            }
+            
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -563,7 +569,7 @@ public class Main_DBBUILD_3 {
             // GENERATION OF ANCESTRAL WORDS
             
             //positions for which word are built
-            SequenceKnife knife=new SequenceKnife(k, k, s, knifeMode);
+            SequenceKnife knife=new SequenceKnife(k, k, s, SequenceKnife.SAMPLING_LINEAR);
             knife.init(new String(align.getCharMatrix()[0]));
             
             //if this is DNA, will use kmer compression
@@ -675,10 +681,8 @@ public class Main_DBBUILD_3 {
                 //WordExplorer_v2 wd =null;
                 WordExplorer_v3 wd=null;
                 int totaTuplesInNode=0;
-                for (int pos:knife.getMerOrder()) {
+                for (int pos=0; pos<align.getLength()-k+2;pos++) {
 
-                    if(pos+k-1>align.getLength()-1)
-                        continue;
                     //DEBUG
                     //if(pos>3)
                     //    System.exit(1);
@@ -892,7 +896,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,true,false);
                     }
                     //reduction to small DB
                     System.out.println("Reduction to small DB...");
@@ -905,7 +909,7 @@ public class Main_DBBUILD_3 {
                     placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false);
+                        placer.doPlacements(query, dbmedium, workDir, callString, nsBound,keepAtMost,keepRatio,false,true,false);
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
@@ -936,7 +940,7 @@ public class Main_DBBUILD_3 {
                     Main_PLACEMENT_v07 placer=new Main_PLACEMENT_v07(session,dbInRAM);
                     for (int i = 0; i < queries.size(); i++) {
                         File query = queries.get(i);
-                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false);
+                        placer.doPlacements(query, dbunion, workDir, callString, nsBound,keepAtMost,keepRatio,false,true,false);
                     }
                     //reduction to small DB
                     //System.out.println("Reduction to small union DB...");
@@ -1165,7 +1169,7 @@ public class Main_DBBUILD_3 {
                 //associate medium calibration
                 session.associateCalibrationScore(calibrationNormScoreUnion);
                 //store in DB
-                System.out.println("Serialization of the database (normal union)...");
+                System.out.println("Serialization of the database...");
                 if (!jsondb) {
                     session.storeHash(dbunion);
                     Infos.println("DB UNION: "+Environement.getFileSize(dbunion)+" Mb saved");
@@ -1201,7 +1205,7 @@ public class Main_DBBUILD_3 {
 
                 //serialization finished, output some log infos
                 //Infos.println("DB SMALL-UNION: "+Environement.getFileSize(dbsmallunion)+" Mb saved");
-                System.out.println("\"Union\" database saved.");
+                System.out.println("Database saved in: "+dbunion.getAbsolutePath());
             }
             
             //closing some stuff

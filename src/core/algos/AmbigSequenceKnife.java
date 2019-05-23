@@ -12,18 +12,23 @@ import etc.exceptions.NonSupportedStateException;
 import inputs.Fasta;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * to easily derive mers from a query sequence,\n
- * the class in intended to retrieve mer in a ordered or stochastic way\n
- * this should allow to abandon the read comparison after a certain number\n
- * of matches and mismatches.
+ * Given a sequence, returns mers as byte[]
+ * 
+ * !!! THIS NEW VERSION HAS A FUNDAMENTAL CHANGE
+ * It doesn't return a byte[] of fixed size (size=k), like SequenceKnife
+ * but a byte[] of size: k*n , n being the alternative kmers that can
+ * be generated regarding the ambiguities found sequence ;
+ * In the placement phase, the number of kmers to treat will be
+ * length(byte[])/k
  * @author ben
  */
-public class SequenceKnife implements ISequenceKnife {
+public class AmbigSequenceKnife implements ISequenceKnife {
     
     /**
      * done through the shuffling of the table merOrder
@@ -47,18 +52,25 @@ public class SequenceKnife implements ISequenceKnife {
     private int k=-1;
     private int minK=-1;
     private int merIterator=0; //last returned mer, as index of the merOrder table
-    private byte[] sequence=null; //the inital sequence itself
+    private byte[] sequence=null; //the inital sequence itself as bytes; value -1 is reserved for ambiguities
     private int[] ambiguityCountPerMer; //register the nmber of ambiguities included in the mer starting at this position
+    //relative position of ambiguities in a kmer and alternatives
+    //map(sequence_pos)=(map(offset)=[stat_1,...state_n])
+    private HashMap<Integer,HashMap<Integer,byte[]>> ambiguityOffsets; 
     private int[] merOrder=null; //to define the order in which the mer are returned
     private States s=null;
     private int step=-1;
     private int samplingMode = -1;
+    private int maxAmbigPerMer=0;
     
+    //the kmer sent at each getNextByteWord() )call
+    byte[] word=null;
+        
     public void init(String seq) {
         try {
             initTables(seq, samplingMode);
         } catch (NonSupportedStateException ex) {
-            Logger.getLogger(SequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AmbigSequenceKnife.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -73,26 +85,34 @@ public class SequenceKnife implements ISequenceKnife {
      * @param s 
      * @param samplingMode
      */
-    public SequenceKnife(int k, int minK, States s, int samplingMode) {
+    public AmbigSequenceKnife(int k, int minK, States s, int samplingMode) {
         this.k=k;
         this.minK=minK;
         this.s=s;
         this.samplingMode=samplingMode;
+        //WARNING: this is currently hard-coded, but should become a parameter
+        //this formula allows 2 ambiguity for k>16 in DNA and 1 in amino acids
+        this.maxAmbigPerMer=(int)Math.floor(Math.pow(k, 1.0/s.getNonAmbiguousStatesCount()));
     }
     
     private void initTables(String seq, int samplingMode) throws NonSupportedStateException {
         merIterator=0;
         sequence=new byte[seq.length()];
         ambiguityCountPerMer=new int[sequence.length];
+        ambiguityOffsets=new HashMap<>();
         for (int i = 0; i < seq.length(); i++) {
             char c=seq.charAt(i);
             //test all characters of query
-            if (s.isAmbiguous(seq.charAt(i))) { //expected states
-                Infos.println("Ambiguous state not supported in queries (char='"+seq.charAt(i)+"'), corresponding k-mers are ignored.");
+            if (s.isAmbiguous(c)) { 
                 //counts number of ambiguities contained in kmers
                 for (int j=i-k+1;j<i+1;j++) {
                     if (j>-1 && j<seq.length()) {
                         ambiguityCountPerMer[j]++;
+                        //register ambiguity offset
+                        if (!ambiguityOffsets.containsKey(j)) {
+                            ambiguityOffsets.put(j,new HashMap<>());
+                        }
+                        ambiguityOffsets.get(j).put(i-j,s.ambiguityEquivalence(c));
                     }
                 }
                 //register this position as ambiguity
@@ -108,10 +128,21 @@ public class SequenceKnife implements ISequenceKnife {
                 }
             }
         }
-        //Infos.println("Binary seq: "+Arrays.toString(sequence));
+//        Infos.println("Binary seq: "+Arrays.toString(sequence));
+//        Infos.println("#ambiguity: "+Arrays.toString(ambiguityCountPerMer));
+//        Infos.println("ambiguityOffsets: ");
+//        for (Iterator<Integer> iterator1 = ambiguityOffsets.keySet().iterator(); iterator1.hasNext();) {
+//            Integer next = iterator1.next();
+//            for (Iterator<Integer> iterator2 = ambiguityOffsets.get(next).keySet().iterator(); iterator2.hasNext();) {
+//                Integer next1 = iterator2.next();
+//                Infos.println(next+": "+next1+" :"+Arrays.toString(ambiguityOffsets.get(next).get(next1)));
+//            }
+//        }
+        
+        
         switch (samplingMode) {
             case SAMPLING_LINEAR:
-                merOrder=new int[seq.length()];
+                merOrder=new int[seq.length()-k+1];
                 for (int i = 0; i < merOrder.length; i++) {
                     merOrder[i]=i;
                 }
@@ -127,12 +158,12 @@ public class SequenceKnife implements ISequenceKnife {
                 this.step=k;
                 break;
             case SAMPLING_STOCHASTIC:
-                merOrder=new int[seq.length()];
+                merOrder=new int[seq.length()-k+1];
                 shuffledMerOrder();
                 this.step=1;
                 break;
             case SAMPLING_SEQUENTIAL:
-                merOrder=new int[seq.length()];
+                merOrder=new int[seq.length()-k+1];
                 sequencialMerOrder();
                 this.step=1;
                 break;
@@ -170,42 +201,80 @@ public class SequenceKnife implements ISequenceKnife {
     }
     
     /**
-     * must be called to retireve mers one by one
-     * @return the next mer as a @Word, null is no more mers to return
+     * must be called to retireve mers one by one, when ambiguities are
+     * generating alternative kmer, the byte[] will be length%k>1 and its
+     * length will be a multiple of k
+     * @return the next mer(s) as a byte[], null when no more mers to return
      */
     @Override
     public byte[] getNextByteWord() {
-
+        
         if (merIterator>merOrder.length-1) {
             return null;
         }
         int currentPosition=merOrder[merIterator];
         int charactersLeft=sequence.length-currentPosition;
-        if ( (charactersLeft>=minK) && !(ambiguityCountPerMer[currentPosition]>0) ) {
-            byte[] word=null;
+        if (charactersLeft>=minK) {
             if (charactersLeft<k) {
                 word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+charactersLeft);
             } else {
                 word=Arrays.copyOfRange(sequence, currentPosition, currentPosition+k);
             }
-            merIterator++;
-            return word;
+            //this kmer is registered as containing no ambiguities
+            if (ambiguityCountPerMer[merIterator]<1) {
+                merIterator++;
+                return word;
+            //this mer presents ambiguities
+            } else {
+                //skips it if too many ambiguities
+                if (ambiguityCountPerMer[merIterator]>maxAmbigPerMer) {
+                    merIterator++;
+                    return new byte[1]; //special value to avoid to return null
+                } else {           
+                    //build and concat all alternatives
+                    int altProduct=1;
+                    for (Iterator<Integer> iterator = ambiguityOffsets.get(currentPosition).keySet().iterator(); iterator.hasNext();) {
+                        Integer offSet = iterator.next();
+                        altProduct*=ambiguityOffsets.get(currentPosition).get(offSet).length;
+                    }
+                    byte[] words=new byte[altProduct*k];
+                    //build alternative words
+                    //first copy non ambigous bases
+                    for (int i = 0; i < k; i++) {
+                        if (sequence[currentPosition+i]!=-1) {
+                            for (int j = 0; j < altProduct; j++) {
+                                words[i+j*k]=sequence[currentPosition+i];
+                            }                            
+                        } else {
+                            //repeat alternatives times other ambiguities
+                            int jump=0;
+                            for (int step = 0; step < altProduct/ambiguityOffsets.get(currentPosition).get(i).length; step++) {
+                                for (int j = 0; j < ambiguityOffsets.get(currentPosition).get(i).length; j++) {
+                                    words[i+jump*k]=ambiguityOffsets.get(currentPosition).get(i)[j];
+                                    jump++;
+                                }
+                            }
+                        }
+                    }
+                    merIterator++;
+                    return words;
+                }
+                
+            }
             
         } else {
             //Infos.println("Skip word on position "+currentPosition+": length < minK !");
             //this allow to skip words that are too short but in the middle
-            //of the shuffled mer order, we just skip them and go to the next one
-            //or words that were flagged as ambiguity-containing
+            //of the shuffled mer order, we just skip them and go to the next one.
             merIterator++;
             return getNextByteWord();
         }
     }
-    
+
     @Override
     public QueryWord getNextWord() {
         return new QueryWord(getNextByteWord(), merIterator++);
     }
-    
     
     /**
      * must be called after instantiation if one is interested to retrieve \n
@@ -255,7 +324,6 @@ public class SequenceKnife implements ISequenceKnife {
     public int getStep() {
         return this.step;
     }
-
 
     
 }

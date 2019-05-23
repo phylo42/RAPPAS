@@ -1,7 +1,10 @@
-v1.1
+v1.11
+* bugfix related to wrong definition of ambiguity X
+  !! This breaks compatibility for DBs built with previous versions. !!
 
+v1.1
 + added full support for nucleotide/amino acids ambiguities.
-  !! This major change breaks compatibility with previous versions. !!
+  !! This major change breaks compatibility for DBs built with previous versions. !!
   !! It will also produce slightly different placement scores. !!
 + phyml version is now explicitely tested before execution to ensure compatibility
 + when a user uses an unrooted tree, he has now to explicitely confirm this choice as root choice may impact accuracy

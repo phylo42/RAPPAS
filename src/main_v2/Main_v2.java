@@ -20,7 +20,7 @@ import models.EvolModel;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.10";
+    private final static String consoleVersion="1.11";
 
     public static void main (String[] args) {
         try {

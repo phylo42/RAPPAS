@@ -435,12 +435,6 @@ public class Main_DBBUILD_3 {
                     arpl.loadExistingAR(ARDirToUse, alignmentFile, treeFile);
                     ARPath=ARDirToUse.getAbsolutePath();
                 }
-            } 
-
-            
-            if (onlyAR) {
-                System.out.println("Only AR was requested, pipeline stopped.");
-                System.exit(0);
             }
             
             ////////////////////////////////////////////////////////////////////
@@ -477,8 +471,13 @@ public class Main_DBBUILD_3 {
                 fw.append(map2.get(ARTreeId)+"\t"+arpr.getExtendedTree().getById(map2.get(ARTreeId)).getLabel()+"\t");
                 fw.append(ARTreeId+"\t"+arpr.getARTree().getById(ARTreeId).getLabel());
             }
-            fw.close();   
-            
+            fw.close();
+
+
+            if (onlyAR) {
+                System.out.println("Only AR was requested, pipeline stopped.");
+                System.exit(0);
+            }
             
             ////////////////////////////////////////////////////////////////////
             //BUILD SESSION OBJECT, 

@@ -58,50 +58,42 @@ public final class DNAStatesShifted extends AbstractStates implements Serializab
         ambiguousState.put('-', new byte[4]);
         
         try {
-            //purine/pyrimide
-            ambiguousState.get('R')[0]=stateToByte('A');
-            ambiguousState.get('R')[1]=stateToByte('G');
-            ambiguousState.get('Y')[0]=stateToByte('C');
-            ambiguousState.get('Y')[1]=stateToByte('T');
+            //purine/pyrimidine
+            ambiguousState.get('R')[0]=stateToByte('A');ambiguousState.get('r')[0]=stateToByte('A');
+            ambiguousState.get('R')[1]=stateToByte('G');ambiguousState.get('r')[1]=stateToByte('G');
+            ambiguousState.get('Y')[0]=stateToByte('C');ambiguousState.get('y')[0]=stateToByte('C');
+            ambiguousState.get('Y')[1]=stateToByte('T');ambiguousState.get('y')[1]=stateToByte('T');
             //strong/weak
-            ambiguousState.get('S')[0]=stateToByte('C');
-            ambiguousState.get('S')[1]=stateToByte('G');
-            ambiguousState.get('W')[0]=stateToByte('A');
-            ambiguousState.get('W')[1]=stateToByte('T');
+            ambiguousState.get('S')[0]=stateToByte('C');ambiguousState.get('s')[0]=stateToByte('C');
+            ambiguousState.get('S')[1]=stateToByte('G');ambiguousState.get('s')[1]=stateToByte('G');
+            ambiguousState.get('W')[0]=stateToByte('A');ambiguousState.get('w')[0]=stateToByte('A');
+            ambiguousState.get('W')[1]=stateToByte('T');ambiguousState.get('w')[1]=stateToByte('T');
             //keto/amino
-            ambiguousState.get('K')[0]=stateToByte('G');
-            ambiguousState.get('K')[1]=stateToByte('T');
-            ambiguousState.get('M')[0]=stateToByte('A');
-            ambiguousState.get('M')[1]=stateToByte('C');
+            ambiguousState.get('K')[0]=stateToByte('G');ambiguousState.get('k')[0]=stateToByte('G');
+            ambiguousState.get('K')[1]=stateToByte('T');ambiguousState.get('k')[1]=stateToByte('T');
+            ambiguousState.get('M')[0]=stateToByte('A');ambiguousState.get('m')[0]=stateToByte('A');
+            ambiguousState.get('M')[1]=stateToByte('C');ambiguousState.get('m')[1]=stateToByte('C');
             //not A
-            ambiguousState.get('B')[0]=stateToByte('C');
-            ambiguousState.get('B')[1]=stateToByte('G');     
-            ambiguousState.get('B')[2]=stateToByte('T');
+            ambiguousState.get('B')[0]=stateToByte('C');ambiguousState.get('b')[0]=stateToByte('C');
+            ambiguousState.get('B')[1]=stateToByte('G');ambiguousState.get('b')[1]=stateToByte('G');     
+            ambiguousState.get('B')[2]=stateToByte('T');ambiguousState.get('b')[2]=stateToByte('T');
             //not C
-            ambiguousState.get('D')[0]=stateToByte('A');
-            ambiguousState.get('D')[1]=stateToByte('G');        
-            ambiguousState.get('D')[2]=stateToByte('T');
+            ambiguousState.get('D')[0]=stateToByte('A');ambiguousState.get('d')[0]=stateToByte('A');
+            ambiguousState.get('D')[1]=stateToByte('G');ambiguousState.get('d')[1]=stateToByte('G');       
+            ambiguousState.get('D')[2]=stateToByte('T');ambiguousState.get('d')[2]=stateToByte('T');
             //not G
-            ambiguousState.get('H')[0]=stateToByte('A');
-            ambiguousState.get('H')[1]=stateToByte('C');   
-            ambiguousState.get('H')[2]=stateToByte('T');
+            ambiguousState.get('H')[0]=stateToByte('A');ambiguousState.get('h')[0]=stateToByte('A');
+            ambiguousState.get('H')[1]=stateToByte('C');ambiguousState.get('h')[1]=stateToByte('C');
+            ambiguousState.get('H')[2]=stateToByte('T');ambiguousState.get('h')[2]=stateToByte('T');
             //not T
-            ambiguousState.get('V')[0]=stateToByte('A');
-            ambiguousState.get('V')[1]=stateToByte('C');
-            ambiguousState.get('V')[2]=stateToByte('G');
+            ambiguousState.get('V')[0]=stateToByte('A');ambiguousState.get('v')[0]=stateToByte('A');
+            ambiguousState.get('V')[1]=stateToByte('C');ambiguousState.get('v')[1]=stateToByte('C');
+            ambiguousState.get('V')[2]=stateToByte('G');ambiguousState.get('v')[2]=stateToByte('G');
             //any
-            ambiguousState.get('N')[0]=stateToByte('A');
-            ambiguousState.get('N')[1]=stateToByte('C');
-            ambiguousState.get('N')[2]=stateToByte('G');
-            ambiguousState.get('N')[3]=stateToByte('T');
-            ambiguousState.get('.')[0]=stateToByte('A');
-            ambiguousState.get('.')[1]=stateToByte('C');         
-            ambiguousState.get('.')[2]=stateToByte('G');
-            ambiguousState.get('.')[3]=stateToByte('T');
-            ambiguousState.get('-')[0]=stateToByte('A');
-            ambiguousState.get('-')[1]=stateToByte('C');     
-            ambiguousState.get('-')[2]=stateToByte('G');
-            ambiguousState.get('-')[3]=stateToByte('T');
+            ambiguousState.get('N')[0]=stateToByte('A');ambiguousState.get('n')[0]=stateToByte('A');
+            ambiguousState.get('N')[1]=stateToByte('C');ambiguousState.get('n')[1]=stateToByte('C');
+            ambiguousState.get('N')[2]=stateToByte('G');ambiguousState.get('n')[2]=stateToByte('G');
+            ambiguousState.get('N')[3]=stateToByte('T');ambiguousState.get('n')[3]=stateToByte('T');
             
         } catch (NonSupportedStateException ex) {
             Logger.getLogger(DNAStatesShifted.class.getName()).log(Level.SEVERE, null, ex);

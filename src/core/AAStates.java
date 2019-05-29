@@ -104,13 +104,13 @@ public class AAStates extends AbstractStates implements States,Serializable {
         ambiguousState.put('!', ambAA); //codon containing a frameshift, used in MACSE aligner
         //degenerated bases
         ambiguousState.put('X', ambAA);ambiguousState.put('x', ambAA); //Unknown amino acid
-        byte[] B={'D','N'};
+        byte[] B={(byte)3,(byte)7}; //D,N
         ambiguousState.put('B', B);ambiguousState.put('b', B); //codon RAY, D or N
-        byte[] Z={'E','Q'};
+        byte[] Z={(byte)4,(byte)8};//E,Q
         ambiguousState.put('Z', Z);ambiguousState.put('z', Z); //codon SAR, E or Q
-        byte[] J={'I','L'};
+        byte[] J={(byte)13,(byte)14};//I,L
         ambiguousState.put('J', J);ambiguousState.put('j', J); //codons YTR,ATH,CTY, i.e. I or L
-        //not that phi/omega/epsilon/pi notations also exist, 
+        //note that phi/omega/epsilon/pi notations also exist, 
         //but are generally restricted to crystallographic applications
         //and may be sources of character encoding errors
         

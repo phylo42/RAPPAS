@@ -1,5 +1,6 @@
 v1.11
 * bugfix related to wrong definition of ambiguity X
+* bugfix related to lower case ambiguities that were not parsed correctly
   !! This breaks compatibility for DBs built with previous versions. !!
 
 v1.1

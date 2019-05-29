@@ -646,8 +646,7 @@ public class PlacementProcess {
             Infos.println("#######################################################################");
             //fw.append(fasta.getFormatedFasta()+"\n");
             int queryLength=fasta.getSequence(false).length();
-            Infos.println("Query length: "+queryLength);
-
+            Infos.println("Query length: "+queryLength+ " (Q="+(queryLength-session.k+1)+")");
 
             ///////////////////////////////////
             // PREPARE QUERY K-MERS
@@ -656,6 +655,7 @@ public class PlacementProcess {
             int queryKmerCount=0;
             int ambiguousMerTreated=0;
             int queryKmerMatchingDB=0;
+            int skippedKmer=0;
 //            long endKnifeTime=System.currentTimeMillis();
 //            totalKnifeTime+=(endKnifeTime-startKnifeTime);
 
@@ -689,7 +689,12 @@ public class PlacementProcess {
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
                 //Infos.println("Query mer: "+queryKmerCount+"\t"+Arrays.toString(qw));
-                
+                //skip kmers with too many ambiguities
+                if (qw.length==1) {
+                    queryKmerCount++;
+                    skippedKmer++;
+                    continue;
+                }
                 //treat simple kmers
                 if (qw.length==session.k) {
                 
@@ -776,7 +781,7 @@ public class PlacementProcess {
 //            }
 
 
-            Infos.println("matching_kmers/ambiguous_kmers_treated/query_kmers: "+queryKmerMatchingDB+"/"+ambiguousMerTreated+"/"+sk.getMerCount());
+            Infos.println("matching_kmers/ambigous_kmers_treated/skipped_kmers: "+queryKmerMatchingDB+"/"+ambiguousMerTreated+"/"+skippedKmer);
             //long endAlignTime=System.currentTimeMillis();
             //totalAlignTime+=(endAlignTime-startAlignTime);
             //Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      
@@ -1172,7 +1177,6 @@ public class PlacementProcess {
      * @param queryKmerMatchingDB debug counter
      */
     private void treatAmbiguitiesWithMax(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB) {
-        System.out.println("with max");
         float[] S_amb=new float[C.length];
         int[] C_amb=new int[C.length];
         
@@ -1202,8 +1206,6 @@ public class PlacementProcess {
                     S_amb[x]=entry.getFloatValue();
                 }
                 C_amb[x]+=1;
-                if (x==1)
-                    System.out.println("val: nodeid="+x+"\t"+entry.getFloatValue());
                 if (entry.getFloatValue() > S_amb[x]) {
                     S_amb[x]=entry.getFloatValue();
                 }
@@ -1220,8 +1222,6 @@ public class PlacementProcess {
                 }
                 C[x]+=1;
                 S[x]+=S_amb[x]-session.PPStarThresholdAsLog10;
-                if (x==1)
-                    System.out.println("MAX: nodeid="+x+"\t"+S_amb[x]);
                 C_amb[x]=0;
         }
         

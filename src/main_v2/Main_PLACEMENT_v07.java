@@ -252,14 +252,9 @@ public class Main_PLACEMENT_v07 {
                 asp=new PlacementProcess(session,session.calibrationNormScore, queryLimit);
             }
             //with or without ambiguities
-            ISequenceKnife sk=null;
-            if (treatAmbiguities) {
-                sk=new AmbigSequenceKnife(session.k, session.minK, session.states, queryWordSampling);
-            } else {
-                sk=new SequenceKnife(session.k, session.minK, session.states, queryWordSampling);
-            }
+            ISequenceKnife sk=new AmbigSequenceKnife(session.k, session.minK, session.states, queryWordSampling);
             
-            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible,treatAmbiguitiesWithMax);
+            int queryCounter=asp.processQueries(fp,placements,bwTSVPlacement,bwNotPlaced,sk,minOverlap,new File(logPath),keepAtMost,keepRatio,guppyCompatible,treatAmbiguities,treatAmbiguitiesWithMax);
             
             //close TSV logs
             bwTSVPlacement.close();

@@ -473,6 +473,7 @@ public class PlacementProcess {
      * @param keepAtMost
      * @param guppyCompatible
      * @param keepFactor
+     * @param treatAmbiguities
      * @param treatAmbiguitiesWithMax
      * @return the number of queries effectively placed (kmers were found in DB)
      * @throws java.io.IOException
@@ -487,6 +488,7 @@ public class PlacementProcess {
                                 int keepAtMost,
                                 float keepFactor,
                                 boolean guppyCompatible,
+                                boolean treatAmbiguities,
                                 boolean treatAmbiguitiesWithMax
                             ) throws IOException {
         
@@ -735,11 +737,17 @@ public class PlacementProcess {
                     });
                 
                 } else {
-                    ambiguousMerTreated++;
-                    if (treatAmbiguitiesWithMax) {
-                        treatAmbiguitiesWithMax(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
+                    if (treatAmbiguities) {
+                        ambiguousMerTreated++;
+                        if (treatAmbiguitiesWithMax) {
+                            treatAmbiguitiesWithMax(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
+                        } else {
+                            treatAmbiguitiesWithMean(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
+                        }
                     } else {
-                        treatAmbiguitiesWithMean(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
+                        queryKmerCount++;
+                        skippedKmer++;
+                        continue;
                     }
                 }
                 
@@ -781,7 +789,7 @@ public class PlacementProcess {
 //            }
 
 
-            Infos.println("matching_kmers/ambigous_kmers_treated/skipped_kmers: "+queryKmerMatchingDB+"/"+ambiguousMerTreated+"/"+skippedKmer);
+            Infos.println("matching_kmers/ambiguous_kmers_treated/skipped_kmers: "+queryKmerMatchingDB+"/"+ambiguousMerTreated+"/"+skippedKmer);
             //long endAlignTime=System.currentTimeMillis();
             //totalAlignTime+=(endAlignTime-startAlignTime);
             //Infos.println("Candidate nodes: "+selectedNodes.size()+" ");      

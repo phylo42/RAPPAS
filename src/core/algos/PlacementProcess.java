@@ -14,6 +14,7 @@ import inputs.SequencePointer;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -359,24 +360,23 @@ public class PlacementProcess {
     
     
     public static void merStatsHeader(BufferedWriter bw) throws IOException {
-    	bw.append("Query;ARNodeId;ARNodeName;ExtendedNodeId;ExtendedNodeName;OriginalNodeId;OriginalNodeName;MerPos;PPStar;Hash\n");
+    	bw.append("Query\tARNodeId\tARNodeName\tExtendedNodeId\tExtendedNodeName\tOriginalNodeId\tOriginalNodeName\tMerPos\tPPStar\n");
     }
     
-    public static void merStats(SessionNext_v2 session, boolean[][] merFound, Fasta fasta, BufferedWriter bw) throws IOException {
-        for (int nodeId = 0; nodeId < merFound.length; nodeId++) {
-            for (int merPos = 0; merPos < merFound[nodeId].length; merPos++) {
-                if ((merFound[nodeId][merPos]==false) && (!session.ARTree.getById(nodeId).isLeaf())) {
+    public static void merStats(SessionNext_v2 session, ArrayList<float[]> merFound, Fasta fasta, BufferedWriter bw) throws IOException {
+        for (int nodeId = 0; nodeId < merFound.size(); nodeId++) {
+            for (int merPos = 0; merPos < merFound.get(nodeId).length; merPos++) {
+                if (!session.ARTree.getById(nodeId).isLeaf()) {
                     int extendedTreeId=session.nodeMapping.get(nodeId);
                     int originalNodeId = session.extendedTree.getFakeToOriginalId(extendedTreeId);
                     PhyloNode extNode = session.extendedTree.getById(extendedTreeId);
                     PhyloNode origNode = session.originalTree.getById(originalNodeId);
-                    bw.append(fasta.getHeader()+";");
-                    bw.append(nodeId+";"+session.ARTree.getById(nodeId).getLabel()+";");
-                    bw.append(extendedTreeId+";"+extNode.getLabel()+";");
-                    bw.append(originalNodeId+";"+origNode.getLabel()+";");
-                    bw.append(merPos+";");
-                    bw.append(session.PPStarThresholdAsLog10+";");
-                    bw.append("absent");
+                    bw.append(fasta.getHeader()+"\t");
+                    bw.append(nodeId+"\t"+session.ARTree.getById(nodeId).getLabel()+"\t");
+                    bw.append(extendedTreeId+"\t"+extNode.getLabel()+"\t");
+                    bw.append(originalNodeId+"\t"+origNode.getLabel()+"\t");
+                    bw.append(merPos+"\t");
+                    bw.append(String.valueOf(merFound.get(nodeId)[merPos]));
                     bw.append("\n");
                 }
             }
@@ -686,13 +686,21 @@ public class PlacementProcess {
             // BUILD THE ALIGNMENT AND SCORE IN A SINGLE LOOP ON QUERY WORDS
             ////////////////////////////////////////////////////////////////
 //            long startAlignTime=System.currentTimeMillis();
-            boolean[][] merFound=new boolean[session.ARTree.getNodeCount()][sk.getMerCount()]; //merFound[nodeId][merPos]
+            ArrayList<float[]> merDetails=new ArrayList<>(session.ARTree.getNodeCount());
+            for (int i = 0; i < session.ARTree.getNodeCount(); i++) {
+                float[] t=new float[sk.getMerCount()];
+                Arrays.fill(t, session.PPStarThresholdAsLog10);
+                merDetails.add(t);
+                
+            }
             //loop on words
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
-                //Infos.println("Query mer: "+queryKmerCount+"\t"+Arrays.toString(qw));
+                System.out.println("MER "+queryKmerCount+" "+Arrays.toString(qw));
+
                 //skip kmers with too many ambiguities
                 if (qw.length==1) {
+                    System.out.println("SKIPPED "+queryKmerCount);
                     queryKmerCount++;
                     skippedKmer++;
                     continue;
@@ -719,8 +727,9 @@ public class PlacementProcess {
                     }
                     queryKmerMatchingDB++;
 
-                    //stream version, 5-10% faster than allPairs.fastIterator()
-                    allPairs.stream().forEach((entry) -> {
+                    for (ObjectIterator<Char2FloatMap.Entry> iterator = allPairs.iterator(); iterator.hasNext();) {
+                        Char2FloatMap.Entry entry = iterator.next();
+                        
                         int x=(int)entry.getCharKey();
                         //int nodeId=entry.getNodeId();
                         //we will score only encountered nodes, originalNode registered
@@ -733,16 +742,16 @@ public class PlacementProcess {
                         C[x]+=1;
                         //score associated to originalNode x for current read
                         S[x]+= entry.getFloatValue()-session.PPStarThresholdAsLog10;
-                        //System.out.println("\tnodeid: "+nodeId+"\tPP*: "+entry.getFloatValue());
-                    });
+                        merDetails.get(x)[queryKmerCount]+= entry.getFloatValue()-session.PPStarThresholdAsLog10;
+                    }
                 
                 } else {
                     if (treatAmbiguities) {
                         ambiguousMerTreated++;
                         if (treatAmbiguitiesWithMax) {
-                            treatAmbiguitiesWithMax(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
+                            treatAmbiguitiesWithMax(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB,queryKmerCount,merDetails);
                         } else {
-                            treatAmbiguitiesWithMean(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB);
+                            treatAmbiguitiesWithMean(qw,sk.getMerCount(),L,C,S,queryKmerMatchingDB,queryKmerCount,merDetails);
                         }
                     } else {
                         queryKmerCount++;
@@ -768,7 +777,7 @@ public class PlacementProcess {
 //            System.out.println("  nodeOccurences:"+Arrays.toString(Arrays.copyOfRange(nodeOccurences,0,nodeOccurences.length)));
 //            System.out.println("  nodeScores:"+Arrays.toString(Arrays.copyOfRange(nodeScores,0,nodeOccurences.length)));
             if (merStats) {
-            	merStats(session, merFound, fasta, bwMerStats);
+            	merStats(session, merDetails, fasta, bwMerStats);
             }
             
 
@@ -1129,7 +1138,7 @@ public class PlacementProcess {
      * @param S score per nodeId
      * @param queryKmerMatchingDB debug counter
      */
-    private void treatAmbiguitiesWithMean(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB) {
+    private void treatAmbiguitiesWithMean(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB, int queryKmerCount, ArrayList<float[]> merDetails) {
         float[] S_amb=new float[C.length];
         int[] C_amb=new int[C.length];
         ArrayList<Integer> L_amb=new ArrayList<>();
@@ -1171,6 +1180,7 @@ public class PlacementProcess {
                 float avgProba=(S_amb[x] + (W_size-C_amb[x])*session.PPStarThreshold) / W_size;
                 S[x]+=Math.log10(avgProba)-session.PPStarThresholdAsLog10;
                 C_amb[x]=0;
+                merDetails.get(x)[queryKmerCount]+= Math.log10(avgProba)-session.PPStarThresholdAsLog10;
         }
         
     }
@@ -1184,7 +1194,7 @@ public class PlacementProcess {
      * @param S score per nodeId
      * @param queryKmerMatchingDB debug counter
      */
-    private void treatAmbiguitiesWithMax(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB) {
+    private void treatAmbiguitiesWithMax(byte[] w, int Q, ArrayList<Integer> L, int[] C, float[] S,int queryKmerMatchingDB, int queryKmerCount, ArrayList<float[]> merDetails) {
         float[] S_amb=new float[C.length];
         int[] C_amb=new int[C.length];
         
@@ -1231,6 +1241,8 @@ public class PlacementProcess {
                 C[x]+=1;
                 S[x]+=S_amb[x]-session.PPStarThresholdAsLog10;
                 C_amb[x]=0;
+                merDetails.get(x)[queryKmerCount]+= S_amb[x]-session.PPStarThresholdAsLog10;
+
         }
         
     }

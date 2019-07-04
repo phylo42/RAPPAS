@@ -696,11 +696,11 @@ public class PlacementProcess {
             //loop on words
             byte[] qw=null;
             while ((qw=sk.getNextByteWord())!=null) {
-                System.out.println("MER "+queryKmerCount+" "+Arrays.toString(qw));
+                //System.out.println("MER "+queryKmerCount+" "+Arrays.toString(qw));
 
                 //skip kmers with too many ambiguities
                 if (qw.length==1) {
-                    System.out.println("SKIPPED "+queryKmerCount);
+                    //System.out.println("SKIPPED "+queryKmerCount);
                     queryKmerCount++;
                     skippedKmer++;
                     continue;

@@ -40,7 +40,7 @@ public class ArgumentsParser_v2 {
     public File workingDir=null;//current directory by default, see below
     public int verbose=0; //default, no verbosity
     public int states=STATES_DNA;
-    boolean convertUOX=false; //must be true so that U/O/X are converted in C/L/-
+    boolean convertUO=false; //must be true so that U/O/X are converted in C/L/-
     
     //RAPPAS parameters for alignment reduction
     public boolean reduction=true;
@@ -169,9 +169,9 @@ public class ArgumentsParser_v2 {
                     }
             }        
             
-            //test --convertUOX parameter
-            if (argsMap.get(index).equals("--convertUOX")) {
-                this.convertUOX=true;
+            //test --convertUO parameter
+            if (argsMap.get(index).equals("--convertUO")) {
+                this.convertUO=true;
             }
             
             //test -m modelId: 
@@ -802,7 +802,7 @@ public class ArgumentsParser_v2 {
         "                  Value must be quoted by ' or \". Do not set options\n" +
         "                  -i,-u,--ancestral (managed by RAPPAS). (b phase)\n" +
         "                  PhyML example: \"-m HIVw -c 10 -f m -v 0.0 --r_seed 1\"\n" +     
-        "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
+        "--convertUO       [] U,O amino acids are converted to C,L. (b|p phase)\n"+        
         "--force-root      [] Root input tree (if unrooted) by adding a root\n"+
         "                  node on righmost branch of the trifurcation.(b phase)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +

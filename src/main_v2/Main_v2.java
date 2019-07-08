@@ -76,14 +76,14 @@ public class Main_v2 {
                     s=new DNAStatesShifted();
                     System.out.println("Set analysis for DNA");
                 } else if (argsParser.states==ArgumentsParser_v2.STATES_PROTEIN) {
-                    s=new AAStates(argsParser.convertUOX);
+                    s=new AAStates(argsParser.convertUO);
                     System.out.println("Set analysis for PROTEIN");
                 }
                 
                 //set default model for ASR if user set nothing
                 EvolModel model=null;
                 if ( argsParser.modelString==null ) {
-                    model=EvolModel.getDefault(argsParser.states);
+                    model=EvolModel.getDefault(s);
                     System.out.println("User did not set model parameters, using default: "+model.toString());
                 } else {
                     model=new EvolModel(

@@ -19,9 +19,6 @@ package models;
 import core.AAStates;
 import core.States;
 import java.util.HashMap;
-import main_v2.ArgumentsParser_v2;
-import static main_v2.ArgumentsParser_v2.STATES_DNA;
-import static main_v2.ArgumentsParser_v2.STATES_PROTEIN;
 
 /**
  * manages modelId used during ancestral sequence reconstruction
@@ -68,11 +65,14 @@ public class EvolModel {
      * default constructor, return a basic GTR or LG modelId
      * @param s 
      */
-    private EvolModel(int s) {
+    private EvolModel(States s) {
         pamlProtModelsFiles();
-        this.modelId=MODEL_GTR;
-        if (s==ArgumentsParser_v2.STATES_PROTEIN) {
+        if (s instanceof AAStates) {
             this.modelId=MODEL_LG;
+            this.modelString="LG";
+        } else {
+            this.modelId=MODEL_GTR;
+            this.modelString="GTR";
         }
     }
     /**
@@ -221,7 +221,7 @@ public class EvolModel {
      * @param s one of States.STATES_DNA or States.STATES_PROTEIN
      * @return 
      */
-    public static EvolModel getDefault(int s) {
+    public static EvolModel getDefault(States s) {
         return new EvolModel(s);
     }
 

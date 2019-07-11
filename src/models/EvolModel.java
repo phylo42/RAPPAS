@@ -77,12 +77,11 @@ public class EvolModel {
     }
     /**
      * 
-     * @param s one of States.STATES_DNA or States.STATES_PROTEIN
      * @param model
      * @param alpha
      * @param categories 
      */
-    public EvolModel(int s, String model,float alpha, int categories) {
+    public EvolModel(String model, float alpha, int categories) {
         pamlProtModelsFiles();
         this.alpha=alpha;
         this.categories=categories;
@@ -91,12 +90,11 @@ public class EvolModel {
     
     /**
      * 
-     * @param s one of States.STATES_DNA or States.STATES_PROTEIN
-     * @param model one of Model.MODEL_JC69 , Model.MODEL_JC69 etc 
+     * @param model one of Model.MODEL_JC69 , Model.MODEL_JC69 etc
      * @param alpha
      * @param categories 
      */
-    public EvolModel(int s, int model,float alpha, int categories) {
+    public EvolModel(int model, float alpha, int categories) {
         pamlProtModelsFiles();
         this.alpha=alpha;
         this.categories=categories;

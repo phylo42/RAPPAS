@@ -87,8 +87,7 @@ public class Main_v2 {
                     System.out.println("User did not set model parameters, using default: "+model.toString());
                 } else {
                     model=new EvolModel(
-                        argsParser.states,
-                        argsParser.modelString, 
+                                                argsParser.modelString, 
                         argsParser.alpha, 
                         argsParser.categories
                     );

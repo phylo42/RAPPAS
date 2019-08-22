@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import core.States;
 import etc.Infos;
 import etc.exceptions.NonSupportedStateException;
+import java.nio.file.Files;
 import java.util.HashMap;
 
 /**
@@ -583,7 +584,7 @@ public class Alignment implements Serializable {
      * @throws IOException 
      */
     public void writeAlignmentAsFasta(File f) throws IOException {
-        BufferedWriter br=new BufferedWriter(new FileWriter(f),4096);
+        BufferedWriter br=Files.newBufferedWriter(f.toPath());
         for (int i = 0; i < charMatrix.length; i++) {
             br.append(">");
             br.append(rowLabels[i]);

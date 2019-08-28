@@ -20,7 +20,7 @@ import models.EvolModel;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.11";
+    private final static String consoleVersion="1.12";
 
     public static void main (String[] args) {
         try {
@@ -137,7 +137,9 @@ public class Main_v2 {
                                             argsParser.onlyX1Nodes,
                                             argsParser.jsondb,
                                             argsParser.acceptUnrootedRefTree,
-                                            argsParser.onlyAR
+                                            argsParser.onlyAR,
+                                            argsParser.onlyARInput,
+                                            argsParser.dbfilename
                                             );
                 System.out.println("Have a coffee, you \"built\" your world.");
 

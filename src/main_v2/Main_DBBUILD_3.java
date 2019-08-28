@@ -99,6 +99,8 @@ public class Main_DBBUILD_3 {
      * @param jsondb 
      * @param acceptUnrootedRefTree 
      * @param onlyAR 
+     * @param onlyARInput 
+     * @param dbFilename 
      * @throws java.io.FileNotFoundException 
      * @throws java.lang.ClassNotFoundException 
      */
@@ -135,7 +137,9 @@ public class Main_DBBUILD_3 {
                                         boolean onlyX1Nodes,
                                         boolean jsondb,
                                         boolean acceptUnrootedRefTree,
-                                        boolean onlyAR
+                                        boolean onlyAR,
+                                        boolean onlyARInput,
+                                        String dbFilename
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -408,6 +412,10 @@ public class Main_DBBUILD_3 {
                 }
             }
             
+            if (onlyARInput) {
+                System.out.println("Only AR inputs were requested, pipeline stopped.");
+                System.exit(0);
+            }
             
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
@@ -832,12 +840,28 @@ public class Main_DBBUILD_3 {
 //            }
             
             //keep filenames here, used even in dbInRAM mode
-            File db=new File(workDir+File.separator+"DB_session_k"+k+"_a"+omega+"_f"+branchPerLength+"_t"+session.PPStarThresholdAsLog10);
-            File dbfull=new File(db.getAbsoluteFile()+".full");
-            File dbmedium=new File(db.getAbsoluteFile()+".medium");
-            File dbsmall=new File(db.getAbsoluteFile()+".small");
-            File dbunion=new File(db.getAbsoluteFile()+".union");
-            File dbunionjson=new File(db.getAbsoluteFile()+".json");
+            File db=null;
+            File dbfull=null;
+            File dbmedium=null;
+            File dbsmall=null;
+            File dbunion=null;
+            File dbunionjson=null;
+            if (dbFilename==null) {
+                db=new File(workDir+File.separator+"DB_session_k"+k+"_o"+omega);
+                dbfull=new File(db.getAbsoluteFile()+".full");
+                dbmedium=new File(db.getAbsoluteFile()+".medium");
+                dbsmall=new File(db.getAbsoluteFile()+".small");
+                dbunion=new File(db.getAbsoluteFile()+".union");
+                dbunionjson=new File(db.getAbsoluteFile()+".json");
+            } else {
+                db=new File(workDir+File.separator+dbFilename);
+                dbfull=new File(db.getAbsolutePath());
+                dbmedium=new File(db.getAbsolutePath());
+                dbsmall=new File(db.getAbsolutePath());
+                dbunion=new File(db.getAbsolutePath());
+                dbunionjson=new File(db.getAbsolutePath());
+            }
+
             //File dbsmallunion=new File(db.getAbsoluteFile()+".sunion");
             
             
@@ -912,26 +936,26 @@ public class Main_DBBUILD_3 {
                     }
                     
                 } else  if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
-                    System.out.println("UNION DB SELECTED");
+                    //System.out.println("UNION DB SELECTED");
                     //calibration
                     float calibrationNormScoreUnion=Float.NEGATIVE_INFINITY;
-                    if (nsBound==null) {
-                        if (writeTSVCalibrationLog) {
-                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
-                        }
-                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
-                        //do the placement and calculate score quantiles
-                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
-                        calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
-                        System.out.println("Score bound: "+calibrationNormScoreUnion);
-                        //closes the calibration log  
-                        if (writeTSVCalibrationLog){
-                            bwTSVCalibration.close();
-                        }
-                    } else {
-                        System.out.println("Using nsbound: "+nsBound.toString());
-                        calibrationNormScoreUnion=nsBound;
-                    }
+//                    if (nsBound==null) {
+//                        if (writeTSVCalibrationLog) {
+//                            bwTSVCalibration=new BufferedWriter(new FileWriter(new File(logPath+"calibration_small.tsv")),bufferSize);
+//                        }
+//                        System.out.println("Score calibration on "+calibrationSampleSize+" random sequences (union DB)...");
+//                        //do the placement and calculate score quantiles
+//                        PlacementProcess asp=new PlacementProcess(session,Float.NEGATIVE_INFINITY, calibrationSampleSize);
+//                        calibrationNormScoreUnion = asp.processCalibration(rs,calibrationSampleSize, null, SequenceKnife.SAMPLING_LINEAR, 0,q_quantile,n_quantile);
+//                        System.out.println("Score bound: "+calibrationNormScoreUnion);
+//                        //closes the calibration log  
+//                        if (writeTSVCalibrationLog){
+//                            bwTSVCalibration.close();
+//                        }
+//                    } else {
+//                        System.out.println("Using nsbound: "+nsBound.toString());
+//                        calibrationNormScoreUnion=nsBound;
+//                    }
                     //associate medium calibration
                     session.associateCalibrationScore(calibrationNormScoreUnion);
                     //now do placements on normal union DB

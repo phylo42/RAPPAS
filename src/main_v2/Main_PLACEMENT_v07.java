@@ -159,13 +159,13 @@ public class Main_PLACEMENT_v07 {
 //            Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateSet(0, 0, 5)));
 //            Infos.println("NodeId=0, 5 first states:"+ Arrays.deepToString(pprobas.getStateIndexSet(0, 0, 5)));
             
-            String[] elts=db.getName().split("\\.");
-            String dbSize=elts[elts.length-1];
+//            String[] elts=db.getName().split("\\.");
+//            String dbSize=elts[elts.length-1];
             Infos.println("Hash type: "+session.hash.getHashType());
-            if ( ! (dbSize.equals("large") || dbSize.equals("medium") || dbSize.equals("small") || dbSize.equals("union") || dbSize.equals("sunion")) ) {
-                System.out.println("dbSize not recognized (from DB filename): "+dbSize);
-                System.exit(1);
-            }
+//            if ( ! (dbSize.equals("large") || dbSize.equals("medium") || dbSize.equals("small") || dbSize.equals("union") || dbSize.equals("sunion")) ) {
+//                System.out.println("dbSize not recognized (from DB filename): "+dbSize);
+//                System.exit(1);
+//            }
                 
 //            if (session.hash.getHashType()==CustomHash_v2.NODES_UNION) {
 //                dbSize="union";
@@ -209,9 +209,9 @@ public class Main_PLACEMENT_v07 {
             
             int bufferSize=2097152; // buffer of 2mo
             //placement results
-            BufferedWriter bwTSVPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);
+            BufferedWriter bwTSVPlacement=new BufferedWriter(new FileWriter(new File(logPath+"placements_"+q.getName()+".tsv")),bufferSize);
             //unplaced query log
-            BufferedWriter bwNotPlaced=new BufferedWriter(new FileWriter(new File(logPath+"notplaced_"+q.getName()+"_"+dbSize+".tsv")),bufferSize);
+            BufferedWriter bwNotPlaced=new BufferedWriter(new FileWriter(new File(logPath+"notplaced_"+q.getName()+".tsv")),bufferSize);
 
             ////////////////////////////////////////////////////////////////////
             //PREPARE STRUCTURE (JSON OBJECT) FOR JPLACE OUTPUT 
@@ -310,7 +310,7 @@ public class Main_PLACEMENT_v07 {
             out=out.replaceAll("\"nm\":\\[\\[","\"nm\":\n\t\\[\\[");
             //out=out.replace("]},", "]},"); //]}
             
-            FileWriter fwJSON =new FileWriter(new File(workDir.getAbsoluteFile()+File.separator+"placements_"+q.getName()+"_"+dbSize+".jplace"));
+            FileWriter fwJSON =new FileWriter(new File(workDir.getAbsoluteFile()+File.separator+"placements_"+q.getName()+".jplace"));
             fwJSON.append(out);
             fwJSON.close();
             

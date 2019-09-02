@@ -44,12 +44,13 @@ public class WordExplorer_v3 {
     float currentLogSum=0.0f;
     byte[] word=null;
     boolean boundReached=false;
+    int boundReachingK=-1;
     boolean wordCompression=false;
     int refPosition=-1;
     int current_k=-1;
     int nodeId=-1;
     int idxOfFirstJump=-1;
-    int generateTupleCount=-1;
+    int generateTupleCount=0;
     
     //represents  gap intervals
     boolean doGapJumps=false;
@@ -117,6 +118,9 @@ public class WordExplorer_v3 {
         //Infos.println("sumCurrentWord="+currentLogSum+"+"+ppSet.getPP(nodeId, i, j));
         currentLogSum+=session.parsedProbas.getPP(nodeId, i, j);
         boundReached = currentLogSum<session.PPStarThresholdAsLog10;
+        if(boundReached) {
+            boundReachingK=current_k;
+        }
         
         //register word if k-th position
         if (current_k==session.k-1) {
@@ -141,7 +145,9 @@ public class WordExplorer_v3 {
             
             //go down recursively, testing each state at position i+1
             for (int j2 = 0; j2 < session.parsedProbas.getStateCount(); j2++) {
-                if (boundReached) {break;}
+                if (boundReached && boundReachingK == current_k + 1) {
+                    break;
+                }
                 
                 //do this exploration, do not consider gap interval
                 //Infos.println("EXPORATION NORMAL");

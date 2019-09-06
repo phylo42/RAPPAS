@@ -19,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tree.NewickReader;
@@ -148,7 +149,7 @@ public class PHYMLWrapper implements ARWrapper {
             int nodeId=-1;
             int previousId=-1;
             int nodeCount=0;
-            char[] stateOrder=null;
+            List<Character> stateOrder=new ArrayList<>(states.getNonAmbiguousStatesCount());
             ArrayList<SiteProba> probasPerSite=new ArrayList<>(states.getNonAmbiguousStatesCount());
             for (int i = 0; i < states.getNonAmbiguousStatesCount(); i++) {
                 probasPerSite.add(new SiteProba());
@@ -162,11 +163,12 @@ public class PHYMLWrapper implements ARWrapper {
                 if (line.startsWith("Site\tNode")) { //start of section
                     //header is Site\tNodeLabel\tA\tC\tG\t	T
                     String[] stateStrings=line.split("\t");
-                    stateOrder=new char[stateStrings.length-2]; //2 first columns (site/node)
-                    for (int i = 0; i < stateOrder.length; i++) {
-                        stateOrder[i]=stateStrings[i+2].charAt(0);
+                    for (int i = 2; i < stateStrings.length; i++) { //skip 1st and 2nd columns
+                        if (!stateStrings[i].equals("MPEE")) {
+                            stateOrder.add(stateStrings[i].charAt(0));
+                        }
                     }
-                    Infos.println("States found:"+Arrays.toString(stateOrder));                
+                    Infos.println("States found:"+stateOrder);                
                     start=true;
                     continue;
                 }
@@ -202,13 +204,13 @@ public class PHYMLWrapper implements ARWrapper {
                     }
                     
                     //System.out.println("NODE/SITE: "+nodeId+" "+site);
-                    for (int i = 0; i < stateOrder.length; i++) {
+                    for (int i = 0; i < stateOrder.size(); i++) {
                         SiteProba sp=new SiteProba();
                         try {
-                            sp.state=states.stateToByte(stateOrder[i]);
+                            sp.state=states.stateToByte(stateOrder.get(i));
                         } catch ( NonSupportedStateException ex) {
                             ex.printStackTrace(System.err);
-                            System.out.println("PAML wrapper encountered a non supported state. (state="+stateOrder[i]+")");
+                            System.out.println("PAML wrapper encountered a non supported state. (state="+stateOrder.get(i)+")");
                             System.exit(1);
                         }
                         sp.proba=Float.parseFloat(data[i+2]);

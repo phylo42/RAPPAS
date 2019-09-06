@@ -631,8 +631,11 @@ public class ARProcessLauncher {
             this.phymlVersion=matcher.group(0);
             System.out.println(" found "+this.phymlVersion);
         }          
-        if ( (!phymlVersion.equals("- PhyML 3.3.20180214 -")) && (!phymlVersion.equals("- PhyML 3.3.20180621 -")) ) {
-            System.out.println("Please, use releases 3.3.20180214 or 3.3.20180621 .");
+        if (    (!phymlVersion.equals("- PhyML 3.3.20180214 -")) 
+             && (!phymlVersion.equals("- PhyML 3.3.20180621 -"))
+             && (!phymlVersion.equals("- PhyML 3.3.20190321 -"))
+            ){
+            System.out.println("Please, use one of these phyml releases: 3.3.20180214, 3.3.20180621, 3.3.20190321 .");
             System.out.println("They can be downloaded from:  https://github.com/stephaneguindon/phyml/releases");
             System.exit(1);
         }

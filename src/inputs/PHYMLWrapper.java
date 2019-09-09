@@ -161,11 +161,11 @@ public class PHYMLWrapper implements ARWrapper {
                     Infos.println("Line: >"+lineNumber);
                 }                
                 if (line.startsWith("Site\tNode")) { //start of section
-                    //header is Site\tNodeLabel\tA\tC\tG\t	T
+                    //header is Site\tNodeLabel\t[space]+A\t[space]+C\t[space]+G\t[space]+T\t[space]+MPEE
                     String[] stateStrings=line.split("\t");
                     for (int i = 2; i < stateStrings.length; i++) { //skip 1st and 2nd columns
-                        if (!stateStrings[i].equals("MPEE")) {
-                            stateOrder.add(stateStrings[i].charAt(0));
+                        if (!stateStrings[i].trim().equals("MPEE")) {
+                            stateOrder.add(stateStrings[i].trim().charAt(0));
                         }
                     }
                     Infos.println("States found:"+stateOrder);                

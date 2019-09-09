@@ -634,12 +634,13 @@ public class ARProcessLauncher {
         if (    (!phymlVersion.equals("- PhyML 3.3.20180214 -")) 
              && (!phymlVersion.equals("- PhyML 3.3.20180621 -"))
              && (!phymlVersion.equals("- PhyML 3.3.20190321 -"))
+             && (!phymlVersion.equals("- PhyML 3.3.20190909 -"))   
             ){
-            System.out.println("Please, use one of these phyml releases: 3.3.20180214, 3.3.20180621, 3.3.20190321 .");
+            System.out.println("Please, use one of these PhyML releases: 3.3.20180214, 3.3.20180621, 3.3.20190321, 3.3.20190909 .");
             System.out.println("They can be downloaded from:  https://github.com/stephaneguindon/phyml/releases");
             System.exit(1);
         }
-        //testing --leave_duplicates behaviosu because this stupid 
+        //testing --leave_duplicates behaviour because  
         //PhyML 3.3.20180621 shows version 3.3.20180214 in its help !!!
         System.out.print("Testing phyml 'duplicates' option :");
         phymlHelpCom=new ArrayList<>();

@@ -49,7 +49,7 @@ public class ArgumentsParser_v2 {
     
     //RAPPAS parameters for DB build
     public int k=8; //default=8
-    public float omega=1.0f; //default=1.0, quantity allowing to modulate the threshold
+    public float omega=1.5f; //default=1., quantity allowing to modulate the threshold
     public int ghostsAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;

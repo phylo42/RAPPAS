@@ -205,7 +205,7 @@ option | expected value {default} | description
 **-k** | integer>=3 {8} | The k-mer length used at DB build.
 **-m <br/>(--model)** | string {GTR\|LG} | Model used in AR, one of the following: (for nucl) JC69, HKY85, K80, F81, TN93, GTR ; (for amino) LG, WAG, JTT, Dayhoff, DCMut, CpREV, mMtREV, MtMam, MtArt (b phase)
 **--arparameters** | string | Parameters passed to the software used for anc. seq. reconstuct. Overrides -a,-c,-m options. Value must be quoted by ' or ". Do not set options -i,-u,--ancestral (managed by RAPPAS). PhyML example: "-m HIVw -c 10 -f m -v 0.0 --r_seed 1" (b phase)
-**--convertUOX** | none | U,O,X amino acids are converted to C,L,- to allow correct ancestral reconstruction (b phase)
+**--convertUO** | none | U,O amino acids are converted to C,L to allow correct ancestral reconstruction (b phase)
 **--force-root**  | none | Root input tree if non rooted. (b phase)
 **--ratio-reduction** | float in ]0,1] {0.99} |Ratio for alignment reduction, i.e. sites holding >99% gaps are ignored. (b phase)
 **--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b phase)

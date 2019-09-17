@@ -20,7 +20,7 @@ import models.EvolModel;
  */
 public class Main_v2 {
 
-    private final static String consoleVersion="1.11";
+    private final static String consoleVersion="1.12";
 
     public static void main (String[] args) {
         try {
@@ -76,19 +76,18 @@ public class Main_v2 {
                     s=new DNAStatesShifted();
                     System.out.println("Set analysis for DNA");
                 } else if (argsParser.states==ArgumentsParser_v2.STATES_PROTEIN) {
-                    s=new AAStates(argsParser.convertUOX);
+                    s=new AAStates(argsParser.convertUO);
                     System.out.println("Set analysis for PROTEIN");
                 }
                 
                 //set default model for ASR if user set nothing
                 EvolModel model=null;
                 if ( argsParser.modelString==null ) {
-                    model=EvolModel.getDefault(argsParser.states);
+                    model=EvolModel.getDefault(s);
                     System.out.println("User did not set model parameters, using default: "+model.toString());
                 } else {
                     model=new EvolModel(
-                        argsParser.states,
-                        argsParser.modelString, 
+                                                argsParser.modelString, 
                         argsParser.alpha, 
                         argsParser.categories
                     );
@@ -138,7 +137,9 @@ public class Main_v2 {
                                             argsParser.onlyX1Nodes,
                                             argsParser.jsondb,
                                             argsParser.acceptUnrootedRefTree,
-                                            argsParser.onlyAR
+                                            argsParser.onlyAR,
+                                            argsParser.onlyARInput,
+                                            argsParser.dbfilename
                                             );
                 System.out.println("Have a coffee, you \"built\" your world.");
 

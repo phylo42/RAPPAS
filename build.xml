@@ -70,4 +70,21 @@
     nbproject/build-impl.xml file. 
 
     -->
+<target name="-pre-init">
+   <property name="project.name" value="CLAPAS" />
+   <property name="version.num" value="0.5" />
+   <tstamp>
+      <format property="NOW" pattern="yyyy-MM-dd HH:mm:ss z" />
+   </tstamp>
+   <manifest file="MANIFEST.MF">
+      <attribute name="Bundle-Name" value="${project.name}" />
+      <attribute name="Bundle-Version" value="${version.num}" />
+      <attribute name="Bundle-Date" value="${NOW}" />
+      <attribute name="Implementation-Title" value="${project.name}" />
+      <attribute name="Implementation-Version" value="${version.num}" />
+      <!--<attribute name="Implementation-URL" value="http://www.example.com" />-->
+      <attribute name="Premain-class" value="com.baeldung.objectsize.InstrumentationAgent"/>
+   </manifest>
+</target>
+
 </project>

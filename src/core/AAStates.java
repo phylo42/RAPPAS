@@ -41,9 +41,9 @@ public class AAStates extends AbstractStates implements States,Serializable {
         
     /**
      *
-     * @param convertUOX the value of convertUOX
+     * @param convertUO the value of convertUO
      */
-    public AAStates(boolean convertUOX) {
+    public AAStates(boolean convertUO) {
        
         //positives
         s.put((byte)0, 'R');s.put((byte)0, 'r');
@@ -115,7 +115,7 @@ public class AAStates extends AbstractStates implements States,Serializable {
         //and may be sources of character encoding errors
         
         //special AA
-        if (convertUOX) {
+        if (convertUO) {
             s.put((byte)9, 'U');s.put((byte)9, 'u'); // U to C
             s.put((byte)14, 'O');s.put((byte)14, 'o'); // O to L
             b.put('U',(byte)9);b.put('u',(byte)9);

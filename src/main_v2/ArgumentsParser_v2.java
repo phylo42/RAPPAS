@@ -40,7 +40,7 @@ public class ArgumentsParser_v2 {
     public File workingDir=null;//current directory by default, see below
     public int verbose=0; //default, no verbosity
     public int states=STATES_DNA;
-    boolean convertUOX=false; //must be true so that U/O/X are converted in C/L/-
+    boolean convertUO=false; //must be true so that U/O/X are converted in C/L/-
     
     //RAPPAS parameters for alignment reduction
     public boolean reduction=true;
@@ -49,7 +49,7 @@ public class ArgumentsParser_v2 {
     
     //RAPPAS parameters for DB build
     public int k=8; //default=8
-    public float omega=1.0f; //default=1.0, quantity allowing to modulate the threshold
+    public float omega=1.5f; //default=1., quantity allowing to modulate the threshold
     public int ghostsAmount=1;  //default =1
     public File alignmentFile=null;
     public File treeFile=null;
@@ -58,12 +58,14 @@ public class ArgumentsParser_v2 {
     public float alpha=1.0f;
     public int categories=4;
     public String arparameters=null;
+    public String dbfilename=null;
 
     //passed for debugging in DB_build
     public File ARBinary=new File("phyml"); //default = phyml command line
     public File ARDirToUse=null;  // used to load directly an already computed AR
     public File exTreeDir=null; //not functionnal anymore
     public boolean onlyAR=false;
+    public boolean onlyARInput=false;
     public boolean builddbfull=false; //default=false, as dbfull is quite useless with the current algo
     public boolean noCalibration=true; //skip calibration step
     public boolean dbInRAM=false; //do not write DB in a file and immediately places reads passed with -q
@@ -80,7 +82,7 @@ public class ArgumentsParser_v2 {
     public int minOverlap=100; //used in entropy computation
     public List<File> queriesFiles=null;
     public File databaseFile=null;
-    public Float nsBound=null; //do not consider threshold calculated by formula but this particular threshold, null if note set
+    public Float nsBound=null; //do not consider threshold calculated by formula but this particular threshold, null if not set
     public int keepAtMost=7; //as in pplacer
     public float keepFactor=0.01f; //as in pplacer
     public boolean guppyCompatible=false;
@@ -169,9 +171,9 @@ public class ArgumentsParser_v2 {
                     }
             }        
             
-            //test --convertUOX parameter
-            if (argsMap.get(index).equals("--convertUOX")) {
-                this.convertUOX=true;
+            //test --convertUO parameter
+            if (argsMap.get(index).equals("--convertUO")) {
+                this.convertUO=true;
             }
             
             //test -m modelId: 
@@ -341,6 +343,12 @@ public class ArgumentsParser_v2 {
                             System.exit(1);
                         }
                        
+                    }
+                    
+                    //test --dbfilename
+                    if (argsMap.get(index).equals("--dbfilename")) {
+                        this.dbfilename=argsMap.get(index+1);
+                        System.out.println("Output DB will be renamed as: "+this.dbfilename);
                     }
                   
                     
@@ -567,10 +575,16 @@ public class ArgumentsParser_v2 {
                         System.out.println("User confirmed to use an unrooted tree.");
                     }
                     
-                    //test --use_unrooted 
+                    //test --aronly 
                     if (argsMap.get(index).equals("--aronly")) {
                         this.onlyAR=true;
                         System.out.println("Only extended_tree and AR will be built.");
+                    }
+                    
+                    //test --arinputonly 
+                    if (argsMap.get(index).equals("--arinputonly")) {
+                        this.onlyARInput=true;
+                        System.out.println("Only extended_tree and AR inputs will be built.");
                     }
                     
                     //////////////////////////////////////
@@ -786,6 +800,7 @@ public class ArgumentsParser_v2 {
         "                  than (factor x best_likelihood_ratio). (p phase)\n" +      
         "--write-reduction [file] Write reduced alignment to file. (b phase)\n" +
         "--guppy-compat    [] Ensures output is Guppy compatible. (p phase)\n" +
+        "--dbfilename      [string] Set DB filename. (b phase)\n" +
         "\n" +
         "Algo options:     Use only if you know what you are doing...    \n" +
         "---------------------------------------------------------------------\n"+
@@ -802,7 +817,7 @@ public class ArgumentsParser_v2 {
         "                  Value must be quoted by ' or \". Do not set options\n" +
         "                  -i,-u,--ancestral (managed by RAPPAS). (b phase)\n" +
         "                  PhyML example: \"-m HIVw -c 10 -f m -v 0.0 --r_seed 1\"\n" +     
-        "--convertUOX      [] U,O,X amino acids become C,L,- (b|p phase).\n"+        
+        "--convertUO       [] U,O amino acids are converted to C,L. (b|p phase)\n"+        
         "--force-root      [] Root input tree (if unrooted) by adding a root\n"+
         "                  node on righmost branch of the trifurcation.(b phase)\n" +
         "--gap-jump-thresh [0.3] Gap ratio above which gap jumps are activated.\n" +
@@ -823,6 +838,7 @@ public class ArgumentsParser_v2 {
         "--ambwithmax      [] Treat ambiguities with max, not mean. (p phase)\n" +
         "--ardir           [dir] Skip ancestral sequence reconstruction, and \n"+
         "                  uses outputs from the specified directory. (b phase)\n" +
+        "--arinputonly     [] Generate only AR inputs. (b phase)\n" +
         "--aronly          [] Launch AR, but not DB build. (b phase)\n" +
         "--dbinram         [] Build DB, do not save it to a file, but directly\n" +
         "                     place queries given via -q instead.\n" +

@@ -237,6 +237,10 @@ public class FASTAPointer implements SequencePointer {
                 sumCharacters+=lineRead.trim().length();
             }
         }
+        if (n==0) {
+            System.out.println("No valid fasta sequences were found in the alignment...");
+            System.exit(1);
+        }
         //mean
         if(n<max) {
             this.mean=sumCharacters/n;

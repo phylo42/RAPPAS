@@ -1,20 +1,21 @@
 ```diff
 
-Only phyml-v3.3.20180214 and phyml-v3.3.20180621 are currently compatible with RAPPAS.
-You can download these versions from phyml GIT repository.
+Due to a bug in earlier versions of PhyML, if you comile from sources we STRONGLY recommand to use PhyML >3.3.20190909 and RAPPAS >1.12 ! You can download this version from PhyML GIT repository.
 
-Also, default limits of phyml are quite low (<4000 taxa, sequence labels <1000 characters).
-You can work with larger trees and longer sequence labels after operating the following changes.
+If you use bioconda, these versions will be automatically selected.
 
-1) Modify the following lines in the src/utilities.h source file :
+
+Also, when placing on large trees, remember that the default limits of PhyML are quite low.
+(<4000 taxa, sequence labels <1000 characters)
+You can work with larger trees and longer sequence labels after the following changes:
+
+1) Modify the following lines in the src/utilities.h source file of PhyML :
 
 #define  T_MAX_FILE          2000
 #define  T_MAX_NAME          5000
 #define  N_MAX_OTU         262144
 
 2) Recompile phyml after these changes.
-
-Alternatively, use the precompiled versions found on this repository in the /bindep directory.
 
 ``` 
 
@@ -44,7 +45,15 @@ RAPPAS was funded from  the European Union’s Horizon 2020 research and innovat
 
 ## Installation
 
-### Prerequisites
+### Bioconda installation
+
+If you use bioconda, you can install RAPPAS with the following commands:
+```
+conda config --add channels bioconda
+conda install rappas
+```
+
+### From sources: prerequisites
 
 - RAPPAS compilation requires a clean JDK 1.8 javac compiler installation. Java >=1.8 is a compulsory requirement as some operations are based on Lambda expressions.
 - Apache Ant is used to facilitate the compilation.
@@ -75,7 +84,7 @@ Installation of Apache Ant:
 sudo apt-get install ant
 ```
 
-### Source download and compilation
+### From sources: download and compilation
 
 ```
 #download git repository
@@ -85,6 +94,12 @@ cd RAPPAS && ant -f build-cli.xml
 ```
 The executable RAPPAS.jar can then be found in the ./dist directory.
 
+You can create also create a standalone executable using a stub. If you use this approach, be aware you will need to setup the java virtual machine options manually by modify the stub.sh file and that they cannot be modified later.
+```
+cd ..
+cat stub.sh dist/RAPPAS.jar > rappas && chmod +x rappas
+```
+When using the standalone binary and not the jar file, in all instructions and tutorials just remember to replace 'java [jvm_options] -jar RAPPAS.jar' by 'rappas' in the instructions and tutorials detailed below. 
 
 
 

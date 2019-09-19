@@ -4,6 +4,7 @@ v1.12
 * default omega set to 1.5, for more speed/accuracy balance.
 * compatibility with phyml up to v3.3.20190909
 * minor changes related to verbosity
++ added stub file to build 'rappas' binary and avoid usage "java -jar" prefix, instructions are in README.md
 
 v1.11
 * bugfix related to wrong definition of ambiguity X

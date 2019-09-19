@@ -1,6 +1,8 @@
 ```diff
 
-Due to a bug in earlier versions of PhyML, if you comile from sources we STRONGLY recommand to use PhyML >3.3.20190909 and RAPPAS >1.12 ! You can download this version from PhyML GIT repository.
+Due to a bug in earlier versions of PhyML, if you compile from sources
+we STRONGLY recommand to use PhyML >3.3.20190909 and RAPPAS >1.12 !
+You can download this version from PhyML GIT repository.
 
 If you use bioconda, these versions will be automatically selected.
 

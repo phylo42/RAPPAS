@@ -54,6 +54,13 @@ If you use bioconda, you can install RAPPAS with the following commands:
 conda config --add channels bioconda
 conda install rappas
 ```
+Then you can run RAPPAS with the command:
+
+```rappas [options]```
+
+If you need to customize JVM parameters (ex: memory options -Xmx/-Xms), use the following command:
+
+```java -Xms4G -Xmx16G -jar $(which RAPPAS.jar) [options]```
 
 ### From sources: prerequisites
 

@@ -57,11 +57,15 @@ conda install rappas
 ```
 Then you can run RAPPAS with the command:
 
-```rappas [options]```
+```
+rappas [options]
+```
 
 If you need to customize JVM parameters (for instance when requesting more memory with options -Xmx/-Xms), use the following bash command:
 
-```java -Xmx16G -jar $(which RAPPAS.jar) [options]```
+```
+java -Xmx16G -jar $(which RAPPAS.jar) [options]
+```
 
 ### From sources: prerequisites
 

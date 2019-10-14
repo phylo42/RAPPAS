@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="RAPPAS">
+    <output-path>$PROJECT_DIR$/out/artifacts/RAPPAS</output-path>
+    <root id="archive" name="RAPPAS.jar">
+      <element id="module-output" name="RAPPAS" />
+      <element id="library" level="project" name="lib" />
+    </root>
+  </artifact>
+</component>

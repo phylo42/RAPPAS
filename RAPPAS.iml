@@ -5,13 +5,13 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="11" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="org.jfree:jfreechart:1.0.19" level="project" />
-    <orderEntry type="library" name="com.googlecode.json-simple:json-simple:1.1.1" level="project" />
-    <orderEntry type="library" name="it.unimi.dsi:fastutil:8.2.2" level="project" />
-    <orderEntry type="library" name="jacksum" level="project" />
-    <orderEntry type="library" name="com.google.guava:guava:21.0" level="project" />
-    <orderEntry type="library" name="GradientPainter" level="project" />
+    <orderEntry type="library" name="it.unimi.dsi:fastutil:8.2.2" level="application" />
+    <orderEntry type="library" name="org.jfree:jfreechart:1.0.19" level="application" />
+    <orderEntry type="library" name="com.google.guava:guava:21.0" level="application" />
+    <orderEntry type="library" name="com.googlecode.json-simple:json-simple:1.1.1" level="application" />
+    <orderEntry type="library" name="Jacksum" level="application" />
+    <orderEntry type="library" name="grad" level="application" />
   </component>
 </module>

@@ -322,8 +322,7 @@ public class PhyloTree extends JTree implements Serializable {
     
     /**
      * all nodes, ordered through depth-first search from the root
-     * @param node
-     * @return 
+     * @return
      */
     public ArrayList<Integer> getNodeIdsByDFS() {
         return orderedNodesIds;
@@ -331,8 +330,7 @@ public class PhyloTree extends JTree implements Serializable {
     
     /**
      * all nodes, ordered through depth-first search from the root
-     * @param node
-     * @return 
+     * @return
      */
     public ArrayList<String> getLabelsByDFS() {
         return orderedNodesLabels;
@@ -385,7 +383,6 @@ public class PhyloTree extends JTree implements Serializable {
     
     /**
      * very basic tree visualiser, using the native swing libraries
-     * @param t
      */
     public void displayTree() {
         JFrame f=new JFrame();
@@ -454,7 +451,7 @@ public class PhyloTree extends JTree implements Serializable {
     /**
      * used only if parsed tree is from jplace, i.e. edges are assigned to ids
      * with the {x} annotation on the right of branch length. map(nodeId)=jplaceEdgeId
-     * @param jplaceEdgeId 
+     * @param nodeId
      * @return the nodeId holding the equivalent edge
      */
     public int getJplaceMappingNodeIdToJP(int nodeId) {
@@ -628,10 +625,13 @@ public class PhyloTree extends JTree implements Serializable {
         float branchDist=0.0f;
         int nodeDist=0;
         boolean added_root=false;
+        boolean jTree_root=false;
         for (int i = pathAToRoot.length-1; i>LCAIndex; i--) {
             //System.out.println("i:"+i);
             //System.out.println("add rl "+pathAToRoot[i]);
             l.add((PhyloNode)pathAToRoot[i]);
+            if (((PhyloNode)pathAToRoot[i]).isRoot())
+                jTree_root=true;
             if (((PhyloNode)pathAToRoot[i]).getLabel().equals("added_root"))
                 added_root=true;
             branchDist+=((PhyloNode)pathAToRoot[i]).getBranchLengthToAncestor();
@@ -665,7 +665,7 @@ public class PhyloTree extends JTree implements Serializable {
 //        System.out.println("branchDist:"+branchDist);
 //        System.out.println("nodeDist:"+nodeDist);
         
-        Path p=new Path(l,nodeDist,branchDist,added_root);
+        Path p=new Path(l,nodeDist,branchDist,added_root,jTree_root);
         
         return p;
         
@@ -676,17 +676,15 @@ public class PhyloTree extends JTree implements Serializable {
         public float branchDistance=-1.0f;
         public int nodeDistance=-1;
         public List<PhyloNode> path=null;
-        public boolean withAddedRoot=false;
+        public boolean throughAddedRoot=false;
+        public boolean throughJTreeRoot =false;
 
-        public Path(List<PhyloNode> p, int nd, float bd, boolean withAddedRoot) {
+        public Path(List<PhyloNode> p, int nd, float bd, boolean throughAddedRoot, boolean throughJTreeRoot) {
             this.branchDistance=bd;
             this.nodeDistance=nd;
             this.path=p;
-            this.withAddedRoot=withAddedRoot;
-        }
-
-        public boolean isWithAddedRoot() {
-            return withAddedRoot;
+            this.throughAddedRoot=throughAddedRoot;
+            this.throughJTreeRoot=throughJTreeRoot;
         }
         
         @Override

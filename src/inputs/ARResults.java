@@ -54,10 +54,11 @@ public class ARResults {
     
     /**
      * determines the source registered to this manager at instantiation
-     * @param source the source, as defined in the class ARProcessLauncher ; one of ARProcessLauncher.AR_???
-     * @param alignment
-     * @param Tree
-     * @param probas
+     * @param arpl
+     * @param extendedAlign
+     * @param extendedTree
+     * @param originalTree
+     * @param s
      */
     public ARResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s) {
         this.arpl=arpl;
@@ -161,7 +162,8 @@ public class ARResults {
             endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML Postrerior Probas used " + (endTime - startTime) + " ms");
             
-        } 
+        }
+        //TODO: add raxml-ng
 
         
     }

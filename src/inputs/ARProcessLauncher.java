@@ -37,6 +37,7 @@ public class ARProcessLauncher {
     
     public static final int AR_PAML=1;
     public static final int AR_PHYML=2;
+    public static final int AR_RAXMLNG=3;
     
     public int currentProg=AR_PHYML;
     public File ARBinary=null;
@@ -47,6 +48,7 @@ public class ARProcessLauncher {
     private boolean verboseAR=true;
     private States s=null;
     private EvolModel model=null;
+    private int threads;
     private String ARParameters;
     private String phymlVersion=null;
     private boolean phymlAcceptsDuplicates=true;
@@ -58,13 +60,15 @@ public class ARProcessLauncher {
      * @param s
      * @param model
      * @param ARParameters
+     * @param threads
      */
-    public ARProcessLauncher(File ARBinary, boolean verboseAR, States s, EvolModel model, String ARParameters) {
+    public ARProcessLauncher(File ARBinary, boolean verboseAR, States s, EvolModel model, String ARParameters,int threads) {
         this.ARBinary=ARBinary;
         this.verboseAR=verboseAR;
         this.s=s;
         this.ARParameters = ARParameters;
         this.model=model;
+        this.threads = threads;
         //test if ARBinary is something supported
         if (ARBinary.getName().contains("phyml")) {
             System.out.println("I guess, from binary name, we are using PhyML (phyml).");
@@ -85,6 +89,9 @@ public class ARProcessLauncher {
                 System.exit(1);
             }
             this.currentProg=AR_PAML;
+        } else if (ARBinary.getName().contains("raxml-ng")) {
+            System.out.println("I guess, from binary name, we are using RAXML-NG.");
+            this.currentProg=AR_RAXMLNG;
         } else {
                 System.out.println("AR binary is unknown, currently RAPPAS support only phyml & baseml+codeml (from paml package).");
             System.exit(1);
@@ -133,6 +140,10 @@ public class ARProcessLauncher {
                 }
                 launchPHYML();
                 break;
+            case AR_RAXMLNG:
+                Infos.println("RAXML-NG AR was selected.");
+                launchRAXMLNG();
+                break;
             default:
                 break;
         }
@@ -177,6 +188,26 @@ public class ARProcessLauncher {
                     System.exit(1);
                 }
                 break;
+            case AR_RAXMLNG:
+                //we expect 2 files to be present in ARPath
+                //alignName.raxml.ancestralProbs
+                //alignName.raxml.ancestralTree
+                File statsraxml=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName()+".raxml.log");
+                File treeraxml=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName()+".raxml.ancestralTree");
+                File probaraxml=new File(ARPath.getAbsolutePath()+File.separator+alignPath.getName()+".raxml.ancestralProbs");
+                if (!statsraxml.exists() || !statsraxml.canRead()) {
+                    System.out.println(statsraxml.getAbsolutePath()+" do not exists or cannot be read.");
+                    System.exit(1);
+                }
+                if (!treeraxml.exists() || !treeraxml.canRead()) {
+                    System.out.println(treeraxml.getAbsolutePath()+" do not exists or cannot be read.");
+                    System.exit(1);
+                }
+                if (!probaraxml.exists() || !probaraxml.canRead()) {
+                    System.out.println(probaraxml.getAbsolutePath()+" do not exists or cannot be read.");
+                    System.exit(1);
+                }
+                break;
         }
     }
     
@@ -192,11 +223,33 @@ public class ARProcessLauncher {
         this.ARPath=ARPath;
         this.alignPath=alignPath;
         this.treePath=treePath;
-        String command=null;
+        if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
+            System.out.println("AR path is not a directory or do not have read rights.");
+            System.exit(1);
+        }
+        StringBuilder sb=new StringBuilder();
+        List<String> com=null;
         switch (this.currentProg) {
             case AR_PAML:
                 Infos.println("PAML AR was selected.");
-                command=preparePAML();
+                //build PHYML program command-line for the AR, without execution but built its .ctl file.
+                FileWriter fw=null;
+                StringBuilder sb2=null;
+                try {
+                    //paml launch command itself
+                    //launch paml externally to build the posterior probas on the extended tree
+                    com=buildPAMLCommand(fw);
+                    //execution
+                } catch (IOException ex) {
+                    Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    try {
+                        fw.close();
+                        return sb2.toString();
+                    } catch (IOException ex) {
+                        Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 break;
             case AR_PHYML:
                 Infos.println("PHYML AR was selected.");
@@ -207,63 +260,49 @@ public class ARProcessLauncher {
                         Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                command=preparePHYML();
+                com=buildPhyMLCommand();
+                break;
+            case AR_RAXMLNG:
+                Infos.println("RAXML-NG AR was selected.");
+                com=buildRAXMLNGCommand();
                 break;
             default:
                 break;
         }
-        return command;
-    }
-    
-    /**
-     * build PHYML program command-line for the AR, without execution.
-     * @return 
-     */
-    private String preparePHYML() {
-        if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
-            System.out.println("AR path is not a directory or do not have read rights.");
-            System.exit(1);
-        }
-        List<String> com=buildPhyMLCommand();
-        Infos.println("Ancestral reconstruct command: "+com);
-
-        StringBuilder sb=new StringBuilder(com.get(0));
-        for (int i = 1; i < com.size(); i++) {
+        for (int i = 0; i < com.size(); i++) {
             sb.append(" ");
             sb.append(com.get(i));
         }
+        Infos.println("Ancestral reconstruct command: "+sb.toString());
         return sb.toString();
     }
-    
+
     /**
-     * execute PAML program for the AR. First build the .ctl control file
-     * then execute PAML in the same directory.
-     * @param ARPath
-     * @param alignPath
-     * @param treePath
+     * execute RAXML-NG program for the AR.
+     * important: input tree should NOT have node labels !
      */
-    private void launchPHYML() {
-        if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
+    private void launchRAXMLNG() {
+        if ((!ARPath.isDirectory()) || (!ARPath.canWrite())) {
             System.out.println("AR path is not a directory or do not have read rights.");
             System.exit(1);
         }
-        
+
         try {
-            List<String> com=buildPhyMLCommand();
-            Infos.println("Ancestral reconstruct command: "+com);
+            List<String> com = buildRAXMLNGCommand();
+            Infos.println("Ancestral reconstruct command: " + com);
             //execution
             executeProcess(com);
-            //phyml is written all data files near the input aignment file...
+            //phyml is written all data files near the input alignment file...
             //we move them to the AR directory
             //files are:
             // 1. alignName_phyml_ancestral_seq.txt         (used)
             // 2. alignName_phyml_stats.txt                 (unused)
             // 3. alignName_phyml_ancestral_tree.txt        (used)
             // 4. alignName_phyml_tree.txt                  (unused)
-            File stats=new File(alignPath.getAbsolutePath()+"_phyml_stats.txt");
-            File tree=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_tree.txt");
-            File seq=new File(alignPath.getAbsolutePath()+"_phyml_ancestral_seq.txt");
-            File oriTree=new File(alignPath.getAbsolutePath()+"_phyml_tree.txt");
+            File stats = new File(alignPath.getAbsolutePath() + "_phyml_stats.txt");
+            File tree = new File(alignPath.getAbsolutePath() + "_phyml_ancestral_tree.txt");
+            File seq = new File(alignPath.getAbsolutePath() + "_phyml_ancestral_seq.txt");
+            File oriTree = new File(alignPath.getAbsolutePath() + "_phyml_tree.txt");
             //check that they were correctly created
             if (!stats.exists() || !tree.exists() || !seq.exists() || !oriTree.exists()) {
                 System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -278,18 +317,83 @@ public class ARProcessLauncher {
                 System.out.println("  #define  N_MAX_OTU         262144");
                 System.exit(1);
             }
-            File statsNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_stats.txt");
-            File treeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_ancestral_tree.txt");
-            File seqNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_ancestral_seq.txt");
-            File oriTreeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+"_phyml_tree.txt");
+            File statsNew = new File(alignPath.getParent().replace("/extended_trees", "/AR") + File.separator + alignPath.getName() + "_phyml_stats.txt");
+            File treeNew = new File(alignPath.getParent().replace("/extended_trees", "/AR") + File.separator + alignPath.getName() + "_phyml_ancestral_tree.txt");
+            File seqNew = new File(alignPath.getParent().replace("/extended_trees", "/AR") + File.separator + alignPath.getName() + "_phyml_ancestral_seq.txt");
+            File oriTreeNew = new File(alignPath.getParent().replace("/extended_trees", "/AR") + File.separator + alignPath.getName() + "_phyml_tree.txt");
+
+            boolean move = stats.renameTo(statsNew);
+            boolean move2 = tree.renameTo(treeNew);
+            boolean move3 = seq.renameTo(seqNew);
+            boolean move4 = oriTree.renameTo(oriTreeNew);
+
+            if (!move || !move2 || !move3 || !move4) {
+                System.out.println("Cannot move phyml results from /extended_tree to /AR directory");
+                System.exit(1);
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+    
+    /**
+     * execute PHYML program for the AR.
+     */
+    private void launchPHYML() {
+        if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
+            System.out.println("AR path is not a directory or do not have read rights.");
+            System.exit(1);
+        }
+        
+        try {
+            List<String> com=buildPhyMLCommand();
+            Infos.println("Ancestral reconstruct command: "+com);
+            //execution
+            executeProcess(com);
+            //raxml-ng writes all data files in same directory than the alignment file...
+            //we move results to the AR directory
+            //files are:
+            // 1. alignName.raxml.ancestralProbs             (used)
+            // 2. alignName.raxml.log                        (unused)
+            // 3. alignName.raxml.ancestralTree              (used)
+            // 4. alignName.raxml.startTree                  (unused)
+            // 5. alignName.raxml.ancestralStates            (unused)
+            // 6. alignName.raxml.rba                        (unused)
+
+            File stats=new File(alignPath.getAbsolutePath()+".raxml.log");
+            File tree=new File(alignPath.getAbsolutePath()+".raxml.ancestralTree");
+            File seq=new File(alignPath.getAbsolutePath()+".raxml.ancestralProbs");
+            File oriTree=new File(alignPath.getAbsolutePath()+".raxml.startTree");
+            File as=new File(alignPath.getAbsolutePath()+".raxml.ancestralStates");
+            File rba=new File(alignPath.getAbsolutePath()+".raxml.rba");
+
+            //check that they were correctly created
+            if (!stats.exists() || !tree.exists() || !seq.exists() || !oriTree.exists()) {
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println("!!! Raxml-ng outputs are missing, the process may have failed... !!!");
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+                System.out.println("Some clues may be found in the AR/AR_sdterr.txt  or AR/AR_sdtour.txt files.\n");
+                System.exit(1);
+            }
+            File statsNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+".raxml.log");
+            File treeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+".raxml.ancestralTree");
+            File seqNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+".raxml.ancestralProbs");
+            File oriTreeNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+".raxml.startTree");
+            File asNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+".raxml.ancestralStates");
+            File rbaNew=new File(alignPath.getParent().replace("/extended_trees", "/AR")+File.separator+alignPath.getName()+".raxml.rba");
             
             boolean move=stats.renameTo(statsNew);
             boolean move2=tree.renameTo(treeNew);
             boolean move3=seq.renameTo(seqNew);
             boolean move4=oriTree.renameTo(oriTreeNew);
-            
-            if (!move || ! move2 || !move3 || !move4) {
-                System.out.println("Could not move phyml results from /extended_tree to /AR directory");
+            boolean move5=as.renameTo(asNew);
+            boolean move6=rba.renameTo(rbaNew);
+
+
+            if (!move || ! move2 || !move3 || !move4 || !move5 || !move6) {
+                System.out.println("Cannot move raxml-ng results from /extended_tree to /AR directory");
                 System.exit(1);
             }
 
@@ -298,45 +402,7 @@ public class ARProcessLauncher {
         }
         
     }
-    
-    
 
-    /**
-     * build PHYML program command-line for the AR, without execution but built its .ctl file. 
-     */
-    private String preparePAML() {
-        
-        FileWriter fw=null;
-        StringBuilder sb2=null;
-        try {
-            if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
-                System.out.println("AR path is not a directory or do not have read rights.");
-                System.exit(1);
-            }
-
-            //paml launch command itself
-            //launch paml externally to build the posterior probas on the extended tree
-            List<String> com=buildPAMLCommand(fw);
-            Infos.println("Ancestral reconstruct command: "+com);   
-            //execution
-            sb2=new StringBuilder(com.get(0));
-            for (int i = 1; i < com.size(); i++) {
-                sb2.append(" ");
-                sb2.append(com.get(i));
-            }
-            
-        } catch (IOException ex) {
-            Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                fw.close();
-                return sb2.toString();
-            } catch (IOException ex) {
-                Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return null;
-    }
     
     private void launchPAML() {
         
@@ -361,8 +427,11 @@ public class ARProcessLauncher {
         
         
     }
-    
-    
+
+    /**
+     *
+     * @return
+     */
     private List<String> buildPhyMLCommand() {
         List<String> com=new ArrayList<>();
         com.add(ARBinary.getAbsolutePath());
@@ -404,11 +473,59 @@ public class ARProcessLauncher {
         
         return com;
     }
+
+    /**
+     *
+     * @return
+     */
+    private List<String> buildRAXMLNGCommand() {
+        List<String> com=new ArrayList<>();
+        com.add(ARBinary.getAbsolutePath());
+        com.add("--ancestral"); //marginal reconstruct
+        com.add("--msa"); //align
+        com.add(alignPath.getAbsolutePath());
+        com.add("--tree"); //tree
+        com.add(treePath.getAbsolutePath());
+        com.add("--threads");
+        com.add(Integer.toString(threads));
+        com.add("--redo"); //no error when launched previously
+        com.add("--precision");
+        com.add("9");
+        if (ARParameters==null) {
+            com.add("--data-type"); //analysis type
+            if (model.isProteinModel()) {
+                com.add("AA");
+            } else {
+                com.add("DNA");
+            }
+            com.add("--model"); //model
+            StringBuilder sb=new StringBuilder();
+            sb.append(model.modelString);
+            sb.append("+G");
+            sb.append(model.categories);
+            sb.append("{");
+            sb.append(model.alpha);
+            sb.append("}");
+            sb.append("+IU{0}");
+            sb.append("+FC");
+            com.add(sb.toString());
+            com.add("--opt-model");
+            com.add("on");
+            com.add("--opt-branches");
+            com.add("off");
+        } else {
+            //if parameters given by user via --arparameters, forget previous
+            //command and use this one instead.
+            com.addAll(Arrays.asList(ARParameters.split(" ")));
+        }
+        return com;
+    }
+
     
     /**
-     * 
+     * execute paml AR, by 1st creating config files, then execution.
+     * Important, input tree should NOT have node labels !
      * @param fwCTLFile paml ctl file
-     * @param modelFile paml model file
      * @return
      * @throws IOException 
      */

@@ -281,14 +281,14 @@ public class ARProcessLauncher {
      * execute RAXML-NG program for the AR.
      * important: input tree should NOT have node labels !
      */
-    private void launchRAXMLNG() {
+    private void launchPHYML() {
         if ((!ARPath.isDirectory()) || (!ARPath.canWrite())) {
             System.out.println("AR path is not a directory or do not have read rights.");
             System.exit(1);
         }
 
         try {
-            List<String> com = buildRAXMLNGCommand();
+            List<String> com = buildPhyMLCommand();
             Infos.println("Ancestral reconstruct command: " + com);
             //execution
             executeProcess(com);
@@ -339,16 +339,16 @@ public class ARProcessLauncher {
     }
     
     /**
-     * execute PHYML program for the AR.
+     * execute RAXMLNG program for the AR.
      */
-    private void launchPHYML() {
+    private void launchRAXMLNG() {
         if ( (!ARPath.isDirectory()) || (!ARPath.canWrite()) ) {
             System.out.println("AR path is not a directory or do not have read rights.");
             System.exit(1);
         }
         
         try {
-            List<String> com=buildPhyMLCommand();
+            List<String> com=buildRAXMLNGCommand();
             Infos.println("Ancestral reconstruct command: "+com);
             //execution
             executeProcess(com);
@@ -491,6 +491,10 @@ public class ARProcessLauncher {
         com.add("--redo"); //no error when launched previously
         com.add("--precision");
         com.add("9");
+        com.add("--seed");
+        com.add("1");
+        com.add("--force");
+        com.add("msa"); //do not check for duplicate sequences and empty columns, controlled on rappas side
         if (ARParameters==null) {
             com.add("--data-type"); //analysis type
             if (model.isProteinModel()) {

@@ -28,7 +28,7 @@ import tree.PhyloTree;
  * the correspondence between original PhyloTree and ExtendedTree.
  * @author ben
  */
-public class ARResults {
+public class    ARResults {
     
     //the parsed data
     private States s=null;
@@ -162,8 +162,27 @@ public class ARResults {
             endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML Postrerior Probas used " + (endTime - startTime) + " ms");
             
+        } else if (this.arpl.currentProg==ARProcessLauncher.AR_RAXMLNG) {
+            File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+".raxml.ancestralTree");
+            long startTime = System.currentTimeMillis();
+            RAXMLNGWrapper rw=new RAXMLNGWrapper(extendedAlign,s);
+            this.ARTree=rw.parseTree(new FileInputStream(tree));
+            Infos.println("Original tree rooted? : "+originalTree.isRooted());
+            Infos.println("RAXMLNG AR tree rooted? : "+ARTree.isRooted());
+            if (originalTree.isRooted() && (!ARTree.isRooted()) ) {
+                System.out.println("RAxML unrooted tree");
+                System.exit(1);
+            }
+            long endTime = System.currentTimeMillis();
+            Infos.println("Loading of RAXMLNG modified tree used " + (endTime - startTime) + " ms");
+            //probas
+            Infos.println("Starting to parse AR Postrerior Probas...");
+            File probas = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+".raxml.ancestralProbs");
+            startTime = System.currentTimeMillis();
+            this.probas = rw.parseSortedProbas(new FileInputStream(probas),Float.MIN_VALUE,true,Integer.MAX_VALUE);
+            endTime = System.currentTimeMillis();
+            Infos.println("Loading of RAXMLNG Postrerior Probas used " + (endTime - startTime) + " ms");
         }
-        //TODO: add raxml-ng
 
         
     }

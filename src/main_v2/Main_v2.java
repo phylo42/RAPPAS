@@ -139,7 +139,8 @@ public class Main_v2 {
                                             argsParser.acceptUnrootedRefTree,
                                             argsParser.onlyAR,
                                             argsParser.onlyARInput,
-                                            argsParser.dbfilename
+                                            argsParser.dbfilename,
+                                            argsParser.threads
                                             );
                 System.out.println("Have a coffee, you \"built\" your world.");
 

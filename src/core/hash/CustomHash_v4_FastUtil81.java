@@ -5,6 +5,7 @@
  */
 package core.hash;
 
+import core.AAStates;
 import core.States;
 import etc.Infos;
 import it.unimi.dsi.fastutil.chars.Char2FloatMap;
@@ -46,11 +47,19 @@ public class CustomHash_v4_FastUtil81 implements Serializable{
         this.maxCapacitySize=new Double(Math.pow(s.getNonAmbiguousStatesCount(), k)).intValue();
         this.nodeType=nodeType;
         //internal tests showed that with k<14 we generally get at least 75% of the possible k-mers
-        this.hash=new Object2ObjectOpenCustomHashMap<>(
-                            new Double(maxCapacitySize/8).intValue(),  //intial capacity
-                            0.8f, //inital load factor                
-                            new HashStrategy()
-                        );
+        if (s instanceof AAStates) {
+            this.hash = new Object2ObjectOpenCustomHashMap<>(
+                    (int)(Math.pow(20,k)/10),  //intial capacity
+                    0.8f, //inital load factor
+                    new HashStrategy()
+            );
+        } else {
+            this.hash = new Object2ObjectOpenCustomHashMap<>(
+                    (int)(Math.pow(4,k)/2),  //intial capacity
+                    0.8f, //inital load factor
+                    new HashStrategy()
+            );
+        }
         this.hash.defaultReturnValue(null);
     }
     

@@ -59,6 +59,7 @@ public class ArgumentsParser_v2 {
     public int categories=4;
     public String arparameters=null;
     public String dbfilename=null;
+    public int threads=4; // #threads for AR, currently only used by raxml-ng
 
     //passed for debugging in DB_build
     public File ARBinary=new File("phyml"); //default = phyml command line
@@ -586,6 +587,17 @@ public class ArgumentsParser_v2 {
                         this.onlyARInput=true;
                         System.out.println("Only extended_tree and AR inputs will be built.");
                     }
+
+                    //test --threads parameter
+                    if (argsMap.get(index).equals("--threads")) {
+                        String val=argsMap.get(index+1);
+                        try {
+                            this.threads=Integer.parseInt(val);
+                        } catch (NumberFormatException ex ) {
+                            System.out.println("Cannot parse '--threads' as an integer value.");
+                            System.exit(1);
+                        }
+                    }
                     
                     //////////////////////////////////////
                     //////////////////////////////////////
@@ -846,6 +858,7 @@ public class ArgumentsParser_v2 {
         "--force-gap-jump  [] Forces gap jump even if %gap<thresh. (b phase) \n" +
         "--jsondb          [] DB written as json. (careful, huge file outputs!)\n" +
         "--noamb           [] Do not treat ambiguous states. (p phase)\n" +
+        "--threads         [4] #threads used in AR (if raxml-ng). (b phase)\n" +
         "\n"
         );
        System.exit(0);

@@ -139,7 +139,8 @@ public class Main_DBBUILD_3 {
                                         boolean acceptUnrootedRefTree,
                                         boolean onlyAR,
                                         boolean onlyARInput,
-                                        String dbFilename
+                                        String dbFilename,
+                                        int threads
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -419,7 +420,7 @@ public class Main_DBBUILD_3 {
             
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
-            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,s,model,arparameters);
+            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,s,model,arparameters,threads);
             //basique recognition of AR software is done through its ARBinary name
             //Note: even if AR is skipped (option --ardir),
             //ArgumentsParser.ARBinary value is used, which allows 

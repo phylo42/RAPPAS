@@ -93,7 +93,7 @@ public class ARProcessLauncher {
             System.out.println("I guess, from binary name, we are using RAXML-NG.");
             this.currentProg=AR_RAXMLNG;
         } else {
-                System.out.println("AR binary is unknown, currently RAPPAS support only phyml & baseml+codeml (from paml package).");
+                System.out.println("AR binary is unknown, currently RAPPAS support only phyml, raxml-ng & baseml+codeml (from paml package).");
             System.exit(1);
         }
 
@@ -509,10 +509,12 @@ public class ARProcessLauncher {
             sb.append("+IU{0}");
             sb.append("+FC");
             com.add(sb.toString());
+            com.add("--blopt");
+            com.add("nr_safe");
             com.add("--opt-model");
             com.add("on");
             com.add("--opt-branches");
-            com.add("off");
+            com.add("on");
         } else {
             //if parameters given by user via --arparameters, forget previous
             //command and use this one instead.
@@ -563,7 +565,7 @@ public class ARProcessLauncher {
                 sb.append("Small_Diff = 7e-6\n");
                 sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
                 sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
-                sb.append("fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
+                sb.append("fix_blength = 0  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
                 sb.append("method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
                 fwCTLFile = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"baseml.ctl"));
                 Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
@@ -627,7 +629,7 @@ public class ARProcessLauncher {
                 sb.append("   Small_Diff = 7e-6\n");
                 sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
                 sb.append("      * icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
-                sb.append("  fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
+                sb.append("  fix_blength = 0  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
                 sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
                 //write paml ctl file 
                 fwCTLFile = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"codeml.ctl"));

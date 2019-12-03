@@ -143,7 +143,7 @@ public class    ARResults {
                 //input:        ((C1,C2)node,C3)root;
                 //phyml output: (C3,C1,C2)newick_root;
                 //then we go back to the original input configuration, i.e.
-                //((C1,C2)newick_root,C3)added_root;q
+                //((C1,C2)newick_root,C3)added_root;
                 this.ARTree=pw.parseTree(new FileInputStream(tree),true);
                 Infos.println("AR tree was unrooted by PhyML, rerooting for coherent jplace result. Now rooted: "+ARTree.isRooted());
                 File rerooted=new File(tree.getAbsolutePath()+"_rerooted");
@@ -166,12 +166,24 @@ public class    ARResults {
             File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+".raxml.ancestralTree");
             long startTime = System.currentTimeMillis();
             RAXMLNGWrapper rw=new RAXMLNGWrapper(extendedAlign,s);
-            this.ARTree=rw.parseTree(new FileInputStream(tree));
+            this.ARTree=rw.parseTree(new FileInputStream(tree),false);
             Infos.println("Original tree rooted? : "+originalTree.isRooted());
             Infos.println("RAXMLNG AR tree rooted? : "+ARTree.isRooted());
             if (originalTree.isRooted() && (!ARTree.isRooted()) ) {
-                System.out.println("RAxML unrooted tree");
-                System.exit(1);
+                //raxmlng AR unroot input tree even if they are rooted
+                //we need to reroot the tree as it was in the initial input
+                //What deos raxmlng ?
+                //input:         ((C1,C2)node,C3)root;
+                //raxmlng output: (C3,C1,C2)newick_root;
+                //then we go back to the original input configuration, i.e.
+                //((C1,C2)newick_root,C3)added_root;
+                this.ARTree=rw.parseTree(new FileInputStream(tree),true);
+                Infos.println("AR tree was unrooted by RAxML-ng, rerooting for coherent jplace result. Now rooted: "+ARTree.isRooted());
+                File rerooted=new File(tree.getAbsolutePath()+"_rerooted");
+                NewickWriter nw=new NewickWriter(rerooted);
+                nw.writeNewickTree(ARTree, true, true, false, false);
+                Infos.println("Rerooted tree written in :"+rerooted.getAbsolutePath());
+                nw.close();
             }
             long endTime = System.currentTimeMillis();
             Infos.println("Loading of RAXMLNG modified tree used " + (endTime - startTime) + " ms");

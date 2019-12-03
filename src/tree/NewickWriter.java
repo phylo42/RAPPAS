@@ -175,7 +175,7 @@ public class NewickWriter {
                 level--;
                 //System.out.println("RETURN TO "+(--level) +"  (node:"+node+")");
             }
-            //return from recusion or simple leaf,
+            //return from recursion or simple leaf,
             //add ',' if more children
             //close level with current node info if no children left
             if (childrenLeft>0) {
@@ -194,7 +194,7 @@ public class NewickWriter {
                     sb.append(':');
                     sb.append(format.format(node.getBranchLengthToAncestor()));
                 }
-                if (jplaceBranchLabels && (level>-1) ) {
+                if (jplaceBranchLabels && (level>-1)) {
                     sb.append('{');
                     sb.append(node.getJplaceEdgeId());
                     sb.append('}');

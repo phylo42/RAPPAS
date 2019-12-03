@@ -237,18 +237,13 @@ public class ARProcessLauncher {
                 StringBuilder sb2=null;
                 try {
                     //paml launch command itself
+                    //first write control file
+                    buildPAMLCtlFile();
                     //launch paml externally to build the posterior probas on the extended tree
-                    com=buildPAMLCommand(fw);
+                    com=buildPAMLCommand();
                     //execution
                 } catch (IOException ex) {
                     Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
-                } finally {
-                    try {
-                        fw.close();
-                        return sb2.toString();
-                    } catch (IOException ex) {
-                        Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
-                    }
                 }
                 break;
             case AR_PHYML:
@@ -414,12 +409,11 @@ public class ARProcessLauncher {
         try {
             //paml launch command itself
             //launch paml externally to build the posterior probas on the extended tree
-            List<String> com=buildPAMLCommand(fw);
+            List<String> com=buildPAMLCommand();
             //launch paml externally to build the posterior probas on the extended tree
             Infos.println("Ancestral reconstruct command: "+com);
             executeProcess(com);
             //here should add code to check that expected output files were created correctly
-            //TODO
 
         } catch (IOException ex) {
             Logger.getLogger(ARProcessLauncher.class.getName()).log(Level.SEVERE, null, ex);
@@ -527,122 +521,133 @@ public class ARProcessLauncher {
         return com;
     }
 
-    
+
+    /**
+     * build control file required for paml execution
+     */
+    public void buildPAMLCtlFile() throws IOException {
+        //first of all, write model file
+        String modelString=model.getPAMLEquivalent();
+        //content of paml control file (*.ctl)
+        StringBuilder sb=new StringBuilder();
+        if(!(s instanceof AAStates)) {
+            //convert model to PAML model identifier
+            sb.append("seqfile = "+alignPath.getAbsolutePath()+File.separator+"extended_align.phylip\n");
+            sb.append("treefile = "+treePath.getAbsolutePath()+File.separator+"extended_tree_withBL_withoutInterLabels.tree\n");
+            sb.append("outfile = "+ARPath.getAbsolutePath()+File.separator+"paml_output"+"\n");
+            sb.append("noisy = 3   * 0,1,2,3: how much rubbish on the screen\n");
+            sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
+            sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
+            sb.append("model = "+modelString+"   * 0:JC69, 1:K80, 2:F81, 3:F84, 4:HKY85 5:T92, 6:TN93, 7:REV, 8:UNREST, 9:REVu; 10:UNRESTu\n");
+            sb.append("Mgene = 0   * 0:rates, 1:separate; 2:diff pi, 3:diff kapa, 4:all diff\n");
+            sb.append("* ndata = 100\n");
+            sb.append("clock = 0   * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
+            sb.append("fix_kappa = 0   * 0: estimate kappa; 1: fix kappa at value below\n");
+            sb.append("kappa = 5  * initial or fixed kappa\n");
+            sb.append("fix_alpha = 1   * 0: estimate alpha; 1: fix alpha at value below\n");
+            sb.append("alpha = "+String.valueOf(model.alpha)+"   * initial or fixed alpha, 0:infinity (constant rate)\n");
+            sb.append("Malpha = 0   * 1: different alpha's for genes, 0: one alpha\n");
+            sb.append("ncatG = "+String.valueOf(model.categories)+"   * # of categories in the dG, AdG, or nparK models of rates\n");
+            sb.append("nparK = 0   * rate-class models. 1:rK, 2:rK&fK, 3:rK&MK(1/K), 4:rK&MK\n");
+            sb.append("nhomo = 0   * 0 & 1: homogeneous, 2: kappa for branches, 3: N1, 4: N2\n");
+            sb.append("getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
+            sb.append("RateAncestor = 1   * (0,1,2): rates (alpha>0) or ancestral states\n");
+            sb.append("Small_Diff = 7e-6\n");
+            sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
+            sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
+            sb.append("fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
+            sb.append("method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
+            FileWriter fwCTLFile = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"baseml.ctl"));
+            Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
+            fwCTLFile.append(sb);
+            fwCTLFile.close();
+        } else {
+            //if protein analysis, empiric models defined in files
+            //need to copy them
+            File modelFile = new File(ARPath.getAbsolutePath()+File.separator+modelString);
+            //then write qsub array shell script in the working directory
+            Infos.println("Loading PAML model file: "+modelString);
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/"+modelString);
+            Files.copy(resourceAsStream, modelFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            resourceAsStream.close();
+
+            sb.append("      seqfile = "+alignPath.getAbsolutePath()+File.separator+"extended_align.phylip\n");
+            sb.append("     treefile = "+treePath.getAbsolutePath()+File.separator+"extended_tree_withBL_withoutInterLabels.tree\n");
+            sb.append("      outfile = "+ARPath.getAbsolutePath()+File.separator+"paml_output"+"\n");
+            sb.append("        noisy = 3   * 0: concise; 1: detailed, 2: too much\n");
+            sb.append("      verbose = 2   * set to 2 to output posterior proba distribution\n");
+            sb.append("      runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI  -2: pairwise\n");
+            sb.append("      seqtype = 2  * 1:codons; 2:AAs; 3:codons-->AAs\n");
+            sb.append("    CodonFreq = 2  * 0:1/61 each, 1:F1X4, 2:F3X4, 3:codon table\n");
+            sb.append("      * ndata = 100\n");
+            sb.append("        clock = 0  * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
+            sb.append("       aaDist = 0  * 0:equal, +:geometric; -:linear, 1-6:G1974,Miyata,c,p,v,a\n");
+            sb.append("   aaRatefile = "+modelFile.getAbsolutePath()+"  * only used for aa seqs with model=empirical(_F)\n");
+            sb.append("                   * dayhoff.dat, jones.dat, wag.dat, mtmam.dat, or your own\n");
+            sb.append("        model = 2\n");
+            sb.append("                   * models for codons:\n");
+            sb.append("                       * 0:one, 1:b, 2:2 or more dN/dS ratios for branches\n");
+            sb.append("                   * models for AAs or codon-translated AAs:\n");
+            sb.append("                       * 0:poisson, 1:proportional, 2:Empirical, 3:Empirical+F\n");
+            sb.append("                       * 6:FromCodon, 7:AAClasses, 8:REVaa_0, 9:REVaa(nr=189)\n");
+            sb.append("      NSsites = 0  * 0:one w;1:neutral;2:selection; 3:discrete;4:freqs;\n");
+            sb.append("                   * 5:gamma;6:2gamma;7:beta;8:beta&w;9:beta&gamma;\n");
+            sb.append("                   * 10:beta&gamma+1; 11:beta&normal>1; 12:0&2normal>1;\n");
+            sb.append("                   * 13:3normal>0\n");
+            sb.append("        icode = 0  * 0:universal code; 1:mammalian mt; 2-10:see below\n");
+            sb.append("        Mgene = 0\n");
+            sb.append("                   * codon: 0:rates, 1:separate; 2:diff pi, 3:diff kapa, 4:all diff\n");
+            sb.append("                   * AA: 0:rates, 1:separate\n");
+            sb.append("    fix_kappa = 0  * 1: kappa fixed, 0: kappa to be estimated\n");
+            sb.append("        kappa = 2  * initial or fixed kappa\n");
+            sb.append("    fix_omega = 0  * 1: omega or omega_1 fixed, 0: estimate \n");
+            sb.append("        omega = .4 * initial or fixed omega, for codons or codon-based AAs\n");
+            sb.append("    fix_alpha = 1  * 0: estimate gamma shape parameter; 1: fix it at alpha\n");
+            sb.append("        alpha = "+String.valueOf(model.alpha)+" * initial or fixed alpha, 0:infinity (constant rate)\n");
+            sb.append("       Malpha = 0  * different alphas for genes\n");
+            sb.append("        ncatG = "+String.valueOf(model.categories)+"  * # of categories in dG of NSsites models\n");
+            sb.append("        getSE = 0  * 0: don't want them, 1: want S.E.s of estimates\n");
+            sb.append(" RateAncestor = 1  * (0,1,2): rates (alpha>0) or ancestral states (1 or 2)\n");
+            sb.append("   Small_Diff = .5e-6\n");
+            sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
+            sb.append("  fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
+            sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
+            sb.append("        getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
+            sb.append(" RateAncestor = 1   * (0,1,2): rates (alpha>0) or ancestral states\n");
+            sb.append("   Small_Diff = 7e-6\n");
+            sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
+            sb.append("      * icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
+            sb.append("  fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
+            sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
+            //write paml ctl file
+            FileWriter fwCTLFile = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"codeml.ctl"));
+            Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"codeml.ctl");
+            fwCTLFile.append(sb);
+            fwCTLFile.close();
+
+        }
+
+    }
+
+
+
     /**
      * execute paml AR, by 1st creating config files, then execution.
      * Important, input tree should NOT have node labels !
-     * @param fwCTLFile paml ctl file
      * @return
      * @throws IOException 
      */
-    private List<String> buildPAMLCommand(FileWriter fwCTLFile) throws IOException {
+    private List<String> buildPAMLCommand() throws IOException {
         List<String> com=new ArrayList<>();
         com.add(ARBinary.getAbsolutePath());
         //first of all, write model file
         String modelString=model.getPAMLEquivalent();
-        
         if (ARParameters==null) {
-            //content of paml control file (*.ctl)
-            StringBuilder sb=new StringBuilder();
             if(!(s instanceof AAStates)) {
-                //convert model to PAML model identifier
-                sb.append("seqfile = "+alignPath.getAbsolutePath()+"\n");
-                sb.append("treefile = "+treePath.getAbsolutePath()+"\n");
-                sb.append("outfile = "+ARPath.getAbsolutePath()+File.separator+"paml_output"+"\n");
-                sb.append("noisy = 3   * 0,1,2,3: how much rubbish on the screen\n");
-                sb.append("verbose = 2   * set to 2 to output posterior proba distribution\n");
-                sb.append("runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI\n");
-                sb.append("model = "+modelString+"   * 0:JC69, 1:K80, 2:F81, 3:F84, 4:HKY85 5:T92, 6:TN93, 7:REV, 8:UNREST, 9:REVu; 10:UNRESTu\n");
-                sb.append("Mgene = 0   * 0:rates, 1:separate; 2:diff pi, 3:diff kapa, 4:all diff\n");
-                sb.append("* ndata = 100\n");
-                sb.append("clock = 0   * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
-                sb.append("fix_kappa = 0   * 0: estimate kappa; 1: fix kappa at value below\n");
-                sb.append("kappa = 5  * initial or fixed kappa\n");
-                sb.append("fix_alpha = 1   * 0: estimate alpha; 1: fix alpha at value below\n");
-                sb.append("alpha = "+String.valueOf(model.alpha)+"   * initial or fixed alpha, 0:infinity (constant rate)\n");
-                sb.append("Malpha = 0   * 1: different alpha's for genes, 0: one alpha\n");
-                sb.append("ncatG = "+String.valueOf(model.categories)+"   * # of categories in the dG, AdG, or nparK models of rates\n");
-                sb.append("nparK = 0   * rate-class models. 1:rK, 2:rK&fK, 3:rK&MK(1/K), 4:rK&MK\n");
-                sb.append("nhomo = 0   * 0 & 1: homogeneous, 2: kappa for branches, 3: N1, 4: N2\n");
-                sb.append("getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
-                sb.append("RateAncestor = 1   * (0,1,2): rates (alpha>0) or ancestral states\n");
-                sb.append("Small_Diff = 7e-6\n");
-                sb.append("cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
-                sb.append("* icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
-                sb.append("fix_blength = 0  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                sb.append("method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
-                fwCTLFile = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"baseml.ctl"));
-                Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
-                fwCTLFile.append(sb);
-                fwCTLFile.close();
-                com.add(ARPath.getAbsolutePath()+File.separator+"baseml.ctl");
-
-            } else {   
-                //if protein analysis, empiric models defined in files
-                //need to copy them
-                File modelFile = new File(ARPath.getAbsolutePath()+File.separator+modelString);
-                //then write qsub array shell script in the working directory
-                Infos.println("Loading PAML model file: "+modelString);
-                InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/"+modelString);
-                Files.copy(resourceAsStream, modelFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                resourceAsStream.close();
-              
-                sb.append("      seqfile = "+alignPath.getAbsolutePath()+"\n");
-                sb.append("     treefile = "+treePath.getAbsolutePath()+"\n");
-                sb.append("      outfile = "+ARPath.getAbsolutePath()+File.separator+"paml_output"+"\n");
-                sb.append("        noisy = 3   * 0: concise; 1: detailed, 2: too much\n");
-                sb.append("      verbose = 2   * set to 2 to output posterior proba distribution\n");
-                sb.append("      runmode = 0   * 0: user tree;  1: semi-automatic;  2: automatic 3: StepwiseAddition; (4,5):PerturbationNNI  -2: pairwise\n");
-                sb.append("      seqtype = 2  * 1:codons; 2:AAs; 3:codons-->AAs\n");
-                sb.append("    CodonFreq = 2  * 0:1/61 each, 1:F1X4, 2:F3X4, 3:codon table\n");
-                sb.append("      * ndata = 100\n");
-                sb.append("        clock = 0  * 0:no clock, 1:clock; 2:local clock; 3:CombinedAnalysis\n");
-                sb.append("       aaDist = 0  * 0:equal, +:geometric; -:linear, 1-6:G1974,Miyata,c,p,v,a\n");
-                sb.append("   aaRatefile = "+modelFile.getAbsolutePath()+"  * only used for aa seqs with model=empirical(_F)\n");
-                sb.append("                   * dayhoff.dat, jones.dat, wag.dat, mtmam.dat, or your own\n");
-                sb.append("        model = 2\n");
-                sb.append("                   * models for codons:\n");
-                sb.append("                       * 0:one, 1:b, 2:2 or more dN/dS ratios for branches\n");
-                sb.append("                   * models for AAs or codon-translated AAs:\n");
-                sb.append("                       * 0:poisson, 1:proportional, 2:Empirical, 3:Empirical+F\n");
-                sb.append("                       * 6:FromCodon, 7:AAClasses, 8:REVaa_0, 9:REVaa(nr=189)\n");
-                sb.append("      NSsites = 0  * 0:one w;1:neutral;2:selection; 3:discrete;4:freqs;\n");
-                sb.append("                   * 5:gamma;6:2gamma;7:beta;8:beta&w;9:beta&gamma;\n");
-                sb.append("                   * 10:beta&gamma+1; 11:beta&normal>1; 12:0&2normal>1;\n");
-                sb.append("                   * 13:3normal>0\n");
-                sb.append("        icode = 0  * 0:universal code; 1:mammalian mt; 2-10:see below\n");
-                sb.append("        Mgene = 0\n");
-                sb.append("                   * codon: 0:rates, 1:separate; 2:diff pi, 3:diff kapa, 4:all diff\n");
-                sb.append("                   * AA: 0:rates, 1:separate\n");
-                sb.append("    fix_kappa = 0  * 1: kappa fixed, 0: kappa to be estimated\n");
-                sb.append("        kappa = 2  * initial or fixed kappa\n");
-                sb.append("    fix_omega = 0  * 1: omega or omega_1 fixed, 0: estimate \n");
-                sb.append("        omega = .4 * initial or fixed omega, for codons or codon-based AAs\n");
-                sb.append("    fix_alpha = 1  * 0: estimate gamma shape parameter; 1: fix it at alpha\n");
-                sb.append("        alpha = "+String.valueOf(model.alpha)+" * initial or fixed alpha, 0:infinity (constant rate)\n");
-                sb.append("       Malpha = 0  * different alphas for genes\n");
-                sb.append("        ncatG = "+String.valueOf(model.categories)+"  * # of categories in dG of NSsites models\n");
-                sb.append("        getSE = 0  * 0: don't want them, 1: want S.E.s of estimates\n");
-                sb.append(" RateAncestor = 1  * (0,1,2): rates (alpha>0) or ancestral states (1 or 2)\n");
-                sb.append("   Small_Diff = .5e-6\n");
-                sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
-                sb.append("  fix_blength = 2  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
-                sb.append("        getSE = 0   * 0: don't want them, 1: want S.E.s of estimates\n");
-                sb.append(" RateAncestor = 1   * (0,1,2): rates (alpha>0) or ancestral states\n");
-                sb.append("   Small_Diff = 7e-6\n");
-                sb.append("    cleandata = 0  * remove sites with ambiguity data (1:yes, 0:no)?\n");
-                sb.append("      * icode = 0  * (with RateAncestor=1. try \"GC\" in data,model=4,Mgene=4)\n");
-                sb.append("  fix_blength = 0  * 0: ignore, -1: random, 1: initial, 2: fixed\n");
-                sb.append("       method = 0  * Optimization method 0: simultaneous; 1: one branch a time\n");
-                //write paml ctl file 
-                fwCTLFile = new FileWriter(new File(ARPath.getAbsolutePath()+File.separator+"codeml.ctl"));
-                Infos.println("Ancestral reconstruciton parameters written in: "+ARPath.getAbsolutePath()+File.separator+"codeml.ctl");
-                fwCTLFile.append(sb);
-                fwCTLFile.close();
-                com.add(ARPath.getAbsolutePath()+File.separator+"codeml.ctl");
-
-            }  
+                com.add(ARPath.getAbsolutePath() + File.separator + "baseml.ctl");
+            } else {
+                com.add(ARPath.getAbsolutePath() + File.separator + "codeml.ctl");
+            }
         } else {
             //if parameters given by user via --arparameters, forget previous 
             //command and use this one instead.

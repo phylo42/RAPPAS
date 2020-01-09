@@ -866,7 +866,7 @@ public class ArgumentsParser_v2 {
         "ancestral reconstruction, e.g. one of :\n" +
         " * phyml: Oliva et al, 2019. doi: 10.1093/bioinformatics/btz249\n" +
         " * paml: Yang Z, 2007. doi: 10.1093/molbev/msm088\n" +
-        " * raxml-ng: Kzlov et al, 2019. doi: 10.1093/bioinformatics/btz305\n" +
+        " * raxml-ng: Kzlov et al, 2019. doi: 10.1093/bioinformatics/btz305\n"
 
         );
        System.exit(0);

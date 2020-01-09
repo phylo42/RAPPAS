@@ -1,3 +1,12 @@
+v1.20
+
++ project configuration migration from Netbeans to IntelliJ IDEA
++ external library now managed via MAVEN (where possible)
++ support for ancestral reconstruction computed by RAxML-ng (~10x faster than phyml)
++ 'paml', 'phyml' and 'raxml-ng' binaries can be called via '-b/--arbinary'
++ option '--threads' allow to use several CPUs in RAxML-ng reconstructions
+* minor logging changes
+
 v1.12
 
 * bugfix in phylo-kmer generation: DB build is slower but placement is now more accurate !

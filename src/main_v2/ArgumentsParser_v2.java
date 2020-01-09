@@ -859,7 +859,15 @@ public class ArgumentsParser_v2 {
         "--jsondb          [] DB written as json. (careful, huge file outputs!)\n" +
         "--noamb           [] Do not treat ambiguous states. (p phase)\n" +
         "--threads         [4] #threads used in AR (if raxml-ng). (b phase)\n" +
-        "\n"
+        "\n" +
+        "Final note:\n" +
+        "---------------------------------------------------------------------\n"+
+        "When you use this software, please cite RAPPAS and the binary used for \n" +
+        "ancestral reconstruction, e.g. one of :\n" +
+        " * phyml: Oliva et al, 2019. doi: 10.1093/bioinformatics/btz249\n" +
+        " * paml: Yang Z, 2007. doi: 10.1093/molbev/msm088\n" +
+        " * raxml-ng: Kzlov et al, 2019. doi: 10.1093/bioinformatics/btz305\n" +
+
         );
        System.exit(0);
     }  

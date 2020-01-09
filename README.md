@@ -1,40 +1,47 @@
-```diff
-
-Due to a bug in earlier versions of PhyML, if you compile from sources
-we STRONGLY recommand to use PhyML >3.3.20190909 and RAPPAS >1.12 !
-You can download this version from PhyML GIT repository.
-
-**If you install RAPPAS with conda, correct versions will be automatically selected.**
-
-
-Also, when placing on large trees, remember that the default limits of PhyML are quite low.
-(<4000 taxa, sequence labels <1000 characters)
-You can work with larger trees and longer sequence labels after the following changes:
-
-1) Modify the following lines in the src/utilities.h source file of PhyML :
-
-#define  T_MAX_FILE          2000
-#define  T_MAX_NAME          5000
-#define  N_MAX_OTU         262144
-
-2) Recompile phyml after these changes.
-
-3) Launch RAPPAS.
-
-``` 
-
-
-
 # RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
 
 **This README contains short instructions to build and launch RAPPAS.**
 
-**!!!!!!!!!!!!!!!!!**
-
 **You will find __more detailed instructions, test datasets, pre-built databases and tutorials__ and discussions related to phylogenetic placement on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
 
-**!!!!!!!!!!!!!!!!!**
+
+## Important notices
+
+```diff
+
+01/2020
+
+RAxML-ng support added in RAPPAS v1.20.
+phyml (>=3.3.20190909), paml (>=4.9) or raxml-ng (>=0.9.0) ancestral reconstructions (AR)
+are now compatible with RAPPAS. As they produce similar results, AR software selection
+depends mostly on the time/RAM balance you can handle.
+(see "Note on PhyML, PAML and RAxML binaries" below).
+In your productions, please think to cite both RAPPAS and the selected AR software.
+
+09/2019
+
+Due to an output format change in PhyML, RAPPAS may fail with PhyML version <3.3.20190909.
+We STRONGLY recommand to use PhyML >=3.3.20190909 and RAPPAS >=1.12 !
+You can download this version of PhyML from its GIT repository.
+
+**If you install RAPPAS with conda, the correct version will be automatically selected.**
+
+06/2019
+
+When placing on large trees, remember that the default limits of PhyML are quite low.
+(<4000 taxa, sequence labels <1000 characters)
+You can work with larger trees and longer sequence labels after the following changes:
+
+1) Modify the following lines in the src/utilities.h source file of PhyML :
+#define  T_MAX_FILE          2000
+#define  T_MAX_NAME          5000
+#define  N_MAX_OTU         262144
+2) Recompile phyml after these changes.
+3) Launch RAPPAS.
+
+``` 
+
 
 ## Description
 
@@ -63,7 +70,7 @@ Then you can run RAPPAS with the command:
 rappas [options]
 ```
 
-If you need to customize JVM parameters (for instance when requesting more memory with options -Xmx/-Xms), use the following bash command:
+If you need to customize Java JVM parameters (for instance when requesting more memory with options -Xmx/-Xms), use the following bash command:
 
 ```
 java -Xmx16G -jar $(which RAPPAS.jar) [options]
@@ -71,12 +78,12 @@ java -Xmx16G -jar $(which RAPPAS.jar) [options]
 
 ### From sources: prerequisites
 
-- RAPPAS compilation requires a clean JDK 1.8 javac compiler installation. Java >=1.8 is a compulsory requirement as some operations are based on Lambda expressions.
+- RAPPAS compilation requires a clean javac compiler installation. Java >=1.8 is compulsory as some operations are based on Lambda expressions.
 - Apache Ant is used to facilitate the compilation.
 
 We provide instructions for Debian-based Linux distributions. For compiling Java sources with Apache Ant on other operating systems, please perform analogous operations on your system.
 
-Using OpenJDK 1.8:
+Using OpenJDK 1.8 (more recent versions also compatible):
 ```
 #install packages
 sudo apt-get update
@@ -85,7 +92,7 @@ sudo apt-get install openjdk-8-jdk
 sudo update-java-alternatives --set java-1.8.0-openjdk-amd64
 
 ```
-Using the proprietary Oracle JDK 1.8:
+Using the proprietary Oracle JDK 1.8  (more recent versions also compatible):
 ```
 #install packages
 sudo add-apt-repository ppa:webupd8team/java
@@ -136,7 +143,7 @@ Such reference marker gene datasets can be found, for instance from:
 
 ### Sharing pre-built RAPPAS databases
 
-While our goal is to allow stable databases that can be broadly shared, RAPPAS is still in active development. Some major changes may induce that a recent version (ex: v1.05) becomes incompatible with a DB built using an older version (ex: v1.01). Such incompatibilities are clearly stated in the "release" page and the changelog. 
+While our goal is to allow stable databases that can be broadly shared, RAPPAS is still in active development. Some major changes may induce that a recent version (ex: v1.05) becomes incompatible with a DB built using an older version (ex: v1.01). Such incompatibilities are clearly stated in the "release" page and the changelog. Also be aware that, because uses internal Java serialization, you may run to troubles when sharing databases between users using different Java versions or Oracle JDK VS OpenJDK.
 
 ### RAPPAS database build 
 
@@ -152,28 +159,23 @@ option | expected value | description
 --- | --- | ---
 **-p <br/>(--phase)** | "b" | Invokes the "database build" process.
 **-s <br/>(--states)** | "nucl" or "prot" | Set if we use a nucleotide or protein analysis.
-**-b <br/>(--arbinary)** | binary of PhyML (>=v3.3) or PAML (>=4.9) | Set the path to the binary used for ancestral sequence reconstruction (see note below).
+**-b <br/>(--arbinary)** | binary of PhyML (>=3.3.20190909),PAML (>=4.9) or RAxML-ng (>=0.9.0) | Set the path to the binary used for ancestral sequence reconstruction (see note below).
 **-w <br/>(--workdir)** | directory | Set the directory to save the database in.
 **-r <br/>(--refalign)** | file | The reference alignment, in fasta format.
 **-t <br/>(--reftree)̀** | file | The reference tree, in newick format.
 
-__Note on PhyML and PAML binaries__:
+__Note on PhyML, PAML and RAxML binaries__:
 Currently, the following programs are fully supported by RAPPAS for generating ancestral sequence posterior probabilities:
-- PhyML : Fastest & strongly recommended but may require lots of RAM (you have to use phyml-v3.3.20180214).
-- PAML  : Slower,  but requires less memory.
+- RAxML-ng :  Fastest & recommended but may require lots of RAM (you have to use phyml-v3.3.20180214).
+- PhyML    :  ~10x slower, requires slightly less memory.
+- PAML     :  ~100x slower, but very low memory footprint.
 
 __Note on -Xm[x]G option__:
 The process of database build can be memory intensive for values of k>=10.
 To make RAPPAS run smoothly, allocate more memory (more heap) to the java process using the option -Xm[x]G where [x] is replaced by an integer value.
 For instance, -Xm8G will extend the java heap to a maximum of 8Gb of memory, -Xmx16G will extend it to a maximum of 16Gb ... 
 
-
 You can use the latest versions provided on the authors' websites. PhyML requires at least version 3.3 (see [PhyML GIT](https://github.com/stephaneguindon/phyml) ), but we recommand the _HACKED VERSIONS_ available in this git repository in the /depbin directory.
-
-```diff
-- ** WARNING : if you use phyml, the recent phyml-v3.3.20180214 and phyml-v3.3.20180621 are currently compatible with RAPPAS. These versions can be downloaded from the phyml GIT repository: https://github.com/stephaneguindon/phyml**
-``` 
-
 
 These are based on slightly modified sources of PhyML and PAML: no change in ML computations, but useless outputs are skipped, making the ancestral reconstruction process faster (in particular for PAML).
 
@@ -256,6 +258,7 @@ option | expected value {default} | description
 **--do-n-jumps** | none |   Shifts to n jumps. (b phase) 
 **--no-gap-jumps** | none |  Deactivate k-mer gap jumps, even if reference alignment has a proportion of gaps higher than "--gap-jump-thresh". (b phase) 
 **--noamb** | none | Do not treat ambiguous states, corresponding k-mers are skipped. (p phase)
+**--threads** | integer | #core to use with RAxML-ng to accelerate ancestral reconstruction. (b phase)
 
 
 

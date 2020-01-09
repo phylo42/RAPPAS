@@ -4,7 +4,7 @@ Due to a bug in earlier versions of PhyML, if you compile from sources
 we STRONGLY recommand to use PhyML >3.3.20190909 and RAPPAS >1.12 !
 You can download this version from PhyML GIT repository.
 
-If you use bioconda, these versions will be automatically selected.
+**If you install RAPPAS with conda, correct versions will be automatically selected.**
 
 
 Also, when placing on large trees, remember that the default limits of PhyML are quite low.
@@ -18,6 +18,8 @@ You can work with larger trees and longer sequence labels after the following ch
 #define  N_MAX_OTU         262144
 
 2) Recompile phyml after these changes.
+
+3) Launch RAPPAS.
 
 ``` 
 

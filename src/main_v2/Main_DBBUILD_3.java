@@ -139,7 +139,8 @@ public class Main_DBBUILD_3 {
                                         boolean acceptUnrootedRefTree,
                                         boolean onlyAR,
                                         boolean onlyARInput,
-                                        String dbFilename
+                                        String dbFilename,
+                                        int threads
                                     ) throws FileNotFoundException, IOException, ClassNotFoundException {
         
 
@@ -412,19 +413,25 @@ public class Main_DBBUILD_3 {
                 }
             }
             
-            if (onlyARInput) {
-                System.out.println("Only AR inputs were requested, pipeline stopped.");
-                System.exit(0);
-            }
-            
             //////////////////////////////////////
             //HERE LAUNCH AR ON RELAXED TREE THROUGH EXTERNAL BINARIES
-            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,s,model,arparameters);
+            ARProcessLauncher arpl=new ARProcessLauncher(ARBinary,verboseAR,s,model,arparameters,threads);
             //basique recognition of AR software is done through its ARBinary name
             //Note: even if AR is skipped (option --ardir),
             //ArgumentsParser.ARBinary value is used, which allows 
             //instanciation here. It will just not be executed.
-                 
+
+            //if only ar inputs were requested
+            if (onlyARInput) {
+                //one supplementary ar input when using paml, e.g. ctl file
+                if (arpl.currentProg==ARProcessLauncher.AR_PAML) {
+                    arpl.prepareAR(new File(ARPath),new File(extendedTreePath),new File(extendedTreePath));
+                }
+                System.out.println("Only AR inputs were requested, pipeline stopped.");
+                System.exit(0);
+            }
+
+
             if (launchAR) {
                 File alignmentFile=null;
                 File treeFile=null;

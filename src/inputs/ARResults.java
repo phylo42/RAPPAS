@@ -28,7 +28,7 @@ import tree.PhyloTree;
  * the correspondence between original PhyloTree and ExtendedTree.
  * @author ben
  */
-public class ARResults {
+public class    ARResults {
     
     //the parsed data
     private States s=null;
@@ -54,10 +54,11 @@ public class ARResults {
     
     /**
      * determines the source registered to this manager at instantiation
-     * @param source the source, as defined in the class ARProcessLauncher ; one of ARProcessLauncher.AR_???
-     * @param alignment
-     * @param Tree
-     * @param probas
+     * @param arpl
+     * @param extendedAlign
+     * @param extendedTree
+     * @param originalTree
+     * @param s
      */
     public ARResults(ARProcessLauncher arpl, Alignment extendedAlign, PhyloTree originalTree, ExtendedTree extendedTree, States s) {
         this.arpl=arpl;
@@ -142,7 +143,7 @@ public class ARResults {
                 //input:        ((C1,C2)node,C3)root;
                 //phyml output: (C3,C1,C2)newick_root;
                 //then we go back to the original input configuration, i.e.
-                //((C1,C2)newick_root,C3)added_root;q
+                //((C1,C2)newick_root,C3)added_root;
                 this.ARTree=pw.parseTree(new FileInputStream(tree),true);
                 Infos.println("AR tree was unrooted by PhyML, rerooting for coherent jplace result. Now rooted: "+ARTree.isRooted());
                 File rerooted=new File(tree.getAbsolutePath()+"_rerooted");
@@ -161,7 +162,39 @@ public class ARResults {
             endTime = System.currentTimeMillis();
             Infos.println("Loading of PHYML Postrerior Probas used " + (endTime - startTime) + " ms");
             
-        } 
+        } else if (this.arpl.currentProg==ARProcessLauncher.AR_RAXMLNG) {
+            File tree = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+".raxml.ancestralTree");
+            long startTime = System.currentTimeMillis();
+            RAXMLNGWrapper rw=new RAXMLNGWrapper(extendedAlign,s);
+            this.ARTree=rw.parseTree(new FileInputStream(tree),false);
+            Infos.println("Original tree rooted? : "+originalTree.isRooted());
+            Infos.println("RAXMLNG AR tree rooted? : "+ARTree.isRooted());
+            if (originalTree.isRooted() && (!ARTree.isRooted()) ) {
+                //raxmlng AR unroot input tree even if they are rooted
+                //we need to reroot the tree as it was in the initial input
+                //What deos raxmlng ?
+                //input:         ((C1,C2)node,C3)root;
+                //raxmlng output: (C3,C1,C2)newick_root;
+                //then we go back to the original input configuration, i.e.
+                //((C1,C2)newick_root,C3)added_root;
+                this.ARTree=rw.parseTree(new FileInputStream(tree),true);
+                Infos.println("AR tree was unrooted by RAxML-ng, rerooting for coherent jplace result. Now rooted: "+ARTree.isRooted());
+                File rerooted=new File(tree.getAbsolutePath()+"_rerooted");
+                NewickWriter nw=new NewickWriter(rerooted);
+                nw.writeNewickTree(ARTree, true, true, false, false);
+                Infos.println("Rerooted tree written in :"+rerooted.getAbsolutePath());
+                nw.close();
+            }
+            long endTime = System.currentTimeMillis();
+            Infos.println("Loading of RAXMLNG modified tree used " + (endTime - startTime) + " ms");
+            //probas
+            Infos.println("Starting to parse AR Postrerior Probas...");
+            File probas = new File(arpl.ARPath.getAbsolutePath()+File.separator+arpl.alignPath.getName()+".raxml.ancestralProbs");
+            startTime = System.currentTimeMillis();
+            this.probas = rw.parseSortedProbas(new FileInputStream(probas),Float.MIN_VALUE,true,Integer.MAX_VALUE);
+            endTime = System.currentTimeMillis();
+            Infos.println("Loading of RAXMLNG Postrerior Probas used " + (endTime - startTime) + " ms");
+        }
 
         
     }

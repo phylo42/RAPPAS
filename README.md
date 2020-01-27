@@ -1,9 +1,14 @@
-# RAPPAS :  Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
+# RAPPAS :
+# Rapid Alignment-free Phylogenetic Placement via Ancestral Sequences
 
+#### *Benjamin Linard, Krister Swenson, Fabio Pardi.*
+#### *Bioinformatics, Volume 35, Issue 18, 15 September 2019, Pages 3303–3312*
 
-**This README contains short instructions to build and launch RAPPAS.**
+#### *doi.org/10.1093/bioinformatics/btz068*
 
-**You will find __more detailed instructions, test datasets, pre-built databases and tutorials__ and discussions related to phylogenetic placement on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).**
+This README contains short instructions to build and launch RAPPAS.
+
+You will find __more detailed instructions, test datasets, pre-built databases and tutorials__ and discussions related to phylogenetic placement on the [wiki page](https://github.com/blinard-BIOINFO/RAPPAS/wiki).
 
 
 ## Important notices

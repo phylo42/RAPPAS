@@ -12,6 +12,7 @@
 
 <br />
 
+RAPPAS is a program dedicated to "Phylogenetic Placement" (PP) of metagenomic or metabarcoding reads on a reference tree. As apposed to previous PP programs, RAPPAS is based on the phylo-kmers idea, detailed in tis manuscript and uses a 2 step approach divided into a) the database build, and b) the placement itself.
 
 This README contains short instructions to build and launch RAPPAS. 
 

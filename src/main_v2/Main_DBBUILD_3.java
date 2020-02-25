@@ -43,12 +43,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import models.EvolModel;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.statistics.HistogramDataset;
-import org.jfree.data.statistics.HistogramType;
 import tree.NewickReader;
 import tree.NewickWriter;
 import tree.PhyloNode;
@@ -1241,52 +1235,6 @@ public class Main_DBBUILD_3 {
             //closing some stuff
             arpr=null;
             session=null;              
-    }
-    
-    
-    
-    private static void outputWordBucketSize(double[]value,int binNumber,File outputFile, int k, float factor) {
-        HistogramDataset dataset = new HistogramDataset();
-        dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-        dataset.addSeries("Histogram",value,binNumber);
-        String plotTitle = "Word bucket sizes: k="+k+" fact="+factor; 
-        String xaxis = "bucket_size";
-        String yaxis = "proportion of words"; 
-        PlotOrientation orientation = PlotOrientation.VERTICAL; 
-        boolean show = false; 
-        boolean toolTips = false;
-        boolean urls = false; 
-        JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
-                dataset, orientation, show, toolTips, urls);
-        int width = 750;
-        int height = 450; 
-        try {
-            ChartUtilities.saveChartAsPNG(outputFile, chart, width, height);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private static void outputWordPerNode(double[]value,int binNumber,File outputFile, int k, float factor) {
-        HistogramDataset dataset = new HistogramDataset();
-        dataset.setType(HistogramType.RELATIVE_FREQUENCY);
-        dataset.addSeries("Histogram",value,binNumber);
-        String plotTitle = "Words generated per node: k="+k+" fact="+factor; 
-        String xaxis = "# word";
-        String yaxis = "proportion of nodes"; 
-        PlotOrientation orientation = PlotOrientation.VERTICAL; 
-        boolean show = false; 
-        boolean toolTips = false;
-        boolean urls = false; 
-        JFreeChart chart = ChartFactory.createHistogram( plotTitle, xaxis, yaxis, 
-                dataset, orientation, show, toolTips, urls);
-        int width = 750;
-        int height = 450; 
-        try {
-            ChartUtilities.saveChartAsPNG(outputFile, chart, width, height);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
     
     

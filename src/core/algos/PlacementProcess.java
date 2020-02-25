@@ -5,7 +5,6 @@
  */
 package core.algos;
 
-import com.google.common.math.Quantiles;
 import core.DNAStatesShifted;
 import core.hash.Pair;
 import etc.Infos;
@@ -354,7 +353,9 @@ public class PlacementProcess {
         System.out.println("Queries actually placed:"+queryPlacedCounter);
 
         //use the normalized scores to define quantile
-        return new Double(Quantiles.scale(q_quantile).index(n_quantile).compute(normalizedScores)).floatValue();        
+        //return new Double(Quantiles.scale(q_quantile).index(n_quantile).compute(normalizedScores)).floatValue();
+
+        throw new UnsupportedOperationException();
         
     }
     
@@ -1255,7 +1256,6 @@ public class PlacementProcess {
     /**
      * get kth largest element in average O(n) linear time (Hoare's selection algorithm)
      * @param arr
-     * @param data 
      * @param k th element to return
      * @return 
      */

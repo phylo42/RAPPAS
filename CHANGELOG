@@ -1,3 +1,6 @@
+v1.21
+- removed dependancies to Guava and Jfreechart, which were related to outdated debug functions
+
 v1.20
 
 + project configuration migration from Netbeans to IntelliJ IDEA

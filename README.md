@@ -256,7 +256,7 @@ option | expected value {default} | description
 **--ratio-reduction** | float in ]0,1] {0.99} |Ratio for alignment reduction, i.e. sites holding >99% gaps are ignored. (b phase)
 **--no-reduction** |  none  | Do not operate alignment reduction. This will keep all sites of input reference alignment but may produce erroneous ancestral k-mers. (b phase)
 **--gap-jump-thresh** | float in ]0,1] {0.3}| Gap ratio above which gap jumps are activated, for instance if the reference alignment holds more than 30% of gaps. (b phase)
-**--omega** | float in ]0,#states] {1.0} | Ratio levelling the probability threshold used in phylo-kmer filtering. (b phase)
+**--omega** | float in ]0,#states] {1.5} | Ratio levelling the probability threshold used in phylo-kmer filtering. (b phase)
 **--use_unrooted** | none | Confirms you accept to use an unrooted reference tree (option -t). The trifurcation described in the newick file will be considered as root. Be aware that meaningless roots may impact accuracy. (b phase)
 
 __Debug options:__

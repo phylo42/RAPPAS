@@ -6,7 +6,7 @@ and
 [**Benchmarking**](https://github.com/phylo42/PEWO) 
 [![license](https://img.shields.io/github/license/shenwei356/seqkit.svg?maxAge=2592000)](https://github.com/phylo42/RAPPAS/LICENSE)
 [![Cross-platform](https://img.shields.io/badge/platform-any-ec2eb4.svg?style=flat)](https://github.com/phylo42/RAPPAS)
-- **[Please cite](#citation):** [![doi](https://img.shields.io/badge/doi-10.1371%2Fjournal.pone.0163962-blue.svg?style=flat)](https://doi.org/10.1093/bioinformatics/btz0682)
+- **Please cite:** [![doi](https://img.shields.io/badge/doi-10.1371%2Fjournal.pone.0163962-blue.svg?style=flat)](https://doi.org/10.1093/bioinformatics/btz0682)
 
 
 

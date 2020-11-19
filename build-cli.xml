@@ -26,7 +26,7 @@
     <javac includeantruntime="false" />
   </presetdef>
   <target name="compile" depends="init" >
-    <javac srcdir="${src}" destdir="${build}" optimize="on" source="1.8" target="1.8">
+    <javac srcdir="${src}" destdir="${build}" optimize="on" source="1.8" target="1.8" encoding="UTF-8">
        <classpath refid="project.classpath" />
     </javac>
   </target>

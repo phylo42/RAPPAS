@@ -5,7 +5,7 @@
 and 
 [**Benchmarking**](https://github.com/phylo42/PEWO) 
 
-- **Please cite:** [![doi](https://img.shields.io/static/v1?label=doi&message=10.1093/bioinformatics/btz0682&color=blue)](https://doi.org/10.1093/bioinformatics/btz0682)
+- **Please cite:** [![doi](https://img.shields.io/static/v1?label=doi&message=10.1093/bioinformatics/btz0682&color=blue)](https://doi.org/10.1093/bioinformatics/btz068)
 
 
 

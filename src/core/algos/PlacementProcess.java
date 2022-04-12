@@ -20,11 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jonelo.jacksum.JacksumAPI;
@@ -397,70 +393,63 @@ public class PlacementProcess {
     	return Math.pow(10.0, (double)(s.score-weightRatioShift))/allLikelihoodSums;
     }
     
-    public static double fillBestScoreList(float[] nodeScores, float[] nodeScoresCopy, List<Integer> selectedNodes, Score[] bestScoreList, int numberOfBestScoreToConsiderForOutput) {
+    public double fillBestScoreList(float[] nodeScores, List<Integer> selectedNodes, Score[] bestScoreList, int numBest) {
     	double allLikelihoodSums = 0.0;
-    	
-    	System.arraycopy(nodeScores, 0, nodeScoresCopy, 0, nodeScores.length);
-        
-    	//selection algo, on average O(n)
-        //the kth value to select is selectedNodes.size()-keepAtMost, because ascending order:
-        // <-- nodes with scores =selectedNodes    --> <-- not scored = 0   -->
-        //[-3.5,-3.2,...,-1.6,-0.5,-2e-2,-1e-5,0.0,0.0 ,0,0,0,0,0,0,0,...,0,0,0]
-        float kthLargestValue=selectKthLargestValue(nodeScoresCopy, selectedNodes.size()-numberOfBestScoreToConsiderForOutput);
-    	
-        float lowest = 0.0f;
-        float best = -Float.MAX_VALUE;
-        
-        //System.out.println("kthLargestValue:"+kthLargestValue);
-        //search all node scores larger than this kth value
-        int i=0;
-        for (int nodeId:selectedNodes) {
-            if (i==numberOfBestScoreToConsiderForOutput) { 
-                break;
-                //we already got the nth best scores,
-                //no need to iterate more because nothing more will be
-                //output to the jplace 
-            }
-            if (nodeScores[nodeId]>=kthLargestValue) {
-                //System.out.println("nodeId:"+nodeId+" nodeScores[nodeId]:"+nodeScores[nodeId]+"\t\tnodeScores[nodeId]:"+nodeScores[nodeId]);
-                //division by kmer count to normalize
-                bestScoreList[i].score=nodeScores[nodeId];
-                bestScoreList[i].nodeId=nodeId;
-                
-                //build the total likelihood sum (for the likelihood weight ratio)
-                //before the power of ten, divide by #words, to use the normalized score
-                allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[i].score));
 
-                //remind lower power of 10, if goes below double limit, 
-                //will need to shift the values
-                if (bestScoreList[i].score<lowest) {
-                	lowest=bestScoreList[i].score;
-                }
-                if (bestScoreList[i].score > best) {
-                	best=bestScoreList[i].score;
-                }
-                i++;
+        // Support k-best max heap, where k is the number of placements to keep.
+        // Visit only 'selected nodes'
+        PriorityQueue<Score> heap = new PriorityQueue<Score>();
+        for (int nodeId : selectedNodes)
+        {
+            heap.add(new Score(nodeId, nodeScores[nodeId]));
+
+            if (heap.size() > numBest) {
+                heap.remove();
             }
         }
-        
-        //finally do a sort of bestScoreList, O(k.log(k))
+
+        // Find the max and the min score among selected,
+        // find the total score sum
+        float lowest = 0.0f;
+        float best = -Float.MAX_VALUE;
+        for (Score scorePair: heap) {
+            // calculate the total likelihood sum (for the likelihood weight ratio)
+            // before the power of ten, divide by #words, to use the normalized score
+            allLikelihoodSums += Math.pow(10.0, scorePair.score);
+
+            // remind lower power of 10, if goes below double limit,
+            // will need to shift the values
+            if (scorePair.score < lowest) {
+                lowest = scorePair.score;
+            }
+            if (scorePair.score > best) {
+                best = scorePair.score;
+            }
+        }
+
+        // copy to the output array
+        int i = 0;
+        for (Score scorePair : heap) {
+            bestScoreList[i] = scorePair;
+            i++;
+        }
         Arrays.sort(bestScoreList);
-        
-        //if necessary
-        //prepare variable weightRatioShift for allowing
-        //weight-ratio computations when proba is < to "double" primitive boundary
+
+        // if necessary
+        // prepare variable weightRatioShift for allowing
+        // weight-ratio computations when proba is < to "double" primitive boundary
         float weightRatioShift = computeWeightRatioShift(lowest, best);
         if (weightRatioShift != 0.0f) {
-            //System.out.println("weightRatioShift set to: "+weightRatioShift);
-            //rebuild allLikelihoodSums using the shift
-            allLikelihoodSums=0.0;
-            for (int ii=bestScoreList.length-numberOfBestScoreToConsiderForOutput;ii<bestScoreList.length;ii++) {
-                allLikelihoodSums+=Math.pow(10.0, (double)(bestScoreList[ii].score-weightRatioShift));
+            // rebuild allLikelihoodSums using the shift
+            allLikelihoodSums = 0.0;
+            for (int ii = bestScoreList.length-numBest; ii < bestScoreList.length; ii++) {
+                allLikelihoodSums += Math.pow(10.0, (double)(bestScoreList[ii].score-weightRatioShift));
             }
         }
         
         return allLikelihoodSums;
     }
+
     
     /**
      * 
@@ -505,7 +494,6 @@ public class PlacementProcess {
         //instanciated once
         int[] C=new int[session.originalTree.getNodeCount()]; // tab[#times_encoutered] --> index=nodeId
         float[] S=new float[session.originalTree.getNodeCount()]; // tab[score] --> index=nodeId
-        float[] nodeScoresCopy=new float[session.originalTree.getNodeCount()]; // copy that will be consumed in the Hoare's selection algorithm
         int numberOfBestScoreToConsiderForOutput=-1;
         Score[] bestScoreList=new Score[keepAtMost]; //in ascending order
         for (int i = 0; i < bestScoreList.length; i++) {
@@ -839,11 +827,11 @@ public class PlacementProcess {
             if (useSelectionAlgo) {
                 numberOfBestScoreToConsiderForOutput=keepAtMost;
                 //level down keepAtMost is less nodes were selected
-                if(L.size()<keepAtMost) {
+                if (L.size()<keepAtMost) {
                     numberOfBestScoreToConsiderForOutput=L.size();
                 }
             	
-                allLikelihoodSums = fillBestScoreList(S, nodeScoresCopy, L, bestScoreList, numberOfBestScoreToConsiderForOutput);
+                allLikelihoodSums = fillBestScoreList(S, L, bestScoreList, numberOfBestScoreToConsiderForOutput);
 
                 bestScore=bestScoreList[bestScoreList.length-1].score;
                 bestNodeId=bestScoreList[bestScoreList.length-1].nodeId;
@@ -1071,14 +1059,13 @@ public class PlacementProcess {
                     sb=new StringBuffer(size);
                 }   
             }
-            
+
 
 
             //reset the scoring vectors
             long startResetTime=System.currentTimeMillis();
             for (Integer nodeId : L) {
                 S[nodeId]=0.0f;
-                nodeScoresCopy[nodeId]=0.0f;
                 C[nodeId]=0;
             }
             for (int i = 0; i < bestScoreList.length; i++) {
@@ -1252,52 +1239,8 @@ public class PlacementProcess {
     public boolean parallelProcessReads() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    /**
-     * get kth largest element in average O(n) linear time (Hoare's selection algorithm)
-     * @param arr
-     * @param k th element to return
-     * @return 
-     */
-    public static float selectKthLargestValue(float[] arr, int k) {
-        if (arr == null || arr.length <= k) {
-            throw new Error();
-        }
 
-        int from = 0, to = arr.length - 1;
 
-        // if from == to we reached the kth element
-        while (from < to) {
-            int r = from, w = to;
-            float mid = arr[(r + w) / 2];
-            // stop if the reader and writer meets
-            while (r < w) {
-               if (arr[r] >= mid) { // put the large values at the end
-                    float tmp = arr[w];
-                    arr[w] = arr[r];
-                    arr[r] = tmp;
-                    w--;
-                } else { // the value is smaller than the pivot, skip
-                    r++;
-                }
-        }
-        // if we stepped up (r++) we need to step one down
-        if (arr[r] > mid)
-            r--;
-
-        // the r pointer is on the end of the first k elements
-            if (k <= r) {
-                to = r;
-            } else {
-                from = r + 1;
-            }
-        }
-        return arr[k];
-    }
-    
-    
-    
-    
     /**
      * simple class to wrap the score and likelihood_weight_ratio associated to the n best nodes
      */

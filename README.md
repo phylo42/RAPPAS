@@ -1,3 +1,30 @@
+## NOT MAINTAINED ANYMORE, PLEASE SWITCH TO ITS SUCCESSOR, "EPIK" !
+
+[EPIK repository](https://github.com/phylo42/EPIK)
+
+**RAPPAS can be considered deprecated.**
+**Please switch to its successor, EPIK**
+
+ * This repository is hardly maintained anymore.
+ * Devolpments moved to C++.
+ * The second iteration of the approach is renamed **EPIK**.
+ * It is 2 orders of magnitude faster, and requires order(s) of magnitude less RAM.
+
+**Repository:** [EPIK repository](https://github.com/phylo42/EPIK)
+
+**Improvements compared to RAPPAS :**
+[https://doi.org/10.1093/bioinformatics/btad692](https://doi.org/10.1093/bioinformatics/btad692)
+
+__________________________________________________
+__________________________________________________
+__________________________________________________
+__________________________________________________
+__________________________________________________
+__________________________________________________
+__________________________________________________
+__________________________________________________
+
+
 # RAPPAS
 [![license](https://img.shields.io/github/license/shenwei356/seqkit.svg?maxAge=2592000)](https://github.com/phylo42/RAPPAS/LICENSE) [![Cross-platform](https://img.shields.io/badge/platform-any-ec2eb4.svg?style=flat)](https://github.com/phylo42/RAPPAS)
 - **Documents:** [**Usage**](https://github.com/phylo42/RAPPAS/wiki),

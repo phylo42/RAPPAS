@@ -8,7 +8,7 @@
  * This repository is hardly maintained anymore.
  * Devolpments moved to C++.
  * The second iteration of the approach is renamed **EPIK**.
- * It is 2 orders of magnitude faster, and requires order(s) of magnitude less RAM.
+ * It is order(s) of magnitude faster, and requires order(s) of magnitude less RAM.
 
 **Repository:** [EPIK repository](https://github.com/phylo42/EPIK)
 
